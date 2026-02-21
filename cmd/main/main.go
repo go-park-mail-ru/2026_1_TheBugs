@@ -1,9 +1,10 @@
 package main
 
 import (
-	"2026_1_the_bugs/config"
-	"2026_1_the_bugs/internal/app"
 	"log"
+
+	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/app"
 )
 
 func main() {

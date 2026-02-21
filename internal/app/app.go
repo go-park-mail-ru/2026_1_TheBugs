@@ -1,8 +1,6 @@
 package app
 
 import (
-	"2026_1_the_bugs/config"
-	"2026_1_the_bugs/internal/delivery/restapi"
 	"context"
 	"fmt"
 	"log"
@@ -10,6 +8,9 @@ import (
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi"
 
 	"github.com/gorilla/mux"
 )

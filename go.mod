@@ -1,4 +1,4 @@
-module 2026_1_the_bugs
+module github.com/go-park-mail-ru/2026_1_TheBugs
 
 go 1.24.6
 

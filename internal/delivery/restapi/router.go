@@ -1,9 +1,10 @@
 package restapi
 
 import (
-	"2026_1_the_bugs/internal/delivery/restapi/middleware"
 	"encoding/json"
 	"net/http"
+
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 
 	"github.com/gorilla/mux"
 )
