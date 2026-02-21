@@ -1,0 +1,18 @@
+server:
+  host: localhost
+  port: 8000
+  write-timeout: 5s
+  read-timeout: 5s
+  idle-timeout: 20s
+
+postgres:
+  host: localhost
+  port: 5432
+  user: thebugs
+  password: thebugs
+  database: main
+  sslmode: disable
+  max-open-connections: 10
+  conn-max-lifetime: 30s
+  max-idle-conns: 50
+  conn-max-idle-time: 15s
