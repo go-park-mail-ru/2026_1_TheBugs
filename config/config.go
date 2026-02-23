@@ -37,7 +37,8 @@ type (
 )
 
 func Read() error {
-	if err := cleanenv.ReadConfig("c:/Users/Артемий/OneDrive/Desktop/code/2026_1_TheBugs/config/config.yaml", &Config); err != nil {
+	// c:/Users/Артемий/OneDrive/Desktop/code/2026_1_TheBugs/ этот оставил для дебага у вас будет свой
+	if err := cleanenv.ReadConfig("config/config.yaml", &Config); err != nil {
 		return fmt.Errorf("error while reading application configuration: %w", err)
 	}
 
