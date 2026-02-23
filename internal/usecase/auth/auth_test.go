@@ -44,6 +44,7 @@ func (r *MockUserRepo) CreateUser(dto dto.CreateUserDTO) (entity.User, error) {
 }
 
 func TestRegisterUseCaseOK(t *testing.T) {
+	t.Parallel()
 	testEmail := "email"
 	testPwd := "pwd"
 	mock := NewMockUserRepo(make([]entity.User, 0))
@@ -59,6 +60,7 @@ func TestRegisterUseCaseOK(t *testing.T) {
 }
 
 func TestRegisterUseCaseErr(t *testing.T) {
+	t.Parallel()
 	testEmail := "email"
 	testPwd := "pwd"
 	mock := NewMockUserRepo([]entity.User{{Email: testEmail}})
