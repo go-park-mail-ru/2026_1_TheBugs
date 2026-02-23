@@ -4,15 +4,14 @@ import (
 	"log"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/google/uuid"
 )
 
 type Repo interface {
-	GetUserByEmail(email string) (entity.User, error)
-	CreateUser(dto dto.CreateUserDTO) (entity.User, error)
+	GetUserByEmail(email string) (*entity.User, error)
+	CreateUser(dto dto.CreateUserDTO) (*entity.User, error)
 }
 
 type UserRepo struct {
@@ -25,17 +24,17 @@ func NewUserRepo() *UserRepo {
 	}
 }
 
-func (r *UserRepo) GetUserByEmail(email string) (entity.User, error) {
+func (r *UserRepo) GetUserByEmail(email string) (*entity.User, error) {
 	for _, u := range r.userSlice {
 		if u.Email == email {
-			return u, nil
+			return &u, nil
 		}
 	}
-	return entity.User{}, repository.NotFoundRecord
+	return nil, entity.NotFoundError
 
 }
 
-func (r *UserRepo) CreateUser(dto dto.CreateUserDTO) (entity.User, error) {
+func (r *UserRepo) CreateUser(dto dto.CreateUserDTO) (*entity.User, error) {
 	id := uuid.New()
 	newUser := entity.User{
 		Id:             id.String(),
@@ -45,5 +44,5 @@ func (r *UserRepo) CreateUser(dto dto.CreateUserDTO) (entity.User, error) {
 	}
 	r.userSlice[id.String()] = newUser
 	log.Println(r.userSlice)
-	return newUser, nil
+	return &newUser, nil
 }

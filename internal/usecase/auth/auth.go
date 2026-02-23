@@ -1,12 +1,11 @@
 package auth
 
 import (
-	"log"
-
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/user"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/pwd"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/validator"
 )
 
 type AuthUseCase struct {
@@ -19,24 +18,43 @@ func NewAuthUseCase(repo user.Repo) *AuthUseCase {
 	}
 }
 func (uc AuthUseCase) RegisterUseCase(email string, password string) error {
-	_, err := uc.repo.GetUserByEmail(email)
-	if err == nil {
-		return usecase.AlredyExitError
+	if !validator.ValidateEmail(email) || !validator.ValidatePwd(password) {
+		return entity.InvalidInput
+	}
+	existing, err := uc.repo.GetUserByEmail(email)
+	if existing != nil {
+		return entity.AlredyExitError
+	}
+	if err != nil {
+		return entity.ServiceError
 	}
 	salt, err := pwd.GenerateSalt()
 	if err != nil {
-		return usecase.ServiceError
+		return entity.ServiceError
 	}
 	hashedPwd := pwd.HashPassword(password, []byte(salt))
-	log.Println(hashedPwd)
-	u, err := uc.repo.CreateUser(dto.CreateUserDTO{
+	_, err = uc.repo.CreateUser(dto.CreateUserDTO{
 		Email:          email,
 		HashedPassword: hashedPwd,
 		Salt:           salt,
 	})
-	log.Println(u)
 	if err != nil {
-		return usecase.AlredyExitError
+		return entity.AlredyExitError
+	}
+	return nil
+}
+
+func (uc AuthUseCase) LoginUseCase(email string, passwod string) error {
+	if !validator.ValidateEmail(email) || !validator.ValidatePwd(passwod) {
+		return entity.InvalidInput
+	}
+	user, err := uc.repo.GetUserByEmail(email)
+	if err != nil {
+		return entity.NotFoundError
+	}
+	ok := pwd.VerifyPassword(passwod, []byte(user.Satl), user.HashedPassword)
+	if !ok {
+		return entity.BadCredentials
 	}
 	return nil
 }

@@ -4,67 +4,63 @@ import (
 	"testing"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
-	"github.com/google/uuid"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/mocks"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )
 
-type MockUserRepo struct {
-	Slice []entity.User
-}
-
-func NewMockUserRepo(slice []entity.User) *MockUserRepo {
-	return &MockUserRepo{
-		Slice: slice,
-	}
-}
-
-func (r *MockUserRepo) GetUserByEmail(email string) (entity.User, error) {
-	for _, u := range r.Slice {
-		if u.Email == email {
-			return u, nil
-		}
-	}
-	return entity.User{}, repository.NotFoundRecord
-
-}
-
-func (r *MockUserRepo) CreateUser(dto dto.CreateUserDTO) (entity.User, error) {
-	id := uuid.New()
-	newUser := entity.User{
-		Id:             id.String(),
-		Email:          dto.Email,
-		HashedPassword: dto.HashedPassword,
-		Satl:           dto.Salt,
-	}
-	r.Slice = append(r.Slice, newUser)
-	return newUser, nil
-}
-
 func TestRegisterUseCaseOK(t *testing.T) {
 	t.Parallel()
-	testEmail := "email"
-	testPwd := "pwd"
-	mock := NewMockUserRepo(make([]entity.User, 0))
+
+	testEmail := "test@gmail.com"
+	testPwd := "dpofdOPOOo12"
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mock := mocks.NewMockRepo(ctrl)
+	gomock.InOrder(
+		mock.EXPECT().GetUserByEmail(gomock.Any()).Return(nil, nil).Times(1),
+		mock.EXPECT().CreateUser(gomock.Any()).Return(nil, nil).Times(1),
+	)
 
 	uc := NewAuthUseCase(mock)
 	err := uc.RegisterUseCase(testEmail, testPwd)
 	require.NoError(t, err)
-
-	u, err := mock.GetUserByEmail(testEmail)
-	require.NoError(t, err)
-
-	require.Equal(t, testEmail, u.Email)
 }
 
 func TestRegisterUseCaseErr(t *testing.T) {
 	t.Parallel()
-	testEmail := "email"
-	testPwd := "pwd"
-	mock := NewMockUserRepo([]entity.User{{Email: testEmail}})
+	testEmail := "test@gmail.com"
+	testPwd := "dpofdOPOOo12"
+
+	existingUser := entity.User{Email: "test"}
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mock := mocks.NewMockRepo(ctrl)
+	gomock.InOrder(
+		mock.EXPECT().GetUserByEmail(gomock.Any()).Return(&existingUser, nil),
+		mock.EXPECT().CreateUser(gomock.Any()).Return(nil, nil).Times(0),
+	)
+
 	uc := NewAuthUseCase(mock)
 	err := uc.RegisterUseCase(testEmail, testPwd)
-	require.ErrorIs(t, err, usecase.AlredyExitError)
+	require.ErrorIs(t, err, entity.AlredyExitError)
+}
+
+func TestRegisterUseCaseValidateErr(t *testing.T) {
+	t.Parallel()
+	testEmail := "wrong_email"
+	testPwd := "dpofdOPOOo121"
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mock := mocks.NewMockRepo(ctrl)
+
+	uc := NewAuthUseCase(mock)
+	err := uc.RegisterUseCase(testEmail, testPwd)
+	require.ErrorIs(t, err, entity.InvalidInput)
 }
