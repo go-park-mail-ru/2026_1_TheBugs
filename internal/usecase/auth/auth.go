@@ -1,10 +1,14 @@
 package auth
 
 import (
+	"errors"
+
+	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/user"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/pwd"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/tokens"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/validator"
 )
 
@@ -26,7 +30,10 @@ func (uc AuthUseCase) RegisterUseCase(email string, password string) error {
 		return entity.AlredyExitError
 	}
 	if err != nil {
-		return entity.ServiceError
+		if !errors.Is(err, entity.NotFoundError) {
+			return entity.ServiceError
+		}
+
 	}
 	salt, err := pwd.GenerateSalt()
 	if err != nil {
@@ -44,17 +51,24 @@ func (uc AuthUseCase) RegisterUseCase(email string, password string) error {
 	return nil
 }
 
-func (uc AuthUseCase) LoginUseCase(email string, passwod string) error {
+func (uc AuthUseCase) LoginUseCase(email string, passwod string) (*dto.UserAccessCredDTO, error) {
+	var cred dto.UserAccessCredDTO
 	if !validator.ValidateEmail(email) || !validator.ValidatePwd(passwod) {
-		return entity.InvalidInput
+		return &cred, entity.InvalidInput
 	}
 	user, err := uc.repo.GetUserByEmail(email)
 	if err != nil {
-		return entity.NotFoundError
+		return &cred, entity.NotFoundError
 	}
 	ok := pwd.VerifyPassword(passwod, []byte(user.Satl), user.HashedPassword)
 	if !ok {
-		return entity.BadCredentials
+		return &cred, entity.BadCredentials
 	}
-	return nil
+	accessToken, err := tokens.GenerateJWT(user.Id, "access", config.Config.JWT.AccessExp)
+	if err != nil {
+		return &cred, entity.ServiceError
+	}
+	cred.AccessToken = accessToken
+	cred.AccessTokenExp = int(config.Config.JWT.AccessExp.Seconds())
+	return &cred, nil
 }

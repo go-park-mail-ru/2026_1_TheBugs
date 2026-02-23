@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"log"
@@ -47,11 +48,11 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		log.Printf("parse.ParseFormData: %s", err)
 		middleware.HandelError(w, err)
 	}
-	err = h.uc.LoginUseCase(cred.Email, cred.Password)
+	accessCred, err := h.uc.LoginUseCase(cred.Email, cred.Password)
 	if err != nil {
 		log.Printf("h.uc.LoginUseCase: %s", err)
 		middleware.HandelError(w, err)
 	}
-	w.WriteHeader(http.StatusNoContent)
-
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(accessCred)
 }

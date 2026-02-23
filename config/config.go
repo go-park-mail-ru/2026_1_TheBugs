@@ -1,6 +1,7 @@
 package config
 
 import (
+	"crypto/rsa"
 	"fmt"
 	"log"
 	"time"
@@ -9,11 +10,13 @@ import (
 )
 
 var Config ProjectConfig
+var JWTKeys RSAKeys
 
 type (
 	ProjectConfig struct {
 		Server   `yaml:"server"`
 		Postgres `yaml:"postgres"`
+		JWT      `yaml:"jwt"`
 	}
 
 	Server struct {
@@ -34,17 +37,41 @@ type (
 		MaxOpenConns    int           `yaml:"max-open-connections" env:"PG_MAX_OPEN_CONN" env-default:"10"`
 		ConnMaxLifetime time.Duration `yaml:"conn-max-lifetime" env:"PG_CONN_MAX_LIFETIME" env-default:"30s"`
 	}
+	JWT struct {
+		PublicKeySource  string        `yaml:"public-key-source"    env:"JWT_PUBLIC_KEY_SOURCE" env-default:"public.pem"`
+		PrivateKeySource string        `yaml:"private-key-source"    env:"JWT_PRIVATE_KEY_SOURCE" env-default:"private.pem"`
+		AccessExp        time.Duration `yaml:"access-exp"    env:"JWT_ACCESS_EXP" env-default:"15m"`
+		RefreshExp       time.Duration `yaml:"refresh-exp"    env:"JWT_REFRESH_EXP" env-default:"24h"`
+	}
+	RSAKeys struct {
+		PublicKey  *rsa.PublicKey
+		PrivateKey *rsa.PrivateKey
+	}
 )
 
 func Read() error {
+	var err error
 	// c:/Users/Артемий/OneDrive/Desktop/code/2026_1_TheBugs/ этот оставил для дебага у вас будет свой
-	if err := cleanenv.ReadConfig("config/config.yaml", &Config); err != nil {
+	if err = cleanenv.ReadConfig("config/config.yaml", &Config); err != nil {
 		return fmt.Errorf("error while reading application configuration: %w", err)
 	}
 
-	if err := cleanenv.ReadEnv(&Config); err != nil {
+	if err = cleanenv.ReadEnv(&Config); err != nil {
 		return fmt.Errorf("error creating configuration object: %w", err)
 	}
+	JWTKeys.PrivateKey, err = LoadPrivateKey(Config.JWT.PrivateKeySource)
+	if err != nil {
+		return fmt.Errorf("error load private key: %w", err)
+	}
+	log.Println("reading private key is successful")
+
+	JWTKeys.PublicKey, err = LoadPublicKey(Config.JWT.PublicKeySource)
+	if err != nil {
+		return fmt.Errorf("error load public key: %w", err)
+	}
+	log.Println("reading public key is successful")
 	log.Println("reading configuration is successful")
+	log.Println(Config.JWT.AccessExp)
+	log.Println(Config.JWT.RefreshExp)
 	return nil
 }

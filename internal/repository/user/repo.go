@@ -46,3 +46,5 @@ func (r *UserRepo) CreateUser(dto dto.CreateUserDTO) (*entity.User, error) {
 	log.Println(r.userSlice)
 	return &newUser, nil
 }
+
+//func (r *UserRepo) CreateUserRefreshToken(userID string, tokenID string)
