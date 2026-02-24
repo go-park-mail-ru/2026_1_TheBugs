@@ -30,14 +30,14 @@ func (r *UserRepo) GetUserByEmail(email string) (*entity.User, error) {
 }
 
 func (r *UserRepo) CreateUser(dto dto.CreateUserDTO) (*entity.User, error) {
-	id := uuid.New()
+	id := uuid.NewString()
 	newUser := entity.User{
-		Id:             id.String(),
+		Id:             id,
 		Email:          dto.Email,
 		HashedPassword: dto.HashedPassword,
 		Satl:           dto.Salt,
 	}
-	r.userSlice[id.String()] = newUser
+	r.userSlice[id] = newUser
 	log.Println(r.userSlice)
 	return &newUser, nil
 }

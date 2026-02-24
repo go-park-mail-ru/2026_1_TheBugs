@@ -63,13 +63,11 @@ func Read() error {
 	if err != nil {
 		return fmt.Errorf("error load private key: %w", err)
 	}
-	log.Println("reading private key is successful")
 
 	JWTKeys.PublicKey, err = LoadPublicKey(Config.JWT.PublicKeySource)
 	if err != nil {
 		return fmt.Errorf("error load public key: %w", err)
 	}
-	log.Println("reading public key is successful")
 	log.Println("reading configuration is successful")
 	return nil
 }

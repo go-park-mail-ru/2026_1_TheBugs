@@ -4,6 +4,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"os"
 )
@@ -16,17 +17,17 @@ func LoadPrivateKey(filename string) (*rsa.PrivateKey, error) {
 
 	block, _ := pem.Decode(bytes)
 	if block == nil {
-		return nil, fmt.Errorf("неверный формат PEM")
+		return nil, errors.New("неверный формат PEM")
 	}
 
 	key, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("x509.ParsePKCS8PrivateKey: %w", err)
 	}
 
 	rsaKey, ok := key.(*rsa.PrivateKey)
 	if !ok {
-		return nil, fmt.Errorf("неверный тип ключа")
+		return nil, errors.New("неверный тип ключа")
 	}
 
 	return rsaKey, nil
@@ -40,17 +41,17 @@ func LoadPublicKey(filename string) (*rsa.PublicKey, error) {
 
 	block, _ := pem.Decode(bytes)
 	if block == nil {
-		return nil, fmt.Errorf("неверный формат PEM")
+		return nil, errors.New("неверный формат PEM")
 	}
 
 	key, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("x509.ParsePKIXPublicKey: %w", err)
 	}
 
 	rsaKey, ok := key.(*rsa.PublicKey)
 	if !ok {
-		return nil, fmt.Errorf("неверный тип ключа")
+		return nil, errors.New("неверный тип ключа")
 	}
 
 	return rsaKey, nil

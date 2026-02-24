@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
@@ -30,14 +31,14 @@ func (uc AuthUseCase) RegisterUseCase(email string, password string) error {
 		return entity.AlredyExitError
 	}
 	if err != nil {
-		if !errors.Is(err, entity.NotFoundError) {
-			return entity.ServiceError
+		if errors.Is(err, entity.NotFoundError) {
+			return entity.NotFoundError
 		}
-
+		return fmt.Errorf("uc.repo.GetUserByEmail: %w", err)
 	}
 	salt, err := pwd.GenerateSalt()
 	if err != nil {
-		return entity.ServiceError
+		return fmt.Errorf("pwd.GenerateSalt: %w", err)
 	}
 	hashedPwd := pwd.HashPassword(password, []byte(salt))
 	_, err = uc.repo.CreateUser(dto.CreateUserDTO{
@@ -46,7 +47,7 @@ func (uc AuthUseCase) RegisterUseCase(email string, password string) error {
 		Salt:           salt,
 	})
 	if err != nil {
-		return entity.AlredyExitError
+		return fmt.Errorf("uc.repo.CreateUser: %w", err)
 	}
 	return nil
 }

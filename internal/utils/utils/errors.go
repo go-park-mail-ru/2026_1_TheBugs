@@ -1,4 +1,4 @@
-package middleware
+package utils
 
 import (
 	"net/http"
@@ -9,7 +9,7 @@ import (
 func HandelError(w http.ResponseWriter, err error) {
 	switch err {
 	case entity.InvalidInput:
-		http.Error(w, "bad request data", http.StatusBadRequest)
+		http.Error(w, "bad request", http.StatusBadRequest)
 	case entity.BadCredentials:
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
 	case entity.NotFoundError:

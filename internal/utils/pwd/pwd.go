@@ -7,8 +7,10 @@ import (
 	"golang.org/x/crypto/argon2"
 )
 
+const saltLength = 16
+
 func GenerateSalt() (string, error) {
-	saltBytes := make([]byte, 16)
+	saltBytes := make([]byte, saltLength)
 	_, err := rand.Read(saltBytes)
 	if err != nil {
 		return "", err
