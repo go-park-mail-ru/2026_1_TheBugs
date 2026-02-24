@@ -16,6 +16,7 @@ require (
 )
 
 require (
+	bou.ke/monkey v1.0.2
 	github.com/BurntSushi/toml v1.2.1 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/ilyakaznacheev/cleanenv v1.5.0 // indirect

@@ -71,7 +71,5 @@ func Read() error {
 	}
 	log.Println("reading public key is successful")
 	log.Println("reading configuration is successful")
-	log.Println(Config.JWT.AccessExp)
-	log.Println(Config.JWT.RefreshExp)
 	return nil
 }

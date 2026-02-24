@@ -2,14 +2,20 @@ package auth
 
 import (
 	"testing"
+	"time"
 
+	"bou.ke/monkey"
+
+	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/mocks"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/pwd"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/tokens"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )
 
-func TestRegisterUseCaseOK(t *testing.T) {
+func TestRegisterUseCase_OK(t *testing.T) {
 	t.Parallel()
 
 	testEmail := "test@gmail.com"
@@ -29,7 +35,7 @@ func TestRegisterUseCaseOK(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestRegisterUseCaseErr(t *testing.T) {
+func TestRegisterUseCase_ConflictErr(t *testing.T) {
 	t.Parallel()
 	testEmail := "test@gmail.com"
 	testPwd := "dpofdOPOOo12"
@@ -50,7 +56,7 @@ func TestRegisterUseCaseErr(t *testing.T) {
 	require.ErrorIs(t, err, entity.AlredyExitError)
 }
 
-func TestRegisterUseCaseValidateErr(t *testing.T) {
+func TestRegisterUseCase_ValidateErr(t *testing.T) {
 	t.Parallel()
 	testEmail := "wrong_email"
 	testPwd := "dpofdOPOOo121"
@@ -62,5 +68,90 @@ func TestRegisterUseCaseValidateErr(t *testing.T) {
 
 	uc := NewAuthUseCase(mock)
 	err := uc.RegisterUseCase(testEmail, testPwd)
+	require.ErrorIs(t, err, entity.InvalidInput)
+}
+func TestLoginUseCase_OK(t *testing.T) {
+
+	testEmail := "test@gmail.com"
+	testPwd := "testgmailCom122"
+	testToken := "dummy.token.value"
+
+	config.JWTKeys.PrivateKey, _ = config.LoadPrivateKey("private.pem")
+
+	salt, _ := pwd.GenerateSalt()
+	testHashedPwd := pwd.HashPassword(testPwd, []byte(salt))
+	existingUser := entity.User{
+		Id:             "testID",
+		Email:          testEmail,
+		HashedPassword: testHashedPwd,
+		Satl:           salt,
+	}
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mock := mocks.NewMockRepo(ctrl)
+
+	mock.EXPECT().GetUserByEmail(gomock.Any()).Return(&existingUser, nil)
+
+	patch := monkey.Patch(tokens.GenerateJWT, func(id string, typ string, exp time.Duration) (string, error) {
+		return testToken, nil
+	})
+	defer patch.Unpatch()
+
+	uc := NewAuthUseCase(mock)
+	tokens, err := uc.LoginUseCase(testEmail, testPwd)
+	require.NoError(t, err)
+	require.NotEmpty(t, tokens)
+	require.Equal(t, testToken, tokens.AccessToken)
+}
+
+func TestLoginUseCase_BadCredentials(t *testing.T) {
+	t.Parallel()
+
+	testEmail := "test@gmail.com"
+	testPwd := "correctPwd123"
+	wrongPwd := "wrongPwd12323"
+
+	salt, _ := pwd.GenerateSalt()
+	hashed := pwd.HashPassword(testPwd, []byte(salt))
+	existingUser := entity.User{
+		Id:             "id",
+		Email:          testEmail,
+		HashedPassword: hashed,
+		Satl:           salt,
+	}
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mock := mocks.NewMockRepo(ctrl)
+	mock.EXPECT().GetUserByEmail(gomock.Any()).Return(&existingUser, nil)
+
+	uc := NewAuthUseCase(mock)
+	_, err := uc.LoginUseCase(testEmail, wrongPwd)
+	require.ErrorIs(t, err, entity.BadCredentials)
+}
+
+func TestLoginUseCase_NotFound(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mock := mocks.NewMockRepo(ctrl)
+	gomock.InOrder(
+		mock.EXPECT().GetUserByEmail(gomock.Any()).Return(nil, entity.NotFoundError),
+	)
+	uc := NewAuthUseCase(mock)
+	_, err := uc.LoginUseCase("not@exists.com", "somePwd123")
+	require.ErrorIs(t, err, entity.NotFoundError)
+}
+
+func TestLoginUseCase_InvalidInput(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	mock := mocks.NewMockRepo(ctrl)
+	uc := NewAuthUseCase(mock)
+	_, err := uc.LoginUseCase("wrongsyntax.com", "somePwd123")
 	require.ErrorIs(t, err, entity.InvalidInput)
 }
