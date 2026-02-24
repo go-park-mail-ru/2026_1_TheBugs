@@ -6,17 +6,17 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/user"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/pwd"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/tokens"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/validator"
 )
 
 type AuthUseCase struct {
-	repo user.Repo
+	repo usecase.Repo
 }
 
-func NewAuthUseCase(repo user.Repo) *AuthUseCase {
+func NewAuthUseCase(repo usecase.Repo) *AuthUseCase {
 	return &AuthUseCase{
 		repo: repo,
 	}

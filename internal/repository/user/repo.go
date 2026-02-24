@@ -9,11 +9,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type Repo interface {
-	GetUserByEmail(email string) (*entity.User, error)
-	CreateUser(dto dto.CreateUserDTO) (*entity.User, error)
-}
-
 type UserRepo struct {
 	userSlice map[string]entity.User
 }
