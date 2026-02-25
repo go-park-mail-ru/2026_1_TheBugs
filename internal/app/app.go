@@ -11,13 +11,20 @@ import (
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi"
+	authHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/auth"
+	userRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/user"
+	authUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
 
 	"github.com/gorilla/mux"
 )
 
 func Run(cfg *config.ProjectConfig) {
+	repo := userRepo.NewUserRepo()
+	uc := authUC.NewAuthUseCase(repo)
+	h := authHandler.NewAuthHandler(uc)
 	r := mux.NewRouter()
-	restapi.NewRouter(r)
+
+	restapi.RegisterHandlers(r, h)
 	serverAddress := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	srv := &http.Server{
 		Handler:      r,
