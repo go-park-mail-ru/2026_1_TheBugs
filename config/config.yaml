@@ -16,3 +16,10 @@ postgres:
   conn-max-lifetime: 30s
   max-idle-conns: 50
   conn-max-idle-time: 15s
+
+
+jwt:
+  public-key-source: public.pem
+  private-key-source: private.pem
+  access-exp: 15m
+  refresh-exp: 24h

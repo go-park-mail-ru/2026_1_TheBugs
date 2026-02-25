@@ -42,6 +42,11 @@ func TestValidateEmail(t *testing.T) {
 			in:   "",
 			out:  false,
 		},
+		{
+			name: "invalid too long",
+			in:   "" + string(make([]byte, 255)) + "@example.com",
+			out:  false,
+		},
 	}
 
 	for _, tt := range tests {
@@ -97,6 +102,11 @@ func TestValidatePwd(t *testing.T) {
 		{
 			name: "invalid empty",
 			in:   "",
+			out:  false,
+		},
+		{
+			name: "invalid too long",
+			in:   "A" + string(make([]byte, 64)) + "1a",
 			out:  false,
 		},
 	}
