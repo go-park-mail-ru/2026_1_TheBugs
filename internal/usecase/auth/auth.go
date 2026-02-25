@@ -3,6 +3,7 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"strconv"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
@@ -61,11 +62,11 @@ func (uc AuthUseCase) LoginUseCase(email string, passwod string) (*dto.UserAcces
 	if err != nil {
 		return &cred, entity.NotFoundError
 	}
-	ok := pwd.VerifyPassword(passwod, []byte(user.Satl), user.HashedPassword)
+	ok := pwd.VerifyPassword(passwod, []byte(user.Salt), user.HashedPassword)
 	if !ok {
 		return &cred, entity.BadCredentials
 	}
-	accessToken, err := tokens.GenerateJWT(user.Id, "access", config.Config.JWT.AccessExp)
+	accessToken, err := tokens.GenerateJWT(strconv.Itoa(user.ID), "access", config.Config.JWT.AccessExp)
 	if err != nil {
 		return &cred, entity.ServiceError
 	}

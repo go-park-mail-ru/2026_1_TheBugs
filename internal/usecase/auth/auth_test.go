@@ -81,10 +81,10 @@ func TestLoginUseCase_OK(t *testing.T) {
 	salt, _ := pwd.GenerateSalt()
 	testHashedPwd := pwd.HashPassword(testPwd, []byte(salt))
 	existingUser := entity.User{
-		Id:             "testID",
+		ID:             0,
 		Email:          testEmail,
 		HashedPassword: testHashedPwd,
-		Satl:           salt,
+		Salt:           salt,
 	}
 
 	ctrl := gomock.NewController(t)
@@ -115,10 +115,10 @@ func TestLoginUseCase_BadCredentials(t *testing.T) {
 	salt, _ := pwd.GenerateSalt()
 	hashed := pwd.HashPassword(testPwd, []byte(salt))
 	existingUser := entity.User{
-		Id:             "id",
+		ID:             0,
 		Email:          testEmail,
 		HashedPassword: hashed,
-		Satl:           salt,
+		Salt:           salt,
 	}
 
 	ctrl := gomock.NewController(t)
