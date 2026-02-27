@@ -29,8 +29,11 @@ func (r *UserRepo) GetUserByEmail(email string) (*entity.User, error) {
 }
 
 func (r *UserRepo) CreateUser(dto dto.CreateUserDTO) (*entity.User, error) {
-	lastUser := r.userSlice[len(r.userSlice)-1]
-	newId := lastUser.ID + 1
+	newId := 0
+	if len(r.userSlice) > 0 {
+		lastUser := r.userSlice[len(r.userSlice)-1]
+		newId = lastUser.ID + 1
+	}
 
 	newUser := entity.User{
 		ID:             newId,

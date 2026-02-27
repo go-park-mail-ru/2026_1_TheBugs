@@ -36,10 +36,10 @@ func (uc AuthUseCase) RegisterUseCase(email string, password string) error {
 		return entity.AlredyExitError
 	}
 	if err != nil {
-		if errors.Is(err, entity.NotFoundError) {
-			return entity.NotFoundError
+		if !errors.Is(err, entity.NotFoundError) {
+			return fmt.Errorf("uc.userRepo.GetUserByEmail: %w", err)
 		}
-		return fmt.Errorf("uc.userRepo.GetUserByEmail: %w", err)
+
 	}
 	salt, err := pwd.GenerateSalt()
 	if err != nil {
