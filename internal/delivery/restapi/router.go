@@ -22,5 +22,6 @@ func RegisterHandlers(app *mux.Router, auth *auth.AuthHandler) {
 
 		apiGroup.HandleFunc("/auth/reg", auth.RegisterUser)
 		apiGroup.HandleFunc("/auth/login", auth.LoginUser)
+		apiGroup.HandleFunc("/auth/refresh", auth.RefreshToken)
 	}
 }

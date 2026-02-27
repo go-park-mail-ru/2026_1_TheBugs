@@ -56,3 +56,20 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(accessCred)
 }
+
+func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("refresh_token")
+	if err != nil {
+		log.Printf("r.Cookie: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+	refreshToken := cookie.Value
+	accessCred, err := h.uc.RefreshTokenUseCase(refreshToken)
+	if err != nil {
+		log.Printf("h.uc.RefreshTokenUseCase: %s", err)
+		utils.HandelError(w, err)
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(accessCred)
+}

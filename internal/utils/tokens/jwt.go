@@ -2,6 +2,7 @@ package tokens
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
@@ -16,16 +17,10 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 
-func GenerateJWT(sub string, tokenType string, exp time.Duration) (string, error) {
+func GenerateJWT(claims Claims, exp time.Duration) (string, error) {
 	secondsFloat := exp.Seconds()
-	claims := Claims{
-		Sub:  sub,
-		Type: tokenType,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(secondsFloat * float64(time.Second)))),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-		},
-	}
+	claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(time.Duration(secondsFloat * float64(time.Second))))
+	claims.IssuedAt = jwt.NewNumericDate(time.Now())
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 
 	return token.SignedString(config.JWTKeys.PrivateKey)
@@ -46,4 +41,23 @@ func ParseToken(tokenString string) (*Claims, error) {
 	}
 
 	return claims, nil
+}
+
+func GenerateRefreshToken(tokenID string, userID int, exp time.Duration) (string, error) {
+	claims := Claims{
+		Sub:  strconv.Itoa(userID),
+		Type: "refresh",
+		RegisteredClaims: jwt.RegisteredClaims{
+			ID: tokenID,
+		},
+	}
+	return GenerateJWT(claims, exp)
+}
+
+func GenerateAccessToken(userID int, exp time.Duration) (string, error) {
+	claims := Claims{
+		Sub:  strconv.Itoa(userID),
+		Type: "access",
+	}
+	return GenerateJWT(claims, exp)
 }
