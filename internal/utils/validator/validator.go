@@ -5,6 +5,7 @@ import (
 )
 
 const emailRegexPattern = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+const pwdRegexPattern = `^[a-zA-Z\d!@#$%^&*\-]{8,}$`
 const maxEmailLength = 254
 
 const minPwdLenght = 8
@@ -25,5 +26,6 @@ func ValidatePwd(pwd string) bool {
 	hasUpper := regexp.MustCompile(`[A-Z]`).MatchString(pwd)
 	hasLower := regexp.MustCompile(`[a-z]`).MatchString(pwd)
 	hasDigit := regexp.MustCompile(`\d`).MatchString(pwd)
-	return hasUpper && hasLower && hasDigit
+	neededSymbols := regexp.MustCompile(pwdRegexPattern).MatchString(pwd)
+	return hasUpper && hasLower && hasDigit && neededSymbols
 }
