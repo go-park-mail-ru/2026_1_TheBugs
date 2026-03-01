@@ -3,10 +3,12 @@ package auth
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"log"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/parse"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/utils"
@@ -19,6 +21,11 @@ type AuthHandler struct {
 type FormDataCredential struct {
 	Email    string `schema:"email"`
 	Password string `schema:"password"`
+}
+
+type LoginResponse struct {
+	AccessToken    string `json:"access_token"`
+	AccessTokenExp int    `json:"expire_at"`
 }
 
 func NewAuthHandler(uc *auth.AuthUseCase) *AuthHandler {
@@ -58,8 +65,18 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		utils.HandelError(w, err)
 		return
 	}
+	resp := LoginResponse{
+		AccessToken:    accessCred.AccessToken,
+		AccessTokenExp: accessCred.AccessTokenExp,
+	}
+
+	setRefreshCookie(w, accessCred)
+
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(accessCred)
+
+	json.NewEncoder(w).Encode(&resp)
+
 }
 
 func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
@@ -76,6 +93,30 @@ func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		utils.HandelError(w, err)
 		return
 	}
+	resp := LoginResponse{
+		AccessToken:    accessCred.AccessToken,
+		AccessTokenExp: accessCred.AccessTokenExp,
+	}
+
+	setRefreshCookie(w, accessCred)
+
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(accessCred)
+	json.NewEncoder(w).Encode(resp)
+}
+
+func setRefreshCookie(w http.ResponseWriter, accessCred *dto.UserAccessCredDTO) {
+	http.SetCookie(
+		w,
+		&http.Cookie{
+			Name:     "refresh_token",
+			Value:    accessCred.RefreshToken,
+			Path:     "/api/auth/refresh",
+			HttpOnly: true,
+			SameSite: http.SameSiteLaxMode,
+			Expires:  time.Now().Add(time.Duration(accessCred.RefreshTokenExp * int(time.Second))),
+			MaxAge:   accessCred.RefreshTokenExp,
+		},
+	)
+
 }
