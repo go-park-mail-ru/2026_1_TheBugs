@@ -21,6 +21,14 @@ import (
 	"github.com/gorilla/mux"
 )
 
+//go:generate swag init -g ./internal/app/app.go --parseInternal -o ./docs
+
+// @title Cian
+// @version 1.0
+// @description Backend для сервиса Циан, команды The Bugs
+// @host localhost:8000
+// @BasePath /api
+
 func Run(cfg *config.ProjectConfig) {
 	posterRepo := posterrepo.NewPosterRepo()
 	posterUC := posteruc.NewPosterUseCase(posterRepo)

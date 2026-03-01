@@ -9,6 +9,9 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
 
 	"github.com/gorilla/mux"
+
+	_ "github.com/go-park-mail-ru/2026_1_TheBugs/docs"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func RegisterHandlers(app *mux.Router, auth *auth.AuthHandler, poster *poster.PosterHandler) {
@@ -17,15 +20,15 @@ func RegisterHandlers(app *mux.Router, auth *auth.AuthHandler, poster *poster.Po
 	// Routers
 	apiGroup := app.PathPrefix("/api").Subrouter()
 	{
+		apiGroup.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
+
 		apiGroup.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 		}).Methods(http.MethodGet)
 
-		apiGroup.HandleFunc("/api/posters", poster.GetPosters)
-		//потом по /api/posters/{id} на конкретное объявление будет ручка
 		apiGroup.HandleFunc("/auth/reg", auth.RegisterUser)
 		apiGroup.HandleFunc("/auth/login", auth.LoginUser)
-		apiGroup.HandleFunc("/api/posters", poster.GetPosters)
-		//потом по /api/posters/{id} на конкретное объявление будет ручка
+
+		apiGroup.HandleFunc("/posters", poster.GetPosters)
 	}
 }

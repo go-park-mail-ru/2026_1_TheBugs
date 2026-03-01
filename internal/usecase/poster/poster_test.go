@@ -3,6 +3,7 @@ package poster
 import (
 	"testing"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster/request"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/mocks"
@@ -10,117 +11,121 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetPostersUseCase_OK(t *testing.T) {
-	testLimit := 12
-	testOffset := 0
-	existingListPoster := []entity.Poster{
-		{
-			Id:      1,
-			Price:   11111,
-			Address: "street_1",
-		},
-		{
-			Id:      2,
-			Price:   22222,
-			Address: "street_2",
-		},
-		{
-			Id:      3,
-			Price:   33333,
-			Address: "street_3",
-		},
-		{
-			Id:      4,
-			Price:   44444,
-			Address: "street_4",
-		},
-		{
-			Id:      5,
-			Price:   55555,
-			Address: "street_5",
-		},
+func TestGetPostersUseCase(t *testing.T) {
+	existingListPoster := []*entity.Poster{
+		{Id: 1, Price: 11111, Address: "street_1"},
+		{Id: 2, Price: 22222, Address: "street_2"},
+		{Id: 3, Price: 33333, Address: "street_3"},
+		{Id: 4, Price: 44444, Address: "street_4"},
+		{Id: 5, Price: 55555, Address: "street_5"},
 	}
 
-	expected := []dto.PosterDTO{
-		{
-			Price:   11111,
-			Address: "street_1",
-		},
-		{
-			Price:   22222,
-			Address: "street_2",
-		},
-		{
-			Price:   33333,
-			Address: "street_3",
-		},
-		{
-			Price:   44444,
-			Address: "street_4",
-		},
-		{
-			Price:   55555,
-			Address: "street_5",
-		},
+	expectedDTO := []dto.PosterDTO{
+		{Price: 11111, Address: "street_1"},
+		{Price: 22222, Address: "street_2"},
+		{Price: 33333, Address: "street_3"},
+		{Price: 44444, Address: "street_4"},
+		{Price: 55555, Address: "street_5"},
 	}
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+	tests := []struct {
+		name      string
+		params    request.PostersRequest
+		setupMock func(m *mocks.MockPosterRepo)
+		want      []dto.PosterDTO
+		wantErr   error
+	}{
+		{
+			name: "OK",
+			params: request.PostersRequest{
+				Limit:  12,
+				Offset: 0,
+			},
+			setupMock: func(m *mocks.MockPosterRepo) {
+				m.EXPECT().CountPosters().Return(5, nil).Times(1)
+				m.EXPECT().GetPosters(12, 0, 5).Return(existingListPoster, nil).Times(1)
+			},
+			want:    expectedDTO,
+			wantErr: nil,
+		},
+		{
+			name: "InvalidLimit",
+			params: request.PostersRequest{
+				Limit:  -2,
+				Offset: 0,
+			},
+			setupMock: nil,
+			want:      nil,
+			wantErr:   entity.InvalidInput,
+		},
+		{
+			name: "LimitTooLarge",
+			params: request.PostersRequest{
+				Limit:  1000,
+				Offset: 0,
+			},
+			setupMock: func(m *mocks.MockPosterRepo) {
+				m.EXPECT().CountPosters().Return(5, nil).Times(1)
+				m.EXPECT().GetPosters(MaxPostersLimit, 0, 5).Return(existingListPoster, nil).Times(1)
+			},
+			want:    expectedDTO,
+			wantErr: nil,
+		},
+		{
+			name: "InvalidOffset",
+			params: request.PostersRequest{
+				Limit:  12,
+				Offset: -3,
+			},
+			setupMock: nil,
+			want:      nil,
+			wantErr:   entity.InvalidInput,
+		},
+		{
+			name: "OffsetOutOfRange",
+			params: request.PostersRequest{
+				Limit:  12,
+				Offset: 10,
+			},
+			setupMock: func(m *mocks.MockPosterRepo) {
+				m.EXPECT().CountPosters().Return(5, nil).Times(1)
+			},
+			want:    nil,
+			wantErr: entity.OffsetOutOfRange,
+		},
+		{
+			name: "ErrorFromRepo",
+			params: request.PostersRequest{
+				Limit:  12,
+				Offset: 0,
+			},
+			setupMock: func(m *mocks.MockPosterRepo) {
+				m.EXPECT().CountPosters().Return(5, nil).Times(1)
+				m.EXPECT().GetPosters(12, 0, 5).Return(nil, entity.NotFoundError).Times(1)
+			},
+			want:    nil,
+			wantErr: entity.NotFoundError,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-	mock := mocks.NewMockPosterRepo(ctrl)
+			mockRepo := mocks.NewMockPosterRepo(ctrl)
+			if test.setupMock != nil {
+				test.setupMock(mockRepo)
+			}
 
-	mock.EXPECT().GetPosters(testLimit, testOffset).Return(existingListPoster, nil).Times(1)
+			uc := NewPosterUseCase(mockRepo)
 
-	uc := NewPosterUseCase(mock)
+			got, err := uc.GetPostersUseCase(test.params)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
 
-	got, err := uc.GetPostersUseCase(testLimit, testOffset)
-	require.NoError(t, err)
-	require.Equal(t, expected, got)
-}
-
-func TestGetPostersUseCase_InvalidLimit(t *testing.T) {
-	testLimit := -2
-	testOffset := 0
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mock := mocks.NewMockPosterRepo(ctrl)
-
-	uc := NewPosterUseCase(mock)
-
-	_, err := uc.GetPostersUseCase(testLimit, testOffset)
-	require.ErrorIs(t, err, entity.InvalidInput)
-}
-
-func TestGetPostersUseCase_InvalidOffset(t *testing.T) {
-	testLimit := 12
-	testOffset := -3
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mock := mocks.NewMockPosterRepo(ctrl)
-
-	uc := NewPosterUseCase(mock)
-
-	_, err := uc.GetPostersUseCase(testLimit, testOffset)
-	require.ErrorIs(t, err, entity.InvalidInput)
-}
-
-func TestGetPostersUseCase_ErrorFromRepo(t *testing.T) {
-	testLimit := 12
-	testOffset := 0
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mock := mocks.NewMockPosterRepo(ctrl)
-
-	mock.EXPECT().GetPosters(testLimit, testOffset).Return(nil, entity.NotFoundError).Times(1)
-
-	uc := NewPosterUseCase(mock)
-
-	_, err := uc.GetPostersUseCase(testLimit, testOffset)
-	require.ErrorIs(t, err, entity.NotFoundError)
+			require.Equal(t, test.want, got)
+		})
+	}
 }

@@ -22,9 +22,16 @@ func NewPosterHandler(uc *poster.PosterUseCase) *PosterHandler {
 	}
 }
 
+// @Summary      Получить список объявлений
+// @Description  Возвращает количество полученных объявлений и их список
+// @Tags         posters
+// @Produce      json
+// @Param        limit   query     int  false  "Количество объявлений" default(12) minimum(1)
+// @Param        offset  query     int  false  "Сдвиг для пагинации"   default(0)  minimum(0)
+// @Success      200     {object}  response.PostersResponse
+// @Router       /posters [get]
 func (h *PosterHandler) GetPosters(w http.ResponseWriter, r *http.Request) {
 	var request request.PostersRequest
-	var err error
 
 	limit := r.URL.Query().Get("limit")
 	offset := r.URL.Query().Get("offset")
@@ -37,19 +44,23 @@ func (h *PosterHandler) GetPosters(w http.ResponseWriter, r *http.Request) {
 		offset = "0"
 	}
 
-	request.Limit, err = strconv.Atoi(limit)
+	reqLimit, err := strconv.Atoi(limit)
 	if err != nil {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
 
-	request.Offset, err = strconv.Atoi(offset)
+	request.Limit = reqLimit
+
+	reqOffset, err := strconv.Atoi(offset)
 	if err != nil {
 		http.Error(w, "bad request", http.StatusBadRequest)
 		return
 	}
 
-	posters, err := h.uc.GetPostersUseCase(request.Limit, request.Offset)
+	request.Offset = reqOffset
+
+	posters, err := h.uc.GetPostersUseCase(request)
 	if err != nil {
 		log.Printf("h.uc.GetPostersUseCase: %s", err)
 		utils.HandelError(w, err)
