@@ -1,0 +1,26 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
+    },
+    "paths": {
+        "/api/auth/login": {
+            "post": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Авторизация",
+                "responses": {}
+            }
+        },
+        "/api/auth/reg": {
+            "post": {
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Регистрация",
+                "responses": {}
+            }
+        }
+    }
+}
