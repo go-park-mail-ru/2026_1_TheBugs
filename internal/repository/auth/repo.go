@@ -30,14 +30,18 @@ func (r *AuthRepo) GetToken(tokenID string, userID int) (*entity.RefreshToken, e
 			return &token, nil
 		}
 	}
-	return nil, nil
+	return nil, entity.NotFoundError
 }
 func (r *AuthRepo) DeleteToken(tokenID string, userID int) error {
 	for i, token := range r.tokensSlice {
 		if token.TokenID == tokenID && token.UserID == userID {
-			r.tokensSlice = append(r.tokensSlice[:i], r.tokensSlice[i+1:]...)
+			if i < len(r.tokensSlice)-1 {
+				r.tokensSlice = append(r.tokensSlice[:i], r.tokensSlice[i+1:]...)
+			} else {
+				r.tokensSlice = r.tokensSlice[:i]
+			}
 			return nil
 		}
 	}
-	return nil
+	return entity.NotFoundError
 }

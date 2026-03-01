@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -46,7 +47,7 @@ func ParseToken(tokenString string) (*Claims, error) {
 func GenerateRefreshToken(tokenID string, userID int, exp time.Duration) (string, error) {
 	claims := Claims{
 		Sub:  strconv.Itoa(userID),
-		Type: "refresh",
+		Type: entity.RefreshTokenType,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID: tokenID,
 		},
@@ -57,7 +58,7 @@ func GenerateRefreshToken(tokenID string, userID int, exp time.Duration) (string
 func GenerateAccessToken(userID int, exp time.Duration) (string, error) {
 	claims := Claims{
 		Sub:  strconv.Itoa(userID),
-		Type: "access",
+		Type: entity.AccessTokenType,
 	}
 	return GenerateJWT(claims, exp)
 }

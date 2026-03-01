@@ -118,19 +118,19 @@ func (uc AuthUseCase) RefreshTokenUseCase(refreshToken string) (*dto.UserAccessC
 
 	tokenData, err := tokens.ParseToken(refreshToken)
 	if err != nil {
-		return &cred, entity.JWTError
+		return &cred, fmt.Errorf("tokens.ParseToken: %w", entity.JWTError)
 	}
 	userID, err := strconv.Atoi(tokenData.Sub)
 	if err != nil {
-		return &cred, entity.JWTError
+		return &cred, fmt.Errorf("strconv.Atoi: %w", entity.JWTError)
 	}
 
-	if tokenData.Type != "refresh" {
+	if tokenData.Type != entity.RefreshTokenType {
 		return &cred, entity.JWTError
 	}
 	storedToken, err := uc.authRepo.GetToken(tokenData.ID, userID)
 	if err != nil {
-		return &cred, fmt.Errorf("uc.authRepo.GetToken: %w", err)
+		return &cred, fmt.Errorf("uc.authRepo.GetToken: %w", entity.JWTError)
 	}
 
 	if storedToken == nil || storedToken.ExpiresAt.Before(time.Now()) {
