@@ -12,6 +12,7 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi"
 	authHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/auth"
+	authRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/auth"
 	userRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/user"
 	authUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
 
@@ -20,7 +21,8 @@ import (
 
 func Run(cfg *config.ProjectConfig) {
 	repo := userRepo.NewUserRepo()
-	uc := authUC.NewAuthUseCase(repo)
+	authRepo := authRepo.NewAuthRepo()
+	uc := authUC.NewAuthUseCase(repo, authRepo)
 	h := authHandler.NewAuthHandler(uc)
 	r := mux.NewRouter()
 
