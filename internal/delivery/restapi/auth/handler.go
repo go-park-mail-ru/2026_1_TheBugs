@@ -33,9 +33,17 @@ func NewAuthHandler(uc *auth.AuthUseCase) *AuthHandler {
 }
 
 // RegisterUser
-// @Summary Регистрация
-// @Tags auth
-// @Router /api/auth/reg [post]
+// @Summary       Register new user
+// @Description   Register new user with email and password
+// @Tags          Auth
+// @Accept        x-www-form-urlencoded
+// @Param         email formData string true "User email"
+// @Param         password formData string true "User password"
+// @Success       204
+// @Failure       400 {string} string "Bad Request"
+// @Failure       404 {string} string "Not Found"
+// @Failure       500 {string} string "Internal error"
+// @Router        /auth/reg [post]
 func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var cred FormDataCredential
 	err := parse.ParseFormData(r, &cred)
@@ -55,9 +63,18 @@ func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 }
 
 // LoginUser
-// @Summary Авторизация
-// @Tags auth
-// @Router /api/auth/login [post]
+// @Summary       Login user
+// @Description   Authenticate user and return access token + set refresh token cookie
+// @Tags          Auth
+// @Accept        x-www-form-urlencoded
+// @Param         email formData string true "User email"
+// @Param         password formData string true "User password"
+// @Success       200 {object} LoginResponse "Successful login, returns access token"
+// @Header        200 {string} Set-Cookie "refresh_token=...; HttpOnly; Path=/api/auth/refresh; Max-Age=..."
+// @Failure       400 {string} string "Bad Request"
+// @Failure       404 {string} string "Not Found"
+// @Failure       500 {string} string "Internal error"
+// @Router        /auth/login [post]
 func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	var cred FormDataCredential
 	err := parse.ParseFormData(r, &cred)
@@ -84,9 +101,20 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	json.NewEncoder(w).Encode(&resp)
-
 }
 
+// RefreshToken
+// @Summary       Refresh access token
+// @Description   Obtain new access token using refresh token stored in cookie (refresh_token cookie required)
+// @Tags          Auth
+// @Accept        json
+// @Produce       json
+// @Success       200 {object} LoginResponse "New access token, also updates refresh token cookie"
+// @Header        200 {string} Set-Cookie "new refresh_token=...; HttpOnly; Path=/api/auth/refresh; Max-Age=..."
+// @Failure       400 {string} string "Bad Request"
+// @Failure       401 {string} string "Unauthorized - invalid or missing refresh token"
+// @Failure       500 {string} string "Internal error"
+// @Router        /auth/refresh [post]
 func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("refresh_token")
 	if err != nil {
@@ -126,5 +154,4 @@ func setRefreshCookie(w http.ResponseWriter, accessCred *dto.UserAccessCredDTO) 
 			MaxAge:   accessCred.RefreshTokenExp,
 		},
 	)
-
 }
