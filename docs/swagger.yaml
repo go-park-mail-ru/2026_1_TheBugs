@@ -1,0 +1,16 @@
+info:
+  contact: {}
+paths:
+  /api/auth/login:
+    post:
+      responses: {}
+      summary: Авторизация
+      tags:
+      - auth
+  /api/auth/reg:
+    post:
+      responses: {}
+      summary: Регистрация
+      tags:
+      - auth
+swagger: "2.0"

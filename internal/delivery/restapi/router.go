@@ -8,6 +8,9 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 
 	"github.com/gorilla/mux"
+
+	_ "github.com/go-park-mail-ru/2026_1_TheBugs/docs"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func RegisterHandlers(app *mux.Router, auth *auth.AuthHandler) {
@@ -22,6 +25,8 @@ func RegisterHandlers(app *mux.Router, auth *auth.AuthHandler) {
 
 		apiGroup.HandleFunc("/auth/reg", auth.RegisterUser)
 		apiGroup.HandleFunc("/auth/login", auth.LoginUser)
+
+		apiGroup.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 		apiGroup.HandleFunc("/auth/refresh", auth.RefreshToken)
 	}
 }

@@ -32,6 +32,10 @@ func NewAuthHandler(uc *auth.AuthUseCase) *AuthHandler {
 	return &AuthHandler{uc: uc}
 }
 
+// RegisterUser
+// @Summary Регистрация
+// @Tags auth
+// @Router /api/auth/reg [post]
 func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var cred FormDataCredential
 	err := parse.ParseFormData(r, &cred)
@@ -50,6 +54,10 @@ func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// LoginUser
+// @Summary Авторизация
+// @Tags auth
+// @Router /api/auth/login [post]
 func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	var cred FormDataCredential
 	err := parse.ParseFormData(r, &cred)
