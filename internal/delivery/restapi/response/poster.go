@@ -6,7 +6,3 @@ type PostersResponse struct {
 	Len     int             `json:"len"`
 	Posters []dto.PosterDTO `json:"posters"`
 }
-
-type ErrorResponse struct {
-	Error string `json:"error"`
-}
