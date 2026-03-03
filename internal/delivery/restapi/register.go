@@ -13,9 +13,9 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-// @title           FailiverCheck API
+// @title           DomDeli API
 // @version         1.0
-// @description     This is a sample server celler server.
+// @description     Created by TheBugs in 2026
 // @termsOfService  http://swagger.io/terms/
 
 // @contact.name   API Support
@@ -43,10 +43,10 @@ func RegisterHandlers(app *mux.Router, auth *auth.AuthHandler) {
 			json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 		}).Methods(http.MethodGet)
 
-		apiGroup.HandleFunc("/auth/reg", auth.RegisterUser)
-		apiGroup.HandleFunc("/auth/login", auth.LoginUser)
+		apiGroup.HandleFunc("/auth/reg", auth.RegisterUser).Methods(http.MethodPost)
+		apiGroup.HandleFunc("/auth/login", auth.LoginUser).Methods(http.MethodPost)
 
 		apiGroup.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
-		apiGroup.HandleFunc("/auth/refresh", auth.RefreshToken)
+		apiGroup.HandleFunc("/auth/refresh", auth.RefreshToken).Methods(http.MethodPost)
 	}
 }

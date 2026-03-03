@@ -16,11 +16,11 @@ info:
     email: support@swagger.io
     name: API Support
     url: http://www.swagger.io/support
-  description: This is a sample server celler server.
+  description: Created by TheBugs in 2026
   license:
     name: MIT
   termsOfService: http://swagger.io/terms/
-  title: FailiverCheck API
+  title: DomDeli API
   version: "1.0"
 paths:
   /auth/login:
@@ -44,7 +44,8 @@ paths:
           description: Successful login, returns access token
           headers:
             Set-Cookie:
-              description: refresh_token=...; HttpOnly; Path=/api/auth/refresh; Max-Age=...
+              description: refresh_token=<NEW_REFRESH_TOKEN>; HttpOnly; Path=/api/auth/refresh;
+                Max-Age=...
               type: string
           schema:
             $ref: '#/definitions/auth.LoginResponse'

@@ -58,7 +58,7 @@ const docTemplate = `{
                         "headers": {
                             "Set-Cookie": {
                                 "type": "string",
-                                "description": "refresh_token=...; HttpOnly; Path=/api/auth/refresh; Max-Age=..."
+                                "description": "refresh_token=\u003cNEW_REFRESH_TOKEN\u003e; HttpOnly; Path=/api/auth/refresh; Max-Age=..."
                             }
                         }
                     },
@@ -214,8 +214,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8000",
 	BasePath:         "/api",
 	Schemes:          []string{},
-	Title:            "FailiverCheck API",
-	Description:      "This is a sample server celler server.",
+	Title:            "DomDeli API",
+	Description:      "Created by TheBugs in 2026",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

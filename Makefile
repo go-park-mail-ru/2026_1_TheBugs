@@ -8,4 +8,4 @@ test:
 	go test -v ./...
 
 docs:
-	swag init -g ./router.go -d ./internal/delivery/restapi -o ./internal/docs
+	swag init -g ./register.go -d ./internal/delivery/restapi -o ./internal/docs

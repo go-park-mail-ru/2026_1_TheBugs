@@ -70,7 +70,7 @@ func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 // @Param         email formData string true "User email"
 // @Param         password formData string true "User password"
 // @Success       200 {object} LoginResponse "Successful login, returns access token"
-// @Header        200 {string} Set-Cookie "refresh_token=...; HttpOnly; Path=/api/auth/refresh; Max-Age=..."
+// @Header        200 {string} Set-Cookie "refresh_token=<NEW_REFRESH_TOKEN>; HttpOnly; Path=/api/auth/refresh; Max-Age=..."
 // @Failure       400 {string} string "Bad Request"
 // @Failure       404 {string} string "Not Found"
 // @Failure       500 {string} string "Internal error"

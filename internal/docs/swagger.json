@@ -1,8 +1,8 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "This is a sample server celler server.",
-        "title": "FailiverCheck API",
+        "description": "Created by TheBugs in 2026",
+        "title": "DomDeli API",
         "termsOfService": "http://swagger.io/terms/",
         "contact": {
             "name": "API Support",
@@ -52,7 +52,7 @@
                         "headers": {
                             "Set-Cookie": {
                                 "type": "string",
-                                "description": "refresh_token=...; HttpOnly; Path=/api/auth/refresh; Max-Age=..."
+                                "description": "refresh_token=\u003cNEW_REFRESH_TOKEN\u003e; HttpOnly; Path=/api/auth/refresh; Max-Age=..."
                             }
                         }
                     },
