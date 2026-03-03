@@ -17,6 +17,11 @@ definitions:
       type:
         type: string
     type: object
+  response.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
   response.PostersResponse:
     properties:
       len:
@@ -56,6 +61,22 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/response.PostersResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
       summary: Получить список объявлений
       tags:
       - posters

@@ -9,7 +9,7 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
 )
 
-var MaxPostersLimit = 12
+const MaxPostersLimit = 12
 
 type PosterUseCase struct {
 	repo usecase.PosterRepo
@@ -30,11 +30,7 @@ func (uc *PosterUseCase) GetPostersUseCase(params request.PostersRequest) ([]dto
 		params.Limit = MaxPostersLimit
 	}
 
-	total, err := uc.repo.CountPosters()
-	if err != nil {
-		log.Printf("uc.repo.CountPosters: %s", err)
-		return nil, err
-	}
+	total := uc.repo.CountPosters()
 
 	if params.Offset >= total {
 		return nil, entity.OffsetOutOfRange

@@ -21,6 +21,6 @@ func (r *PosterRepo) GetPosters(limit, offset, end int) ([]*entity.Poster, error
 	return posters, nil
 }
 
-func (r *PosterRepo) CountPosters() (int, error) {
-	return len(r.listPoster), nil
+func (r *PosterRepo) CountPosters() int {
+	return len(r.listPoster)
 }

@@ -14,5 +14,5 @@ type UserRepo interface {
 
 type PosterRepo interface {
 	GetPosters(limit, offset, end int) ([]*entity.Poster, error)
-	CountPosters() (int, error)
+	CountPosters() int
 }
