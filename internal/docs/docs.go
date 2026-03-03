@@ -180,6 +180,68 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/posters": {
+            "get": {
+                "description": "Возвращает количество полученных объявлений и их список",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posters"
+                ],
+                "summary": "Получить список объявлений",
+                "parameters": [
+                    {
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 12,
+                        "description": "Количество объявлений",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Сдвиг для пагинации",
+                        "name": "offset",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.PostersResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -191,6 +253,54 @@ const docTemplate = `{
                 },
                 "expire_at": {
                     "type": "integer"
+                }
+            }
+        },
+        "dto.PosterDTO": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "area": {
+                    "type": "number"
+                },
+                "floor": {
+                    "type": "integer"
+                },
+                "img_url": {
+                    "type": "string"
+                },
+                "metro": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.PostersResponse": {
+            "type": "object",
+            "properties": {
+                "len": {
+                    "type": "integer"
+                },
+                "posters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.PosterDTO"
+                    }
                 }
             }
         }

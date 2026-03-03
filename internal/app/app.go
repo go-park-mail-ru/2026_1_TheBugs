@@ -15,40 +15,25 @@ import (
 	posterHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
 	authRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/auth"
 	posterrepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/poster"
-	userrepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/user"
+	userRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/user"
 	authUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
-	authuc "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
-	posteruc "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
+	posterUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
 
 	"github.com/gorilla/mux"
 )
 
-//go:generate swag init -g ./internal/app/app.go --parseInternal -o ./docs
-
-// @title Cian
-// @version 1.0
-// @description Backend для сервиса Циан, команды The Bugs
-// @host localhost:8000
-// @BasePath /api
-
 func Run(cfg *config.ProjectConfig) {
 	posterRepo := posterrepo.NewPosterRepo()
-	posterUC := posteruc.NewPosterUseCase(posterRepo)
+	posterUC := posterUC.NewPosterUseCase(posterRepo)
 	posterHandler := posterHandler.NewPosterHandler(posterUC)
 
-	userRepo := userrepo.NewUserRepo()
-	userUC := authuc.NewAuthUseCase(userRepo)
-	userHandler := authHandler.NewAuthHandler(userUC)
-
-	repo := userRepo.NewUserRepo()
+	userRepo := userRepo.NewUserRepo()
 	authRepo := authRepo.NewAuthRepo()
-	uc := authUC.NewAuthUseCase(repo, authRepo)
-	h := authHandler.NewAuthHandler(uc)
+	authUC := authUC.NewAuthUseCase(userRepo, authRepo)
+	authHandler := authHandler.NewAuthHandler(authUC)
+
 	r := mux.NewRouter()
-
-	restapi.RegisterHandlers(r, userHandler, posterHandler)
-
-	restapi.RegisterHandlers(r, h)
+	restapi.RegisterHandlers(r, authHandler, posterHandler)
 	serverAddress := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	srv := &http.Server{
 		Handler:      r,

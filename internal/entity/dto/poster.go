@@ -9,3 +9,8 @@ type PosterDTO struct {
 	Floor   int     `json:"floor"`
 	Type    string  `json:"type"`
 }
+
+type PostersFiltersDTO struct {
+	Limit  int
+	Offset int
+}

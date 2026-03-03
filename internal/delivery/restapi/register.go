@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/auth"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
 
 	"github.com/gorilla/mux"
 
@@ -33,7 +34,7 @@ import (
 
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
-func RegisterHandlers(app *mux.Router, auth *auth.AuthHandler) {
+func RegisterHandlers(app *mux.Router, auth *auth.AuthHandler, post *poster.PosterHandler) {
 	app.Use(middleware.LoggingMiddleware)
 
 	// Routers
@@ -45,8 +46,9 @@ func RegisterHandlers(app *mux.Router, auth *auth.AuthHandler) {
 
 		apiGroup.HandleFunc("/auth/reg", auth.RegisterUser).Methods(http.MethodPost)
 		apiGroup.HandleFunc("/auth/login", auth.LoginUser).Methods(http.MethodPost)
-
 		apiGroup.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 		apiGroup.HandleFunc("/auth/refresh", auth.RefreshToken).Methods(http.MethodPost)
+
+		apiGroup.HandleFunc("/posters", post.GetPosters).Methods(http.MethodGet)
 	}
 }

@@ -8,8 +8,8 @@ import (
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/request"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/response"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/utils"
 )
 
 const defaultLimit = "12"
