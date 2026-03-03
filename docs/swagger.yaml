@@ -1,0 +1,83 @@
+basePath: /api
+definitions:
+  dto.PosterDTO:
+    properties:
+      address:
+        type: string
+      area:
+        type: number
+      floor:
+        type: integer
+      img_url:
+        type: string
+      metro:
+        type: string
+      price:
+        type: number
+      type:
+        type: string
+    type: object
+  response.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  response.PostersResponse:
+    properties:
+      len:
+        type: integer
+      posters:
+        items:
+          $ref: '#/definitions/dto.PosterDTO'
+        type: array
+    type: object
+host: localhost:8000
+info:
+  contact: {}
+  description: Backend для сервиса Циан, команды The Bugs
+  title: Cian
+  version: "1.0"
+paths:
+  /posters:
+    get:
+      description: Возвращает количество полученных объявлений и их список
+      parameters:
+      - default: 12
+        description: Количество объявлений
+        in: query
+        minimum: 1
+        name: limit
+        type: integer
+      - default: 0
+        description: Сдвиг для пагинации
+        in: query
+        minimum: 0
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PostersResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Получить список объявлений
+      tags:
+      - posters
+swagger: "2.0"
