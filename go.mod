@@ -43,6 +43,7 @@ require (
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/text v0.34.0 // indirect
+	github.com/rs/cors v1.11.1 // indirect
 )
 
 require (

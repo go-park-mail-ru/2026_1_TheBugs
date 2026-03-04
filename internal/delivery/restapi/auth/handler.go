@@ -144,6 +144,7 @@ func setRefreshCookie(w http.ResponseWriter, accessCred *dto.UserAccessCredDTO) 
 			Value:    accessCred.RefreshToken,
 			Path:     "/api/auth/refresh",
 			HttpOnly: true,
+			Domain:   "localhost",
 			SameSite: http.SameSiteLaxMode,
 			Expires:  time.Now().Add(time.Duration(accessCred.RefreshTokenExp * int(time.Second))),
 			MaxAge:   accessCred.RefreshTokenExp,
