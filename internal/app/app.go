@@ -18,12 +18,21 @@ import (
 	userRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/user"
 	authUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
 	posterUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/dsn"
 
 	"github.com/gorilla/mux"
 )
 
 func Run(cfg *config.ProjectConfig) {
-	posterRepo := posterrepo.NewPosterRepo()
+	dsn := dsn.BuildDSN(
+		cfg.Postgres.Host,
+		cfg.Postgres.Port,
+		cfg.Postgres.User,
+		cfg.Postgres.Password,
+		cfg.Postgres.Database,
+		cfg.Postgres.SslMode,
+	)
+	posterRepo, _ := posterrepo.NewPosterRepo(dsn)
 	posterUC := posterUC.NewPosterUseCase(posterRepo)
 	posterHandler := posterHandler.NewPosterHandler(posterUC)
 

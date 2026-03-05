@@ -13,7 +13,7 @@ type UserRepo interface {
 }
 
 type PosterRepo interface {
-	GetPosters(limit, offset, end int) ([]*entity.Poster, error)
+	GetPosters(limit, offset int) ([]*entity.Poster, error)
 	CountPosters() int
 }
 type AuthRepo interface {

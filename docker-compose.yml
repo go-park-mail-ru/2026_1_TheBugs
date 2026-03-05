@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: thebugs_postgres
+    environment:
+      POSTGRES_USER: thebugs
+      POSTGRES_PASSWORD: thebugs
+      POSTGRES_DB: main
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U thebugs -d main"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

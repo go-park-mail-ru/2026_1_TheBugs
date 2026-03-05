@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/request"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/response"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
 )
 
@@ -38,7 +38,7 @@ func NewPosterHandler(uc *poster.PosterUseCase) *PosterHandler {
 // @Failure 	 500 {object} response.ErrorResponse
 // @Router       /posters [get]
 func (h *PosterHandler) GetPosters(w http.ResponseWriter, r *http.Request) {
-	var request request.PostersRequest
+	var params dto.PostersFiltersDTO
 
 	limit := r.URL.Query().Get("limit")
 	offset := r.URL.Query().Get("offset")
@@ -58,7 +58,7 @@ func (h *PosterHandler) GetPosters(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	request.Limit = reqLimit
+	params.Limit = reqLimit
 
 	reqOffset, err := strconv.Atoi(offset)
 	if err != nil {
@@ -67,9 +67,9 @@ func (h *PosterHandler) GetPosters(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	request.Offset = reqOffset
+	params.Offset = reqOffset
 
-	posters, err := h.uc.GetPostersUseCase(request)
+	posters, err := h.uc.GetPostersUseCase(params)
 	if err != nil {
 		log.Printf("h.uc.GetPostersUseCase: %s", err)
 		utils.HandelError(w, err)

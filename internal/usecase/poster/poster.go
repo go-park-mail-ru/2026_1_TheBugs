@@ -3,7 +3,6 @@ package poster
 import (
 	"log"
 
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/request"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
@@ -21,7 +20,7 @@ func NewPosterUseCase(repo usecase.PosterRepo) *PosterUseCase {
 	}
 }
 
-func (uc *PosterUseCase) GetPostersUseCase(params request.PostersRequest) ([]dto.PosterDTO, error) {
+func (uc *PosterUseCase) GetPostersUseCase(params dto.PostersFiltersDTO) ([]dto.PosterDTO, error) {
 	if params.Limit <= 0 || params.Offset < 0 {
 		return nil, entity.InvalidInput
 	}
@@ -36,12 +35,7 @@ func (uc *PosterUseCase) GetPostersUseCase(params request.PostersRequest) ([]dto
 		return nil, entity.OffsetOutOfRange
 	}
 
-	end := params.Offset + params.Limit
-	if end > total {
-		end = total
-	}
-
-	posters, err := uc.repo.GetPosters(params.Limit, params.Offset, end)
+	posters, err := uc.repo.GetPosters(params.Limit, params.Offset)
 	if err != nil {
 		log.Printf("uc.repo.GetPosters: %s", err)
 		return nil, err

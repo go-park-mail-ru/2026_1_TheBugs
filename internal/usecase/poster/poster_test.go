@@ -3,7 +3,6 @@ package poster
 import (
 	"testing"
 
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/request"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/mocks"
@@ -30,27 +29,27 @@ func TestGetPostersUseCase(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		params    request.PostersRequest
+		params    dto.PostersFiltersDTO
 		setupMock func(m *mocks.MockPosterRepo)
 		want      []dto.PosterDTO
 		wantErr   error
 	}{
 		{
 			name: "OK",
-			params: request.PostersRequest{
+			params: dto.PostersFiltersDTO{
 				Limit:  12,
 				Offset: 0,
 			},
 			setupMock: func(m *mocks.MockPosterRepo) {
-				m.EXPECT().CountPosters().Return(5, nil).Times(1)
-				m.EXPECT().GetPosters(12, 0, 5).Return(existingListPoster, nil).Times(1)
+				m.EXPECT().CountPosters().Return(5).Times(1)
+				m.EXPECT().GetPosters(12, 0).Return(existingListPoster, nil).Times(1)
 			},
 			want:    expectedDTO,
 			wantErr: nil,
 		},
 		{
 			name: "InvalidLimit",
-			params: request.PostersRequest{
+			params: dto.PostersFiltersDTO{
 				Limit:  -2,
 				Offset: 0,
 			},
@@ -60,20 +59,20 @@ func TestGetPostersUseCase(t *testing.T) {
 		},
 		{
 			name: "LimitTooLarge",
-			params: request.PostersRequest{
+			params: dto.PostersFiltersDTO{
 				Limit:  1000,
 				Offset: 0,
 			},
 			setupMock: func(m *mocks.MockPosterRepo) {
-				m.EXPECT().CountPosters().Return(5, nil).Times(1)
-				m.EXPECT().GetPosters(MaxPostersLimit, 0, 5).Return(existingListPoster, nil).Times(1)
+				m.EXPECT().CountPosters().Return(5).Times(1)
+				m.EXPECT().GetPosters(MaxPostersLimit, 0).Return(existingListPoster, nil).Times(1)
 			},
 			want:    expectedDTO,
 			wantErr: nil,
 		},
 		{
 			name: "InvalidOffset",
-			params: request.PostersRequest{
+			params: dto.PostersFiltersDTO{
 				Limit:  12,
 				Offset: -3,
 			},
@@ -83,25 +82,25 @@ func TestGetPostersUseCase(t *testing.T) {
 		},
 		{
 			name: "OffsetOutOfRange",
-			params: request.PostersRequest{
+			params: dto.PostersFiltersDTO{
 				Limit:  12,
 				Offset: 10,
 			},
 			setupMock: func(m *mocks.MockPosterRepo) {
-				m.EXPECT().CountPosters().Return(5, nil).Times(1)
+				m.EXPECT().CountPosters().Return(5).Times(1)
 			},
 			want:    nil,
 			wantErr: entity.OffsetOutOfRange,
 		},
 		{
 			name: "ErrorFromRepo",
-			params: request.PostersRequest{
+			params: dto.PostersFiltersDTO{
 				Limit:  12,
 				Offset: 0,
 			},
 			setupMock: func(m *mocks.MockPosterRepo) {
-				m.EXPECT().CountPosters().Return(5, nil).Times(1)
-				m.EXPECT().GetPosters(12, 0, 5).Return(nil, entity.NotFoundError).Times(1)
+				m.EXPECT().CountPosters().Return(5).Times(1)
+				m.EXPECT().GetPosters(12, 0).Return(nil, entity.NotFoundError).Times(1)
 			},
 			want:    nil,
 			wantErr: entity.NotFoundError,

@@ -103,18 +103,18 @@ func (mr *MockPosterRepoMockRecorder) CountPosters() *gomock.Call {
 }
 
 // GetPosters mocks base method.
-func (m *MockPosterRepo) GetPosters(limit, offset, end int) ([]*entity.Poster, error) {
+func (m *MockPosterRepo) GetPosters(limit, offset int) ([]*entity.Poster, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPosters", limit, offset, end)
+	ret := m.ctrl.Call(m, "GetPosters", limit, offset)
 	ret0, _ := ret[0].([]*entity.Poster)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetPosters indicates an expected call of GetPosters.
-func (mr *MockPosterRepoMockRecorder) GetPosters(limit, offset, end interface{}) *gomock.Call {
+func (mr *MockPosterRepoMockRecorder) GetPosters(limit, offset interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPosters", reflect.TypeOf((*MockPosterRepo)(nil).GetPosters), limit, offset, end)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPosters", reflect.TypeOf((*MockPosterRepo)(nil).GetPosters), limit, offset)
 }
 
 // MockAuthRepo is a mock of AuthRepo interface.
