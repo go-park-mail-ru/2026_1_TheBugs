@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"errors"
 	"strconv"
 	"testing"
@@ -8,7 +9,6 @@ import (
 
 	"bou.ke/monkey"
 
-	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/mocks"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/pwd"
@@ -18,323 +18,546 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRegisterUseCase_OK(t *testing.T) {
+func TestRegisterUseCase(t *testing.T) {
 	t.Parallel()
+	ctx := context.Background()
 
-	testEmail := "test@gmail.com"
-	testPwd := "dpofdOPOOo12"
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	userMock := mocks.NewMockUserRepo(ctrl)
-	authMock := mocks.NewMockAuthRepo(ctrl)
-	gomock.InOrder(
-		userMock.EXPECT().GetUserByEmail(gomock.Any()).Return(nil, nil).Times(1),
-		userMock.EXPECT().CreateUser(gomock.Any()).Return(nil, nil).Times(1),
-	)
-
-	uc := NewAuthUseCase(userMock, authMock)
-	err := uc.RegisterUseCase(testEmail, testPwd)
-	require.NoError(t, err)
-}
-
-func TestRegisterUseCase_ConflictErr(t *testing.T) {
-	t.Parallel()
-	testEmail := "test@gmail.com"
-	testPwd := "dpofdOPOOo12"
-
-	existingUser := entity.User{Email: "test"}
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	userMock := mocks.NewMockUserRepo(ctrl)
-	authMock := mocks.NewMockAuthRepo(ctrl)
-	gomock.InOrder(
-		userMock.EXPECT().GetUserByEmail(gomock.Any()).Return(&existingUser, nil),
-		userMock.EXPECT().CreateUser(gomock.Any()).Return(nil, nil).Times(0),
-	)
-
-	uc := NewAuthUseCase(userMock, authMock)
-	err := uc.RegisterUseCase(testEmail, testPwd)
-	require.ErrorIs(t, err, entity.AlredyExitError)
-}
-
-func TestRegisterUseCase_ValidateErr(t *testing.T) {
-	t.Parallel()
-	testEmail := "wrong_email"
-	testPwd := "dpofdOPOOo121"
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	userMock := mocks.NewMockUserRepo(ctrl)
-	authMock := mocks.NewMockAuthRepo(ctrl)
-
-	uc := NewAuthUseCase(userMock, authMock)
-	err := uc.RegisterUseCase(testEmail, testPwd)
-	require.ErrorIs(t, err, entity.InvalidInput)
-}
-func TestLoginUseCase_OK(t *testing.T) {
-
-	testEmail := "test@gmail.com"
-	testPwd := "testgmailCom122"
-	testAccessToken := "dummy.access.value"
-	testRefreshToken := "dummy.refresh.value"
-
-	config.JWTKeys.PrivateKey, _ = config.LoadPrivateKey("private.pem")
-
-	salt, _ := pwd.GenerateSalt()
-	testHashedPwd := pwd.HashPassword(testPwd, []byte(salt))
-	existingUser := entity.User{
-		ID:             0,
-		Email:          testEmail,
-		HashedPassword: testHashedPwd,
-		Salt:           salt,
-	}
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	userMock := mocks.NewMockUserRepo(ctrl)
-	authMock := mocks.NewMockAuthRepo(ctrl)
-
-	uc := NewAuthUseCase(userMock, authMock)
-
-	gomock.InOrder(
-		userMock.EXPECT().GetUserByEmail(gomock.Any()).Return(&existingUser, nil),
-		authMock.EXPECT().CreateToken(gomock.Any()).Return(nil),
-	)
-
-	patchAccess := monkey.Patch(tokens.GenerateAccessToken, func(userID int, exp time.Duration) (string, error) {
-		return testAccessToken, nil
-	})
-	patchRefresh := monkey.Patch(tokens.GenerateRefreshToken, func(tokenID string, userID int, exp time.Duration) (string, error) {
-		return testRefreshToken, nil
-	})
-	defer func() {
-		patchAccess.Unpatch()
-		patchRefresh.Unpatch()
-	}()
-
-	tokens, err := uc.LoginUseCase(testEmail, testPwd)
-	require.NoError(t, err)
-	require.NotEmpty(t, tokens)
-	require.Equal(t, testAccessToken, tokens.AccessToken)
-	require.Equal(t, testRefreshToken, tokens.RefreshToken)
-}
-
-func TestLoginUseCase_BadCredentials(t *testing.T) {
-	t.Parallel()
-
-	testEmail := "test@gmail.com"
-	testPwd := "correctPwd123"
-	wrongPwd := "wrongPwd12323"
-
-	salt, _ := pwd.GenerateSalt()
-	hashed := pwd.HashPassword(testPwd, []byte(salt))
-	existingUser := entity.User{
-		ID:             0,
-		Email:          testEmail,
-		HashedPassword: hashed,
-		Salt:           salt,
-	}
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	userMock := mocks.NewMockUserRepo(ctrl)
-	authMock := mocks.NewMockAuthRepo(ctrl)
-
-	userMock.EXPECT().GetUserByEmail(gomock.Any()).Return(&existingUser, nil)
-
-	uc := NewAuthUseCase(userMock, authMock)
-	_, err := uc.LoginUseCase(testEmail, wrongPwd)
-	require.ErrorIs(t, err, entity.BadCredentials)
-}
-
-func TestLoginUseCase_NotFound(t *testing.T) {
-	t.Parallel()
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	userMock := mocks.NewMockUserRepo(ctrl)
-	authMock := mocks.NewMockAuthRepo(ctrl)
-	gomock.InOrder(
-		userMock.EXPECT().GetUserByEmail(gomock.Any()).Return(nil, entity.NotFoundError),
-	)
-	uc := NewAuthUseCase(userMock, authMock)
-	_, err := uc.LoginUseCase("not@exists.com", "somePwd123")
-	require.ErrorIs(t, err, entity.NotFoundError)
-}
-
-func TestLoginUseCase_InvalidInput(t *testing.T) {
-	t.Parallel()
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-	userMock := mocks.NewMockUserRepo(ctrl)
-	authMock := mocks.NewMockAuthRepo(ctrl)
-	uc := NewAuthUseCase(userMock, authMock)
-	_, err := uc.LoginUseCase("wrongsyntax.com", "somePwd123")
-	require.ErrorIs(t, err, entity.InvalidInput)
-}
-
-func TestRefreshUseCase_OK(t *testing.T) {
-	t.Parallel()
-
-	testRefreshToken := "dummy.refresh.value"
-	testAccessToken := "dummy.access.value"
-	userID := 1
-	tokenID := "token.id"
-	storedToken := &entity.RefreshToken{
-		ID:        0,
-		TokenID:   tokenID,
-		UserID:    userID,
-		ExpiresAt: time.Now().Add(100 * time.Minute),
-	}
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	userMock := mocks.NewMockUserRepo(ctrl)
-	authMock := mocks.NewMockAuthRepo(ctrl)
-
-	gomock.InOrder(
-		authMock.EXPECT().GetToken(gomock.Any(), gomock.Any()).Return(storedToken, nil),
-		authMock.EXPECT().DeleteToken(gomock.Any(), gomock.Any()).Return(nil),
-		authMock.EXPECT().CreateToken(gomock.Any()).Return(nil),
-	)
-
-	patchParse := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
-		c := tokens.Claims{
-			Sub:  strconv.Itoa(userID),
-			Type: entity.RefreshTokenType,
-			RegisteredClaims: jwt.RegisteredClaims{
-				ID: tokenID,
+	cases := []struct {
+		name      string
+		email     string
+		password  string
+		setupMock func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo)
+		wantErr   error
+	}{
+		{
+			name:     "OK",
+			email:    "test@gmail.com",
+			password: "dpofdOPOOo12",
+			setupMock: func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo) {
+				gomock.InOrder(
+					userMock.EXPECT().GetUserByEmail(ctx, gomock.Any()).Return(nil, nil).Times(1),
+					userMock.EXPECT().CreateUser(ctx, gomock.Any()).Return(nil, nil).Times(1),
+				)
 			},
-		}
-		return &c, nil
-	})
-	patchAccess := monkey.Patch(tokens.GenerateAccessToken, func(userID int, exp time.Duration) (string, error) {
-		return testAccessToken, nil
-	})
+			wantErr: nil,
+		},
+		{
+			name:     "Conflict",
+			email:    "test@gmail.com",
+			password: "dpofdOPOOo12",
+			setupMock: func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo) {
+				existingUser := &entity.User{Email: "test"}
+				userMock.EXPECT().GetUserByEmail(ctx, gomock.Any()).Return(existingUser, nil)
+				userMock.EXPECT().CreateUser(ctx, gomock.Any()).Times(0)
+			},
+			wantErr: entity.AlredyExitError,
+		},
+		{
+			name:     "InvalidInput",
+			email:    "wrong_email",
+			password: "dpofdOPOOo121",
+			setupMock: func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo) {
+			},
+			wantErr: entity.InvalidInput,
+		},
+	}
 
-	patchRefresh := monkey.Patch(tokens.GenerateRefreshToken, func(tokenID string, userID int, exp time.Duration) (string, error) {
-		return testRefreshToken, nil
-	})
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	defer func() {
-		patchAccess.Unpatch()
-		patchRefresh.Unpatch()
-		patchParse.Unpatch()
-	}()
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-	uc := NewAuthUseCase(userMock, authMock)
+			userMock := mocks.NewMockUserRepo(ctrl)
+			authMock := mocks.NewMockAuthRepo(ctrl)
 
-	dto, err := uc.RefreshTokenUseCase(testRefreshToken)
+			if tc.setupMock != nil {
+				tc.setupMock(userMock, authMock)
+			}
 
-	require.NoError(t, err)
-	require.Equal(t, dto.AccessToken, testAccessToken)
-	require.Equal(t, dto.RefreshToken, testRefreshToken)
+			uc := NewAuthUseCase(userMock, authMock)
+			err := uc.RegisterUseCase(ctx, tc.email, tc.password)
+
+			require.ErrorIs(t, err, tc.wantErr)
+		})
+	}
 }
 
-func TestRefreshUseCase_BadParseToken(t *testing.T) {
+func TestLoginUseCase(t *testing.T) {
 	t.Parallel()
+	ctx := context.Background()
 
-	testRefreshToken := "dummy.refresh.value"
+	cases := []struct {
+		name      string
+		email     string
+		password  string
+		setupMock func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo)
+		wantErr   error
+	}{
+		{
+			name:     "OK",
+			email:    "test@gmail.com",
+			password: "testgmailCom122",
+			setupMock: func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo) {
+				salt, _ := pwd.GenerateSalt()
+				hashed := pwd.HashPassword("testgmailCom122", []byte(salt))
+				existingUser := entity.User{
+					ID:             0,
+					Email:          "test@gmail.com",
+					HashedPassword: hashed,
+					Salt:           salt,
+				}
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+				gomock.InOrder(
+					userMock.EXPECT().GetUserByEmail(ctx, gomock.Any()).Return(&existingUser, nil),
+					authMock.EXPECT().CreateToken(ctx, gomock.Any()).Return(nil),
+				)
+			},
+			wantErr: nil,
+		},
+		{
+			name:     "Wrong Cred",
+			email:    "test@gmail.com",
+			password: "wrongPwd12323",
+			setupMock: func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo) {
+				salt, _ := pwd.GenerateSalt()
+				hashed := pwd.HashPassword("testgmailCom122", []byte(salt))
+				existingUser := entity.User{
+					ID:             0,
+					Email:          "test@gmail.com",
+					HashedPassword: hashed,
+					Salt:           salt,
+				}
+				userMock.EXPECT().GetUserByEmail(ctx, gomock.Any()).Return(&existingUser, nil)
+			},
+			wantErr: entity.BadCredentials,
+		},
+		{
+			name:     "Invalid input pwd",
+			email:    "test@gmail.com",
+			password: "111111111",
+			setupMock: func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo) {
+			},
+			wantErr: entity.InvalidInput,
+		},
+		{
+			name:     "Not found",
+			email:    "test@gmail.com",
+			password: "wrongPwd12323",
+			setupMock: func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo) {
+				userMock.EXPECT().GetUserByEmail(ctx, gomock.Any()).Return(nil, entity.NotFoundError)
+			},
+			wantErr: entity.NotFoundError,
+		},
+		{
+			name:     "Invalid input email",
+			email:    "wrong_email",
+			password: "dpofdOPOOo121",
+			setupMock: func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo) {
+			},
+			wantErr: entity.InvalidInput,
+		},
+	}
 
-	userMock := mocks.NewMockUserRepo(ctrl)
-	authMock := mocks.NewMockAuthRepo(ctrl)
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	patchParse := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
-		return nil, errors.New("bad token")
-	})
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-	defer func() {
-		patchParse.Unpatch()
-	}()
+			userMock := mocks.NewMockUserRepo(ctrl)
+			authMock := mocks.NewMockAuthRepo(ctrl)
 
-	uc := NewAuthUseCase(userMock, authMock)
+			if tc.setupMock != nil {
+				tc.setupMock(userMock, authMock)
+			}
+			testAccessToken := "dummy.access.value"
+			testRefreshToken := "dummy.refresh.value"
 
-	_, err := uc.RefreshTokenUseCase(testRefreshToken)
+			patchAccess := monkey.Patch(tokens.GenerateAccessToken, func(userID int, exp time.Duration) (string, error) {
+				return testAccessToken, nil
+			})
+			patchRefresh := monkey.Patch(tokens.GenerateRefreshToken, func(tokenID string, userID int, exp time.Duration) (string, error) {
+				return testRefreshToken, nil
+			})
+			defer func() {
+				patchAccess.Unpatch()
+				patchRefresh.Unpatch()
+			}()
 
-	require.ErrorIs(t, err, entity.JWTError)
+			uc := NewAuthUseCase(userMock, authMock)
+			cred, err := uc.LoginUseCase(ctx, tc.email, tc.password)
+
+			require.ErrorIs(t, err, tc.wantErr)
+			if tc.wantErr == nil {
+				require.NotEmpty(t, cred)
+				require.Equal(t, testAccessToken, cred.AccessToken)
+				require.Equal(t, testRefreshToken, cred.RefreshToken)
+			}
+		})
+	}
 }
 
-func TestRefreshUseCase_InvalidType(t *testing.T) {
+func TestRefreshUseCase(t *testing.T) {
 	t.Parallel()
+	ctx := context.Background()
 
-	testRefreshToken := "dummy.refresh.value"
 	userID := 1
 	tokenID := "token.id"
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	userMock := mocks.NewMockUserRepo(ctrl)
-	authMock := mocks.NewMockAuthRepo(ctrl)
-
-	patchParse := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
-		c := tokens.Claims{
-			Sub:  strconv.Itoa(userID),
-			Type: "invalid_type",
-			RegisteredClaims: jwt.RegisteredClaims{
-				ID: tokenID,
+	cases := []struct {
+		name           string
+		refreshToken   string
+		setupMocks     func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo)
+		patchParseFunc func() func()
+		wantErr        error
+		wantAccess     string
+		wantRefresh    string
+	}{
+		{
+			name:         "OK",
+			refreshToken: "dummy.refresh.value",
+			setupMocks: func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo) {
+				storedToken := &entity.RefreshToken{
+					ID:        0,
+					TokenID:   tokenID,
+					UserID:    userID,
+					ExpiresAt: time.Now().Add(100 * time.Minute),
+				}
+				gomock.InOrder(
+					authMock.EXPECT().GetToken(ctx, gomock.Any(), gomock.Any()).Return(storedToken, nil),
+					authMock.EXPECT().DeleteToken(ctx, gomock.Any(), gomock.Any()).Return(nil),
+					authMock.EXPECT().CreateToken(ctx, gomock.Any()).Return(nil),
+				)
 			},
-		}
-		return &c, nil
-	})
+			patchParseFunc: func() func() {
+				patch1 := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+					return &tokens.Claims{
+						Sub:  strconv.Itoa(userID),
+						Type: entity.RefreshTokenType,
+						RegisteredClaims: jwt.RegisteredClaims{
+							ID: tokenID,
+						},
+					}, nil
+				})
+				patch2 := monkey.Patch(tokens.GenerateAccessToken, func(userID int, exp time.Duration) (string, error) {
+					return "dummy.access.value", nil
+				})
+				patch3 := monkey.Patch(tokens.GenerateRefreshToken, func(tokenID string, userID int, exp time.Duration) (string, error) {
+					return "dummy.refresh.value", nil
+				})
+				return func() {
+					patch1.Unpatch()
+					patch2.Unpatch()
+					patch3.Unpatch()
+				}
+			},
+			wantErr:     nil,
+			wantAccess:  "dummy.access.value",
+			wantRefresh: "dummy.refresh.value",
+		},
+		{
+			name:         "BadParseToken",
+			refreshToken: "dummy.refresh.value",
+			setupMocks:   func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo) {},
+			patchParseFunc: func() func() {
+				patch := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+					return nil, errors.New("bad token")
+				})
+				return func() { patch.Unpatch() }
+			},
+			wantErr: entity.JWTError,
+		},
+		{
+			name:         "InvalidType",
+			refreshToken: "dummy.refresh.value",
+			setupMocks:   func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo) {},
+			patchParseFunc: func() func() {
+				patch := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+					return &tokens.Claims{
+						Sub:  strconv.Itoa(userID),
+						Type: "invalid_type",
+						RegisteredClaims: jwt.RegisteredClaims{
+							ID: tokenID,
+						},
+					}, nil
+				})
+				return func() { patch.Unpatch() }
+			},
+			wantErr: entity.JWTError,
+		},
+		{
+			name:         "NotFoundToken",
+			refreshToken: "dummy.refresh.value",
+			setupMocks: func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo) {
+				gomock.InOrder(
+					authMock.EXPECT().GetToken(ctx, gomock.Any(), gomock.Any()).Return(nil, entity.NotFoundError),
+				)
+			},
+			patchParseFunc: func() func() {
+				patch := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+					return &tokens.Claims{
+						Sub:  strconv.Itoa(userID),
+						Type: entity.RefreshTokenType,
+						RegisteredClaims: jwt.RegisteredClaims{
+							ID: tokenID,
+						},
+					}, nil
+				})
+				return func() { patch.Unpatch() }
+			},
+			wantErr: entity.JWTError,
+		},
+	}
 
-	defer func() {
-		patchParse.Unpatch()
-	}()
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	uc := NewAuthUseCase(userMock, authMock)
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-	_, err := uc.RefreshTokenUseCase(testRefreshToken)
+			userMock := mocks.NewMockUserRepo(ctrl)
+			authMock := mocks.NewMockAuthRepo(ctrl)
 
-	require.ErrorIs(t, err, entity.JWTError)
+			if tc.setupMocks != nil {
+				tc.setupMocks(userMock, authMock)
+			}
+
+			unpatch := tc.patchParseFunc()
+			defer unpatch()
+
+			uc := NewAuthUseCase(userMock, authMock)
+			dto, err := uc.RefreshTokenUseCase(ctx, tc.refreshToken)
+
+			if tc.wantErr != nil {
+				require.ErrorIs(t, err, tc.wantErr)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tc.wantAccess, dto.AccessToken)
+				require.Equal(t, tc.wantRefresh, dto.RefreshToken)
+			}
+		})
+	}
 }
 
-func TestRefreshUseCase_NotFoundToken(t *testing.T) {
-	t.Parallel()
+// func TestLoginUseCase_BadCredentials(t *testing.T) {
+// 	t.Parallel()
 
-	testRefreshToken := "dummy.refresh.value"
-	userID := 1
-	tokenID := "token.id"
+// 	testEmail := "test@gmail.com"
+// 	testPwd := "correctPwd123"
+// 	wrongPwd := "wrongPwd12323"
 
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+// 	salt, _ := pwd.GenerateSalt()
+// 	hashed := pwd.HashPassword(testPwd, []byte(salt))
+// 	existingUser := entity.User{
+// 		ID:             0,
+// 		Email:          testEmail,
+// 		HashedPassword: hashed,
+// 		Salt:           salt,
+// 	}
 
-	userMock := mocks.NewMockUserRepo(ctrl)
-	authMock := mocks.NewMockAuthRepo(ctrl)
+// 	ctrl := gomock.NewController(t)
+// 	defer ctrl.Finish()
+// 	userMock := mocks.NewMockUserRepo(ctrl)
+// 	authMock := mocks.NewMockAuthRepo(ctrl)
 
-	gomock.InOrder(
-		authMock.EXPECT().GetToken(gomock.Any(), gomock.Any()).Return(nil, entity.NotFoundError),
-	)
+// 	userMock.EXPECT().GetUserByEmail(gomock.Any()).Return(&existingUser, nil)
 
-	patchParse := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
-		c := tokens.Claims{
-			Sub:  strconv.Itoa(userID),
-			Type: entity.RefreshTokenType,
-			RegisteredClaims: jwt.RegisteredClaims{
-				ID: tokenID,
-			},
-		}
-		return &c, nil
-	})
+// 	uc := NewAuthUseCase(userMock, authMock)
+// 	_, err := uc.LoginUseCase(testEmail, wrongPwd)
+// 	require.ErrorIs(t, err, entity.BadCredentials)
+// }
 
-	defer func() {
-		patchParse.Unpatch()
-	}()
+// func TestLoginUseCase_NotFound(t *testing.T) {
+// 	t.Parallel()
 
-	uc := NewAuthUseCase(userMock, authMock)
+// 	ctrl := gomock.NewController(t)
+// 	defer ctrl.Finish()
+// 	userMock := mocks.NewMockUserRepo(ctrl)
+// 	authMock := mocks.NewMockAuthRepo(ctrl)
+// 	gomock.InOrder(
+// 		userMock.EXPECT().GetUserByEmail(gomock.Any()).Return(nil, entity.NotFoundError),
+// 	)
+// 	uc := NewAuthUseCase(userMock, authMock)
+// 	_, err := uc.LoginUseCase("not@exists.com", "somePwd123")
+// 	require.ErrorIs(t, err, entity.NotFoundError)
+// }
 
-	_, err := uc.RefreshTokenUseCase(testRefreshToken)
+// func TestLoginUseCase_InvalidInput(t *testing.T) {
+// 	t.Parallel()
 
-	require.ErrorIs(t, err, entity.JWTError)
+// 	ctrl := gomock.NewController(t)
+// 	defer ctrl.Finish()
+// 	userMock := mocks.NewMockUserRepo(ctrl)
+// 	authMock := mocks.NewMockAuthRepo(ctrl)
+// 	uc := NewAuthUseCase(userMock, authMock)
+// 	_, err := uc.LoginUseCase("wrongsyntax.com", "somePwd123")
+// 	require.ErrorIs(t, err, entity.InvalidInput)
+// }
 
-}
+// func TestRefreshUseCase_OK(t *testing.T) {
+// 	t.Parallel()
+
+// 	testRefreshToken := "dummy.refresh.value"
+// 	testAccessToken := "dummy.access.value"
+// 	userID := 1
+// 	tokenID := "token.id"
+// 	storedToken := &entity.RefreshToken{
+// 		ID:        0,
+// 		TokenID:   tokenID,
+// 		UserID:    userID,
+// 		ExpiresAt: time.Now().Add(100 * time.Minute),
+// 	}
+
+// 	ctrl := gomock.NewController(t)
+// 	defer ctrl.Finish()
+
+// 	userMock := mocks.NewMockUserRepo(ctrl)
+// 	authMock := mocks.NewMockAuthRepo(ctrl)
+
+// 	gomock.InOrder(
+// 		authMock.EXPECT().GetToken(gomock.Any(), gomock.Any()).Return(storedToken, nil),
+// 		authMock.EXPECT().DeleteToken(gomock.Any(), gomock.Any()).Return(nil),
+// 		authMock.EXPECT().CreateToken(gomock.Any()).Return(nil),
+// 	)
+
+// 	patchParse := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+// 		c := tokens.Claims{
+// 			Sub:  strconv.Itoa(userID),
+// 			Type: entity.RefreshTokenType,
+// 			RegisteredClaims: jwt.RegisteredClaims{
+// 				ID: tokenID,
+// 			},
+// 		}
+// 		return &c, nil
+// 	})
+// 	patchAccess := monkey.Patch(tokens.GenerateAccessToken, func(userID int, exp time.Duration) (string, error) {
+// 		return testAccessToken, nil
+// 	})
+
+// 	patchRefresh := monkey.Patch(tokens.GenerateRefreshToken, func(tokenID string, userID int, exp time.Duration) (string, error) {
+// 		return testRefreshToken, nil
+// 	})
+
+// 	defer func() {
+// 		patchAccess.Unpatch()
+// 		patchRefresh.Unpatch()
+// 		patchParse.Unpatch()
+// 	}()
+
+// 	uc := NewAuthUseCase(userMock, authMock)
+
+// 	dto, err := uc.RefreshTokenUseCase(testRefreshToken)
+
+// 	require.NoError(t, err)
+// 	require.Equal(t, dto.AccessToken, testAccessToken)
+// 	require.Equal(t, dto.RefreshToken, testRefreshToken)
+// }
+
+// func TestRefreshUseCase_BadParseToken(t *testing.T) {
+// 	t.Parallel()
+
+// 	testRefreshToken := "dummy.refresh.value"
+
+// 	ctrl := gomock.NewController(t)
+// 	defer ctrl.Finish()
+
+// 	userMock := mocks.NewMockUserRepo(ctrl)
+// 	authMock := mocks.NewMockAuthRepo(ctrl)
+
+// 	patchParse := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+// 		return nil, errors.New("bad token")
+// 	})
+
+// 	defer func() {
+// 		patchParse.Unpatch()
+// 	}()
+
+// 	uc := NewAuthUseCase(userMock, authMock)
+
+// 	_, err := uc.RefreshTokenUseCase(testRefreshToken)
+
+// 	require.ErrorIs(t, err, entity.JWTError)
+// }
+
+// func TestRefreshUseCase_InvalidType(t *testing.T) {
+// 	t.Parallel()
+
+// 	testRefreshToken := "dummy.refresh.value"
+// 	userID := 1
+// 	tokenID := "token.id"
+
+// 	ctrl := gomock.NewController(t)
+// 	defer ctrl.Finish()
+
+// 	userMock := mocks.NewMockUserRepo(ctrl)
+// 	authMock := mocks.NewMockAuthRepo(ctrl)
+
+// 	patchParse := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+// 		c := tokens.Claims{
+// 			Sub:  strconv.Itoa(userID),
+// 			Type: "invalid_type",
+// 			RegisteredClaims: jwt.RegisteredClaims{
+// 				ID: tokenID,
+// 			},
+// 		}
+// 		return &c, nil
+// 	})
+
+// 	defer func() {
+// 		patchParse.Unpatch()
+// 	}()
+
+// 	uc := NewAuthUseCase(userMock, authMock)
+
+// 	_, err := uc.RefreshTokenUseCase(testRefreshToken)
+
+// 	require.ErrorIs(t, err, entity.JWTError)
+// }
+
+// func TestRefreshUseCase_NotFoundToken(t *testing.T) {
+// 	t.Parallel()
+
+// 	testRefreshToken := "dummy.refresh.value"
+// 	userID := 1
+// 	tokenID := "token.id"
+
+// 	ctrl := gomock.NewController(t)
+// 	defer ctrl.Finish()
+
+// 	userMock := mocks.NewMockUserRepo(ctrl)
+// 	authMock := mocks.NewMockAuthRepo(ctrl)
+
+// 	gomock.InOrder(
+// 		authMock.EXPECT().GetToken(gomock.Any(), gomock.Any()).Return(nil, entity.NotFoundError),
+// 	)
+
+// 	patchParse := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+// 		c := tokens.Claims{
+// 			Sub:  strconv.Itoa(userID),
+// 			Type: entity.RefreshTokenType,
+// 			RegisteredClaims: jwt.RegisteredClaims{
+// 				ID: tokenID,
+// 			},
+// 		}
+// 		return &c, nil
+// 	})
+
+// 	defer func() {
+// 		patchParse.Unpatch()
+// 	}()
+
+// 	uc := NewAuthUseCase(userMock, authMock)
+
+// 	_, err := uc.RefreshTokenUseCase(testRefreshToken)
+
+// 	require.ErrorIs(t, err, entity.JWTError)
+
+// }
+// //

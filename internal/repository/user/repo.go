@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"log"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
@@ -18,7 +19,7 @@ func NewUserRepo() *UserRepo {
 	}
 }
 
-func (r *UserRepo) GetUserByEmail(email string) (*entity.User, error) {
+func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
 	for _, u := range r.userSlice {
 		if u.Email == email {
 			return &u, nil
@@ -28,7 +29,7 @@ func (r *UserRepo) GetUserByEmail(email string) (*entity.User, error) {
 
 }
 
-func (r *UserRepo) CreateUser(dto dto.CreateUserDTO) (*entity.User, error) {
+func (r *UserRepo) CreateUser(ctx context.Context, dto dto.CreateUserDTO) (*entity.User, error) {
 	newId := 0
 	if len(r.userSlice) > 0 {
 		lastUser := r.userSlice[len(r.userSlice)-1]
@@ -45,5 +46,3 @@ func (r *UserRepo) CreateUser(dto dto.CreateUserDTO) (*entity.User, error) {
 	log.Println(r.userSlice)
 	return &newUser, nil
 }
-
-//func (r *UserRepo) CreateUserRefreshToken(userID string, tokenID string)

@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	context "context"
 	reflect "reflect"
 
 	entity "github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
@@ -36,33 +37,33 @@ func (m *MockUserRepo) EXPECT() *MockUserRepoMockRecorder {
 }
 
 // CreateUser mocks base method.
-func (m *MockUserRepo) CreateUser(dto dto.CreateUserDTO) (*entity.User, error) {
+func (m *MockUserRepo) CreateUser(ctx context.Context, dto dto.CreateUserDTO) (*entity.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateUser", dto)
+	ret := m.ctrl.Call(m, "CreateUser", ctx, dto)
 	ret0, _ := ret[0].(*entity.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateUser indicates an expected call of CreateUser.
-func (mr *MockUserRepoMockRecorder) CreateUser(dto interface{}) *gomock.Call {
+func (mr *MockUserRepoMockRecorder) CreateUser(ctx, dto interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockUserRepo)(nil).CreateUser), dto)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockUserRepo)(nil).CreateUser), ctx, dto)
 }
 
 // GetUserByEmail mocks base method.
-func (m *MockUserRepo) GetUserByEmail(email string) (*entity.User, error) {
+func (m *MockUserRepo) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserByEmail", email)
+	ret := m.ctrl.Call(m, "GetUserByEmail", ctx, email)
 	ret0, _ := ret[0].(*entity.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetUserByEmail indicates an expected call of GetUserByEmail.
-func (mr *MockUserRepoMockRecorder) GetUserByEmail(email interface{}) *gomock.Call {
+func (mr *MockUserRepoMockRecorder) GetUserByEmail(ctx, email interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockUserRepo)(nil).GetUserByEmail), email)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockUserRepo)(nil).GetUserByEmail), ctx, email)
 }
 
 // MockPosterRepo is a mock of PosterRepo interface.
@@ -89,32 +90,32 @@ func (m *MockPosterRepo) EXPECT() *MockPosterRepoMockRecorder {
 }
 
 // CountPosters mocks base method.
-func (m *MockPosterRepo) CountPosters() int {
+func (m *MockPosterRepo) CountPosters(ctx context.Context) int {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CountPosters")
+	ret := m.ctrl.Call(m, "CountPosters", ctx)
 	ret0, _ := ret[0].(int)
 	return ret0
 }
 
 // CountPosters indicates an expected call of CountPosters.
-func (mr *MockPosterRepoMockRecorder) CountPosters() *gomock.Call {
+func (mr *MockPosterRepoMockRecorder) CountPosters(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountPosters", reflect.TypeOf((*MockPosterRepo)(nil).CountPosters))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountPosters", reflect.TypeOf((*MockPosterRepo)(nil).CountPosters), ctx)
 }
 
 // GetPosters mocks base method.
-func (m *MockPosterRepo) GetPosters(limit, offset int) ([]*entity.Poster, error) {
+func (m *MockPosterRepo) GetPosters(ctx context.Context, dto dto.PostersFiltersDTO) ([]entity.Poster, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPosters", limit, offset)
-	ret0, _ := ret[0].([]*entity.Poster)
+	ret := m.ctrl.Call(m, "GetPosters", ctx, dto)
+	ret0, _ := ret[0].([]entity.Poster)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetPosters indicates an expected call of GetPosters.
-func (mr *MockPosterRepoMockRecorder) GetPosters(limit, offset interface{}) *gomock.Call {
+func (mr *MockPosterRepoMockRecorder) GetPosters(ctx, dto interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPosters", reflect.TypeOf((*MockPosterRepo)(nil).GetPosters), limit, offset)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPosters", reflect.TypeOf((*MockPosterRepo)(nil).GetPosters), ctx, dto)
 }
 
 // MockAuthRepo is a mock of AuthRepo interface.
@@ -141,44 +142,44 @@ func (m *MockAuthRepo) EXPECT() *MockAuthRepoMockRecorder {
 }
 
 // CreateToken mocks base method.
-func (m *MockAuthRepo) CreateToken(dto dto.CreateRefreshTokenDTO) error {
+func (m *MockAuthRepo) CreateToken(ctx context.Context, dto dto.CreateRefreshTokenDTO) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateToken", dto)
+	ret := m.ctrl.Call(m, "CreateToken", ctx, dto)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateToken indicates an expected call of CreateToken.
-func (mr *MockAuthRepoMockRecorder) CreateToken(dto interface{}) *gomock.Call {
+func (mr *MockAuthRepoMockRecorder) CreateToken(ctx, dto interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateToken", reflect.TypeOf((*MockAuthRepo)(nil).CreateToken), dto)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateToken", reflect.TypeOf((*MockAuthRepo)(nil).CreateToken), ctx, dto)
 }
 
 // DeleteToken mocks base method.
-func (m *MockAuthRepo) DeleteToken(tokenID string, userID int) error {
+func (m *MockAuthRepo) DeleteToken(ctx context.Context, tokenID string, userID int) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteToken", tokenID, userID)
+	ret := m.ctrl.Call(m, "DeleteToken", ctx, tokenID, userID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteToken indicates an expected call of DeleteToken.
-func (mr *MockAuthRepoMockRecorder) DeleteToken(tokenID, userID interface{}) *gomock.Call {
+func (mr *MockAuthRepoMockRecorder) DeleteToken(ctx, tokenID, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteToken", reflect.TypeOf((*MockAuthRepo)(nil).DeleteToken), tokenID, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteToken", reflect.TypeOf((*MockAuthRepo)(nil).DeleteToken), ctx, tokenID, userID)
 }
 
 // GetToken mocks base method.
-func (m *MockAuthRepo) GetToken(tokenID string, userID int) (*entity.RefreshToken, error) {
+func (m *MockAuthRepo) GetToken(ctx context.Context, tokenID string, userID int) (*entity.RefreshToken, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetToken", tokenID, userID)
+	ret := m.ctrl.Call(m, "GetToken", ctx, tokenID, userID)
 	ret0, _ := ret[0].(*entity.RefreshToken)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetToken indicates an expected call of GetToken.
-func (mr *MockAuthRepoMockRecorder) GetToken(tokenID, userID interface{}) *gomock.Call {
+func (mr *MockAuthRepoMockRecorder) GetToken(ctx, tokenID, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetToken", reflect.TypeOf((*MockAuthRepo)(nil).GetToken), tokenID, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetToken", reflect.TypeOf((*MockAuthRepo)(nil).GetToken), ctx, tokenID, userID)
 }

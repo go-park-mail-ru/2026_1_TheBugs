@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"context"
+
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 )
@@ -15,7 +17,7 @@ func NewAuthRepo() *AuthRepo {
 	}
 }
 
-func (r *AuthRepo) CreateToken(token dto.CreateRefreshTokenDTO) error {
+func (r *AuthRepo) CreateToken(ctx context.Context, token dto.CreateRefreshTokenDTO) error {
 	r.tokensSlice = append(r.tokensSlice, entity.RefreshToken{
 		TokenID:   token.TokenID,
 		UserID:    token.UserID,
@@ -24,7 +26,7 @@ func (r *AuthRepo) CreateToken(token dto.CreateRefreshTokenDTO) error {
 	return nil
 }
 
-func (r *AuthRepo) GetToken(tokenID string, userID int) (*entity.RefreshToken, error) {
+func (r *AuthRepo) GetToken(ctx context.Context, tokenID string, userID int) (*entity.RefreshToken, error) {
 	for _, token := range r.tokensSlice {
 		if token.TokenID == tokenID && token.UserID == userID {
 			return &token, nil
@@ -32,7 +34,7 @@ func (r *AuthRepo) GetToken(tokenID string, userID int) (*entity.RefreshToken, e
 	}
 	return nil, entity.NotFoundError
 }
-func (r *AuthRepo) DeleteToken(tokenID string, userID int) error {
+func (r *AuthRepo) DeleteToken(ctx context.Context, tokenID string, userID int) error {
 	for i, token := range r.tokensSlice {
 		if token.TokenID == tokenID && token.UserID == userID {
 			if i < len(r.tokensSlice)-1 {

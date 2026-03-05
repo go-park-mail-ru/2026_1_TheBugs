@@ -53,7 +53,7 @@ func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		utils.HandelError(w, err)
 		return
 	}
-	err = h.uc.RegisterUseCase(cred.Email, cred.Password)
+	err = h.uc.RegisterUseCase(r.Context(), cred.Email, cred.Password)
 	if err != nil {
 		log.Printf("h.uc.RegisterUseCase: %s", err)
 		utils.HandelError(w, err)
@@ -84,7 +84,7 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		utils.HandelError(w, err)
 		return
 	}
-	accessCred, err := h.uc.LoginUseCase(cred.Email, cred.Password)
+	accessCred, err := h.uc.LoginUseCase(r.Context(), cred.Email, cred.Password)
 	if err != nil {
 		log.Printf("h.uc.LoginUseCase: %s", err)
 		utils.HandelError(w, err)
@@ -123,7 +123,7 @@ func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	refreshToken := cookie.Value
-	accessCred, err := h.uc.RefreshTokenUseCase(refreshToken)
+	accessCred, err := h.uc.RefreshTokenUseCase(r.Context(), refreshToken)
 	if err != nil {
 		log.Printf("h.uc.RefreshTokenUseCase: %s", err)
 		utils.HandelError(w, err)

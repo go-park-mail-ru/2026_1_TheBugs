@@ -1,15 +1,19 @@
 package dsn
 
-import "fmt"
+import (
+	"fmt"
 
-func BuildDSN(host string, port int, user string, password string, dbname string, sslmode string) string {
+	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
+)
+
+func BuildDSN(cfg config.Postgres) string {
 	return fmt.Sprintf(
 		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
-		host,
-		port,
-		user,
-		password,
-		dbname,
-		sslmode,
+		cfg.Host,
+		cfg.Port,
+		cfg.User,
+		cfg.Password,
+		cfg.Database,
+		cfg.SslMode,
 	)
 }

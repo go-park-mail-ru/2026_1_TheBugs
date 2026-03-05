@@ -69,7 +69,7 @@ func (h *PosterHandler) GetPosters(w http.ResponseWriter, r *http.Request) {
 
 	params.Offset = reqOffset
 
-	posters, err := h.uc.GetPostersUseCase(params)
+	posters, err := h.uc.GetPostersUseCase(r.Context(), params)
 	if err != nil {
 		log.Printf("h.uc.GetPostersUseCase: %s", err)
 		utils.HandelError(w, err)

@@ -19,20 +19,20 @@ import (
 	authUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
 	posterUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/dsn"
+	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/gorilla/mux"
 )
 
 func Run(cfg *config.ProjectConfig) {
-	dsn := dsn.BuildDSN(
-		cfg.Postgres.Host,
-		cfg.Postgres.Port,
-		cfg.Postgres.User,
-		cfg.Postgres.Password,
-		cfg.Postgres.Database,
-		cfg.Postgres.SslMode,
-	)
-	posterRepo, _ := posterrepo.NewPosterRepo(dsn)
+	dsn := dsn.BuildDSN(cfg.Postgres)
+
+	pool, err := pgxpool.New(context.Background(), dsn)
+	if err != nil {
+		log.Fatalf("cannot create pgx pool: %v", err)
+	}
+
+	posterRepo := posterrepo.NewPosterRepo(pool)
 	posterUC := posterUC.NewPosterUseCase(posterRepo)
 	posterHandler := posterHandler.NewPosterHandler(posterUC)
 
