@@ -36,8 +36,8 @@ func Run(cfg *config.ProjectConfig) {
 	posterUC := posterUC.NewPosterUseCase(posterRepo)
 	posterHandler := posterHandler.NewPosterHandler(posterUC)
 
-	userRepo := userRepo.NewUserRepo()
-	authRepo := authRepo.NewAuthRepo()
+	userRepo := userRepo.NewUserRepo(pool)
+	authRepo := authRepo.NewAuthRepo(pool)
 	authUC := authUC.NewAuthUseCase(userRepo, authRepo)
 	authHandler := authHandler.NewAuthHandler(authUC)
 

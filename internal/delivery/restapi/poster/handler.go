@@ -1,7 +1,6 @@
 package poster
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
@@ -82,6 +81,7 @@ func (h *PosterHandler) GetPosters(w http.ResponseWriter, r *http.Request) {
 	response.Len = postersLen
 	response.Posters = posters
 
+	utils.JSONResponse(w, response)
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+
 }

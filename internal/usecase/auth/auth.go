@@ -101,14 +101,17 @@ func (uc AuthUseCase) createAndSaveRefreshToken(ctx context.Context, userID int)
 
 	refreshToken, err := tokens.GenerateRefreshToken(refreshTokenID, userID, refreshTokenExp)
 	if err != nil {
-		return "", time.Time{}, entity.ServiceError
+		return "", time.Time{}, fmt.Errorf("tokens.GenerateRefreshToken: %w", entity.ServiceError)
 	}
 
-	uc.authRepo.CreateToken(ctx, dto.CreateRefreshTokenDTO{
+	err = uc.authRepo.CreateToken(ctx, dto.CreateRefreshTokenDTO{
 		TokenID:   refreshTokenID,
 		UserID:    userID,
 		ExpiresAt: refreshTokenExpAt,
 	})
+	if err != nil {
+		return "", time.Time{}, fmt.Errorf("uc.authRepo.CreateToken: %w", err)
+	}
 
 	return refreshToken, refreshTokenExpAt, nil
 }

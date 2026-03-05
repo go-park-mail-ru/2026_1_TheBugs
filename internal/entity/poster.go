@@ -2,11 +2,11 @@ package entity
 
 type Poster struct {
 	Id      int
-	Price   float64
-	ImgURL  *string
-	Address string
-	Metro   string
-	Area    float64
-	Floor   int
-	Type    string
+	Price   float64 `db:"price"`
+	ImgURL  *string `db:"image_url"`
+	Address string  `db:"address"`
+	Metro   *string `db:"metro"`
+	Area    float64 `db:"area"`
+	Floor   int     `db:"floor"`
+	Type    string  `db:"type"`
 }

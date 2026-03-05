@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"encoding/json"
 	"net/http"
 	"time"
 
@@ -97,10 +96,8 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 
 	setRefreshCookie(w, accessCred)
 
-	w.Header().Set("Content-Type", "application/json")
+	utils.JSONResponse(w, &resp)
 	w.WriteHeader(http.StatusOK)
-
-	json.NewEncoder(w).Encode(&resp)
 }
 
 // RefreshToken
@@ -136,9 +133,8 @@ func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 
 	setRefreshCookie(w, accessCred)
 
-	w.Header().Set("Content-Type", "application/json")
+	utils.JSONResponse(w, &resp)
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(resp)
 }
 
 func setRefreshCookie(w http.ResponseWriter, accessCred *dto.UserAccessCredDTO) {

@@ -35,6 +35,9 @@ func (r *PosterRepo) GetPosters(ctx context.Context, filters dto.PostersFiltersD
 	defer rows.Close()
 
 	posters, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.Poster])
+	if err != nil {
+		return nil, err
+	}
 
 	return posters, rows.Err()
 }
