@@ -35,6 +35,14 @@
 - `salt` — соль для хеширования пароля
 - `company_id` — идентификатор управляющей компании (FK → `utility_companies`)
 
+### `refresh_tokens`
+Хранит рефреш-токены пользователей
+- `id` — уникальный идентификатор
+- `token_id` — уникальный идентификатор токена
+- `user_id` — пользователь которому был выдан данный токен
+- `created_at` — дата регистрации
+- `expires_at ` — дата истечения токена
+
 ### `buildings`
 Хранит информацию о домах/зданиях.
 - `id` — уникальный идентификатор
@@ -193,7 +201,13 @@ erDiagram
         bigint city_id FK
         bigint metro_station_id FK
     }
-
+    refresh_tokens{
+        bigint id PK
+        uuid token_id
+        bigint user_id FK
+        timestamptz created_at
+        timestamptz expires_at
+    }
     users {
         bigint id PK
         text email
@@ -281,6 +295,7 @@ erDiagram
     apartment_categories ||--o{ apartments : ""
     apartments ||--o{ posters : ""
     users ||--o{ posters : ""
+    users ||--o{ refresh_tokens: ""
     posters ||--o{ price_history : ""
     posters ||--o{ likes : ""
     posters ||--o{ views : ""

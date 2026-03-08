@@ -59,6 +59,14 @@ CREATE TABLE IF NOT EXISTS users (
     CONSTRAINT email_check CHECK ( email ~ '^[^@]+@[^@]+\.[^@]+$' AND LENGTH(email)<150 ),
     CONSTRAINT auth_check CHECK ( hashed_password IS NOT NULL OR provider IS NOT NULL)
 );
+--Рефреш токены пользователей
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    token_id UUID  NOT NULL ,
+    user_id BIGINT REFERENCES users(id) NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now() NOT NULL
+);
 
 
 -- Дома
