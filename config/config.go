@@ -83,12 +83,12 @@ func Read() error {
 	if err != nil {
 		return fmt.Errorf("error load public key: %w", err)
 	}
-	if Config.AppEnv == "local" {
+	if Config.AppEnv == "dev" {
 		Config.CORS = DevCors
 	} else {
 		Config.CORS = ProdCors
 	}
-	log.Print(Config.Postgres.Host)
+	log.Print(Config.CORS.AllowedHosts)
 	log.Println("reading configuration is successful")
 	return nil
 }

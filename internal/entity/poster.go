@@ -1,7 +1,7 @@
 package entity
 
 type Poster struct {
-	Id      int
+	Id      int      `db:"id"`
 	Price   float64  `db:"price"`
 	ImgURL  *string  `db:"image_url"`
 	Address string   `db:"address"`

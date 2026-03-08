@@ -24,6 +24,7 @@ func PostersToPostersDTO(posters []entity.Poster) []PosterDTO {
 	listPosters := make([]PosterDTO, 0, len(posters))
 	for _, poster := range posters {
 		posterDTO := PosterDTO{
+			ID:      poster.Id,
 			Price:   poster.Price,
 			ImgURL:  poster.ImgURL,
 			Address: poster.Address,
