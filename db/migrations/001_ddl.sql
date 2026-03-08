@@ -1,57 +1,166 @@
-CREATE TABLE IF NOT EXISTS posters (
-    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    price NUMERIC(12, 3) NOT NULL CHECK(price > 0),
-    image_url TEXT CHECK (LENGTH(image_url) < 2048),
-    address TEXT NOT NULL CHECK (LENGTH(address) < 255),
-    metro TEXT CHECK (LENGTH(metro) < 255),
-    area NUMERIC(10, 4) NOT NULL CHECK(area > 0),
-    floor SMALLINT NOT NULL CHECK(floor > 0),
-    type TEXT NOT NULL CHECK(LENGTH(type) < 255),
-    rating NUMERIC(10, 4) CHECK(rating > 0),
-    beds SMALLINT CHECK(beds > 0),
-    created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
-    updated_at TIMESTAMPTZ DEFAULT now()
+-- Города
+CREATE TABLE IF NOT EXISTS cities (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    city_name TEXT NOT NULL UNIQUE,
+
+    CONSTRAINT city_name_length_check CHECK ( LENGTH(city_name) < 40 ),
 );
 
+
+-- Станции метро
+CREATE TABLE IF NOT EXISTS metro_stations (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    station_name TEXT NOT NULL UNIQUE,
+
+    CONSTRAINT station_name_length_check CHECK ( LENGTH(station_name) < 40 ),
+);
+
+
+-- ЖК Компании
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+CREATE TABLE IF NOT EXISTS utility_companies (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    company_name TEXT NOT NULL,
+    contacts TEXT,
+    geo GEOGRAPHY(POINT, 4326),
+    address TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    city_id BIGINT,
+    metro_station_id BIGINT,
+
+    CONSTRAINT fk_city FOREIGN KEY (city_id) REFERENCES cities(id),
+    CONSTRAINT fk_metro_station FOREIGN KEY (metro_station_id) REFERENCES metro_stations(id),
+    CONSTRAINT company_name_length_check CHECK ( LENGTH(company_name) < 40 ),
+    CONSTRAINT address_length_check CHECK ( LENGTH(address) < 150 )
+);
+
+
+-- Пользователи
 CREATE TABLE IF NOT EXISTS users (
-    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    email TEXT UNIQUE CHECK (LENGTH(email) < 255)  NOT NULL ,
-    hashed_password TEXT CHECK (LENGTH(hashed_password) BETWEEN 8 AND 255), -- делаю null чтобы можно было добавить oauth
-    salt TEXT CHECK (LENGTH(salt) < 255),  -- делаю null чтобы можно было добавить oauth
-    created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
-    updated_at TIMESTAMPTZ DEFAULT now()
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    email TEXT NOT NULL,
+    hashed_password TEXT,
+    provider TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    salt TEXT NOT NULL,
+    company_id BIGINT,
+
+    CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES utility_companies(id),
+    CONSTRAINT email_check CHECK ( email ~ '^[^@]+@[^@]+\.[^@]+$' ),
+    CONSTRAINT auth_check CHECK ( hashed_password IS NOT NULL OR provider IS NOT NULL)
 );
 
 
-CREATE TABLE IF NOT EXISTS refresh_tokens (
-    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    token_id UUID  NOT NULL ,
-    user_id BIGINT REFERENCES users(id) NOT NULL,
-    expires_at TIMESTAMPTZ NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT now() NOT NULL
+-- Дома
+CREATE TABLE IF NOT EXISTS buildings (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    geo GEOGRAPHY(POINT, 4326) NOT NULL,
+    address TEXT NOT NULL,
+    district TEXT,
+    company_id BIGINT,
+    city_id BIGINT,
+    metro_station_id BIGINT,
+
+    CONSTRAINT fk_city FOREIGN KEY (city_id) REFERENCES cities(id),
+    CONSTRAINT fk_metro_station FOREIGN KEY (metro_station_id) REFERENCES metro_stations(id),
+    CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES utility_companies(id),
+    CONSTRAINT address_length_check CHECK ( LENGTH(address) < 150 ),
+    CONSTRAINT district_length_check CHECK ( LENGTH(district) < 30 )
 );
 
-ALTER TABLE users ADD CONSTRAINT email_check CHECK (email ~* '^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$');
 
-CREATE OR REPLACE FUNCTION refresh_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = now();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+-- Тип помещения
+CREATE TABLE IF NOT EXISTS apartment_categories (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name TEXT NOT NULL,
+    description TEXT,
+
+    CONSTRAINT name_length_check CHECK ( LENGTH(name) < 30 ),
+    CONSTRAINT description_length_check CHECK ( LENGTH(description) < 500 )
+);
 
 
-DROP TRIGGER IF EXISTS update_users_updated_at ON users;
+-- Помощение
+CREATE TABLE IF NOT EXISTS apartments (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    floor SMALLINT,
+    number SMALLINT NOT NULL,
+    building_id BIGINT NOT NULL,
+    category_id BIGINT,
 
-DROP TRIGGER IF EXISTS update_posters_updated_at ON posters;
+    CONSTRAINT fk_building FOREIGN KEY (building_id) REFERENCES buildings(id),
+    CONSTRAINT fk_category FOREIGN KEY (category_id) REFERENCES apartment_categories(id)
+);
 
-CREATE TRIGGER update_users_updated_at
-    BEFORE UPDATE ON users
-    FOR EACH ROW
-    EXECUTE FUNCTION refresh_updated_at();
 
-CREATE TRIGGER update_posters_updated_at
-    BEFORE UPDATE ON posters
-    FOR EACH ROW
-    EXECUTE FUNCTION refresh_updated_at();
+-- Объявления
+CREATE TABLE IF NOT EXISTS posters (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    title TEXT NOT NULL,
+    price NUMERIC(10,2) NOT NULL,
+    avatar_url TEXT,
+    description TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    user_id BIGINT NOT NULL,
+    apartment_id BIGINT NOT NULL,
+
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT fk_apartment FOREIGN KEY (apartment_id) REFERENCES apartments(id),
+    CONSTRAINT title_length_check CHECK ( LENGTH(title) < 100 ),
+    CONSTRAINT price_check CHECK ( price > 0 ),
+    CONSTRAINT description_length_check CHECK ( LENGTH(description) < 500 )
+);
+
+
+-- История изменения цены
+CREATE TABLE IF NOT EXISTS price_history (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    price NUMERIC(10,2) NOT NULL,
+    changed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    poster_id BIGINT NOT NULL,
+
+    CONSTRAINT price_check CHECK ( price > 0 ),
+    CONSTRAINT fk_poster FOREIGN KEY (poster_id) REFERENCES posters(id)
+);
+
+
+-- Лайки
+CREATE TABLE IF NOT EXISTS likes (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    user_id BIGINT NOT NULL,
+    poster_id BIGINT NOT NULL,
+
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT fk_poster FOREIGN KEY (poster_id) REFERENCES posters(id)
+);
+
+
+-- Просмотры
+CREATE TABLE IF NOT EXISTS views (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    user_id BIGINT NOT NULL,
+    poster_id BIGINT NOT NULL,
+
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT fk_poster FOREIGN KEY (poster_id) REFERENCES posters(id)
+);
+
+
+-- Объявление-Фото
+CREATE TABLE IF NOT EXISTS poster_photos (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    img_url TEXT,
+    sequence_order SMALLINT,
+    poster_id BIGINT NOT NULL,
+
+    CONSTRAINT fk_poster FOREIGN KEY (poster_id) REFERENCES posters(id)
+    CONSTRAINT url_check CHECK ( img_url ~ '^https?://' ),
+);
