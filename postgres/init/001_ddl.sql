@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS posters (
     area NUMERIC(10, 4) NOT NULL CHECK(area > 0),
     floor SMALLINT NOT NULL CHECK(floor > 0),
     type TEXT NOT NULL CHECK(LENGTH(type) < 255),
+    rating NUMERIC(10, 4) CHECK(rating > 0),
+    beds SMALLINT CHECK(beds > 0),
     created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT now()
 );

@@ -21,7 +21,7 @@ func NewPosterRepo(pool *pgxpool.Pool) *PosterRepo {
 }
 
 func (r *PosterRepo) GetPosters(ctx context.Context, filters dto.PostersFiltersDTO) ([]entity.Poster, error) {
-	query := `SELECT id, price, image_url, address, metro, area, floor, type
+	query := `SELECT id, price, image_url, address, metro, area, floor, type, rating, beds
 		FROM posters
 		ORDER BY id
 		LIMIT $1 OFFSET $2`

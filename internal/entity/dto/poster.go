@@ -3,13 +3,16 @@ package dto
 import "github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 
 type PosterDTO struct {
-	Price   float64 `json:"price"`
-	ImgURL  *string `json:"img_url"`
-	Address string  `json:"address"`
-	Metro   *string `json:"metro"`
-	Area    float64 `json:"area"`
-	Floor   int     `json:"floor"`
-	Type    string  `json:"type"`
+	ID      int      `json:"id"`
+	Price   float64  `json:"price"`
+	ImgURL  *string  `json:"imageUrl"`
+	Address string   `json:"address"`
+	Metro   *string  `json:"metro"`
+	Area    float64  `json:"area"`
+	Rating  *float64 `json:"rating"`
+	Beds    *int     `json:"beds"`
+
+	Type string `json:"type"`
 }
 
 type PostersFiltersDTO struct {
@@ -26,7 +29,8 @@ func PostersToPostersDTO(posters []entity.Poster) []PosterDTO {
 			Address: poster.Address,
 			Metro:   poster.Metro,
 			Area:    poster.Area,
-			Floor:   poster.Floor,
+			Rating:  poster.Rating,
+			Beds:    poster.Beds,
 			Type:    poster.Type,
 		}
 
