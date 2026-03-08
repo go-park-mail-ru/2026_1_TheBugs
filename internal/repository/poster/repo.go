@@ -5,16 +5,16 @@ import (
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type PosterRepo struct {
-	pool *pgxpool.Pool
+	pool repository.DB
 }
 
-func NewPosterRepo(pool *pgxpool.Pool) *PosterRepo {
+func NewPosterRepo(pool repository.DB) *PosterRepo {
 	return &PosterRepo{
 		pool: pool,
 	}
@@ -36,15 +36,18 @@ func (r *PosterRepo) GetPosters(ctx context.Context, filters dto.PostersFiltersD
 
 	posters, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.Poster])
 	if err != nil {
-		return nil, err
+		return nil, entity.CollectPostersErr
 	}
 
 	return posters, rows.Err()
 }
 
-func (r *PosterRepo) CountPosters(ctx context.Context) int {
+func (r *PosterRepo) CountPosters(ctx context.Context) (int, error) {
 	var count int
 	row := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM posters")
-	row.Scan(&count)
-	return count
+	err := row.Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
 }

@@ -16,7 +16,7 @@ type UserRepo interface {
 
 type PosterRepo interface {
 	GetPosters(ctx context.Context, dto dto.PostersFiltersDTO) ([]entity.Poster, error)
-	CountPosters(ctx context.Context) int
+	CountPosters(ctx context.Context) (int, error)
 }
 type AuthRepo interface {
 	GetToken(ctx context.Context, tokenID string, userID int) (*entity.RefreshToken, error)

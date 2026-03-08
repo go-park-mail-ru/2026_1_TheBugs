@@ -13,6 +13,7 @@ var BadCredentials error = errors.New("bad credential")
 var InvalidInput error = errors.New("invalid data")
 var OffsetOutOfRange error = errors.New("offset out of range")
 var JWTError error = errors.New("jwt error")
+var CollectPostersErr error = errors.New("collect posters error")
 
 type ValidationError struct {
 	Err     error

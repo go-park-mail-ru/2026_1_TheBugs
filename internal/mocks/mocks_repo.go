@@ -90,11 +90,12 @@ func (m *MockPosterRepo) EXPECT() *MockPosterRepoMockRecorder {
 }
 
 // CountPosters mocks base method.
-func (m *MockPosterRepo) CountPosters(ctx context.Context) int {
+func (m *MockPosterRepo) CountPosters(ctx context.Context) (int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CountPosters", ctx)
 	ret0, _ := ret[0].(int)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // CountPosters indicates an expected call of CountPosters.
