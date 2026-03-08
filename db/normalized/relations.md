@@ -129,6 +129,10 @@
 `{id} → {email, hashed_password, provider, created_at, updated_at, salt, company_id}`  
 **1NF**: ✓ **2NF**: ✓ **3NF**: ✓ **BCNF**: ✓
 
+### refresh_tokens
+`{id} → {token_id, user_id, expires_at, created_at}`  
+**1NF**: ✓ **2NF**: ✓ **3NF**: ✓ **BCNF**: ✓
+
 ### buildings
 `{id} → {geo, address, district, company_id, city_id, metro_station_id}`  
 **1NF**: ✓ **2NF**: ✓ **3NF**: ✓ **BCNF**: ✓
