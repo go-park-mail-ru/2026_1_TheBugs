@@ -182,25 +182,25 @@ INSERT INTO apartment_categories (name, description) VALUES
 -- ============================================================
 -- 7. Помещения
 -- ============================================================
-INSERT INTO apartments (floor, number, building_id, category_id) VALUES
+INSERT INTO apartments (floor, area, number, building_id, category_id) VALUES
     -- ул. Тверская, д. 25
-    (3,  12, (SELECT id FROM buildings WHERE address = 'ул. Тверская, д. 25'),   (SELECT id FROM apartment_categories WHERE name = 'Студия')),
-    (5,  31, (SELECT id FROM buildings WHERE address = 'ул. Тверская, д. 25'),   (SELECT id FROM apartment_categories WHERE name = '1-комнатная')),
-    (7,  54, (SELECT id FROM buildings WHERE address = 'ул. Тверская, д. 25'),   (SELECT id FROM apartment_categories WHERE name = '2-комнатная')),
+    (3,  20, 12, (SELECT id FROM buildings WHERE address = 'ул. Тверская, д. 25'),   (SELECT id FROM apartment_categories WHERE name = 'Студия')),
+    (5,  40, 31, (SELECT id FROM buildings WHERE address = 'ул. Тверская, д. 25'),   (SELECT id FROM apartment_categories WHERE name = '1-комнатная')),
+    (7,  43, 54, (SELECT id FROM buildings WHERE address = 'ул. Тверская, д. 25'),   (SELECT id FROM apartment_categories WHERE name = '2-комнатная')),
     -- ул. Арбат, д. 36
-    (2,   5, (SELECT id FROM buildings WHERE address = 'ул. Арбат, д. 36'),      (SELECT id FROM apartment_categories WHERE name = '1-комнатная')),
-    (4,  18, (SELECT id FROM buildings WHERE address = 'ул. Арбат, д. 36'),      (SELECT id FROM apartment_categories WHERE name = '3-комнатная')),
-    (10, 99, (SELECT id FROM buildings WHERE address = 'ул. Арбат, д. 36'),      (SELECT id FROM apartment_categories WHERE name = 'Пентхаус')),
+    (2,  34, 5, (SELECT id FROM buildings WHERE address = 'ул. Арбат, д. 36'),      (SELECT id FROM apartment_categories WHERE name = '1-комнатная')),
+    (4, 32, 18, (SELECT id FROM buildings WHERE address = 'ул. Арбат, д. 36'),      (SELECT id FROM apartment_categories WHERE name = '3-комнатная')),
+    (10, 93, 99, (SELECT id FROM buildings WHERE address = 'ул. Арбат, д. 36'),      (SELECT id FROM apartment_categories WHERE name = 'Пентхаус')),
     -- Смоленская пл., д. 3
-    (1,   2, (SELECT id FROM buildings WHERE address = 'Смоленская пл., д. 3'),  (SELECT id FROM apartment_categories WHERE name = 'Студия')),
-    (6,  45, (SELECT id FROM buildings WHERE address = 'Смоленская пл., д. 3'),  (SELECT id FROM apartment_categories WHERE name = '2-комнатная')),
+    (1, 12,  2, (SELECT id FROM buildings WHERE address = 'Смоленская пл., д. 3'),  (SELECT id FROM apartment_categories WHERE name = 'Студия')),
+    (6, 110, 45, (SELECT id FROM buildings WHERE address = 'Смоленская пл., д. 3'),  (SELECT id FROM apartment_categories WHERE name = '2-комнатная')),
     -- Невский пр., д. 88
-    (2,   8, (SELECT id FROM buildings WHERE address = 'Невский пр., д. 88'),    (SELECT id FROM apartment_categories WHERE name = '1-комнатная')),
-    (9,  77, (SELECT id FROM buildings WHERE address = 'Невский пр., д. 88'),    (SELECT id FROM apartment_categories WHERE name = 'Апартаменты')),
+    (2,  223, 8, (SELECT id FROM buildings WHERE address = 'Невский пр., д. 88'),    (SELECT id FROM apartment_categories WHERE name = '1-комнатная')),
+    (9, 123, 77, (SELECT id FROM buildings WHERE address = 'Невский пр., д. 88'),    (SELECT id FROM apartment_categories WHERE name = 'Апартаменты')),
     -- ул. Садовая, д. 14
-    (3,  22, (SELECT id FROM buildings WHERE address = 'ул. Садовая, д. 14'),    (SELECT id FROM apartment_categories WHERE name = '2-комнатная')),
+    (3, 222, 22, (SELECT id FROM buildings WHERE address = 'ул. Садовая, д. 14'),    (SELECT id FROM apartment_categories WHERE name = '2-комнатная')),
     -- ул. Баумана, д. 42
-    (4,  35, (SELECT id FROM buildings WHERE address = 'ул. Баумана, д. 42'),    (SELECT id FROM apartment_categories WHERE name = '3-комнатная'));
+    (4,12,  35, (SELECT id FROM buildings WHERE address = 'ул. Баумана, д. 42'),    (SELECT id FROM apartment_categories WHERE name = '3-комнатная'));
 
 -- ============================================================
 -- 8. Объявления

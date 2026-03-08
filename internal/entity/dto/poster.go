@@ -11,8 +11,6 @@ type PosterDTO struct {
 	Area    float64  `json:"area"`
 	Rating  *float64 `json:"rating"`
 	Beds    *int     `json:"beds"`
-
-	Type string `json:"type"`
 }
 
 type PostersFiltersDTO struct {
@@ -30,9 +28,6 @@ func PostersToPostersDTO(posters []entity.Poster) []PosterDTO {
 			Address: poster.Address,
 			Metro:   poster.Metro,
 			Area:    poster.Area,
-			Rating:  poster.Rating,
-			Beds:    poster.Beds,
-			Type:    poster.Type,
 		}
 
 		listPosters = append(listPosters, posterDTO)

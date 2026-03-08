@@ -104,12 +104,14 @@ CREATE TABLE IF NOT EXISTS apartments (
     floor SMALLINT NOT NULL,
     number SMALLINT NOT NULL,
     building_id BIGINT NOT NULL,
+    area NUMERIC(10, 3) NOT NULL,
     category_id BIGINT,
 
     CONSTRAINT fk_building FOREIGN KEY (building_id) REFERENCES buildings(id),
     CONSTRAINT fk_category FOREIGN KEY (category_id) REFERENCES apartment_categories(id),
     CONSTRAINT floor_check CHECK (floor > 0),
-    CONSTRAINT number_check CHECK (number > 0)
+    CONSTRAINT number_check CHECK (number > 0),
+    CONSTRAINT area_check CHECK (area > 0)
 );
 
 

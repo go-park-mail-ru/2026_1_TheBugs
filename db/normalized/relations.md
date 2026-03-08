@@ -32,7 +32,7 @@
 - `provider` — провайдер OAuth (может быть NULL при входе по паролю)
 - `created_at` — дата регистрации
 - `updated_at` — дата последнего обновления
-- `salt` — соль для хеширования пароля
+- `salt` — соль для пароля
 - `company_id` — идентификатор управляющей компании (FK → `utility_companies`)
 
 ### `refresh_tokens`
@@ -64,6 +64,7 @@
 - `id` — уникальный идентификатор
 - `floor` — этаж
 - `number` — номер помещения
+- `area` - площадь
 - `building_id` — здание, в котором находится помещение (FK → `buildings`)
 - `category_id` — категория помещения (FK → `apartment_categories`)
 
@@ -142,7 +143,7 @@
 **1NF**: ✓ **2NF**: ✓ **3NF**: ✓ **BCNF**: ✓
 
 ### apartments
-`{id} → {floor, number, building_id, category_id}`  
+`{id} → {floor, number, building_id, category_id, area}`  
 **1NF**: ✓ **2NF**: ✓ **3NF**: ✓ **BCNF**: ✓
 
 ### posters
@@ -243,6 +244,7 @@ erDiagram
         bigint id PK
         smallint floor
         smallint number
+        numeric area 
         bigint building_id FK
         bigint category_id FK
     }
