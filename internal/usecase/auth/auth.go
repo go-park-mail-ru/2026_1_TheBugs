@@ -29,8 +29,8 @@ func NewAuthUseCase(userRepo usecase.UserRepo, authRepo usecase.AuthRepo) *AuthU
 	}
 }
 func (uc AuthUseCase) RegisterUseCase(ctx context.Context, email string, password string) error {
-	if !validator.ValidateEmail(email) || !validator.ValidatePwd(password) {
-		return entity.InvalidInput
+	if err := validator.ValidateCred(email, password); err != nil {
+		return err
 	}
 	existing, err := uc.userRepo.GetUserByEmail(ctx, email)
 	if existing != nil {
@@ -60,8 +60,8 @@ func (uc AuthUseCase) RegisterUseCase(ctx context.Context, email string, passwor
 
 func (uc AuthUseCase) LoginUseCase(ctx context.Context, email string, passwod string) (*dto.UserAccessCredDTO, error) {
 	var cred dto.UserAccessCredDTO
-	if !validator.ValidateEmail(email) || !validator.ValidatePwd(passwod) {
-		return &cred, entity.InvalidInput
+	if err := validator.ValidateCred(email, passwod); err != nil {
+		return &cred, err
 	}
 	user, err := uc.userRepo.GetUserByEmail(ctx, email)
 

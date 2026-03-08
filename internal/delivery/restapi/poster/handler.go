@@ -81,7 +81,6 @@ func (h *PosterHandler) GetPosters(w http.ResponseWriter, r *http.Request) {
 	response.Len = postersLen
 	response.Posters = posters
 
-	utils.JSONResponse(w, response)
-	w.WriteHeader(http.StatusOK)
+	utils.JSONResponse(w, http.StatusOK, response)
 
 }

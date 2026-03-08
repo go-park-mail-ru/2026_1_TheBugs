@@ -96,8 +96,8 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 
 	setRefreshCookie(w, accessCred)
 
-	utils.JSONResponse(w, &resp)
-	w.WriteHeader(http.StatusOK)
+	utils.JSONResponse(w, http.StatusOK, &resp)
+
 }
 
 // RefreshToken
@@ -133,8 +133,7 @@ func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 
 	setRefreshCookie(w, accessCred)
 
-	utils.JSONResponse(w, &resp)
-	w.WriteHeader(http.StatusOK)
+	utils.JSONResponse(w, http.StatusOK, &resp)
 }
 
 func setRefreshCookie(w http.ResponseWriter, accessCred *dto.UserAccessCredDTO) {
