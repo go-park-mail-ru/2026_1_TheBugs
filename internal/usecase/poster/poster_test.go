@@ -22,11 +22,11 @@ func TestGetPostersUseCase(t *testing.T) {
 	}
 
 	expectedDTO := []dto.PosterDTO{
-		{Price: 11111, Address: "street_1"},
-		{Price: 22222, Address: "street_2"},
-		{Price: 33333, Address: "street_3"},
-		{Price: 44444, Address: "street_4"},
-		{Price: 55555, Address: "street_5"},
+		{ID: 1, Price: 11111, Address: "street_1"},
+		{ID: 2, Price: 22222, Address: "street_2"},
+		{ID: 3, Price: 33333, Address: "street_3"},
+		{ID: 4, Price: 44444, Address: "street_4"},
+		{ID: 5, Price: 55555, Address: "street_5"},
 	}
 
 	tests := []struct {

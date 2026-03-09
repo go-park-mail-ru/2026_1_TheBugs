@@ -32,16 +32,15 @@ func (r *PosterRepo) GetPosters(ctx context.Context, filters dto.PostersFiltersD
 		LIMIT $1 OFFSET $2`
 
 	rows, err := r.pool.Query(ctx, query, filters.Limit, filters.Offset)
-
 	if err != nil {
-		return nil, err
+		return nil, repository.HandelPgErrors(err)
 	}
 
 	defer rows.Close()
 
 	posters, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.Poster])
 	if err != nil {
-		return nil, entity.CollectPostersErr
+		return nil, repository.HandelPgErrors(err)
 	}
 
 	return posters, rows.Err()
