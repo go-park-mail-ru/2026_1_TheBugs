@@ -86,7 +86,7 @@ func TestRegisterUseCase(t *testing.T) {
 }
 
 func TestLoginUseCase(t *testing.T) {
-	t.Parallel()
+	//t.Parallel()
 	ctx := context.Background()
 
 	cases := []struct {
@@ -164,7 +164,7 @@ func TestLoginUseCase(t *testing.T) {
 	for _, tc := range cases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+			//t.Parallel()
 
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
@@ -203,7 +203,7 @@ func TestLoginUseCase(t *testing.T) {
 }
 
 func TestRefreshUseCase(t *testing.T) {
-	t.Parallel()
+	//t.Parallel()
 	ctx := context.Background()
 
 	userID := 1
@@ -317,7 +317,7 @@ func TestRefreshUseCase(t *testing.T) {
 	for _, tc := range cases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+			//t.Parallel()
 
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
