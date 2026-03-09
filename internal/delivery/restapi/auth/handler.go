@@ -6,6 +6,7 @@ import (
 
 	"log"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
@@ -144,6 +145,7 @@ func setRefreshCookie(w http.ResponseWriter, accessCred *dto.UserAccessCredDTO) 
 			Value:    accessCred.RefreshToken,
 			Path:     "/api/auth/refresh",
 			HttpOnly: true,
+			Domain:   config.Config.CORS.CookieHost,
 			SameSite: http.SameSiteLaxMode,
 			Expires:  time.Now().Add(time.Duration(accessCred.RefreshTokenExp * int(time.Second))),
 			MaxAge:   accessCred.RefreshTokenExp,
