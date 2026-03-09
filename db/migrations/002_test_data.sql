@@ -209,7 +209,7 @@ INSERT INTO posters (title, price, avatar_url, description, user_id, apartment_i
     (
         'Студия у Тверской, свежий ремонт',
         65000.00,
-        'https://cdn.example.com/posters/1/avatar.jpg',
+        'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=800&q=80',
         'Уютная студия после капитального ремонта. Новая кухня, встроенные шкафы. Рядом метро.',
         (SELECT id FROM users WHERE email = 'ivan.petrov@mail.ru'),
         (SELECT id FROM apartments WHERE number = 12 AND building_id = (SELECT id FROM buildings WHERE address = 'ул. Тверская, д. 25'))
@@ -217,7 +217,7 @@ INSERT INTO posters (title, price, avatar_url, description, user_id, apartment_i
     (
         'Просторная 2-комнатная на Тверской',
         120000.00,
-        'https://cdn.example.com/posters/2/avatar.jpg',
+        'https://images.unsplash.com/photo-1501183638710-841dd1904471?auto=format&fit=crop&w=800&q=80',
         'Светлая квартира с панорамным видом. Паркинг в подарок.',
         (SELECT id FROM users WHERE email = 'ivan.petrov@mail.ru'),
         (SELECT id FROM apartments WHERE number = 54 AND building_id = (SELECT id FROM buildings WHERE address = 'ул. Тверская, д. 25'))
@@ -225,7 +225,7 @@ INSERT INTO posters (title, price, avatar_url, description, user_id, apartment_i
     (
         'Пентхаус на Арбате — эксклюзив',
         350000.00,
-        'https://cdn.example.com/posters/3/avatar.jpg',
+        'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=800&q=80',
         'Уникальный пентхаус с открытой террасой 80 кв.м. Консьерж, закрытая территория.',
         (SELECT id FROM users WHERE email = 'anna.sokolova@yandex.ru'),
         (SELECT id FROM apartments WHERE number = 99 AND building_id = (SELECT id FROM buildings WHERE address = 'ул. Арбат, д. 36'))
@@ -233,7 +233,7 @@ INSERT INTO posters (title, price, avatar_url, description, user_id, apartment_i
     (
         '1-комнатная на Арбате',
         85000.00,
-        'https://cdn.example.com/posters/4/avatar.jpg',
+        'https://images.unsplash.com/photo-1502005097973-6a7082348e28?auto=format&fit=crop&w=800&q=80',
         'Отличное место для жизни. Арбат в шаговой доступности. Мебель остаётся.',
         (SELECT id FROM users WHERE email = 'anna.sokolova@yandex.ru'),
         (SELECT id FROM apartments WHERE number = 5 AND building_id = (SELECT id FROM buildings WHERE address = 'ул. Арбат, д. 36'))
@@ -241,7 +241,7 @@ INSERT INTO posters (title, price, avatar_url, description, user_id, apartment_i
     (
         'Студия у Смоленской площади',
         55000.00,
-        'https://cdn.example.com/posters/5/avatar.jpg',
+        'https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=800&q=80',
         'Компактная студия для одного или пары. Первый этаж, высокие потолки.',
         (SELECT id FROM users WHERE email = 'sergey.kuzmin@gmail.com'),
         (SELECT id FROM apartments WHERE number = 2 AND building_id = (SELECT id FROM buildings WHERE address = 'Смоленская пл., д. 3'))
@@ -249,7 +249,7 @@ INSERT INTO posters (title, price, avatar_url, description, user_id, apartment_i
     (
         '1-комнатная на Невском',
         75000.00,
-        'https://cdn.example.com/posters/6/avatar.jpg',
+        'https://images.unsplash.com/photo-1493666438817-866a91353ca9?auto=format&fit=crop&w=800&q=80',
         'Квартира в историческом центре Петербурга. Дизайнерский ремонт 2024 года.',
         (SELECT id FROM users WHERE email = 'olga.morozova@mail.ru'),
         (SELECT id FROM apartments WHERE number = 8 AND building_id = (SELECT id FROM buildings WHERE address = 'Невский пр., д. 88'))
@@ -257,7 +257,7 @@ INSERT INTO posters (title, price, avatar_url, description, user_id, apartment_i
     (
         'Апартаменты с видом на Неву',
         200000.00,
-        'https://cdn.example.com/posters/7/avatar.jpg',
+        'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=800&q=80',
         'Элитные апартаменты, 9 этаж. Потрясающий вид на Неву. Подземный паркинг.',
         (SELECT id FROM users WHERE email = 'olga.morozova@mail.ru'),
         (SELECT id FROM apartments WHERE number = 77 AND building_id = (SELECT id FROM buildings WHERE address = 'Невский пр., д. 88'))
@@ -265,7 +265,7 @@ INSERT INTO posters (title, price, avatar_url, description, user_id, apartment_i
     (
         '2-комнатная на Садовой',
         90000.00,
-        'https://cdn.example.com/posters/8/avatar.jpg',
+        'https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=800&q=80',
         'Тихий двор, развитая инфраструктура. Школа и детсад в 5 минутах.',
         (SELECT id FROM users WHERE email = 'dmitry.volkov@yandex.ru'),
         (SELECT id FROM apartments WHERE number = 22 AND building_id = (SELECT id FROM buildings WHERE address = 'ул. Садовая, д. 14'))
@@ -273,7 +273,7 @@ INSERT INTO posters (title, price, avatar_url, description, user_id, apartment_i
     (
         '3-комнатная в центре Казани',
         95000.00,
-        'https://cdn.example.com/posters/9/avatar.jpg',
+        'https://images.unsplash.com/photo-1501183638710-841dd1904471?auto=format&fit=crop&w=800&q=80',
         'Большая семейная квартира. Все комнаты изолированы. Лоджия 8 кв.м.',
         (SELECT id FROM users WHERE email = 'maria.novikova@gmail.com'),
         (SELECT id FROM apartments WHERE number = 35 AND building_id = (SELECT id FROM buildings WHERE address = 'ул. Баумана, д. 42'))
