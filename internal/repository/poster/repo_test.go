@@ -83,7 +83,7 @@ func TestGetPostersRepo(t *testing.T) {
 				m.ExpectQuery(query).WithArgs(12, 0).WillReturnRows(rows)
 			},
 			want:    nil,
-			wantErr: entity.CollectPostersErr,
+			wantErr: entity.ServiceError,
 		},
 	}
 
