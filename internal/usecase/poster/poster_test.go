@@ -1,9 +1,9 @@
 package poster
 
 import (
+	"context"
 	"testing"
 
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/request"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/mocks"
@@ -12,7 +12,8 @@ import (
 )
 
 func TestGetPostersUseCase(t *testing.T) {
-	existingListPoster := []*entity.Poster{
+	ctx := context.Background()
+	existingListPoster := []entity.Poster{
 		{Id: 1, Price: 11111, Address: "street_1"},
 		{Id: 2, Price: 22222, Address: "street_2"},
 		{Id: 3, Price: 33333, Address: "street_3"},
@@ -30,27 +31,29 @@ func TestGetPostersUseCase(t *testing.T) {
 
 	tests := []struct {
 		name      string
-		params    request.PostersRequest
+		params    dto.PostersFiltersDTO
 		setupMock func(m *mocks.MockPosterRepo)
 		want      []dto.PosterDTO
 		wantErr   error
 	}{
 		{
 			name: "OK",
-			params: request.PostersRequest{
+			params: dto.PostersFiltersDTO{
 				Limit:  12,
 				Offset: 0,
 			},
 			setupMock: func(m *mocks.MockPosterRepo) {
-				m.EXPECT().CountPosters().Return(5, nil).Times(1)
-				m.EXPECT().GetPosters(12, 0, 5).Return(existingListPoster, nil).Times(1)
+				m.EXPECT().GetPosters(ctx, dto.PostersFiltersDTO{
+					Limit:  12,
+					Offset: 0,
+				}).Return(existingListPoster, nil).Times(1)
 			},
 			want:    expectedDTO,
 			wantErr: nil,
 		},
 		{
 			name: "InvalidLimit",
-			params: request.PostersRequest{
+			params: dto.PostersFiltersDTO{
 				Limit:  -2,
 				Offset: 0,
 			},
@@ -60,20 +63,22 @@ func TestGetPostersUseCase(t *testing.T) {
 		},
 		{
 			name: "LimitTooLarge",
-			params: request.PostersRequest{
-				Limit:  1000,
+			params: dto.PostersFiltersDTO{
+				Limit:  MaxPostersLimit + 1,
 				Offset: 0,
 			},
 			setupMock: func(m *mocks.MockPosterRepo) {
-				m.EXPECT().CountPosters().Return(5, nil).Times(1)
-				m.EXPECT().GetPosters(MaxPostersLimit, 0, 5).Return(existingListPoster, nil).Times(1)
+				m.EXPECT().GetPosters(ctx, dto.PostersFiltersDTO{
+					Limit:  MaxPostersLimit,
+					Offset: 0,
+				}).Return(existingListPoster, nil).Times(1)
 			},
 			want:    expectedDTO,
 			wantErr: nil,
 		},
 		{
 			name: "InvalidOffset",
-			params: request.PostersRequest{
+			params: dto.PostersFiltersDTO{
 				Limit:  12,
 				Offset: -3,
 			},
@@ -82,26 +87,16 @@ func TestGetPostersUseCase(t *testing.T) {
 			wantErr:   entity.InvalidInput,
 		},
 		{
-			name: "OffsetOutOfRange",
-			params: request.PostersRequest{
-				Limit:  12,
-				Offset: 10,
-			},
-			setupMock: func(m *mocks.MockPosterRepo) {
-				m.EXPECT().CountPosters().Return(5, nil).Times(1)
-			},
-			want:    nil,
-			wantErr: entity.OffsetOutOfRange,
-		},
-		{
 			name: "ErrorFromRepo",
-			params: request.PostersRequest{
+			params: dto.PostersFiltersDTO{
 				Limit:  12,
 				Offset: 0,
 			},
 			setupMock: func(m *mocks.MockPosterRepo) {
-				m.EXPECT().CountPosters().Return(5, nil).Times(1)
-				m.EXPECT().GetPosters(12, 0, 5).Return(nil, entity.NotFoundError).Times(1)
+				m.EXPECT().GetPosters(ctx, dto.PostersFiltersDTO{
+					Limit:  12,
+					Offset: 0,
+				}).Return(nil, entity.NotFoundError).Times(1)
 			},
 			want:    nil,
 			wantErr: entity.NotFoundError,
@@ -119,7 +114,7 @@ func TestGetPostersUseCase(t *testing.T) {
 
 			uc := NewPosterUseCase(mockRepo)
 
-			got, err := uc.GetPostersUseCase(test.params)
+			got, err := uc.GetPostersUseCase(ctx, test.params)
 			if test.wantErr != nil {
 				require.ErrorIs(t, err, test.wantErr)
 				return

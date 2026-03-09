@@ -19,6 +19,17 @@ func WriteError(w http.ResponseWriter, msg string, status int) {
 func HandelError(w http.ResponseWriter, err error) {
 	switch {
 	case errors.Is(err, entity.InvalidInput):
+
+		var validateErr *entity.ValidationError
+		if errors.As(err, &validateErr) {
+			JSONResponse(w,
+				http.StatusBadRequest,
+				response.ValidationErrorResponse{
+					Error: "validation error",
+					Field: validateErr.Field,
+				})
+			return
+		}
 		WriteError(w, "bad request", http.StatusBadRequest)
 	case errors.Is(err, entity.BadCredentials):
 		WriteError(w, "unauthorized", http.StatusUnauthorized)

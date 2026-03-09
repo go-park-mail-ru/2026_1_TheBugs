@@ -1,12 +1,12 @@
 package auth
 
 import (
-	"encoding/json"
 	"net/http"
 	"time"
 
 	"log"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
@@ -53,7 +53,7 @@ func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		utils.HandelError(w, err)
 		return
 	}
-	err = h.uc.RegisterUseCase(cred.Email, cred.Password)
+	err = h.uc.RegisterUseCase(r.Context(), cred.Email, cred.Password)
 	if err != nil {
 		log.Printf("h.uc.RegisterUseCase: %s", err)
 		utils.HandelError(w, err)
@@ -84,7 +84,7 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		utils.HandelError(w, err)
 		return
 	}
-	accessCred, err := h.uc.LoginUseCase(cred.Email, cred.Password)
+	accessCred, err := h.uc.LoginUseCase(r.Context(), cred.Email, cred.Password)
 	if err != nil {
 		log.Printf("h.uc.LoginUseCase: %s", err)
 		utils.HandelError(w, err)
@@ -97,10 +97,8 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 
 	setRefreshCookie(w, accessCred)
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	utils.JSONResponse(w, http.StatusOK, &resp)
 
-	json.NewEncoder(w).Encode(&resp)
 }
 
 // RefreshToken
@@ -123,7 +121,7 @@ func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	refreshToken := cookie.Value
-	accessCred, err := h.uc.RefreshTokenUseCase(refreshToken)
+	accessCred, err := h.uc.RefreshTokenUseCase(r.Context(), refreshToken)
 	if err != nil {
 		log.Printf("h.uc.RefreshTokenUseCase: %s", err)
 		utils.HandelError(w, err)
@@ -136,9 +134,7 @@ func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 
 	setRefreshCookie(w, accessCred)
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(resp)
+	utils.JSONResponse(w, http.StatusOK, &resp)
 }
 
 func setRefreshCookie(w http.ResponseWriter, accessCred *dto.UserAccessCredDTO) {
@@ -149,7 +145,7 @@ func setRefreshCookie(w http.ResponseWriter, accessCred *dto.UserAccessCredDTO) 
 			Value:    accessCred.RefreshToken,
 			Path:     "/api/auth/refresh",
 			HttpOnly: true,
-			Domain:   "localhost",
+			Domain:   config.Config.CORS.CookieHost,
 			SameSite: http.SameSiteLaxMode,
 			Expires:  time.Now().Add(time.Duration(accessCred.RefreshTokenExp * int(time.Second))),
 			MaxAge:   accessCred.RefreshTokenExp,

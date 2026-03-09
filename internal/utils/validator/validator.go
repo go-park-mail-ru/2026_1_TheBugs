@@ -2,6 +2,8 @@ package validator
 
 import (
 	"regexp"
+
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 )
 
 const emailRegexPattern = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
@@ -28,4 +30,14 @@ func ValidatePwd(pwd string) bool {
 	hasDigit := regexp.MustCompile(`\d`).MatchString(pwd)
 	neededSymbols := regexp.MustCompile(pwdRegexPattern).MatchString(pwd)
 	return hasUpper && hasLower && hasDigit && neededSymbols
+}
+
+func ValidateCred(email string, pwd string) error {
+	if !ValidateEmail(email) {
+		return entity.NewValidationError("email")
+	}
+	if !ValidatePwd(pwd) {
+		return entity.NewValidationError("password")
+	}
+	return nil
 }

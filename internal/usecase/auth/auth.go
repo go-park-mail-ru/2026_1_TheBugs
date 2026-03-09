@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strconv"
@@ -27,11 +28,11 @@ func NewAuthUseCase(userRepo usecase.UserRepo, authRepo usecase.AuthRepo) *AuthU
 		authRepo: authRepo,
 	}
 }
-func (uc AuthUseCase) RegisterUseCase(email string, password string) error {
-	if !validator.ValidateEmail(email) || !validator.ValidatePwd(password) {
-		return entity.InvalidInput
+func (uc AuthUseCase) RegisterUseCase(ctx context.Context, email string, password string) error {
+	if err := validator.ValidateCred(email, password); err != nil {
+		return err
 	}
-	existing, err := uc.userRepo.GetUserByEmail(email)
+	existing, err := uc.userRepo.GetUserByEmail(ctx, email)
 	if existing != nil {
 		return entity.AlredyExitError
 	}
@@ -46,7 +47,7 @@ func (uc AuthUseCase) RegisterUseCase(email string, password string) error {
 		return fmt.Errorf("pwd.GenerateSalt: %w", err)
 	}
 	hashedPwd := pwd.HashPassword(password, []byte(salt))
-	_, err = uc.userRepo.CreateUser(dto.CreateUserDTO{
+	_, err = uc.userRepo.CreateUser(ctx, dto.CreateUserDTO{
 		Email:          email,
 		HashedPassword: hashedPwd,
 		Salt:           salt,
@@ -57,12 +58,12 @@ func (uc AuthUseCase) RegisterUseCase(email string, password string) error {
 	return nil
 }
 
-func (uc AuthUseCase) LoginUseCase(email string, passwod string) (*dto.UserAccessCredDTO, error) {
+func (uc AuthUseCase) LoginUseCase(ctx context.Context, email string, passwod string) (*dto.UserAccessCredDTO, error) {
 	var cred dto.UserAccessCredDTO
-	if !validator.ValidateEmail(email) || !validator.ValidatePwd(passwod) {
-		return &cred, entity.InvalidInput
+	if err := validator.ValidateCred(email, passwod); err != nil {
+		return &cred, err
 	}
-	user, err := uc.userRepo.GetUserByEmail(email)
+	user, err := uc.userRepo.GetUserByEmail(ctx, email)
 
 	if err != nil {
 		return &cred, entity.NotFoundError
@@ -80,7 +81,7 @@ func (uc AuthUseCase) LoginUseCase(email string, passwod string) (*dto.UserAcces
 		return &cred, entity.ServiceError
 	}
 
-	refreshToken, _, err := uc.createAndSaveRefreshToken(user.ID)
+	refreshToken, _, err := uc.createAndSaveRefreshToken(ctx, user.ID)
 	if err != nil {
 		return &cred, entity.ServiceError
 	}
@@ -93,27 +94,30 @@ func (uc AuthUseCase) LoginUseCase(email string, passwod string) (*dto.UserAcces
 	return &cred, nil
 }
 
-func (uc AuthUseCase) createAndSaveRefreshToken(userID int) (string, time.Time, error) {
+func (uc AuthUseCase) createAndSaveRefreshToken(ctx context.Context, userID int) (string, time.Time, error) {
 	refreshTokenID := uuid.NewString()
 	refreshTokenExp := config.Config.JWT.RefreshExp
 	refreshTokenExpAt := time.Now().Add(refreshTokenExp)
 
 	refreshToken, err := tokens.GenerateRefreshToken(refreshTokenID, userID, refreshTokenExp)
 	if err != nil {
-		return "", time.Time{}, entity.ServiceError
+		return "", time.Time{}, fmt.Errorf("tokens.GenerateRefreshToken: %w", entity.ServiceError)
 	}
 
-	uc.authRepo.CreateToken(dto.CreateRefreshTokenDTO{
+	err = uc.authRepo.CreateToken(ctx, dto.CreateRefreshTokenDTO{
 		TokenID:   refreshTokenID,
 		UserID:    userID,
 		ExpiresAt: refreshTokenExpAt,
 	})
+	if err != nil {
+		return "", time.Time{}, fmt.Errorf("uc.authRepo.CreateToken: %w", err)
+	}
 
 	return refreshToken, refreshTokenExpAt, nil
 }
 
 // TODO : сделать все в одной транзакции
-func (uc AuthUseCase) RefreshTokenUseCase(refreshToken string) (*dto.UserAccessCredDTO, error) {
+func (uc AuthUseCase) RefreshTokenUseCase(ctx context.Context, refreshToken string) (*dto.UserAccessCredDTO, error) {
 	var cred dto.UserAccessCredDTO
 
 	tokenData, err := tokens.ParseToken(refreshToken)
@@ -128,7 +132,7 @@ func (uc AuthUseCase) RefreshTokenUseCase(refreshToken string) (*dto.UserAccessC
 	if tokenData.Type != entity.RefreshTokenType {
 		return &cred, entity.JWTError
 	}
-	storedToken, err := uc.authRepo.GetToken(tokenData.ID, userID)
+	storedToken, err := uc.authRepo.GetToken(ctx, tokenData.ID, userID)
 	if err != nil {
 		return &cred, fmt.Errorf("uc.authRepo.GetToken: %w", entity.JWTError)
 	}
@@ -137,13 +141,13 @@ func (uc AuthUseCase) RefreshTokenUseCase(refreshToken string) (*dto.UserAccessC
 		return &cred, entity.JWTError
 	}
 
-	uc.authRepo.DeleteToken(tokenData.ID, userID)
+	uc.authRepo.DeleteToken(ctx, tokenData.ID, userID)
 
 	accessToken, err := tokens.GenerateAccessToken(userID, config.Config.JWT.AccessExp)
 	if err != nil {
 		return &cred, fmt.Errorf("tokens.GenerateAccessToken: %w", err)
 	}
-	refreshToken, _, err = uc.createAndSaveRefreshToken(userID)
+	refreshToken, _, err = uc.createAndSaveRefreshToken(ctx, userID)
 	if err != nil {
 		return &cred, fmt.Errorf("uc.createAndSaveRefreshToken: %w", err)
 	}

@@ -1,26 +1,58 @@
 package poster
 
-import "github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+import (
+	"context"
+
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository"
+	"github.com/jackc/pgx/v5"
+	_ "github.com/jackc/pgx/v5/stdlib"
+)
 
 type PosterRepo struct {
-	listPoster []entity.Poster
+	pool repository.DB
 }
 
-func NewPosterRepo() *PosterRepo {
+func NewPosterRepo(pool repository.DB) *PosterRepo {
 	return &PosterRepo{
-		listPoster: []entity.Poster{},
+		pool: pool,
 	}
 }
 
-func (r *PosterRepo) GetPosters(limit, offset, end int) ([]*entity.Poster, error) {
-	posters := make([]*entity.Poster, 0, end)
-	for i := offset; i < end; i++ {
-		posters = append(posters, &r.listPoster[i])
+func (r *PosterRepo) GetPosters(ctx context.Context, filters dto.PostersFiltersDTO) ([]entity.Poster, error) {
+	query := `
+        SELECT p.id, p.price, p.avatar_url, 
+               b.address, m.station_name, a.area, a.floor
+        FROM posters p
+        JOIN apartments a ON a.id = p.apartment_id
+        JOIN buildings b ON b.id = a.building_id
+        JOIN metro_stations m ON b.metro_station_id = m.id
+		ORDER BY p.created_at DESC 
+		LIMIT $1 OFFSET $2`
+
+	rows, err := r.pool.Query(ctx, query, filters.Limit, filters.Offset)
+
+	if err != nil {
+		return nil, err
 	}
 
-	return posters, nil
+	defer rows.Close()
+
+	posters, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.Poster])
+	if err != nil {
+		return nil, entity.CollectPostersErr
+	}
+
+	return posters, rows.Err()
 }
 
-func (r *PosterRepo) CountPosters() int {
-	return len(r.listPoster)
+func (r *PosterRepo) CountPosters(ctx context.Context) (int, error) {
+	var count int
+	row := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM posters")
+	err := row.Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
 }

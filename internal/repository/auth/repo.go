@@ -1,47 +1,59 @@
 package auth
 
 import (
+	"context"
+	"log"
+
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository"
+	"github.com/jackc/pgx/v5"
 )
 
 type AuthRepo struct {
-	tokensSlice []entity.RefreshToken
+	pool repository.DB
 }
 
-func NewAuthRepo() *AuthRepo {
+func NewAuthRepo(pool repository.DB) *AuthRepo {
 	return &AuthRepo{
-		tokensSlice: []entity.RefreshToken{},
+		pool: pool,
 	}
 }
 
-func (r *AuthRepo) CreateToken(token dto.CreateRefreshTokenDTO) error {
-	r.tokensSlice = append(r.tokensSlice, entity.RefreshToken{
-		TokenID:   token.TokenID,
-		UserID:    token.UserID,
-		ExpiresAt: token.ExpiresAt,
-	})
+func (r *AuthRepo) CreateToken(ctx context.Context, token dto.CreateRefreshTokenDTO) error {
+	sql := `INSERT INTO refresh_tokens (token_id, user_id, expires_at) VALUES ($1, $2, $3) RETURNING id`
+	var tokenID int
+	err := r.pool.QueryRow(ctx, sql, token.TokenID, token.UserID, token.ExpiresAt).Scan(&tokenID)
+	if err != nil {
+		log.Printf("%s", err.Error())
+		return repository.HandelPgErrors(err)
+	}
 	return nil
 }
 
-func (r *AuthRepo) GetToken(tokenID string, userID int) (*entity.RefreshToken, error) {
-	for _, token := range r.tokensSlice {
-		if token.TokenID == tokenID && token.UserID == userID {
-			return &token, nil
-		}
+func (r *AuthRepo) GetToken(ctx context.Context, tokenID string, userID int) (*entity.RefreshToken, error) {
+	sql := `SELECT id, token_id, user_id, expires_at FROM refresh_tokens WHERE token_id=$1 AND user_id=$2`
+	row, err := r.pool.Query(ctx, sql, tokenID, userID)
+
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
 	}
-	return nil, entity.NotFoundError
+
+	defer row.Close()
+
+	token, err := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[entity.RefreshToken])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return &token, nil
 }
-func (r *AuthRepo) DeleteToken(tokenID string, userID int) error {
-	for i, token := range r.tokensSlice {
-		if token.TokenID == tokenID && token.UserID == userID {
-			if i < len(r.tokensSlice)-1 {
-				r.tokensSlice = append(r.tokensSlice[:i], r.tokensSlice[i+1:]...)
-			} else {
-				r.tokensSlice = r.tokensSlice[:i]
-			}
-			return nil
-		}
+func (r *AuthRepo) DeleteToken(ctx context.Context, tokenID string, userID int) error {
+	sql := `DELETE FROM refresh_tokens WHERE token_id=$1 AND user_id=$2 RETURNING id`
+	var deletedID int
+	err := r.pool.QueryRow(ctx, sql, tokenID, userID).Scan(&deletedID)
+	if err != nil {
+		return repository.HandelPgErrors(err)
 	}
-	return entity.NotFoundError
+	return nil
 }

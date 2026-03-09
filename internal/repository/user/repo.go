@@ -1,49 +1,56 @@
 package user
 
 import (
-	"log"
+	"context"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository"
+	"github.com/jackc/pgx/v5"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 )
 
 type UserRepo struct {
-	userSlice []entity.User
+	pool repository.DB
 }
 
-func NewUserRepo() *UserRepo {
+func NewUserRepo(pool repository.DB) *UserRepo {
 	return &UserRepo{
-		userSlice: []entity.User{},
+		pool: pool,
 	}
 }
 
-func (r *UserRepo) GetUserByEmail(email string) (*entity.User, error) {
-	for _, u := range r.userSlice {
-		if u.Email == email {
-			return &u, nil
-		}
+func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
+	sql := `SELECT id, email, salt, hashed_password FROM users WHERE email=$1`
+	row, err := r.pool.Query(ctx, sql, email)
+
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
 	}
-	return nil, entity.NotFoundError
+
+	defer row.Close()
+
+	user, err := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[entity.User])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return &user, nil
 
 }
 
-func (r *UserRepo) CreateUser(dto dto.CreateUserDTO) (*entity.User, error) {
-	newId := 0
-	if len(r.userSlice) > 0 {
-		lastUser := r.userSlice[len(r.userSlice)-1]
-		newId = lastUser.ID + 1
+func (r *UserRepo) CreateUser(ctx context.Context, dto dto.CreateUserDTO) (*entity.User, error) {
+	sql := `INSERT INTO users (email, hashed_password, salt) VALUES ($1, $2, $3) 
+			RETURNING id, email, hashed_password, salt`
+	row, err := r.pool.Query(ctx, sql, dto.Email, dto.HashedPassword, dto.Salt)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
 	}
+	defer row.Close()
 
-	newUser := entity.User{
-		ID:             newId,
-		Email:          dto.Email,
-		HashedPassword: dto.HashedPassword,
-		Salt:           dto.Salt,
+	user, err := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[entity.User])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
 	}
-	r.userSlice = append(r.userSlice, newUser)
-	log.Println(r.userSlice)
-	return &newUser, nil
+	return &user, nil
 }
-
-//func (r *UserRepo) CreateUserRefreshToken(userID string, tokenID string)

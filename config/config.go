@@ -12,11 +12,26 @@ import (
 var Config ProjectConfig
 var JWTKeys RSAKeys
 
+var DevCors = CORS{
+	AllowedHosts: []string{"http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:80", "http://localhost"},
+	CookieHost:   "localhost",
+}
+var ProdCors = CORS{
+	AllowedHosts: []string{"http://dom-deli.ru:80", "http://dom-deli.ru", "https://dom-deli.ru"},
+	CookieHost:   "dom-deli.ru",
+}
+
 type (
 	ProjectConfig struct {
+		AppEnv string `yaml:"app-env" env:"APP_ENV" env-default:"dev"`
+		CORS
 		Server   `yaml:"server"`
 		Postgres `yaml:"postgres"`
 		JWT      `yaml:"jwt"`
+	}
+	CORS struct {
+		AllowedHosts []string
+		CookieHost   string
 	}
 
 	Server struct {
@@ -68,6 +83,12 @@ func Read() error {
 	if err != nil {
 		return fmt.Errorf("error load public key: %w", err)
 	}
+	if Config.AppEnv == "dev" {
+		Config.CORS = DevCors
+	} else {
+		Config.CORS = ProdCors
+	}
+	log.Print(Config.CORS.AllowedHosts)
 	log.Println("reading configuration is successful")
 	return nil
 }
