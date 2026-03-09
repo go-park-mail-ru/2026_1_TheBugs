@@ -6,16 +6,15 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 )
 
 type UserRepo struct {
-	pool *pgxpool.Pool
+	pool repository.DB
 }
 
-func NewUserRepo(pool *pgxpool.Pool) *UserRepo {
+func NewUserRepo(pool repository.DB) *UserRepo {
 	return &UserRepo{
 		pool: pool,
 	}

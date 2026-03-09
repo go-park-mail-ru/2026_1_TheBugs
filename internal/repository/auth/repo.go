@@ -8,14 +8,13 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type AuthRepo struct {
-	pool *pgxpool.Pool
+	pool repository.DB
 }
 
-func NewAuthRepo(pool *pgxpool.Pool) *AuthRepo {
+func NewAuthRepo(pool repository.DB) *AuthRepo {
 	return &AuthRepo{
 		pool: pool,
 	}
