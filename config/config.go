@@ -17,8 +17,8 @@ var DevCors = CORS{
 	CookieHost:   "localhost",
 }
 var ProdCors = CORS{
-	AllowedHosts: []string{"http://dom-deli:80", "http://dom-deli", "https://dom-deli"},
-	CookieHost:   "dom-deli",
+	AllowedHosts: []string{"http://dom-deli.ru:80", "http://dom-deli.ru", "https://dom-deli.ru"},
+	CookieHost:   "dom-deli.ru",
 }
 
 type (
