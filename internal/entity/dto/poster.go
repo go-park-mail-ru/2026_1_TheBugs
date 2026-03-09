@@ -20,7 +20,9 @@ type PostersFiltersDTO struct {
 
 func PostersToPostersDTO(posters []entity.Poster) []PosterDTO {
 	listPosters := make([]PosterDTO, 0, len(posters))
-	for _, poster := range posters {
+	for i, poster := range posters {
+		rating := float64((i*3/2)%10 + 1)
+		count := (i%5 + 1)
 		posterDTO := PosterDTO{
 			ID:      poster.Id,
 			Price:   poster.Price,
@@ -28,6 +30,8 @@ func PostersToPostersDTO(posters []entity.Poster) []PosterDTO {
 			Address: poster.Address,
 			Metro:   poster.Metro,
 			Area:    poster.Area,
+			Rating:  &rating,
+			Beds:    &count,
 		}
 
 		listPosters = append(listPosters, posterDTO)
