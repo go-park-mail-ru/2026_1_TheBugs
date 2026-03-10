@@ -63,7 +63,7 @@ func Run(cfg *config.ProjectConfig) {
 	<-c
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer cancel()
-	srv.Shutdown(ctx)
+	_ = srv.Shutdown(ctx)
 	log.Println("shutting down")
 	os.Exit(0)
 

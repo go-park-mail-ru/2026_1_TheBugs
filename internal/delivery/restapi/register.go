@@ -53,7 +53,7 @@ func RegisterHandlers(app *mux.Router, auth *auth.AuthHandler, post *poster.Post
 	apiGroup := app.PathPrefix("/api").Subrouter()
 	{
 		apiGroup.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-			json.NewEncoder(w).Encode(map[string]bool{"ok": true})
+			_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 		}).Methods(http.MethodGet)
 
 		apiGroup.HandleFunc("/auth/reg", auth.RegisterUser).Methods(http.MethodPost)

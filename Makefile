@@ -14,3 +14,12 @@ docs:
 keys:
 	openssl genrsa -out private.pem 2048
 	openssl rsa -in private.pem -pubout -out public.pem
+
+install-lint:
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+lint:
+	golangci-lint run ./... --fix
+
+format: 
+	gofmt -w .

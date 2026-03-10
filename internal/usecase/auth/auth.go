@@ -141,7 +141,10 @@ func (uc AuthUseCase) RefreshTokenUseCase(ctx context.Context, refreshToken stri
 		return &cred, entity.JWTError
 	}
 
-	uc.authRepo.DeleteToken(ctx, tokenData.ID, userID)
+	err = uc.authRepo.DeleteToken(ctx, tokenData.ID, userID)
+	if err != nil {
+		return &cred, fmt.Errorf("uc.authRepo.DeleteToken: %w", err)
+	}
 
 	accessToken, err := tokens.GenerateAccessToken(userID, config.Config.JWT.AccessExp)
 	if err != nil {

@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/response"
@@ -10,10 +11,13 @@ import (
 )
 
 func WriteError(w http.ResponseWriter, msg string, status int) {
+
 	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(response.ErrorResponse{
-		Error: msg,
-	})
+
+	resp := response.ErrorResponse{Error: msg}
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		log.Printf("Failed to encode error response: %v", err)
+	}
 }
 
 func HandelError(w http.ResponseWriter, err error) {
