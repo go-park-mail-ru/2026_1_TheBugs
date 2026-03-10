@@ -13,7 +13,7 @@ var Config ProjectConfig
 var JWTKeys RSAKeys
 
 var DevCors = CORS{
-	AllowedHosts: []string{"http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:80", "http://localhost"},
+	AllowedHosts: []string{"http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:80", "http://localhost", "http://localhost:8000"},
 	CookieHost:   "localhost",
 }
 var ProdCors = CORS{

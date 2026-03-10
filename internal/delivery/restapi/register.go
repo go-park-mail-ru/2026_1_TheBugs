@@ -41,7 +41,7 @@ func RegisterHandlers(app *mux.Router, auth *auth.AuthHandler, post *poster.Post
 	c := cors.New(cors.Options{
 		AllowedOrigins:   config.Config.CORS.AllowedHosts,
 		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
-		AllowedHeaders:   []string{"Content-Type", "Authorization"},
+		AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,
 		ExposedHeaders:   []string{"Set-Cookie"},
 	})
@@ -51,6 +51,7 @@ func RegisterHandlers(app *mux.Router, auth *auth.AuthHandler, post *poster.Post
 
 	// Routers
 	apiGroup := app.PathPrefix("/api").Subrouter()
+	apiGroup.Use(mux.CORSMethodMiddleware(apiGroup))
 	{
 		apiGroup.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 			_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
@@ -58,7 +59,7 @@ func RegisterHandlers(app *mux.Router, auth *auth.AuthHandler, post *poster.Post
 
 		apiGroup.HandleFunc("/auth/reg", auth.RegisterUser).Methods(http.MethodPost)
 		apiGroup.HandleFunc("/auth/login", auth.LoginUser).Methods(http.MethodPost)
-		apiGroup.HandleFunc("/auth/logout", auth.Logout).Methods(http.MethodPost)
+		apiGroup.HandleFunc("/auth/logout", auth.Logout).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.HandleFunc("/auth/refresh", auth.RefreshToken).Methods(http.MethodPost)
 
 		apiGroup.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
