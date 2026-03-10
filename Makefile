@@ -8,7 +8,8 @@ test:
 	go clean -testcache
 	go test -v ./... --cover
 
-docs:
+swag:
+	go install github.com/swaggo/swag/cmd/swag@latest
 	swag init --parseDependency --parseInternal -g ./register.go -d ./internal/delivery/restapi -o ./internal/docs
 
 keys:

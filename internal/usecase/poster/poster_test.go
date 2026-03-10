@@ -121,7 +121,6 @@ func TestGetPostersUseCase(t *testing.T) {
 			}
 			require.Equal(t, len(test.want), len(got))
 			for i, p := range test.want {
-				// из-за моков
 				require.Equal(t, p.ID, got[i].ID)
 				require.Equal(t, p.Address, got[i].Address)
 			}

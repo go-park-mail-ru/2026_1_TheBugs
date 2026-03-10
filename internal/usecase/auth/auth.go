@@ -116,7 +116,6 @@ func (uc AuthUseCase) createAndSaveRefreshToken(ctx context.Context, userID int)
 	return refreshToken, refreshTokenExpAt, nil
 }
 
-// TODO : сделать все в одной транзакции
 func (uc AuthUseCase) RefreshTokenUseCase(ctx context.Context, refreshToken string) (*dto.UserAccessCredDTO, error) {
 	var cred dto.UserAccessCredDTO
 

@@ -235,20 +235,20 @@ const docTemplate = `{
         },
         "/posters": {
             "get": {
-                "description": "Возвращает количество полученных объявлений и их список",
+                "description": "Returns the number of retrieved posters and their list",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "posters"
                 ],
-                "summary": "Получить список объявлений",
+                "summary": "Get list of posters",
                 "parameters": [
                     {
                         "minimum": 1,
                         "type": "integer",
                         "default": 12,
-                        "description": "Количество объявлений",
+                        "description": "Number of posters",
                         "name": "limit",
                         "in": "query"
                     },
@@ -256,7 +256,7 @@ const docTemplate = `{
                         "minimum": 0,
                         "type": "integer",
                         "default": 0,
-                        "description": "Сдвиг для пагинации",
+                        "description": "Pagination offset",
                         "name": "offset",
                         "in": "query"
                     }
