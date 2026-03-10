@@ -111,12 +111,6 @@ paths:
       consumes:
       - application/json
       description: Blacklist access/refresh tokens and delete refresh cookie
-      parameters:
-      - description: Bearer access token
-        in: header
-        name: Authorization
-        required: true
-        type: string
       produces:
       - application/json
       responses:

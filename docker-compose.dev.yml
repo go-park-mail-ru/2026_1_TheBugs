@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgis/postgis:16-3.4
-    container_name: thebugs_postgres
+    container_name: postgres
     environment:
       POSTGRES_USER: thebugs
       POSTGRES_PASSWORD: thebugs

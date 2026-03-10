@@ -14,7 +14,7 @@ func SetRefreshCookie(w http.ResponseWriter, accessCred *dto.UserAccessCredDTO) 
 		&http.Cookie{
 			Name:     "refresh_token",
 			Value:    accessCred.RefreshToken,
-			Path:     "/api/auth/refresh",
+			Path:     "/api/auth",
 			HttpOnly: true,
 			Domain:   config.Config.CORS.CookieHost,
 			SameSite: http.SameSiteLaxMode,

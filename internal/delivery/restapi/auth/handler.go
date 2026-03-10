@@ -142,7 +142,6 @@ func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
-// @Param        Authorization  header  string  true  "Bearer access token"
 // @Success      204 "Successfully logged out (no content)"
 // @Failure      400 {object} response.ValidationErrorResponse "Missing tokens"
 // @Failure      401 {object} response.ErrorResponse "Invalid tokens"
