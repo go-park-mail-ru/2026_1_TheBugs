@@ -27,8 +27,15 @@ type (
 		CORS
 		Server   `yaml:"server"`
 		Postgres `yaml:"postgres"`
+		Redis    `yaml:"redis"`
 		JWT      `yaml:"jwt"`
 	}
+ 	Redis struct {
+ 		Host     string `yaml:"host" env:"REDIS_HOST" env-default:"localhost"`
+ 		Port     int    `yaml:"port" env:"REDIS_PORT" env-default:"6379"`
+ 		Password string `yaml:"password" env:"REDIS_PASSWORD" env-default:""`
+ 		DB       int    `yaml:"db" env:"REDIS_DB" env-default:"0"`
+ 	}
 	CORS struct {
 		AllowedHosts []string
 		CookieHost   string

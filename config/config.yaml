@@ -26,3 +26,9 @@ jwt:
   private-key-source: private.pem
   access-exp: 15m
   refresh-exp: 24h
+
+redis:
+  host: localhost
+  port: 6379
+  password: ""
+  db: 0

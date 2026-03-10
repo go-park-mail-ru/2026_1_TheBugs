@@ -7,6 +7,7 @@ package mocks
 import (
 	context "context"
 	reflect "reflect"
+	time "time"
 
 	entity "github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	dto "github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
@@ -142,6 +143,20 @@ func (m *MockAuthRepo) EXPECT() *MockAuthRepoMockRecorder {
 	return m.recorder
 }
 
+// BlacklistToken mocks base method.
+func (m *MockAuthRepo) BlacklistToken(ctx context.Context, tokenID string, ttl time.Duration) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BlacklistToken", ctx, tokenID, ttl)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// BlacklistToken indicates an expected call of BlacklistToken.
+func (mr *MockAuthRepoMockRecorder) BlacklistToken(ctx, tokenID, ttl interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlacklistToken", reflect.TypeOf((*MockAuthRepo)(nil).BlacklistToken), ctx, tokenID, ttl)
+}
+
 // CreateToken mocks base method.
 func (m *MockAuthRepo) CreateToken(ctx context.Context, dto dto.CreateRefreshTokenDTO) error {
 	m.ctrl.T.Helper()
@@ -183,4 +198,19 @@ func (m *MockAuthRepo) GetToken(ctx context.Context, tokenID string, userID int)
 func (mr *MockAuthRepoMockRecorder) GetToken(ctx, tokenID, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetToken", reflect.TypeOf((*MockAuthRepo)(nil).GetToken), ctx, tokenID, userID)
+}
+
+// IsBlacklisted mocks base method.
+func (m *MockAuthRepo) IsBlacklisted(ctx context.Context, tokenID string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsBlacklisted", ctx, tokenID)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsBlacklisted indicates an expected call of IsBlacklisted.
+func (mr *MockAuthRepoMockRecorder) IsBlacklisted(ctx, tokenID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsBlacklisted", reflect.TypeOf((*MockAuthRepo)(nil).IsBlacklisted), ctx, tokenID)
 }

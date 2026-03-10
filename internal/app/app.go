@@ -20,6 +20,7 @@ import (
 	posterUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/dsn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/gorilla/mux"
 )
@@ -37,7 +38,9 @@ func Run(cfg *config.ProjectConfig) {
 	posterHandler := posterHandler.NewPosterHandler(posterUC)
 
 	userRepo := userRepo.NewUserRepo(pool)
-	authRepo := authRepo.NewAuthRepo(pool)
+	rdb := redis.NewClient(&redis.Options{Addr: fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port), Password: cfg.Redis.Password, DB: cfg.Redis.DB})
+
+	authRepo := authRepo.NewAuthRepo(pool, rdb)
 	authUC := authUC.NewAuthUseCase(userRepo, authRepo)
 	authHandler := authHandler.NewAuthHandler(authUC)
 

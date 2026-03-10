@@ -8,6 +8,7 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 type Claims struct {
@@ -56,9 +57,13 @@ func GenerateRefreshToken(tokenID string, userID int, exp time.Duration) (string
 }
 
 func GenerateAccessToken(userID int, exp time.Duration) (string, error) {
+	ID := uuid.NewString()
 	claims := Claims{
 		Sub:  strconv.Itoa(userID),
 		Type: entity.AccessTokenType,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ID: ID,
+		},
 	}
 	return GenerateJWT(claims, exp)
 }

@@ -119,27 +119,10 @@ func (uc AuthUseCase) createAndSaveRefreshToken(ctx context.Context, userID int)
 func (uc AuthUseCase) RefreshTokenUseCase(ctx context.Context, refreshToken string) (*dto.UserAccessCredDTO, error) {
 	var cred dto.UserAccessCredDTO
 
-	tokenData, err := tokens.ParseToken(refreshToken)
+	tokenData, userID, err := uc.ValidateRefreshToken(ctx, refreshToken)
 	if err != nil {
-		return &cred, fmt.Errorf("tokens.ParseToken: %w", entity.JWTError)
+		return &cred, fmt.Errorf("uc.ValidateRefreshToken: %w", err)
 	}
-	userID, err := strconv.Atoi(tokenData.Sub)
-	if err != nil {
-		return &cred, fmt.Errorf("strconv.Atoi: %w", entity.JWTError)
-	}
-
-	if tokenData.Type != entity.RefreshTokenType {
-		return &cred, entity.JWTError
-	}
-	storedToken, err := uc.authRepo.GetToken(ctx, tokenData.ID, userID)
-	if err != nil {
-		return &cred, fmt.Errorf("uc.authRepo.GetToken: %w", entity.JWTError)
-	}
-
-	if storedToken == nil || storedToken.ExpiresAt.Before(time.Now()) {
-		return &cred, entity.JWTError
-	}
-
 	err = uc.authRepo.DeleteToken(ctx, tokenData.ID, userID)
 	if err != nil {
 		return &cred, fmt.Errorf("uc.authRepo.DeleteToken: %w", err)
@@ -161,36 +144,64 @@ func (uc AuthUseCase) RefreshTokenUseCase(ctx context.Context, refreshToken stri
 	}
 	return &cred, nil
 }
-
-func (uc AuthUseCase) LogoutUseCase(ctx context.Context, logoutCred dto.LogoutDTO) error {
-	_, err := tokens.ParseToken(logoutCred.AccessToken)
+func (uc AuthUseCase) ValidateAccessToken(ctx context.Context, accessToken string) (*tokens.Claims, error) {
+	accessData, err := tokens.ParseToken(accessToken)
 	if err != nil {
-		return fmt.Errorf("tokens.ParseToken: %w", entity.JWTError)
+		return nil, fmt.Errorf("tokens.ParseToken: %w", entity.JWTError)
 	}
-	tokenData, err := tokens.ParseToken(logoutCred.RefreshToken)
-	if err != nil {
-		return fmt.Errorf("tokens.ParseToken: %w", entity.JWTError)
+	if accessData.Type != entity.AccessTokenType {
+		return nil, entity.JWTError
 	}
-	userID, err := strconv.Atoi(tokenData.Sub)
-	if err != nil {
-		return fmt.Errorf("strconv.Atoi: %w", entity.JWTError)
+	if ok, err := uc.authRepo.IsBlacklisted(ctx, accessData.ID); err != nil || ok {
+		return nil, fmt.Errorf("uc.authRepo.IsBlacklisted: %w", entity.JWTError)
 	}
 
-	if tokenData.Type != entity.RefreshTokenType {
-		return entity.JWTError
-	}
-	storedToken, err := uc.authRepo.GetToken(ctx, tokenData.ID, userID)
+	return accessData, nil
+}
+
+func (uc AuthUseCase) ValidateRefreshToken(ctx context.Context, refreshToken string) (*tokens.Claims, int, error) {
+	refreshData, err := tokens.ParseToken(refreshToken)
 	if err != nil {
-		return fmt.Errorf("uc.authRepo.GetToken: %w", entity.JWTError)
+		return nil, 0, fmt.Errorf("tokens.ParseToken: %w", entity.JWTError)
+	}
+	if refreshData.Type != entity.RefreshTokenType {
+		return nil, 0, entity.JWTError
+	}
+	userID, err := strconv.Atoi(refreshData.Sub)
+	if err != nil {
+		return nil, 0, fmt.Errorf("strconv.Atoi: %w", entity.JWTError)
+	}
+	storedToken, err := uc.authRepo.GetToken(ctx, refreshData.ID, userID)
+	if err != nil {
+		return nil, 0, fmt.Errorf("uc.authRepo.GetToken: %w", entity.JWTError)
 	}
 
 	if storedToken == nil || storedToken.ExpiresAt.Before(time.Now()) {
-		return entity.JWTError
+		return nil, 0, entity.JWTError
+	}
+	return refreshData, userID, nil
+}
+
+func (uc AuthUseCase) LogoutUseCase(ctx context.Context, logoutCred dto.LogoutDTO) error {
+
+	accessData, err := uc.ValidateAccessToken(ctx, logoutCred.AccessToken)
+	if err != nil {
+		return fmt.Errorf("uc.ValidateAccessToken: %w", err)
+	}
+	refreshData, userID, err := uc.ValidateRefreshToken(ctx, logoutCred.RefreshToken)
+	if err != nil {
+		return fmt.Errorf("uc.ValidateRefreshToken: %w", err)
 	}
 
-	err = uc.authRepo.DeleteToken(ctx, tokenData.ID, userID)
+	err = uc.authRepo.DeleteToken(ctx, refreshData.ID, userID)
 	if err != nil {
-		return fmt.Errorf("uc.authRepo.DeleteToken: %w", err)
+		return fmt.Errorf("uc.authRepo.DeleteToken: %w", entity.JWTError)
+	}
+	ttl := config.Config.JWT.AccessExp
+	if ttl > 0 {
+		if err := uc.authRepo.BlacklistToken(ctx, accessData.ID, ttl); err != nil {
+			return fmt.Errorf("uc.authRepo.BlacklistToken: %w", entity.JWTError)
+		}
 	}
 	return nil
 }

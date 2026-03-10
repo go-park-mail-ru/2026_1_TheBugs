@@ -58,7 +58,7 @@ func TestCreateToken(t *testing.T) {
 
 			test.setupMock(mock)
 
-			repo := NewAuthRepo(mock)
+			repo := NewAuthRepo(mock, nil)
 
 			err = repo.CreateToken(context.Background(), test.dto)
 			if test.wantErr != nil {
@@ -143,7 +143,7 @@ func TestGetToken(t *testing.T) {
 
 			test.setupMock(mock)
 
-			repo := NewAuthRepo(mock)
+			repo := NewAuthRepo(mock, nil)
 
 			got, err := repo.GetToken(context.Background(), test.tokenID, test.userID)
 			if test.wantErr != nil {
@@ -200,7 +200,7 @@ func TestDeleteToken(t *testing.T) {
 
 			test.setupMock(mock)
 
-			repo := NewAuthRepo(mock)
+			repo := NewAuthRepo(mock, nil)
 
 			err = repo.DeleteToken(context.Background(), test.tokenID, test.userID)
 			if test.wantErr != nil {
