@@ -106,6 +106,39 @@ paths:
       summary: Login user
       tags:
       - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Blacklist access/refresh tokens and delete refresh cookie
+      parameters:
+      - description: Bearer access token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Successfully logged out (no content)
+        "400":
+          description: Missing tokens
+          schema:
+            $ref: '#/definitions/response.ValidationErrorResponse'
+        "401":
+          description: Invalid tokens
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Blacklist error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: User logout
+      tags:
+      - Auth
   /auth/refresh:
     post:
       consumes:

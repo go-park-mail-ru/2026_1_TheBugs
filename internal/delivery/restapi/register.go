@@ -58,8 +58,10 @@ func RegisterHandlers(app *mux.Router, auth *auth.AuthHandler, post *poster.Post
 
 		apiGroup.HandleFunc("/auth/reg", auth.RegisterUser).Methods(http.MethodPost)
 		apiGroup.HandleFunc("/auth/login", auth.LoginUser).Methods(http.MethodPost)
-		apiGroup.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
+		apiGroup.HandleFunc("/auth/logout", auth.Logout).Methods(http.MethodPost)
 		apiGroup.HandleFunc("/auth/refresh", auth.RefreshToken).Methods(http.MethodPost)
+
+		apiGroup.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 
 		apiGroup.HandleFunc("/posters", post.GetPosters).Methods(http.MethodGet)
 	}

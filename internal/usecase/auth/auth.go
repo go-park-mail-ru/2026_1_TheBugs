@@ -162,3 +162,36 @@ func (uc AuthUseCase) RefreshTokenUseCase(ctx context.Context, refreshToken stri
 	}
 	return &cred, nil
 }
+
+func (uc AuthUseCase) LogoutUseCase(ctx context.Context, logoutCred dto.LogoutDTO) error {
+	_, err := tokens.ParseToken(logoutCred.AccessToken)
+	if err != nil {
+		return fmt.Errorf("tokens.ParseToken: %w", entity.JWTError)
+	}
+	tokenData, err := tokens.ParseToken(logoutCred.RefreshToken)
+	if err != nil {
+		return fmt.Errorf("tokens.ParseToken: %w", entity.JWTError)
+	}
+	userID, err := strconv.Atoi(tokenData.Sub)
+	if err != nil {
+		return fmt.Errorf("strconv.Atoi: %w", entity.JWTError)
+	}
+
+	if tokenData.Type != entity.RefreshTokenType {
+		return entity.JWTError
+	}
+	storedToken, err := uc.authRepo.GetToken(ctx, tokenData.ID, userID)
+	if err != nil {
+		return fmt.Errorf("uc.authRepo.GetToken: %w", entity.JWTError)
+	}
+
+	if storedToken == nil || storedToken.ExpiresAt.Before(time.Now()) {
+		return entity.JWTError
+	}
+
+	err = uc.authRepo.DeleteToken(ctx, tokenData.ID, userID)
+	if err != nil {
+		return fmt.Errorf("uc.authRepo.DeleteToken: %w", err)
+	}
+	return nil
+}

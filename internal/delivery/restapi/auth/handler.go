@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/parse"
 )
@@ -134,4 +135,50 @@ func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	utils.JSONResponse(w, http.StatusOK, &resp)
 }
 
-// func (h AuthHandler) Logout
+// Logout godoc
+// @Summary      User logout
+// @Description  Blacklist access/refresh tokens and delete refresh cookie
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        Authorization  header  string  true  "Bearer access token"
+// @Success      204 "Successfully logged out (no content)"
+// @Failure      400 {object} response.ValidationErrorResponse "Missing tokens"
+// @Failure      401 {object} response.ErrorResponse "Invalid tokens"
+// @Failure      500 {object} response.ErrorResponse "Blacklist error"
+// @Router       /auth/logout [post]
+func (h AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	accessToken, err := utils.GetAccessToken(r)
+	if err != nil {
+		log.Printf("utils.GetAccessToken: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+	cookie, err := r.Cookie("refresh_token")
+	if err != nil {
+		log.Printf("r.Cookie: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+	refreshToken := cookie.Value
+	err = h.uc.LogoutUseCase(r.Context(), dto.LogoutDTO{
+		RefreshToken: refreshToken,
+		AccessToken:  accessToken,
+	})
+	if err != nil {
+		log.Printf("h.uc.RefreshTokenUseCase: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteStrictMode,
+	})
+	w.WriteHeader(http.StatusNoContent)
+}
