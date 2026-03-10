@@ -42,6 +42,13 @@ definitions:
           $ref: '#/definitions/dto.PosterDTO'
         type: array
     type: object
+  response.ValidationErrorResponse:
+    properties:
+      error:
+        type: string
+      field:
+        type: string
+    type: object
 externalDocs:
   description: OpenAPI
   url: https://swagger.io/resources/open-api/
@@ -87,15 +94,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            type: string
+            $ref: '#/definitions/response.ValidationErrorResponse'
         "404":
           description: Not Found
           schema:
-            type: string
+            $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            $ref: '#/definitions/response.ErrorResponse'
       summary: Login user
       tags:
       - Auth
@@ -120,15 +127,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            type: string
+            $ref: '#/definitions/response.ValidationErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            type: string
+            $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            $ref: '#/definitions/response.ErrorResponse'
       summary: Refresh access token
       tags:
       - Auth
@@ -154,15 +161,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            type: string
+            $ref: '#/definitions/response.ValidationErrorResponse'
         "404":
           description: Not Found
           schema:
-            type: string
+            $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            type: string
+            $ref: '#/definitions/response.ErrorResponse'
       summary: Register new user
       tags:
       - Auth

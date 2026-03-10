@@ -37,9 +37,9 @@ func NewAuthHandler(uc *auth.AuthUseCase) *AuthHandler {
 // @Param         email formData string true "User email"
 // @Param         password formData string true "User password"
 // @Success       204
-// @Failure       400 {string} response.ValidationErrorResponse
-// @Failure       404 {string} response.ErrorResponse
-// @Failure       500 {string} response.ErrorResponse
+// @Failure       400 {object} response.ValidationErrorResponse
+// @Failure       404 {object} response.ErrorResponse
+// @Failure       500 {object} response.ErrorResponse
 // @Router        /auth/reg [post]
 func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var cred FormDataCredential
@@ -68,9 +68,9 @@ func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 // @Param         password formData string true "User password"
 // @Success       200 {object} LoginResponse "Successful login, returns access token"
 // @Header        200 {string} Set-Cookie "refresh_token=<NEW_REFRESH_TOKEN>; HttpOnly; Path=/api/auth/refresh; Max-Age=..."
-// @Failure       400 {string} response.ValidationErrorResponse
-// @Failure       404 {string} response.ErrorResponse
-// @Failure       500 {string} response.ErrorResponse
+// @Failure       400 {object} response.ValidationErrorResponse
+// @Failure       404 {object} response.ErrorResponse
+// @Failure       500 {object} response.ErrorResponse
 // @Router        /auth/login [post]
 func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	var cred FormDataCredential
@@ -106,9 +106,9 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 // @Produce       json
 // @Success       200 {object} LoginResponse "New access token, also updates refresh token cookie"
 // @Header        200 {string} Set-Cookie "new refresh_token=...; HttpOnly; Path=/api/auth/refresh; Max-Age=..."
-// @Failure       400 {string} response.ValidationErrorResponse
-// @Failure       401 {string} response.ErrorResponse
-// @Failure       500 {string} response.ErrorResponse
+// @Failure       400 {object} response.ValidationErrorResponse
+// @Failure       401 {object} response.ErrorResponse
+// @Failure       500 {object} response.ErrorResponse
 // @Router        /auth/refresh [post]
 func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("refresh_token")
