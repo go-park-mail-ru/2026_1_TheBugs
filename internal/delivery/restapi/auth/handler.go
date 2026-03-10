@@ -2,14 +2,11 @@ package auth
 
 import (
 	"net/http"
-	"time"
 
 	"log"
 
-	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/parse"
 )
@@ -40,9 +37,9 @@ func NewAuthHandler(uc *auth.AuthUseCase) *AuthHandler {
 // @Param         email formData string true "User email"
 // @Param         password formData string true "User password"
 // @Success       204
-// @Failure       400 {string} string "Bad Request"
-// @Failure       404 {string} string "Not Found"
-// @Failure       500 {string} string "Internal error"
+// @Failure       400 {string} response.ValidationErrorResponse
+// @Failure       404 {string} response.ErrorResponse
+// @Failure       500 {string} response.ErrorResponse
 // @Router        /auth/reg [post]
 func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	var cred FormDataCredential
@@ -71,9 +68,9 @@ func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 // @Param         password formData string true "User password"
 // @Success       200 {object} LoginResponse "Successful login, returns access token"
 // @Header        200 {string} Set-Cookie "refresh_token=<NEW_REFRESH_TOKEN>; HttpOnly; Path=/api/auth/refresh; Max-Age=..."
-// @Failure       400 {string} string "Bad Request"
-// @Failure       404 {string} string "Not Found"
-// @Failure       500 {string} string "Internal error"
+// @Failure       400 {string} response.ValidationErrorResponse
+// @Failure       404 {string} response.ErrorResponse
+// @Failure       500 {string} response.ErrorResponse
 // @Router        /auth/login [post]
 func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	var cred FormDataCredential
@@ -95,7 +92,7 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		AccessTokenExp: accessCred.AccessTokenExp,
 	}
 
-	setRefreshCookie(w, accessCred)
+	utils.SetRefreshCookie(w, accessCred)
 
 	utils.JSONResponse(w, http.StatusOK, &resp)
 
@@ -109,9 +106,9 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 // @Produce       json
 // @Success       200 {object} LoginResponse "New access token, also updates refresh token cookie"
 // @Header        200 {string} Set-Cookie "new refresh_token=...; HttpOnly; Path=/api/auth/refresh; Max-Age=..."
-// @Failure       400 {string} string "Bad Request"
-// @Failure       401 {string} string "Unauthorized - invalid or missing refresh token"
-// @Failure       500 {string} string "Internal error"
+// @Failure       400 {string} response.ValidationErrorResponse
+// @Failure       401 {string} response.ErrorResponse
+// @Failure       500 {string} response.ErrorResponse
 // @Router        /auth/refresh [post]
 func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("refresh_token")
@@ -132,23 +129,9 @@ func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		AccessTokenExp: accessCred.AccessTokenExp,
 	}
 
-	setRefreshCookie(w, accessCred)
+	utils.SetRefreshCookie(w, accessCred)
 
 	utils.JSONResponse(w, http.StatusOK, &resp)
 }
 
-func setRefreshCookie(w http.ResponseWriter, accessCred *dto.UserAccessCredDTO) {
-	http.SetCookie(
-		w,
-		&http.Cookie{
-			Name:     "refresh_token",
-			Value:    accessCred.RefreshToken,
-			Path:     "/api/auth/refresh",
-			HttpOnly: true,
-			Domain:   config.Config.CORS.CookieHost,
-			SameSite: http.SameSiteLaxMode,
-			Expires:  time.Now().Add(time.Duration(accessCred.RefreshTokenExp * int(time.Second))),
-			MaxAge:   accessCred.RefreshTokenExp,
-		},
-	)
-}
+// func (h AuthHandler) Logout

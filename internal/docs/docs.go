@@ -75,7 +75,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal error",
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "string"
                         }
@@ -116,13 +116,13 @@ const docTemplate = `{
                         }
                     },
                     "401": {
-                        "description": "Unauthorized - invalid or missing refresh token",
+                        "description": "Unauthorized",
                         "schema": {
                             "type": "string"
                         }
                     },
                     "500": {
-                        "description": "Internal error",
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "string"
                         }
@@ -173,7 +173,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal error",
+                        "description": "Internal Server Error",
                         "schema": {
                             "type": "string"
                         }
@@ -265,10 +265,13 @@ const docTemplate = `{
                 "area": {
                     "type": "number"
                 },
-                "floor": {
+                "beds": {
                     "type": "integer"
                 },
-                "img_url": {
+                "id": {
+                    "type": "integer"
+                },
+                "imageUrl": {
                     "type": "string"
                 },
                 "metro": {
@@ -277,14 +280,17 @@ const docTemplate = `{
                 "price": {
                     "type": "number"
                 },
-                "type": {
-                    "type": "string"
+                "rating": {
+                    "type": "number"
                 }
             }
         },
         "response.ErrorResponse": {
             "type": "object",
             "properties": {
+                "details": {
+                    "type": "string"
+                },
                 "error": {
                     "type": "string"
                 }

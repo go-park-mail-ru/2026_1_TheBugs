@@ -5,7 +5,8 @@ build:
 	go build ./cmd/main
 
 test:
-	go test -v ./...
+	go clean -testcache
+	go test -v ./... --cover
 
 docs:
 	swag init --parseDependency --parseInternal -g ./register.go -d ./internal/delivery/restapi -o ./internal/docs

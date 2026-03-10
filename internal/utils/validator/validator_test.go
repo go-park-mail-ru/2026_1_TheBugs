@@ -144,3 +144,125 @@ func TestValidatePwd(t *testing.T) {
 		})
 	}
 }
+
+type cred struct {
+	email string
+	pwd   string
+}
+
+func TestValidateCred(t *testing.T) {
+	tests := []struct {
+		name string
+		in   cred
+		out  bool
+	}{
+		{
+			name: "valid strong password",
+			in: cred{
+				email: "test@example.com",
+				pwd:   "Passw0rd123",
+			},
+			out: true,
+		},
+		{
+			name: "valid minimum length",
+			in: cred{
+				email: "test@example.com",
+				pwd:   "Ab1defgH",
+			},
+			out: true,
+		},
+		{
+			name: "valid with special chars",
+			in: cred{
+				email: "test@example.com",
+				pwd:   "P@ssw0rd1",
+			},
+			out: true,
+		},
+		{
+			name: "invalid too short",
+			in: cred{
+				email: "test@example.com",
+				pwd:   "Ab1d",
+			},
+			out: false,
+		},
+		{
+			name: "invalid no uppercase",
+			in: cred{
+				email: "test@example.com",
+				pwd:   "password123",
+			},
+			out: false,
+		},
+		{
+			name: "invalid no lowercase",
+			in: cred{
+				email: "test@example.com",
+				pwd:   "PASSWORD123",
+			},
+			out: false,
+		},
+		{
+			name: "invalid no digit",
+			in: cred{
+				email: "test@example.com",
+				pwd:   "PasswordAB",
+			},
+			out: false,
+		},
+		{
+			name: "invalid empty pwd",
+			in: cred{
+				email: "test@example.com",
+				pwd:   "",
+			},
+			out: false,
+		},
+		{
+			name: "invalid empty",
+			in: cred{
+				email: "",
+				pwd:   "",
+			},
+			out: false,
+		},
+		{
+			name: "invalid too long",
+			in: cred{
+				email: "test@example.com",
+				pwd:   "A" + string(make([]byte, 64)) + "1a",
+			},
+			out: false,
+		},
+		{
+			name: "invalid no special char",
+			in: cred{
+				email: "test@example.com",
+				pwd:   "😊Password😊😊😊😊123df",
+			},
+			out: false,
+		},
+		{
+			name: "invalid with space",
+			in: cred{
+				email: "test@example.com",
+				pwd:   "Password  123df",
+			},
+			out: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := ValidateCred(tt.in.email, tt.in.pwd)
+			if tt.out {
+				require.NoError(t, result)
+				return
+			}
+			require.Error(t, result)
+		})
+	}
+}
