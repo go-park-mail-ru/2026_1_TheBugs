@@ -24,18 +24,18 @@ func NewPosterHandler(uc *poster.PosterUseCase) *PosterHandler {
 	}
 }
 
-// @Summary      Получить список объявлений
-// @Description  Возвращает количество полученных объявлений и их список
-// @Tags         posters
-// @Produce      json
-// @Param        limit   query     int  false  "Количество объявлений" default(12) minimum(1)
-// @Param        offset  query     int  false  "Сдвиг для пагинации"   default(0)  minimum(0)
-// @Success      200     {object}  response.PostersResponse
-// @Failure 	 400 {object} response.ErrorResponse
-// @Failure 	 401 {object} response.ErrorResponse
-// @Failure 	 404 {object} response.ErrorResponse
-// @Failure 	 500 {object} response.ErrorResponse
-// @Router       /posters [get]
+// @Summary Get list of posters
+// @Description Returns the number of retrieved posters and their list
+// @Tags posters
+// @Produce json
+// @Param limit query int false "Number of posters" default(12) minimum(1)
+// @Param offset query int false "Pagination offset" default(0) minimum(0)
+// @Success 200 {object} response.PostersResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters [get]
 func (h *PosterHandler) GetPosters(w http.ResponseWriter, r *http.Request) {
 	var params dto.PostersFiltersDTO
 

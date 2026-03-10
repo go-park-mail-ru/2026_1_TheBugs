@@ -175,16 +175,16 @@ paths:
       - Auth
   /posters:
     get:
-      description: Возвращает количество полученных объявлений и их список
+      description: Returns the number of retrieved posters and their list
       parameters:
       - default: 12
-        description: Количество объявлений
+        description: Number of posters
         in: query
         minimum: 1
         name: limit
         type: integer
       - default: 0
-        description: Сдвиг для пагинации
+        description: Pagination offset
         in: query
         minimum: 0
         name: offset
@@ -212,7 +212,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
-      summary: Получить список объявлений
+      summary: Get list of posters
       tags:
       - posters
 securityDefinitions:
