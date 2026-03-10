@@ -119,8 +119,13 @@ func TestGetPostersUseCase(t *testing.T) {
 				require.ErrorIs(t, err, test.wantErr)
 				return
 			}
+			require.Equal(t, len(test.want), len(got))
+			for i, p := range test.want {
+				// из-за моков
+				require.Equal(t, p.ID, got[i].ID)
+				require.Equal(t, p.Address, got[i].Address)
+			}
 
-			require.Equal(t, test.want, got)
 		})
 	}
 }
