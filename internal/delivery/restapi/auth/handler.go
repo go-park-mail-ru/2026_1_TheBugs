@@ -5,6 +5,7 @@ import (
 
 	"log"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
@@ -174,6 +175,7 @@ func (h AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		Name:     "refresh_token",
 		Value:    "",
 		Path:     "/api/auth",
+		Domain:   config.Config.CORS.CookieHost,
 		MaxAge:   -1,
 		HttpOnly: true,
 		Secure:   false,
