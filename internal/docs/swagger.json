@@ -14,7 +14,7 @@
         },
         "version": "1.0"
     },
-    "host": "localhost:8000",
+    "host": "dom-deli.ru",
     "basePath": "/api",
     "paths": {
         "/auth/login": {
