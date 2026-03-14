@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS users (
     email TEXT NOT NULL,
     hashed_password TEXT,
     provider TEXT,
+    provider_id INTEGER,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     salt TEXT,
