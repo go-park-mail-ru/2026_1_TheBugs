@@ -17,6 +17,7 @@ import (
 
 const redirectURI = "https://dom-deli.ru/oauth/vk"
 const oAuthURI = "https://id.vk.ru/oauth2/auth"
+const publicInfoURI = "https://id.vk.ru/oauth2/public_info"
 
 func ChangeCodeToAccessToken(ctx context.Context, flow dto.OAuthCodeFlow) (*dto.OAuthUserCred, error) {
 	reqBody := url.Values{
@@ -80,4 +81,51 @@ func ChangeCodeToAccessToken(ctx context.Context, flow dto.OAuthCodeFlow) (*dto.
 	}
 
 	return cred, nil
+}
+
+type VKPublicUserInfo struct {
+	User struct {
+		UserID    string `json:"user_id"`
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+		Phone     string `json:"phone"`
+		Avatar    string `json:"avatar"`
+		Email     string `json:"email"`
+	} `json:"user"`
+}
+
+func GetUserPublicInfo(ctx context.Context, idToken string) (*VKPublicUserInfo, error) {
+	reqBody := url.Values{
+		"client_id": {config.Config.OAuth.VKClientID},
+		"id_token":  {idToken},
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
+		publicInfoURI,
+		strings.NewReader(reqBody.Encode()))
+	if err != nil {
+		return nil, fmt.Errorf("create public_info request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Accept", "application/json")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("vk public_info request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("vk public_info status %d: %s", resp.StatusCode, string(body))
+	}
+
+	var userInfo VKPublicUserInfo
+	if err := json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
+		return nil, fmt.Errorf("decode public_info response: %w", err)
+	}
+
+	return &userInfo, nil
 }

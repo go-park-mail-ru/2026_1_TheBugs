@@ -16,7 +16,6 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/pwd"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/tokens"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/validator"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
@@ -214,36 +213,19 @@ func (uc AuthUseCase) LoginUserFromVKUseCase(ctx context.Context, flow dto.OAuth
 	if err != nil {
 		return nil, fmt.Errorf("uc.oauthRepo.ChangeCodeToCred: %w", err)
 	}
-	token, _, err := jwt.NewParser().ParseUnverified(vkCred.IDToken, jwt.MapClaims{})
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		return nil, fmt.Errorf("invalid claims type")
+	data, err := oauth.GetUserPublicInfo(ctx, vkCred.IDToken)
+	if err != nil {
+		return nil, fmt.Errorf("oauth.GetUserPublicInfo: %w", err)
 	}
-	log.Println(claims)
-	vkID, ok := claims["sub"].(string)
-	if !ok {
-		return nil, fmt.Errorf("missing sub claim")
-	}
-
-	email, ok := claims["email"].(string)
-	if !ok {
-		email = ""
-	}
-
-	name, ok := claims["name"].(string)
-	if !ok {
-		name = ""
-	}
-
-	log.Printf("VK claims: sub=%s, email=%s, name=%s", vkID, email, name)
-	user, err := uc.userRepo.GetUserByProvider(ctx, email, "vk")
+	log.Printf("VK claims: sub=%s, email=%s, name=%s", data.User.UserID, data.User.Email, data.User.FirstName)
+	user, err := uc.userRepo.GetUserByProvider(ctx, data.User.Email, "vk")
 	if err != nil {
 		if !errors.Is(err, entity.NotFoundError) {
 			return nil, err
 		} else {
 			user, err = uc.userRepo.CreateUserByProvider(ctx, dto.CreateUserByProviderDTO{
 				Provider: "vk",
-				Email:    email,
+				Email:    data.User.Email,
 			})
 			if err != nil {
 				return nil, fmt.Errorf("uc.userRepo.CreateUserByProvider: %w", err)
