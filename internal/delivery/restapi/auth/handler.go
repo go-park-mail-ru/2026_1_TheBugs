@@ -191,7 +191,7 @@ func (h AuthHandler) VKLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if flow.Code == "" || flow.DeviceID == "" || flow.State == "" || flow.CodeVerifier == "" {
+	if flow.Code == "" || flow.DeviceID == "" || flow.State == "" {
 		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
