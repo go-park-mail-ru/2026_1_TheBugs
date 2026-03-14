@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -27,6 +28,7 @@ func ChangeCodeToAccessToken(ctx context.Context, flow dto.OAuthCodeFlow) (*dto.
 		"device_id":     {flow.DeviceID},
 		"state":         {flow.State},
 	}
+	log.Println(reqBody)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
 		oAuthURI,
