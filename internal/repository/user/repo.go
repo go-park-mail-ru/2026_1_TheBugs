@@ -21,7 +21,7 @@ func NewUserRepo(pool repository.DB) *UserRepo {
 }
 
 func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
-	sql := `SELECT id, email, salt, hashed_password, provider FROM users WHERE email=$1`
+	sql := `SELECT id, email, salt, hashed_password, provider FROM users WHERE email=$1 AND provider IS NULL`
 	row, err := r.pool.Query(ctx, sql, email)
 
 	if err != nil {

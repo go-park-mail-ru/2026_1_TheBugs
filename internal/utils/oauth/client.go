@@ -55,7 +55,7 @@ func ChangeCodeToAccessToken(ctx context.Context, flow dto.OAuthCodeFlow) (*dto.
 		AccessToken  string `json:"access_token"`
 		RefreshToken string `json:"refresh_token"`
 		IDToken      string `json:"id_token"`
-		UserID       string `json:"user_id"`
+		UserID       int    `json:"user_id"`
 		ExpiresIn    int    `json:"expires_in"`
 		Scope        string `json:"scope"`
 		State        string `json:"state"`

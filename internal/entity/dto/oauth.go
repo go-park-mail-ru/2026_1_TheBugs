@@ -6,7 +6,7 @@ type OAuthUserCred struct {
 	IDToken      string `json:"id_token"`
 	TokenType    string `json:"token_type"`
 	ExpiresIn    int    `json:"expires_in"`
-	UserID       string `json:"user_id"`
+	UserID       int    `json:"user_id"`
 	State        string `json:"state"`
 	Scope        string `json:"scope"`
 }
