@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"log"
@@ -187,11 +188,13 @@ func (h AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 func (h AuthHandler) VKLogin(w http.ResponseWriter, r *http.Request) {
 	var flow dto.OAuthCodeFlow
 	if err := json.NewDecoder(r.Body).Decode(&flow); err != nil {
+		fmt.Printf("json.NewDecoder(r.Body).Decode(&flow): %s", err)
 		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
 
 	if flow.Code == "" || flow.DeviceID == "" || flow.State == "" {
+		fmt.Println("flow.Code || flow.DeviceID || flow.State empty ")
 		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
