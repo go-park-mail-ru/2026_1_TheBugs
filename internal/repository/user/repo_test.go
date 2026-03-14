@@ -13,12 +13,13 @@ import (
 
 func TestGetUserByEmail(t *testing.T) {
 	query := regexp.QuoteMeta(`SELECT id, email, salt, hashed_password FROM users WHERE email=$1`)
-
+	salt := "salt123"
+	hash := "hash123"
 	expectedUser := &entity.User{
 		ID:             1,
 		Email:          "test@mail.ru",
-		Salt:           "salt123",
-		HashedPassword: "hash123",
+		Salt:           &salt,
+		HashedPassword: &hash,
 	}
 
 	tests := []struct {
@@ -101,12 +102,13 @@ func TestCreateUser(t *testing.T) {
 		HashedPassword: "hash123",
 		Salt:           "salt123",
 	}
-
+	salt := "salt123"
+	hash := "hash123"
 	expectedUser := &entity.User{
 		ID:             1,
 		Email:          "test@mail.ru",
-		Salt:           "salt123",
-		HashedPassword: "hash123",
+		Salt:           &salt,
+		HashedPassword: &hash,
 	}
 
 	tests := []struct {

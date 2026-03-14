@@ -106,8 +106,8 @@ func TestLoginUseCase(t *testing.T) {
 				existingUser := entity.User{
 					ID:             0,
 					Email:          "test@gmail.com",
-					HashedPassword: hashed,
-					Salt:           salt,
+					HashedPassword: &hashed,
+					Salt:           &salt,
 				}
 
 				gomock.InOrder(
@@ -127,8 +127,8 @@ func TestLoginUseCase(t *testing.T) {
 				existingUser := entity.User{
 					ID:             0,
 					Email:          "test@gmail.com",
-					HashedPassword: hashed,
-					Salt:           salt,
+					HashedPassword: &hashed,
+					Salt:           &salt,
 				}
 				userMock.EXPECT().GetUserByEmail(ctx, gomock.Any()).Return(&existingUser, nil)
 			},

@@ -71,7 +71,7 @@ func (uc AuthUseCase) LoginUseCase(ctx context.Context, email string, passwod st
 		return &cred, entity.NotFoundError
 	}
 
-	ok := pwd.VerifyPassword(passwod, []byte(user.Salt), user.HashedPassword)
+	ok := pwd.VerifyPassword(passwod, []byte(*user.Salt), *user.HashedPassword)
 
 	if !ok {
 		return &cred, entity.BadCredentials
