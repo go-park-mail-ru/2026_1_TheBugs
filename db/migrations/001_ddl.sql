@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS users (
     provider TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    salt TEXT NOT NULL,
+    salt TEXT,
     company_id BIGINT,
 
     CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES utility_companies(id),

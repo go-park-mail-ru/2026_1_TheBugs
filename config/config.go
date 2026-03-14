@@ -29,16 +29,20 @@ type (
 		Postgres `yaml:"postgres"`
 		Redis    `yaml:"redis"`
 		JWT      `yaml:"jwt"`
+		OAuth    `yaml: "oauth"`
 	}
- 	Redis struct {
- 		Host     string `yaml:"host" env:"REDIS_HOST" env-default:"localhost"`
- 		Port     int    `yaml:"port" env:"REDIS_PORT" env-default:"6379"`
- 		Password string `yaml:"password" env:"REDIS_PASSWORD" env-default:""`
- 		DB       int    `yaml:"db" env:"REDIS_DB" env-default:"0"`
- 	}
+	Redis struct {
+		Host     string `yaml:"host" env:"REDIS_HOST" env-default:"localhost"`
+		Port     int    `yaml:"port" env:"REDIS_PORT" env-default:"6379"`
+		Password string `yaml:"password" env:"REDIS_PASSWORD" env-default:""`
+		DB       int    `yaml:"db" env:"REDIS_DB" env-default:"0"`
+	}
 	CORS struct {
 		AllowedHosts []string
 		CookieHost   string
+	}
+	OAuth struct {
+		VKClientID string `yaml:"vk-client-id"    env:"VKClientID" env-default:"54483363"`
 	}
 
 	Server struct {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -11,9 +12,11 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/oauth"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/pwd"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/tokens"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/validator"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
@@ -204,4 +207,64 @@ func (uc AuthUseCase) LogoutUseCase(ctx context.Context, logoutCred dto.LogoutDT
 		}
 	}
 	return nil
+}
+
+func (uc AuthUseCase) LoginUserFromVKUseCase(ctx context.Context, flow dto.OAuthCodeFlow) (*dto.UserAccessCredDTO, error) {
+	vkCred, err := oauth.ChangeCodeToAccessToken(ctx, flow)
+	if err != nil {
+		return nil, fmt.Errorf("uc.oauthRepo.ChangeCodeToCred: %w", err)
+	}
+	token, _, err := jwt.NewParser().ParseUnverified(vkCred.IDToken, jwt.MapClaims{})
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, fmt.Errorf("invalid claims type")
+	}
+	log.Println(claims)
+	vkID, ok := claims["sub"].(string)
+	if !ok {
+		return nil, fmt.Errorf("missing sub claim")
+	}
+
+	email, ok := claims["email"].(string)
+	if !ok {
+		email = ""
+	}
+
+	name, ok := claims["name"].(string)
+	if !ok {
+		name = ""
+	}
+
+	log.Printf("VK claims: sub=%s, email=%s, name=%s", vkID, email, name)
+	user, err := uc.userRepo.GetUserByProvider(ctx, email, "vk")
+	if err != nil {
+		if !errors.Is(err, entity.NotFoundError) {
+			return nil, err
+		} else {
+			user, err = uc.userRepo.CreateUserByProvider(ctx, dto.CreateUserByProviderDTO{
+				Provider: "vk",
+				Email:    email,
+			})
+			if err != nil {
+				return nil, fmt.Errorf("uc.userRepo.CreateUserByProvider: %w", err)
+			}
+		}
+	}
+	accessToken, err := tokens.GenerateAccessToken(user.ID, config.Config.JWT.AccessExp)
+
+	if err != nil {
+		return nil, entity.ServiceError
+	}
+
+	refreshToken, _, err := uc.createAndSaveRefreshToken(ctx, user.ID)
+	if err != nil {
+		return nil, entity.ServiceError
+	}
+	cred := dto.UserAccessCredDTO{
+		AccessToken:     accessToken,
+		AccessTokenExp:  int(config.Config.JWT.AccessExp.Seconds()),
+		RefreshToken:    refreshToken,
+		RefreshTokenExp: int(config.Config.JWT.RefreshExp.Seconds()),
+	}
+	return &cred, nil
 }

@@ -2,12 +2,20 @@ package dto
 
 import (
 	"time"
+
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 )
 
 type CreateUserDTO struct {
 	Email          string
 	HashedPassword string
 	Salt           string
+}
+
+type CreateUserByProviderDTO struct {
+	Email    string
+	Provider entity.ProviderType
+	// TODO: add phone and so on
 }
 
 type UserAccessCredDTO struct {
