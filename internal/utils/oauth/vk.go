@@ -15,24 +15,45 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 )
 
-const redirectURI = "https://dom-deli.ru/oauth/vk"
-const oAuthURI = "https://id.vk.ru/oauth2/auth"
-const publicInfoURI = "https://id.vk.ru/oauth2/public_info"
+const oAuthVKURI = "https://id.vk.ru/oauth2/auth"
+const publicInfoVKURI = "https://id.vk.ru/oauth2/public_info"
 
-func ChangeCodeToAccessToken(ctx context.Context, flow dto.OAuthCodeFlow) (*dto.OAuthUserCred, error) {
+type VKCred struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	IDToken      string `json:"id_token"`
+	TokenType    string `json:"token_type"`
+	ExpiresIn    int    `json:"expires_in"`
+	UserID       int    `json:"user_id"`
+	State        string `json:"state"`
+	Scope        string `json:"scope"`
+}
+
+type VKPublicUserInfo struct {
+	User struct {
+		UserID    string `json:"user_id"`
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+		Phone     string `json:"phone"`
+		Avatar    string `json:"avatar"`
+		Email     string `json:"email"`
+	} `json:"user"`
+}
+
+func ChangeCodeToAccessToken(ctx context.Context, flow dto.OAuthCodeFlow) (*VKCred, error) {
 	reqBody := url.Values{
 		"grant_type":    {"authorization_code"},
 		"client_id":     {config.Config.OAuth.VKClientID},
-		"redirect_uri":  {redirectURI},
-		"code_verifier": {flow.CodeVerifier},
+		"redirect_uri":  {config.Config.OAuth.VKRedirectURI},
+		"code_verifier": {*flow.CodeVerifier},
 		"code":          {flow.Code},
-		"device_id":     {flow.DeviceID},
-		"state":         {flow.State},
+		"device_id":     {*flow.DeviceID},
+		"state":         {*flow.State},
 	}
 	log.Println(reqBody)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
-		oAuthURI,
+		oAuthVKURI,
 		strings.NewReader(reqBody.Encode()))
 	if err != nil {
 		return nil, fmt.Errorf("create request: %w", err)
@@ -71,7 +92,7 @@ func ChangeCodeToAccessToken(ctx context.Context, flow dto.OAuthCodeFlow) (*dto.
 		return nil, fmt.Errorf("vk error: %s", result.Error)
 	}
 
-	cred := &dto.OAuthUserCred{
+	cred := &VKCred{
 		AccessToken:  result.AccessToken,
 		RefreshToken: result.RefreshToken,
 		IDToken:      result.IDToken,
@@ -83,25 +104,14 @@ func ChangeCodeToAccessToken(ctx context.Context, flow dto.OAuthCodeFlow) (*dto.
 	return cred, nil
 }
 
-type VKPublicUserInfo struct {
-	User struct {
-		UserID    string `json:"user_id"`
-		FirstName string `json:"first_name"`
-		LastName  string `json:"last_name"`
-		Phone     string `json:"phone"`
-		Avatar    string `json:"avatar"`
-		Email     string `json:"email"`
-	} `json:"user"`
-}
-
-func GetUserPublicInfo(ctx context.Context, idToken string) (*VKPublicUserInfo, error) {
+func GetUserPublicInfoVK(ctx context.Context, idToken string) (*VKPublicUserInfo, error) {
 	reqBody := url.Values{
 		"client_id": {config.Config.OAuth.VKClientID},
 		"id_token":  {idToken},
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
-		publicInfoURI,
+		publicInfoVKURI,
 		strings.NewReader(reqBody.Encode()))
 	if err != nil {
 		return nil, fmt.Errorf("create public_info request: %w", err)

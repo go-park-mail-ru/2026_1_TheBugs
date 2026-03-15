@@ -193,7 +193,7 @@ func (h AuthHandler) VKLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if flow.Code == "" || flow.DeviceID == "" || flow.State == "" {
+	if flow.Code == "" || flow.DeviceID == nil || flow.State == nil {
 		fmt.Println("flow.Code || flow.DeviceID || flow.State empty ")
 		utils.HandelError(w, entity.InvalidInput)
 		return
@@ -202,6 +202,36 @@ func (h AuthHandler) VKLogin(w http.ResponseWriter, r *http.Request) {
 	accessCred, err := h.uc.LoginUserFromVKUseCase(r.Context(), flow)
 	if err != nil {
 		log.Printf("login vk error: %v", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	resp := LoginResponse{
+		AccessToken:    accessCred.AccessToken,
+		AccessTokenExp: accessCred.AccessTokenExp,
+	}
+
+	utils.SetRefreshCookie(w, accessCred)
+	utils.JSONResponse(w, http.StatusOK, &resp)
+}
+
+func (h AuthHandler) YandexLogin(w http.ResponseWriter, r *http.Request) {
+	var flow dto.OAuthCodeFlow
+	if err := json.NewDecoder(r.Body).Decode(&flow); err != nil {
+		fmt.Printf("json.NewDecoder(r.Body).Decode(&flow): %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	if flow.Code == "" {
+		fmt.Println("flow.Code empty ")
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	accessCred, err := h.uc.LoginUserFromYandexUseCase(r.Context(), flow)
+	if err != nil {
+		log.Printf("login yandex error: %v", err)
 		utils.HandelError(w, err)
 		return
 	}

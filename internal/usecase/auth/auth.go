@@ -213,9 +213,9 @@ func (uc AuthUseCase) LoginUserFromVKUseCase(ctx context.Context, flow dto.OAuth
 	if err != nil {
 		return nil, fmt.Errorf("uc.oauthRepo.ChangeCodeToCred: %w", err)
 	}
-	data, err := oauth.GetUserPublicInfo(ctx, vkCred.IDToken)
+	data, err := oauth.GetUserPublicInfoVK(ctx, vkCred.IDToken)
 	if err != nil {
-		return nil, fmt.Errorf("oauth.GetUserPublicInfo: %w", err)
+		return nil, fmt.Errorf("oauth.GetUserPublicInfoVK: %w", err)
 	}
 	log.Printf("VK claims: sub=%s, email=%s, name=%s", data.User.UserID, data.User.Email, data.User.FirstName)
 	user, err := uc.userRepo.GetUserByProvider(ctx, data.User.Email, "vk")
@@ -226,6 +226,49 @@ func (uc AuthUseCase) LoginUserFromVKUseCase(ctx context.Context, flow dto.OAuth
 			user, err = uc.userRepo.CreateUserByProvider(ctx, dto.CreateUserByProviderDTO{
 				Provider: "vk",
 				Email:    data.User.Email,
+			})
+			if err != nil {
+				return nil, fmt.Errorf("uc.userRepo.CreateUserByProvider: %w", err)
+			}
+		}
+	}
+	accessToken, err := tokens.GenerateAccessToken(user.ID, config.Config.JWT.AccessExp)
+
+	if err != nil {
+		return nil, entity.ServiceError
+	}
+
+	refreshToken, _, err := uc.createAndSaveRefreshToken(ctx, user.ID)
+	if err != nil {
+		return nil, entity.ServiceError
+	}
+	cred := dto.UserAccessCredDTO{
+		AccessToken:     accessToken,
+		AccessTokenExp:  int(config.Config.JWT.AccessExp.Seconds()),
+		RefreshToken:    refreshToken,
+		RefreshTokenExp: int(config.Config.JWT.RefreshExp.Seconds()),
+	}
+	return &cred, nil
+}
+
+func (uc AuthUseCase) LoginUserFromYandexUseCase(ctx context.Context, flow dto.OAuthCodeFlow) (*dto.UserAccessCredDTO, error) {
+	yandexCred, err := oauth.ChangeYandexCodeToAccessToken(ctx, flow)
+	if err != nil {
+		return nil, fmt.Errorf("uc.oauthRepo.ChangeCodeToCred: %w", err)
+	}
+	data, err := oauth.GetYandexUserPublicInfo(ctx, yandexCred.AccessToken)
+	if err != nil {
+		return nil, fmt.Errorf("oauth.GetYandexUserPublicInfo: %w", err)
+	}
+	log.Printf("Yandex claims: sub=%s, email=%s, name=%s", data.ID, data.DefaultEmail, data.FirstName)
+	user, err := uc.userRepo.GetUserByProvider(ctx, data.DefaultEmail, "yandex")
+	if err != nil {
+		if !errors.Is(err, entity.NotFoundError) {
+			return nil, err
+		} else {
+			user, err = uc.userRepo.CreateUserByProvider(ctx, dto.CreateUserByProviderDTO{
+				Provider: "yandex",
+				Email:    data.DefaultEmail,
 			})
 			if err != nil {
 				return nil, fmt.Errorf("uc.userRepo.CreateUserByProvider: %w", err)
