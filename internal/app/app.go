@@ -12,12 +12,16 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi"
 	authHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/auth"
+	complexHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/complex"
 	posterHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
 	authRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/auth"
+	complexRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/complex"
 	posterrepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/poster"
 	userRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/user"
 	authUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
+	complexUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/complex"
 	posterUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
+
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/dsn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
@@ -44,8 +48,12 @@ func Run(cfg *config.ProjectConfig) {
 	authUC := authUC.NewAuthUseCase(userRepo, authRepo)
 	authHandler := authHandler.NewAuthHandler(authUC)
 
+	UtilityCompanyRepo := complexRepo.NewUtilityCompanyRepo(pool)
+	UtilityCompanyUC := complexUC.NewUtilityCompanyUseCase(UtilityCompanyRepo)
+	UtilityCompanyHandler := complexHandler.NewUtilityCompanyHandler(UtilityCompanyUC)
+
 	r := mux.NewRouter()
-	restapi.RegisterHandlers(r, authHandler, posterHandler)
+	restapi.RegisterHandlers(r, authHandler, posterHandler, UtilityCompanyHandler)
 	serverAddress := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	srv := &http.Server{
 		Handler:      r,

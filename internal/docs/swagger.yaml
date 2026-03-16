@@ -7,6 +7,20 @@ definitions:
       expire_at:
         type: integer
     type: object
+  dto.GeographyDTO:
+    properties:
+      lat:
+        type: number
+      lon:
+        type: number
+    type: object
+  dto.PhotoDTO:
+    properties:
+      img_url:
+        type: string
+      order:
+        type: integer
+    type: object
   dto.PosterDTO:
     properties:
       address:
@@ -25,6 +39,27 @@ definitions:
         type: number
       rating:
         type: number
+    type: object
+  dto.UtilityCompanyDTO:
+    properties:
+      address:
+        type: string
+      alias:
+        type: string
+      avatar_url:
+        type: string
+      company_name:
+        type: string
+      geo:
+        $ref: '#/definitions/dto.GeographyDTO'
+      id:
+        type: integer
+      phone:
+        type: string
+      photos:
+        items:
+          $ref: '#/definitions/dto.PhotoDTO'
+        type: array
     type: object
   response.ErrorResponse:
     properties:
@@ -52,7 +87,7 @@ definitions:
 externalDocs:
   description: OpenAPI
   url: https://swagger.io/resources/open-api/
-host: dom-deli.ru
+host: localhost:8000
 info:
   contact:
     email: support@swagger.io
@@ -242,6 +277,42 @@ paths:
       summary: Get list of posters
       tags:
       - posters
+  /utility_companies/alias/{alias}:
+    get:
+      description: Returns utility complex details along with its photos by the given
+        alias
+      parameters:
+      - description: Utility Complex Alias
+        in: path
+        name: alias
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UtilityCompanyDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get utility complex by alias
+      tags:
+      - utility_complexes
 securityDefinitions:
   BearerAuth:
     in: header

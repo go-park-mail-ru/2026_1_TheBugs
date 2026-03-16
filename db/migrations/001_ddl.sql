@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS posters (
 -- Объявление-Фото
 CREATE TABLE IF NOT EXISTS poster_photos ( 
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
-    img_url TEXT, 
+    img_url TEXT NOT NULL, 
     sequence_order SMALLINT, 
     poster_id BIGINT NOT NULL, 
  
@@ -175,7 +175,7 @@ CREATE TABLE IF NOT EXISTS flat (
 -- ЖК-Фото
 CREATE TABLE IF NOT EXISTS utility_companies_photos ( 
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
-    img_url TEXT, 
+    img_url TEXT NOT NULL, 
     sequence_order SMALLINT, 
     utility_company_id BIGINT NOT NULL, 
  

@@ -285,6 +285,59 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/utility_companies/alias/{alias}": {
+            "get": {
+                "description": "Returns utility complex details along with its photos by the given alias",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "utility_complexes"
+                ],
+                "summary": "Get utility complex by alias",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Utility Complex Alias",
+                        "name": "alias",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UtilityCompanyDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -295,6 +348,28 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "expire_at": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.GeographyDTO": {
+            "type": "object",
+            "properties": {
+                "lat": {
+                    "type": "number"
+                },
+                "lon": {
+                    "type": "number"
+                }
+            }
+        },
+        "dto.PhotoDTO": {
+            "type": "object",
+            "properties": {
+                "img_url": {
+                    "type": "string"
+                },
+                "order": {
                     "type": "integer"
                 }
             }
@@ -325,6 +400,38 @@ const docTemplate = `{
                 },
                 "rating": {
                     "type": "number"
+                }
+            }
+        },
+        "dto.UtilityCompanyDTO": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "alias": {
+                    "type": "string"
+                },
+                "avatar_url": {
+                    "type": "string"
+                },
+                "company_name": {
+                    "type": "string"
+                },
+                "geo": {
+                    "$ref": "#/definitions/dto.GeographyDTO"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "photos": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.PhotoDTO"
+                    }
                 }
             }
         },
@@ -381,7 +488,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "dom-deli.ru",
+	Host:             "localhost:8000",
 	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "DomDeli API",
