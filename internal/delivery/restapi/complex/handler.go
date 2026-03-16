@@ -27,7 +27,7 @@ func NewUtilityCompanyHandler(uc *complex.UtilityCompanyUseCase) *UtilityCompany
 // @Failure 401 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /utility_companies/alias/{alias} [get]
+// @Router /utility-companies/by-alias/{alias} [get]
 func (h *UtilityCompanyHandler) GetUtilityCompany(w http.ResponseWriter, r *http.Request) {
 	alias, err := utils.ParseAliasFromRequest(r)
 	if err != nil {

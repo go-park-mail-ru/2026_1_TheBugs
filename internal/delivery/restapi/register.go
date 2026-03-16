@@ -63,7 +63,7 @@ func RegisterHandlers(app *mux.Router, auth *auth.AuthHandler, post *poster.Post
 		apiGroup.HandleFunc("/auth/logout", auth.Logout).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.HandleFunc("/auth/refresh", auth.RefreshToken).Methods(http.MethodPost)
 
-		apiGroup.HandleFunc("/utility_companies/alias/{alias}", UtilityCompany.GetUtilityCompany).Methods(http.MethodGet)
+		apiGroup.HandleFunc("/utility-companies/by-alias/{alias}", UtilityCompany.GetUtilityCompany).Methods(http.MethodGet)
 
 		apiGroup.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 
