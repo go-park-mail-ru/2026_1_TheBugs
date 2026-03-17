@@ -232,6 +232,18 @@ func (h AuthHandler) VKLogin(w http.ResponseWriter, r *http.Request) {
 	utils.JSONResponse(w, http.StatusOK, &resp)
 }
 
+// LoginYandexUser
+// @Summary       Login user from Yandex
+// @Description   Authenticate user and return access token + set refresh token cookie
+// @Tags          Auth
+// @Accept        json
+// @Param  flow body dto.OAuthCodeFlow true "OAuth user cred by Authorization code flow"
+// @Success       200 {object} LoginResponse "Successful login, returns access token"
+// @Header        200 {string} Set-Cookie "refresh_token=<NEW_REFRESH_TOKEN>; HttpOnly; Path=/api/auth/refresh; Max-Age=..."
+// @Failure       400 {object} response.ValidationErrorResponse
+// @Failure       404 {object} response.ErrorResponse
+// @Failure       500 {object} response.ErrorResponse
+// @Router        /auth/yandex [post]
 func (h AuthHandler) YandexLogin(w http.ResponseWriter, r *http.Request) {
 	var flow dto.OAuthCodeFlow
 	if err := json.NewDecoder(r.Body).Decode(&flow); err != nil {
