@@ -17,9 +17,12 @@ type CreateUserDTO struct {
 }
 
 type CreateUserByProviderDTO struct {
-	Email    string
-	Provider entity.ProviderType
-	// TODO: add phone and so on
+	Email      string
+	Provider   entity.ProviderType
+	Phone      string
+	FirstName  string
+	LastName   string
+	ProviderID *string
 }
 
 type UserAccessCredDTO struct {

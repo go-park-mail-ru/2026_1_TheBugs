@@ -22,7 +22,7 @@ func NewUserRepo(pool repository.DB) *UserRepo {
 }
 
 func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
-	sql := `SELECT id, email, salt, hashed_password, provider FROM users WHERE email=$1 AND provider IS NULL`
+	sql := `SELECT id, email, salt, hashed_password, provider FROM users WHERE email=$1`
 	row, err := r.pool.Query(ctx, sql, email)
 
 	if err != nil {
@@ -52,7 +52,7 @@ func (r *UserRepo) CreateUser(ctx context.Context, dto dto.CreateUserDTO) (*enti
 		return nil, repository.HandelPgErrors(err)
 	}
 	sql := `INSERT INTO users (email, hashed_password, salt, profile_id) VALUES ($1, $2, $3, $4) 
-			RETURNING id, email, hashed_password, salt`
+			RETURNING id, email, hashed_password, salt, provider`
 
 	row, err := r.pool.Query(ctx, sql, dto.Email, *dto.HashedPassword, *dto.Salt, profileID)
 	if err != nil {
@@ -68,9 +68,19 @@ func (r *UserRepo) CreateUser(ctx context.Context, dto dto.CreateUserDTO) (*enti
 }
 
 func (r *UserRepo) CreateUserByProvider(ctx context.Context, dto dto.CreateUserByProviderDTO) (*entity.User, error) {
-	sql := `INSERT INTO users (email, provider) VALUES ($1, $2) 
+	var profileID int
+
+	profileSql := `INSERT INTO profiles (phone, first_name, last_name) VALUES ($1, $2, $3) RETURNING id`
+
+	fmt.Println(dto.Phone)
+
+	err := r.pool.QueryRow(ctx, profileSql, dto.Phone, dto.FirstName, dto.LastName).Scan(&profileID)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+	sql := `INSERT INTO users (email, provider, provider_id, profile_id) VALUES ($1, $2, $3, $4) 
 			RETURNING id, email, hashed_password, salt, provider`
-	row, err := r.pool.Query(ctx, sql, dto.Email, dto.Provider)
+	row, err := r.pool.Query(ctx, sql, dto.Email, dto.Provider, dto.ProviderID, profileID)
 	if err != nil {
 		return nil, repository.HandelPgErrors(err)
 	}

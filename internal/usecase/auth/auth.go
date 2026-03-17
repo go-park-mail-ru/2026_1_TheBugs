@@ -76,6 +76,9 @@ func (uc AuthUseCase) LoginUseCase(ctx context.Context, email string, passwod st
 	if err != nil {
 		return &cred, entity.NotFoundError
 	}
+	if user.Provider != nil {
+		return nil, entity.BadCredentials
+	}
 
 	ok := pwd.VerifyPassword(passwod, []byte(*user.Salt), *user.HashedPassword)
 
@@ -267,14 +270,18 @@ func (uc AuthUseCase) LoginUserFromYandexUseCase(ctx context.Context, flow dto.O
 		return nil, fmt.Errorf("oauth.GetYandexUserPublicInfo: %w", err)
 	}
 	log.Printf("Yandex claims: sub=%s, email=%s, name=%s", data.ID, data.DefaultEmail, data.FirstName)
-	user, err := uc.userRepo.GetUserByProvider(ctx, data.DefaultEmail, "yandex")
+	user, err := uc.userRepo.GetUserByEmail(ctx, data.DefaultEmail)
 	if err != nil {
 		if !errors.Is(err, entity.NotFoundError) {
 			return nil, err
 		} else {
 			user, err = uc.userRepo.CreateUserByProvider(ctx, dto.CreateUserByProviderDTO{
-				Provider: "yandex",
-				Email:    data.DefaultEmail,
+				Provider:   "yandex",
+				Email:      data.DefaultEmail,
+				Phone:      validator.NormolizePhoneNumber(data.DefaultPhone.Number),
+				LastName:   data.LastName,
+				FirstName:  data.FirstName,
+				ProviderID: &data.ID,
 			})
 			if err != nil {
 				return nil, fmt.Errorf("uc.userRepo.CreateUserByProvider: %w", err)
