@@ -2,6 +2,7 @@ package poster
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
@@ -30,11 +31,19 @@ func (r *PosterRepo) GetPosters(ctx context.Context, filters dto.PostersFiltersD
 		JOIN property_categories pc ON pc.id = prop.category_id
         JOIN buildings b ON b.id = prop.building_id
         JOIN metro_stations m ON b.metro_station_id = m.id
+	`
+	args := []any{filters.Limit, filters.Offset}
+	argIndex := 3
+	if filters.UtilityCompany != nil {
+		query += ` JOIN utility_companies uc ON b.company_id = uc.id 
+		WHERE uc.alias = $` + fmt.Sprintf("%d", argIndex)
+		args = append(args, *filters.UtilityCompany)
+		argIndex++
+	}
 
-		ORDER BY p.created_at DESC 
-		LIMIT $1 OFFSET $2`
+	query += ` ORDER BY p.created_at DESC LIMIT $1 OFFSET $2`
 
-	rows, err := r.pool.Query(ctx, query, filters.Limit, filters.Offset)
+	rows, err := r.pool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, repository.HandelPgErrors(err)
 	}

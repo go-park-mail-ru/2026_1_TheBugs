@@ -14,8 +14,9 @@ type PosterDTO struct {
 }
 
 type PostersFiltersDTO struct {
-	Limit  int
-	Offset int
+	Limit          int
+	Offset         int
+	UtilityCompany *string
 }
 
 func PostersToPostersDTO(posters []entity.Poster) []PosterDTO {
