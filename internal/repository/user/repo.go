@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository"
@@ -40,9 +41,20 @@ func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (*entity.Us
 }
 
 func (r *UserRepo) CreateUser(ctx context.Context, dto dto.CreateUserDTO) (*entity.User, error) {
-	sql := `INSERT INTO users (email, hashed_password, salt) VALUES ($1, $2, $3) 
-			RETURNING id, email, hashed_password, salt, provider`
-	row, err := r.pool.Query(ctx, sql, dto.Email, dto.HashedPassword, dto.Salt)
+	var profileID int
+
+	profileSql := `INSERT INTO profiles (phone, first_name, last_name) VALUES ($1, $2, $3) RETURNING id`
+
+	fmt.Println(dto.Phone)
+
+	err := r.pool.QueryRow(ctx, profileSql, dto.Phone, dto.FirstName, dto.LastName).Scan(&profileID)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+	sql := `INSERT INTO users (email, hashed_password, salt, profile_id) VALUES ($1, $2, $3, $4) 
+			RETURNING id, email, hashed_password, salt`
+
+	row, err := r.pool.Query(ctx, sql, dto.Email, *dto.HashedPassword, *dto.Salt, profileID)
 	if err != nil {
 		return nil, repository.HandelPgErrors(err)
 	}

@@ -30,11 +30,14 @@ func NewAuthUseCase(userRepo usecase.UserRepo, authRepo usecase.AuthRepo) *AuthU
 		authRepo: authRepo,
 	}
 }
-func (uc AuthUseCase) RegisterUseCase(ctx context.Context, email string, password string) error {
-	if err := validator.ValidateCred(email, password); err != nil {
+func (uc AuthUseCase) RegisterUseCase(ctx context.Context, data dto.CreateUserDTO) error {
+	if err := validator.ValidateCred(data.Email, data.Password); err != nil {
 		return err
 	}
-	existing, err := uc.userRepo.GetUserByEmail(ctx, email)
+	if err := validator.ValidateProfile(data.Phone, data.FirstName, data.LastName); err != nil {
+		return err
+	}
+	existing, err := uc.userRepo.GetUserByEmail(ctx, data.Email)
 	if existing != nil {
 		return entity.AlredyExitError
 	}
@@ -48,11 +51,14 @@ func (uc AuthUseCase) RegisterUseCase(ctx context.Context, email string, passwor
 	if err != nil {
 		return fmt.Errorf("pwd.GenerateSalt: %w", err)
 	}
-	hashedPwd := pwd.HashPassword(password, []byte(salt))
+	hashedPwd := pwd.HashPassword(data.Password, []byte(salt))
 	_, err = uc.userRepo.CreateUser(ctx, dto.CreateUserDTO{
-		Email:          email,
-		HashedPassword: hashedPwd,
-		Salt:           salt,
+		Email:          data.Email,
+		HashedPassword: &hashedPwd,
+		Salt:           &salt,
+		FirstName:      data.FirstName,
+		LastName:       data.LastName,
+		Phone:          validator.NormolizePhoneNumber(data.Phone),
 	})
 	if err != nil {
 		return fmt.Errorf("uc.userRepo.CreateUser: %w", err)

@@ -1,16 +1,62 @@
--- Города
-CREATE TABLE IF NOT EXISTS cities (
-    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    city_name TEXT NOT NULL UNIQUE,
 
-    CONSTRAINT city_name_length_check CHECK ( LENGTH(city_name) < 40 )
-);
+CREATE EXTENSION IF NOT EXISTS postgis;
 
 
--- Станции метро
-CREATE TABLE IF NOT EXISTS metro_stations (
-    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    station_name TEXT NOT NULL UNIQUE,
+-- Профиль 
+CREATE TABLE IF NOT EXISTS profiles ( 
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
+    phone TEXT NOT NULL, 
+    first_name TEXT NOT NULL, 
+    last_name TEXT NOT NULL, 
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), 
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), 
+ 
+    CONSTRAINT phone_check CHECK (phone ~ '^(\+7|8)\s\d{3}\s\d{3}\s\d{2}\s\d{2}$'), 
+    CONSTRAINT first_name_length_check CHECK ( LENGTH(first_name) < 40 ),
+    CONSTRAINT last_name_length_check CHECK ( LENGTH(last_name) < 40 ) 
+); 
+ 
+ 
+-- Пользователи 
+CREATE TABLE IF NOT EXISTS users ( 
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
+    email TEXT UNIQUE NOT NULL, 
+    hashed_password TEXT, 
+    provider TEXT, 
+    provider_id TEXT UNIQUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), 
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), 
+    salt TEXT, 
+    profile_id BIGINT UNIQUE NOT NULL , 
+
+    CONSTRAINT fk_profile FOREIGN KEY (profile_id) REFERENCES profiles(id), 
+    CONSTRAINT email_check CHECK ( email ~ '^[^@]+@[^@]+\.[^@]+$' AND LENGTH(email)<150 ), 
+    CONSTRAINT auth_check CHECK ( hashed_password IS NOT NULL OR provider IS NOT NULL) 
+); 
+--Рефреш токены пользователей 
+CREATE TABLE IF NOT EXISTS refresh_tokens ( 
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
+    token_id UUID UNIQUE NOT NULL,
+    user_id BIGINT REFERENCES users(id) NOT NULL, 
+    expires_at TIMESTAMPTZ NOT NULL, 
+    created_at TIMESTAMPTZ DEFAULT now() NOT NULL 
+); 
+ 
+ 
+-- Города 
+CREATE TABLE IF NOT EXISTS cities ( 
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
+    city_name TEXT NOT NULL UNIQUE, 
+ 
+    CONSTRAINT city_name_length_check CHECK ( LENGTH(city_name) < 40 ) 
+); 
+ 
+ 
+-- Станции метро 
+CREATE TABLE IF NOT EXISTS metro_stations ( 
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
+    station_name TEXT NOT NULL, 
+    geo GEOGRAPHY(POINT, 4326) NOT NULL, 
 
     CONSTRAINT station_name_length_check CHECK ( LENGTH(station_name) < 40 )
 );

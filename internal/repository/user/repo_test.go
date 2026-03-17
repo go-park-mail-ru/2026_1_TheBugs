@@ -94,15 +94,25 @@ func TestGetUserByEmail(t *testing.T) {
 }
 
 func TestCreateUser(t *testing.T) {
-	query := regexp.QuoteMeta(`INSERT INTO users (email, hashed_password, salt) VALUES ($1, $2, $3) 
+	profileQuery := regexp.QuoteMeta(`INSERT INTO profile (phone, first_name, last_name) VALUES ($1, $2, $3) RETURNING id`)
+	userQuery := regexp.QuoteMeta(`INSERT INTO users (email, hashed_password, salt, profile_id) VALUES ($1, $2, $3, $4) 
 			RETURNING id, email, hashed_password, salt`)
+
+	hashedPwd := "hash123"
+	salt := "salt123"
+	phone := "123456"
+	firstName := "John"
+	lastName := "Doe"
 
 	inputDTO := dto.CreateUserDTO{
 		Email:          "test@mail.ru",
-		HashedPassword: "hash123",
-		Salt:           "salt123",
+		HashedPassword: &hashedPwd,
+		Salt:           &salt,
+		Phone:          phone,
+		FirstName:      firstName,
+		LastName:       lastName,
 	}
-	salt := "salt123"
+	salt = "salt123"
 	hash := "hash123"
 	expectedUser := &entity.User{
 		ID:             1,
@@ -122,11 +132,14 @@ func TestCreateUser(t *testing.T) {
 			name: "OK",
 			dto:  inputDTO,
 			setupMock: func(m pgxmock.PgxPoolIface) {
+				profileRows := pgxmock.NewRows([]string{"id"}).AddRow(1)
+				m.ExpectQuery(profileQuery).WithArgs("123456", "John", "Doe").WillReturnRows(profileRows)
+
 				rows := pgxmock.NewRows([]string{
 					"id", "email", "hashed_password", "salt",
 				}).AddRow(1, "test@mail.ru", "hash123", "salt123")
 
-				m.ExpectQuery(query).WithArgs("test@mail.ru", "hash123", "salt123").WillReturnRows(rows)
+				m.ExpectQuery(userQuery).WithArgs("test@mail.ru", "hash123", "salt123", 1).WillReturnRows(rows)
 			},
 			want:    expectedUser,
 			wantErr: nil,
@@ -135,11 +148,14 @@ func TestCreateUser(t *testing.T) {
 			name: "collect_row_error",
 			dto:  inputDTO,
 			setupMock: func(m pgxmock.PgxPoolIface) {
+				profileRows := pgxmock.NewRows([]string{"id"}).AddRow(1)
+				m.ExpectQuery(profileQuery).WithArgs("123456", "John", "Doe").WillReturnRows(profileRows)
+
 				rows := pgxmock.NewRows([]string{
 					"id", "email", "hashed_password", "salt",
 				}).AddRow("bad_id", "test@mail.ru", "hash123", "salt123")
 
-				m.ExpectQuery(query).WithArgs("test@mail.ru", "hash123", "salt123").WillReturnRows(rows)
+				m.ExpectQuery(userQuery).WithArgs("test@mail.ru", "hash123", "salt123", 1).WillReturnRows(rows)
 			},
 			want:    nil,
 			wantErr: entity.ServiceError,

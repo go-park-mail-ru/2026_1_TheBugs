@@ -8,8 +8,12 @@ import (
 
 type CreateUserDTO struct {
 	Email          string
-	HashedPassword string
-	Salt           string
+	HashedPassword *string
+	Salt           *string
+	Password       string
+	Phone          string
+	FirstName      string
+	LastName       string
 }
 
 type CreateUserByProviderDTO struct {

@@ -23,6 +23,14 @@ type FormDataCredential struct {
 	Password string `schema:"password"`
 }
 
+type FormDataCreateUser struct {
+	Email     string `schema:"email"`
+	Password  string `schema:"password"`
+	Phone     string `schema:"phone"`
+	FirstName string `schema:"firstname"`
+	LastName  string `schema:"lastname"`
+}
+
 type LoginResponse struct {
 	AccessToken    string `json:"access_token"`
 	AccessTokenExp int    `json:"expire_at"`
@@ -39,13 +47,16 @@ func NewAuthHandler(uc *auth.AuthUseCase) *AuthHandler {
 // @Accept        x-www-form-urlencoded
 // @Param         email formData string true "User email"
 // @Param         password formData string true "User password"
+// @Param         phone formData string true "User phone"
+// @Param         firstname formData string true "User firstname"
+// @Param         lastname formData string true "User lastname"
 // @Success       204
 // @Failure       400 {object} response.ValidationErrorResponse
 // @Failure       404 {object} response.ErrorResponse
 // @Failure       500 {object} response.ErrorResponse
 // @Router        /auth/reg [post]
 func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
-	var cred FormDataCredential
+	var cred FormDataCreateUser
 	err := parse.ParseFormData(r, &cred)
 	log.Println(cred)
 	if err != nil {
@@ -53,7 +64,13 @@ func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		utils.HandelError(w, err)
 		return
 	}
-	err = h.uc.RegisterUseCase(r.Context(), cred.Email, cred.Password)
+	err = h.uc.RegisterUseCase(r.Context(), dto.CreateUserDTO{
+		Email:     cred.Email,
+		Password:  cred.Password,
+		Phone:     cred.Phone,
+		LastName:  cred.LastName,
+		FirstName: cred.FirstName,
+	})
 	if err != nil {
 		log.Printf("h.uc.RegisterUseCase: %s", err)
 		utils.HandelError(w, err)
