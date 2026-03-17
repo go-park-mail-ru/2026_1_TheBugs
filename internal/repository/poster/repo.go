@@ -23,11 +23,14 @@ func NewPosterRepo(pool repository.DB) *PosterRepo {
 func (r *PosterRepo) GetPosters(ctx context.Context, filters dto.PostersFiltersDTO) ([]entity.Poster, error) {
 	query := `
         SELECT p.id, p.price, p.avatar_url, 
-               b.address, m.station_name, a.area, a.floor
+               b.address, m.station_name, prop.area, f.floor
         FROM posters p
-        JOIN apartments a ON a.id = p.apartment_id
-        JOIN buildings b ON b.id = a.building_id
+        JOIN property prop ON prop.id = p.property_id
+		JOIN flat f ON f.property_id = p.id
+		JOIN property_categories pc ON pc.id = prop.category_id
+        JOIN buildings b ON b.id = prop.building_id
         JOIN metro_stations m ON b.metro_station_id = m.id
+
 		ORDER BY p.created_at DESC 
 		LIMIT $1 OFFSET $2`
 

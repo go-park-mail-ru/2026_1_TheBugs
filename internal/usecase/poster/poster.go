@@ -30,12 +30,6 @@ func (uc *PosterUseCase) GetPostersUseCase(ctx context.Context, filters dto.Post
 		filters.Limit = MaxPostersLimit
 	}
 
-	// total := uc.repo.CountPosters()
-
-	// if params.Offset >= total {
-	// 	return nil, entity.OffsetOutOfRange
-	// }
-
 	posters, err := uc.repo.GetPosters(ctx, filters)
 	if err != nil {
 		log.Printf("uc.repo.GetPosters: %s", err)

@@ -182,10 +182,42 @@ CREATE TABLE IF NOT EXISTS utility_companies_photos (
     CONSTRAINT fk_utility_company  FOREIGN KEY (utility_company_id) REFERENCES utility_companies(id), 
     CONSTRAINT sequence_order_check CHECK (sequence_order > 0 AND sequence_order < 16) 
 ); 
+
+CREATE TABLE IF NOT EXISTS likes (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    user_id BIGINT NOT NULL,
+    poster_id BIGINT NOT NULL,
+
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT fk_poster FOREIGN KEY (poster_id) REFERENCES posters(id)
+);
+
+
+-- Просмотры
+CREATE TABLE IF NOT EXISTS views (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    user_id BIGINT NOT NULL,
+    poster_id BIGINT NOT NULL,
+
+    CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT fk_poster FOREIGN KEY (poster_id) REFERENCES posters(id)
+);
  
 
 
  -- Основные FK индексы
+
+CREATE INDEX idx_likes_users_id ON likes(user_id);
+CREATE INDEX idx_views_users_id ON views(user_id);
+
+CREATE INDEX idx_likes_posters_id ON likes(poster_id);
+CREATE INDEX idx_views_posters_id ON views(poster_id);
+
+
 CREATE INDEX idx_users_profile_id ON users(profile_id);
 CREATE INDEX idx_refresh_tokens_user_id ON refresh_tokens(user_id);
 CREATE INDEX idx_buildings_city_id ON buildings(city_id);
