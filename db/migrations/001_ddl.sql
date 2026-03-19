@@ -1,8 +1,7 @@
 
 CREATE EXTENSION IF NOT EXISTS postgis;
 
-
--- Профиль 
+ 
 CREATE TABLE IF NOT EXISTS profiles ( 
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
     phone TEXT NOT NULL, 
@@ -15,9 +14,8 @@ CREATE TABLE IF NOT EXISTS profiles (
     CONSTRAINT first_name_length_check CHECK ( LENGTH(first_name) < 40 ),
     CONSTRAINT last_name_length_check CHECK ( LENGTH(last_name) < 40 ) 
 ); 
- 
- 
--- Пользователи 
+COMMENT ON TABLE profiles IS 'Профиль'
+
 CREATE TABLE IF NOT EXISTS users ( 
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
     email TEXT UNIQUE NOT NULL, 
@@ -33,7 +31,9 @@ CREATE TABLE IF NOT EXISTS users (
     CONSTRAINT email_check CHECK ( email ~ '^[^@]+@[^@]+\.[^@]+$' AND LENGTH(email)<150 ), 
     CONSTRAINT auth_check CHECK ( hashed_password IS NOT NULL OR provider IS NOT NULL) 
 ); 
---Рефреш токены пользователей 
+
+COMMENT ON TABLE users IS 'Пользователи';
+
 CREATE TABLE IF NOT EXISTS refresh_tokens ( 
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
     token_id UUID UNIQUE NOT NULL,
@@ -41,18 +41,19 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
     expires_at TIMESTAMPTZ NOT NULL, 
     created_at TIMESTAMPTZ DEFAULT now() NOT NULL 
 ); 
+COMMENT ON TABLE refresh_tokens IS 'Рефреш токены пользователей';
  
- 
--- Города 
+
 CREATE TABLE IF NOT EXISTS cities ( 
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
     city_name TEXT NOT NULL UNIQUE, 
  
     CONSTRAINT city_name_length_check CHECK ( LENGTH(city_name) < 40 ) 
 ); 
+COMMENT ON TABLE cities IS 'Города';
  
  
--- Станции метро 
+
 CREATE TABLE IF NOT EXISTS metro_stations ( 
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
     station_name TEXT NOT NULL, 
@@ -60,15 +61,17 @@ CREATE TABLE IF NOT EXISTS metro_stations (
 
     CONSTRAINT station_name_length_check CHECK ( LENGTH(station_name) < 40 ) 
 ); 
+
+COMMENT ON TABLE metro_stations IS 'Станции метро';
  
  
--- Тип помещения 
 CREATE TABLE IF NOT EXISTS property_categories ( 
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
     name TEXT NOT NULL, 
  
     CONSTRAINT name_length_check CHECK ( LENGTH(name) < 30 ) 
 ); 
+COMMENT ON TABLE property_categories IS 'Тип помещения';
  
 CREATE TABLE IF NOT EXISTS utility_companies(
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
@@ -82,7 +85,8 @@ CREATE TABLE IF NOT EXISTS utility_companies(
     CONSTRAINT phone_check CHECK (phone ~ '^(\+7|8)\s\d{3}\s\d{3}\s\d{2}\s\d{2}$'), 
     CONSTRAINT address_check CHECK ( address ~ '^[а-яА-ЯёЁ\s\-\,\.\d\/]+$' AND LENGTH(address) >= 5 AND LENGTH(address) < 150 )
 );
--- Дома 
+COMMENT ON TABLE utility_companies IS 'Компании услуг/ЖК';
+
 CREATE TABLE IF NOT EXISTS buildings ( 
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
     address TEXT NOT NULL, 
@@ -101,8 +105,8 @@ CREATE TABLE IF NOT EXISTS buildings (
     CONSTRAINT floor_count_length_check CHECK ( floor_count < 100 ) 
 ); 
  
- 
--- Объект недвижимости  
+COMMENT ON TABLE buildings IS 'Дома';
+
 CREATE TABLE IF NOT EXISTS property ( 
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
     category_id BIGINT, 
@@ -113,9 +117,9 @@ CREATE TABLE IF NOT EXISTS property (
     CONSTRAINT area_check CHECK ( area > 0 ),
     CONSTRAINT fk_building FOREIGN KEY (building_id) REFERENCES buildings(id) 
 ); 
+COMMENT ON TABLE property IS 'Объект недвижимости';
  
- 
--- Объявления 
+
 CREATE TABLE IF NOT EXISTS posters ( 
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
     price NUMERIC(10,2) NOT NULL, 
@@ -134,9 +138,9 @@ CREATE TABLE IF NOT EXISTS posters (
     CONSTRAINT price_check CHECK ( price > 0 ), 
     CONSTRAINT description_length_check CHECK ( LENGTH(description) < 500 ) 
 ); 
+COMMENT ON TABLE posters IS 'Объявления';
  
- 
--- Объявление-Фото
+
 CREATE TABLE IF NOT EXISTS poster_photos ( 
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
     img_url TEXT NOT NULL, 
@@ -146,16 +150,18 @@ CREATE TABLE IF NOT EXISTS poster_photos (
     CONSTRAINT fk_poster FOREIGN KEY (poster_id) REFERENCES posters(id), 
     CONSTRAINT sequence_order_check CHECK (sequence_order > 0 AND sequence_order < 16) 
 ); 
+
+COMMENT ON TABLE poster_photos IS 'Фото объявления';
  
  
--- Категория квартиры 
 CREATE TABLE IF NOT EXISTS flat_categories ( 
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
     name TEXT NOT NULL 
 ); 
+
+COMMENT ON TABLE flat_categories IS 'Категории квартиры';
  
  
--- Квартира 
 CREATE TABLE IF NOT EXISTS flat ( 
     property_id BIGINT PRIMARY KEY, 
     floor SMALLINT, 
@@ -167,12 +173,10 @@ CREATE TABLE IF NOT EXISTS flat (
     CONSTRAINT floor_check CHECK ( floor > 0 ),
     CONSTRAINT number_check CHECK ( number > 0 )
 ); 
- 
 
- -- ЖК компании 
+COMMENT ON TABLE flat IS 'Квартира';
 
 
--- ЖК-Фото
 CREATE TABLE IF NOT EXISTS utility_companies_photos ( 
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
     img_url TEXT NOT NULL, 
@@ -182,6 +186,8 @@ CREATE TABLE IF NOT EXISTS utility_companies_photos (
     CONSTRAINT fk_utility_company  FOREIGN KEY (utility_company_id) REFERENCES utility_companies(id), 
     CONSTRAINT sequence_order_check CHECK (sequence_order > 0 AND sequence_order < 16) 
 ); 
+
+COMMENT ON TABLE utility_companies_photos IS 'Фото ЖК';
 
 CREATE TABLE IF NOT EXISTS likes (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
@@ -194,8 +200,8 @@ CREATE TABLE IF NOT EXISTS likes (
     CONSTRAINT fk_poster FOREIGN KEY (poster_id) REFERENCES posters(id)
 );
 
+COMMENT ON TABLE likes IS 'Лайки';
 
--- Просмотры
 CREATE TABLE IF NOT EXISTS views (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -206,10 +212,9 @@ CREATE TABLE IF NOT EXISTS views (
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id),
     CONSTRAINT fk_poster FOREIGN KEY (poster_id) REFERENCES posters(id)
 );
+
+COMMENT ON TABLE views IS 'Просмотры';
  
-
-
- -- Основные FK индексы
 
 CREATE INDEX idx_likes_users_id ON likes(user_id);
 CREATE INDEX idx_views_users_id ON views(user_id);
