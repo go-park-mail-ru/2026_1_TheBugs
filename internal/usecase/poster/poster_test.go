@@ -7,21 +7,26 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/mocks"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )
 
+func strPtr(s string) *string {
+	return &s
+}
+
 func TestGetPostersUseCase(t *testing.T) {
 	ctx := context.Background()
 	existingListPoster := []entity.Poster{
-		{Id: 1, Price: 11111, Address: "street_1"},
-		{Id: 2, Price: 22222, Address: "street_2"},
-		{Id: 3, Price: 33333, Address: "street_3"},
-		{Id: 4, Price: 44444, Address: "street_4"},
-		{Id: 5, Price: 55555, Address: "street_5"},
+		{ID: 1, Price: 11111, Address: "street_1"},
+		{ID: 2, Price: 22222, Address: "street_2"},
+		{ID: 3, Price: 33333, Address: "street_3"},
+		{ID: 4, Price: 44444, Address: "street_4"},
+		{ID: 5, Price: 55555, Address: "street_5"},
 	}
 
-	expectedDTO := []dto.PosterDTO{
+	expectedDTO := []dto.PosterCardDTO{
 		{ID: 1, Price: 11111, Address: "street_1"},
 		{ID: 2, Price: 22222, Address: "street_2"},
 		{ID: 3, Price: 33333, Address: "street_3"},
@@ -33,7 +38,7 @@ func TestGetPostersUseCase(t *testing.T) {
 		name      string
 		params    dto.PostersFiltersDTO
 		setupMock func(m *mocks.MockPosterRepo)
-		want      []dto.PosterDTO
+		want      []dto.PosterCardDTO
 		wantErr   error
 	}{
 		{
@@ -125,6 +130,187 @@ func TestGetPostersUseCase(t *testing.T) {
 				require.Equal(t, p.Address, got[i].Address)
 			}
 
+		})
+	}
+}
+
+func TestGetPosterByAliasUseCase(t *testing.T) {
+	ctx := context.Background()
+	alias := "kvartira-na-arbate"
+
+	existingPoster := entity.PosterById{
+		ID:              4,
+		Alias:           alias,
+		Price:           135000,
+		Category:        PropertyFlat,
+		Description:     "krutoy remont",
+		PropertyID:      10,
+		Area:            96.4,
+		Geo:             geo.GeographyPoint{Lon: 45.3966, Lat: 46.3489},
+		Address:         "Arbatskaya 5k2",
+		District:        strPtr("Arbat"),
+		Metro:           strPtr("Arbat"),
+		MetroGeo:        &geo.GeographyPoint{Lon: 45.4000, Lat: 46.3519},
+		City:            "Moscow",
+		FloorCount:      7,
+		SellerFirstName: "Sanya",
+		SellerLastName:  "Sashenykov",
+		Phone:           "+79144564312",
+		CompanyName:     strPtr("PIC"),
+		LogoURL:         nil,
+		Images: []entity.PosterImage{
+			{ImgURL: "img1.jpg", Order: 1},
+			{ImgURL: "img2.jpg", Order: 2},
+		},
+	}
+
+	existingFlat := &entity.Flat{
+		PropertyID:   10,
+		FlatCategory: "1-room",
+		Number:       43,
+		Floor:        3,
+	}
+
+	expectedPoster := dto.PosterDTO{
+		ID:          4,
+		Alias:       alias,
+		Price:       135000,
+		Category:    PropertyFlat,
+		Description: "krutoy remont",
+		Area:        96.4,
+		Geo:         dto.GeographyDTO{Lon: 45.3966, Lat: 46.3489},
+		Address:     "Arbatskaya 5k2",
+		District:    strPtr("Arbat"),
+		Metro:       strPtr("Arbat"),
+		MetroGeo:    &dto.GeographyDTO{Lon: 45.4000, Lat: 46.3519},
+		City:        "Moscow",
+		FloorCount:  7,
+		Images: []dto.PhotoDTO{
+			{ImgURL: "img1.jpg", Order: 1},
+			{ImgURL: "img2.jpg", Order: 2},
+		},
+		Seller: dto.PosterSellerDTO{
+			SellerFirstName: "Sanya",
+			SellerLastName:  "Sashenykov",
+			SellerPhone:     "+79144564312",
+		},
+		Flat: &dto.FlatDTO{
+			FlatCategory: "1-room",
+			Number:       43,
+			Floor:        3,
+		},
+		CompanyName: strPtr("PIC"),
+		LogoCompany: nil,
+	}
+
+	tests := []struct {
+		name      string
+		param     string
+		setupMock func(m *mocks.MockPosterRepo)
+		want      dto.PosterDTO
+		wantErr   error
+	}{
+		{
+			name:  "ok_flat",
+			param: alias,
+			setupMock: func(m *mocks.MockPosterRepo) {
+				m.EXPECT().
+					GetPosterByAlias(ctx, alias).
+					Return(existingPoster, nil).
+					Times(1)
+
+				m.EXPECT().
+					GetFlatByPropetyID(ctx, 10).
+					Return(existingFlat, nil).
+					Times(1)
+			},
+			want:    expectedPoster,
+			wantErr: nil,
+		},
+		{
+			name:  "repo_error",
+			param: alias,
+			setupMock: func(m *mocks.MockPosterRepo) {
+				m.EXPECT().
+					GetPosterByAlias(ctx, alias).
+					Return(entity.PosterById{}, entity.NotFoundError).
+					Times(1)
+			},
+			want:    dto.PosterDTO{},
+			wantErr: entity.NotFoundError,
+		},
+		{
+			name:  "flat_repo_error",
+			param: alias,
+			setupMock: func(m *mocks.MockPosterRepo) {
+				m.EXPECT().
+					GetPosterByAlias(ctx, alias).
+					Return(existingPoster, nil).
+					Times(1)
+
+				m.EXPECT().
+					GetFlatByPropetyID(ctx, 10).
+					Return(nil, entity.ServiceError).
+					Times(1)
+			},
+			want:    dto.PosterDTO{},
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepo := mocks.NewMockPosterRepo(ctrl)
+			if test.setupMock != nil {
+				test.setupMock(mockRepo)
+			}
+
+			uc := NewPosterUseCase(mockRepo)
+
+			res, err := uc.GetPosterByAliasUseCase(ctx, alias)
+
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+
+			require.Equal(t, test.want.ID, res.ID)
+			require.Equal(t, test.want.Alias, res.Alias)
+			require.Equal(t, test.want.Price, res.Price)
+			require.Equal(t, test.want.Category, res.Category)
+			require.Equal(t, test.want.Description, res.Description)
+			require.Equal(t, test.want.Address, res.Address)
+			require.Equal(t, test.want.City, res.City)
+			require.Equal(t, test.want.FloorCount, res.FloorCount)
+			require.Equal(t, test.want.District, res.District)
+			require.Equal(t, test.want.Metro, res.Metro)
+			require.Equal(t, test.want.Seller, res.Seller)
+			require.Equal(t, test.want.CompanyName, res.CompanyName)
+			require.Equal(t, test.want.LogoCompany, res.LogoCompany)
+			require.Equal(t, len(test.want.Images), len(res.Images))
+			for i := range test.want.Images {
+				require.Equal(t, test.want.Images[i], res.Images[i])
+			}
+
+			if test.want.Flat != nil {
+				require.Equal(t, test.want.Flat.FlatCategory, res.Flat.FlatCategory)
+				require.Equal(t, test.want.Flat.Number, res.Flat.Number)
+				require.Equal(t, test.want.Flat.Floor, res.Flat.Floor)
+			}
+
+			require.Equal(t, test.want.Geo.Lat, res.Geo.Lat)
+			require.Equal(t, test.want.Geo.Lon, res.Geo.Lon)
+
+			if test.want.MetroGeo != nil {
+				require.NotNil(t, res.MetroGeo)
+				require.Equal(t, test.want.MetroGeo.Lat, res.MetroGeo.Lat)
+				require.Equal(t, test.want.MetroGeo.Lon, res.MetroGeo.Lon)
+			}
 		})
 	}
 }

@@ -84,3 +84,34 @@ func (h *PosterHandler) GetPosters(w http.ResponseWriter, r *http.Request) {
 	utils.JSONResponse(w, http.StatusOK, response)
 
 }
+
+// @Summary Get poster by alias
+// @Description Returns the poster with all information about it
+// @Tags posters
+// @Produce json
+// @Param alias path string true "Alias of poster"
+// @Success 200 {object} response.PosterResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/by-alias/{alias} [get]
+func (h *PosterHandler) GetPoster(w http.ResponseWriter, r *http.Request) {
+	alias, err := utils.ParseAliasFromRequest(r)
+	if err != nil {
+		utils.JSONResponse(w, http.StatusBadRequest, response.ErrorResponse{Error: "invalid alias"})
+		return
+	}
+
+	poster, err := h.uc.GetPosterByAliasUseCase(r.Context(), alias)
+	if err != nil {
+		log.Printf("h.uc.GetPosterByAliasUseCase: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	var response response.PosterResponse
+	response.Poster = poster
+
+	utils.JSONResponse(w, http.StatusOK, response)
+}

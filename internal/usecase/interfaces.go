@@ -18,7 +18,10 @@ type UserRepo interface {
 type PosterRepo interface {
 	GetPosters(ctx context.Context, dto dto.PostersFiltersDTO) ([]entity.Poster, error)
 	CountPosters(ctx context.Context) (int, error)
+	GetPosterByAlias(ctx context.Context, posterAlias string) (entity.PosterById, error)
+	GetFlatByPropetyID(ctx context.Context, propertyID int) (*entity.Flat, error)
 }
+
 type AuthRepo interface {
 	GetToken(ctx context.Context, tokenID string, userID int) (*entity.RefreshToken, error)
 	CreateToken(ctx context.Context, dto dto.CreateRefreshTokenDTO) error

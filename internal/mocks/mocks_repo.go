@@ -105,6 +105,36 @@ func (mr *MockPosterRepoMockRecorder) CountPosters(ctx interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountPosters", reflect.TypeOf((*MockPosterRepo)(nil).CountPosters), ctx)
 }
 
+// GetFlatByPropetyID mocks base method.
+func (m *MockPosterRepo) GetFlatByPropetyID(ctx context.Context, propertyID int) (*entity.Flat, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFlatByPropetyID", ctx, propertyID)
+	ret0, _ := ret[0].(*entity.Flat)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFlatByPropetyID indicates an expected call of GetFlatByPropetyID.
+func (mr *MockPosterRepoMockRecorder) GetFlatByPropetyID(ctx, propertyID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFlatByPropetyID", reflect.TypeOf((*MockPosterRepo)(nil).GetFlatByPropetyID), ctx, propertyID)
+}
+
+// GetPosterByAlias mocks base method.
+func (m *MockPosterRepo) GetPosterByAlias(ctx context.Context, posterAlias string) (entity.PosterById, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPosterByAlias", ctx, posterAlias)
+	ret0, _ := ret[0].(entity.PosterById)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPosterByAlias indicates an expected call of GetPosterByAlias.
+func (mr *MockPosterRepoMockRecorder) GetPosterByAlias(ctx, posterAlias interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPosterByAlias", reflect.TypeOf((*MockPosterRepo)(nil).GetPosterByAlias), ctx, posterAlias)
+}
+
 // GetPosters mocks base method.
 func (m *MockPosterRepo) GetPosters(ctx context.Context, dto dto.PostersFiltersDTO) ([]entity.Poster, error) {
 	m.ctrl.T.Helper()
