@@ -2,6 +2,7 @@ package poster
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
@@ -49,13 +50,13 @@ func (uc *PosterUseCase) GetPostersUseCase(ctx context.Context, filters dto.Post
 	return dto.PostersToPostersDTO(posters), nil
 }
 
-func (uc *PosterUseCase) GetPosterByAliasUseCase(ctx context.Context, posterAlias string) (dto.PosterDTO, error) {
-	var posterDTO dto.PosterDTO
+func (uc *PosterUseCase) GetPosterByAliasUseCase(ctx context.Context, posterAlias string) (*dto.PosterDTO, error) {
+	var posterDTO *dto.PosterDTO
 
 	poster, err := uc.repo.GetPosterByAlias(ctx, posterAlias)
 	if err != nil {
 		log.Printf("uc.repo.GetPosterByAlias: %s", err)
-		return dto.PosterDTO{}, err
+		return nil, err
 	}
 
 	posterDTO = dto.PosterToPosterDTO(poster)
@@ -65,12 +66,14 @@ func (uc *PosterUseCase) GetPosterByAliasUseCase(ctx context.Context, posterAlia
 		flat, err := uc.repo.GetFlatByPropetyID(ctx, poster.PropertyID)
 		if err != nil {
 			log.Printf("uc.repo.GetPosters: %s", err)
-			return dto.PosterDTO{}, err
+			return nil, err
 		}
 
 		flatDTO := dto.FlatToFlatFlatDTO(flat)
 		posterDTO.Flat = flatDTO
 	case PropertyHouse:
+	default:
+		return nil, fmt.Errorf("no such category %w", entity.ServiceError)
 	}
 
 	return posterDTO, nil

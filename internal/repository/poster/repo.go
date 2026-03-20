@@ -56,7 +56,7 @@ func (r *PosterRepo) CountPosters(ctx context.Context) (int, error) {
 	return count, nil
 }
 
-func (r *PosterRepo) GetPosterByAlias(ctx context.Context, posterAlias string) (entity.PosterById, error) {
+func (r *PosterRepo) GetPosterByAlias(ctx context.Context, posterAlias string) (*entity.PosterById, error) {
 	query := `
 		SELECT p.id, p.alias, p.price, pc.name AS category,
 			   p.description, prop.area, prop.id AS property_id, 
@@ -78,22 +78,22 @@ func (r *PosterRepo) GetPosterByAlias(ctx context.Context, posterAlias string) (
 
 	rows, err := r.pool.Query(ctx, query, posterAlias)
 	if err != nil {
-		return entity.PosterById{}, repository.HandelPgErrors(err)
+		return &entity.PosterById{}, repository.HandelPgErrors(err)
 	}
 
 	defer rows.Close()
 
 	poster, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[entity.PosterById])
 	if err != nil {
-		return entity.PosterById{}, repository.HandelPgErrors(err)
+		return &entity.PosterById{}, repository.HandelPgErrors(err)
 	}
 
 	poster.Images, err = getPosterImages(r, ctx, poster.ID)
 	if err != nil {
-		return poster, repository.HandelPgErrors(err)
+		return &poster, repository.HandelPgErrors(err)
 	}
 
-	return poster, nil
+	return &poster, nil
 }
 
 func (r *PosterRepo) GetFlatByPropetyID(ctx context.Context, propertyID int) (*entity.Flat, error) {

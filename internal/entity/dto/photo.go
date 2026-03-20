@@ -7,7 +7,7 @@ type PhotoDTO struct {
 	Order  int    `json:"order"`
 }
 
-func posterImagesToPosterImagesDTO(poster entity.PosterById) []PhotoDTO {
+func posterImagesToPosterImagesDTO(poster *entity.PosterById) []PhotoDTO {
 	images := make([]PhotoDTO, 0, len(poster.Images))
 	for _, image := range poster.Images {
 		var imageDTO PhotoDTO

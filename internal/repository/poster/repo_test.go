@@ -9,16 +9,9 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
 	"github.com/pashagolub/pgxmock/v3"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 )
-
-func strPtr(s string) *string {
-	return &s
-}
-
-func geoPointPtr(g geo.GeographyPoint) *geo.GeographyPoint {
-	return &g
-}
 
 func TestGetPostersRepo(t *testing.T) {
 	expectedListPoster := []entity.Poster{
@@ -120,7 +113,7 @@ func TestGetPostersRepo(t *testing.T) {
 }
 
 func TestGetPosterByAliasRepo(t *testing.T) {
-	expectedPoster := entity.PosterById{
+	expectedPoster := &entity.PosterById{
 		ID:              4,
 		Alias:           "kvartira-na-arbate",
 		Price:           135000,
@@ -129,8 +122,8 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 		PropertyID:      10,
 		Area:            96.4,
 		Address:         "Arbatskaya 5k2",
-		District:        strPtr("Arbat"),
-		Metro:           strPtr("Arbat"),
+		District:        lo.ToPtr("Arbat"),
+		Metro:           lo.ToPtr("Arbat"),
 		Geo:             geo.GeographyPoint{Lon: 45.3966, Lat: 46.3489},
 		MetroGeo:        &geo.GeographyPoint{Lon: 45.3966, Lat: 46.3489},
 		City:            "Moscow",
@@ -138,7 +131,7 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 		SellerFirstName: "Sanya",
 		SellerLastName:  "Sashenykov",
 		Phone:           "+79144564312",
-		CompanyName:     strPtr("PIC"),
+		CompanyName:     lo.ToPtr("PIC"),
 		LogoURL:         nil,
 		Images: []entity.PosterImage{
 			{ImgURL: "img1.jpg", Order: 1},
@@ -178,7 +171,7 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 		name      string
 		param     string
 		setupMock func(m pgxmock.PgxPoolIface)
-		want      entity.PosterById
+		want      *entity.PosterById
 		wantErr   error
 	}{
 		{
@@ -196,9 +189,9 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 					4, "kvartira-na-arbate", 135000.0,
 					"flat", "krutoy remont", 96.4, 10,
 					"POINT(45.3966 46.3489)", "Arbatskaya 5k2",
-					strPtr("Arbat"), strPtr("Arbat"),
+					lo.ToPtr("Arbat"), lo.ToPtr("Arbat"),
 					&geo.GeographyPoint{Lon: 45.3966, Lat: 46.3489}, "Moscow", 7, "Sanya", "Sashenykov",
-					"+79144564312", strPtr("PIC"), nil,
+					"+79144564312", lo.ToPtr("PIC"), nil,
 				)
 
 				imageRows := pgxmock.NewRows([]string{
@@ -235,7 +228,7 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 					WithArgs(inputAlias).
 					WillReturnRows(rows)
 			},
-			want:    entity.PosterById{},
+			want:    &entity.PosterById{},
 			wantErr: entity.NotFoundError,
 		},
 		{
@@ -253,16 +246,16 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 					"bad-id", "kvartira-na-arbate", 135000.0,
 					"flat", "krutoy remont", 96.4, 10,
 					"POINT(45.3966 46.3489)", "Arbatskaya 5k2",
-					strPtr("Arbat"), strPtr("Arbat"),
+					lo.ToPtr("Arbat"), lo.ToPtr("Arbat"),
 					&geo.GeographyPoint{Lon: 45.3966, Lat: 46.3489}, "Moscow", 7, "Sanya", "Sashenykov", "+79144564312",
-					strPtr("PIC"), nil,
+					lo.ToPtr("PIC"), nil,
 				)
 
 				m.ExpectQuery(posterQuery).
 					WithArgs(inputAlias).
 					WillReturnRows(rows)
 			},
-			want:    entity.PosterById{},
+			want:    &entity.PosterById{},
 			wantErr: entity.ServiceError,
 		},
 		{
@@ -280,9 +273,9 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 					4, "kvartira-na-arbate", 135000.0,
 					"flat", "krutoy remont", 96.4, 10,
 					"POINT(45.3966 46.3489)", "Arbatskaya 5k2",
-					strPtr("Arbat"), strPtr("Arbat"),
+					lo.ToPtr("Arbat"), lo.ToPtr("Arbat"),
 					nil, "Moscow", 7, "Sanya", "Sashenykov", "+79144564312",
-					strPtr("PIC"), nil,
+					lo.ToPtr("PIC"), nil,
 				)
 
 				imageRows := pgxmock.NewRows([]string{
@@ -298,7 +291,7 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 					WithArgs(4).
 					WillReturnRows(imageRows)
 			},
-			want:    entity.PosterById{},
+			want:    &entity.PosterById{},
 			wantErr: entity.ServiceError,
 		},
 	}

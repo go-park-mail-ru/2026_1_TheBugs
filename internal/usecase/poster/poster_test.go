@@ -9,12 +9,9 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/mocks"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
 	"github.com/golang/mock/gomock"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 )
-
-func strPtr(s string) *string {
-	return &s
-}
 
 func TestGetPostersUseCase(t *testing.T) {
 	ctx := context.Background()
@@ -138,7 +135,7 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 	ctx := context.Background()
 	alias := "kvartira-na-arbate"
 
-	existingPoster := entity.PosterById{
+	existingPoster := &entity.PosterById{
 		ID:              4,
 		Alias:           alias,
 		Price:           135000,
@@ -148,15 +145,15 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 		Area:            96.4,
 		Geo:             geo.GeographyPoint{Lon: 45.3966, Lat: 46.3489},
 		Address:         "Arbatskaya 5k2",
-		District:        strPtr("Arbat"),
-		Metro:           strPtr("Arbat"),
+		District:        lo.ToPtr("Arbat"),
+		Metro:           lo.ToPtr("Arbat"),
 		MetroGeo:        &geo.GeographyPoint{Lon: 45.4000, Lat: 46.3519},
 		City:            "Moscow",
 		FloorCount:      7,
 		SellerFirstName: "Sanya",
 		SellerLastName:  "Sashenykov",
 		Phone:           "+79144564312",
-		CompanyName:     strPtr("PIC"),
+		CompanyName:     lo.ToPtr("PIC"),
 		LogoURL:         nil,
 		Images: []entity.PosterImage{
 			{ImgURL: "img1.jpg", Order: 1},
@@ -171,7 +168,7 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 		Floor:        3,
 	}
 
-	expectedPoster := dto.PosterDTO{
+	expectedPoster := &dto.PosterDTO{
 		ID:          4,
 		Alias:       alias,
 		Price:       135000,
@@ -180,8 +177,8 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 		Area:        96.4,
 		Geo:         dto.GeographyDTO{Lon: 45.3966, Lat: 46.3489},
 		Address:     "Arbatskaya 5k2",
-		District:    strPtr("Arbat"),
-		Metro:       strPtr("Arbat"),
+		District:    lo.ToPtr("Arbat"),
+		Metro:       lo.ToPtr("Arbat"),
 		MetroGeo:    &dto.GeographyDTO{Lon: 45.4000, Lat: 46.3519},
 		City:        "Moscow",
 		FloorCount:  7,
@@ -199,7 +196,7 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 			Number:       43,
 			Floor:        3,
 		},
-		CompanyName: strPtr("PIC"),
+		CompanyName: lo.ToPtr("PIC"),
 		LogoCompany: nil,
 	}
 
@@ -207,7 +204,7 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 		name      string
 		param     string
 		setupMock func(m *mocks.MockPosterRepo)
-		want      dto.PosterDTO
+		want      *dto.PosterDTO
 		wantErr   error
 	}{
 		{
@@ -233,10 +230,10 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 			setupMock: func(m *mocks.MockPosterRepo) {
 				m.EXPECT().
 					GetPosterByAlias(ctx, alias).
-					Return(entity.PosterById{}, entity.NotFoundError).
+					Return(&entity.PosterById{}, entity.NotFoundError).
 					Times(1)
 			},
-			want:    dto.PosterDTO{},
+			want:    &dto.PosterDTO{},
 			wantErr: entity.NotFoundError,
 		},
 		{
@@ -253,7 +250,7 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 					Return(nil, entity.ServiceError).
 					Times(1)
 			},
-			want:    dto.PosterDTO{},
+			want:    &dto.PosterDTO{},
 			wantErr: entity.ServiceError,
 		},
 	}

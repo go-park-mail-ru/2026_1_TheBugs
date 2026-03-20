@@ -63,8 +63,8 @@ type PosterDTO struct {
 	LogoCompany *string         `json:"company_logo"`
 }
 
-func PosterToPosterDTO(poster entity.PosterById) PosterDTO {
-	return PosterDTO{
+func PosterToPosterDTO(poster *entity.PosterById) *PosterDTO {
+	return &PosterDTO{
 		ID:          poster.ID,
 		Alias:       poster.Alias,
 		Price:       poster.Price,

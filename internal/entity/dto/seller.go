@@ -8,7 +8,7 @@ type PosterSellerDTO struct {
 	SellerPhone     string `json:"seller_phone"`
 }
 
-func posterToPosterSellerDTO(poster entity.PosterById) PosterSellerDTO {
+func posterToPosterSellerDTO(poster *entity.PosterById) PosterSellerDTO {
 	return PosterSellerDTO{
 		SellerFirstName: poster.SellerFirstName,
 		SellerLastName:  poster.SellerLastName,
