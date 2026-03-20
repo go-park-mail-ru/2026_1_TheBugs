@@ -63,8 +63,8 @@ type PosterDTO struct {
 	Company *UtilityCompanyCardDTO `json:"company,omitempty"`
 }
 
-func PosterToPosterDTO(poster entity.PosterById) PosterDTO {
-	return PosterDTO{
+func PosterToPosterDTO(poster *entity.PosterById) *PosterDTO {
+	return &PosterDTO{
 		ID:          poster.ID,
 		Alias:       poster.Alias,
 		Price:       poster.Price,

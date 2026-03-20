@@ -121,10 +121,10 @@ func (mr *MockPosterRepoMockRecorder) GetFlatByPropetyID(ctx, propertyID interfa
 }
 
 // GetPosterByAlias mocks base method.
-func (m *MockPosterRepo) GetPosterByAlias(ctx context.Context, posterAlias string) (entity.PosterById, error) {
+func (m *MockPosterRepo) GetPosterByAlias(ctx context.Context, posterAlias string) (*entity.PosterById, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetPosterByAlias", ctx, posterAlias)
-	ret0, _ := ret[0].(entity.PosterById)
+	ret0, _ := ret[0].(*entity.PosterById)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

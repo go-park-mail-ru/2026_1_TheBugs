@@ -8,5 +8,5 @@ type PostersResponse struct {
 }
 
 type PosterResponse struct {
-	Poster dto.PosterDTO `json:"poster"`
+	Poster *dto.PosterDTO `json:"poster"`
 }

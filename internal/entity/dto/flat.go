@@ -3,7 +3,7 @@ package dto
 import "github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 
 type FlatDTO struct {
-	FlatCategory string `json:"flat_catigory"`
+	FlatCategory string `json:"flat_category"`
 	Number       int    `json:"flat_number"`
 	Floor        int    `json:"floor"`
 }

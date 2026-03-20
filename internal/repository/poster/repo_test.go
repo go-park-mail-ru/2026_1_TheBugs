@@ -173,7 +173,7 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 		name      string
 		param     string
 		setupMock func(m pgxmock.PgxPoolIface)
-		want      entity.PosterById
+		want      *entity.PosterById
 		wantErr   error
 	}{
 		{
@@ -191,6 +191,7 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 					4, "kvartira-na-arbate", 135000.0,
 					"flat", "krutoy remont", 96.4, 10,
 					"POINT(45.3966 46.3489)", "Arbatskaya 5k2",
+					lo.ToPtr("Arbat"), lo.ToPtr("Arbat"),
 					lo.ToPtr("Arbat"), lo.ToPtr("Arbat"),
 					&geo.GeographyPoint{Lon: 45.3966, Lat: 46.3489}, "Moscow", 7, "Sanya", "Sashenykov",
 					"+79144564312", lo.ToPtr("PIC"), lo.ToPtr("http://img.com"), lo.ToPtr("dick"), lo.ToPtr(12),
@@ -230,7 +231,7 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 					WithArgs(inputAlias).
 					WillReturnRows(rows)
 			},
-			want:    entity.PosterById{},
+			want:    &entity.PosterById{},
 			wantErr: entity.NotFoundError,
 		},
 		{
@@ -249,6 +250,7 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 					"flat", "krutoy remont", 96.4, 10,
 					"POINT(45.3966 46.3489)", "Arbatskaya 5k2",
 					lo.ToPtr("Arbat"), lo.ToPtr("Arbat"),
+					lo.ToPtr("Arbat"), lo.ToPtr("Arbat"),
 					&geo.GeographyPoint{Lon: 45.3966, Lat: 46.3489}, "Moscow", 7, "Sanya", "Sashenykov", "+79144564312",
 					lo.ToPtr("PIC"), lo.ToPtr("http://img.com"), lo.ToPtr("dick"), lo.ToPtr(12),
 				)
@@ -257,7 +259,7 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 					WithArgs(inputAlias).
 					WillReturnRows(rows)
 			},
-			want:    entity.PosterById{},
+			want:    &entity.PosterById{},
 			wantErr: entity.ServiceError,
 		},
 		{
@@ -276,6 +278,7 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 					"flat", "krutoy remont", 96.4, 10,
 					"POINT(45.3966 46.3489)", "Arbatskaya 5k2",
 					lo.ToPtr("Arbat"), lo.ToPtr("Arbat"),
+					lo.ToPtr("Arbat"), lo.ToPtr("Arbat"),
 					nil, "Moscow", 7, "Sanya", "Sashenykov", "+79144564312",
 					lo.ToPtr("PIC"), lo.ToPtr("http://img.com"), lo.ToPtr("dick"), lo.ToPtr(12),
 				)
@@ -293,7 +296,7 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 					WithArgs(4).
 					WillReturnRows(imageRows)
 			},
-			want:    entity.PosterById{},
+			want:    &entity.PosterById{},
 			wantErr: entity.ServiceError,
 		},
 	}

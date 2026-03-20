@@ -135,7 +135,7 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 	ctx := context.Background()
 	alias := "kvartira-na-arbate"
 
-	existingPoster := entity.PosterById{
+	existingPoster := &entity.PosterById{
 		ID:              4,
 		Alias:           alias,
 		Price:           135000,
@@ -145,6 +145,8 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 		Area:            96.4,
 		Geo:             geo.GeographyPoint{Lon: 45.3966, Lat: 46.3489},
 		Address:         "Arbatskaya 5k2",
+		District:        lo.ToPtr("Arbat"),
+		Metro:           lo.ToPtr("Arbat"),
 		District:        lo.ToPtr("Arbat"),
 		Metro:           lo.ToPtr("Arbat"),
 		MetroGeo:        &geo.GeographyPoint{Lon: 45.4000, Lat: 46.3519},
@@ -166,7 +168,7 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 		Floor:        3,
 	}
 
-	expectedPoster := dto.PosterDTO{
+	expectedPoster := &dto.PosterDTO{
 		ID:          4,
 		Alias:       alias,
 		Price:       135000,
@@ -175,6 +177,8 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 		Area:        96.4,
 		Geo:         dto.GeographyDTO{Lon: 45.3966, Lat: 46.3489},
 		Address:     "Arbatskaya 5k2",
+		District:    lo.ToPtr("Arbat"),
+		Metro:       lo.ToPtr("Arbat"),
 		District:    lo.ToPtr("Arbat"),
 		Metro:       lo.ToPtr("Arbat"),
 		MetroGeo:    &dto.GeographyDTO{Lon: 45.4000, Lat: 46.3519},
@@ -200,7 +204,7 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 		name      string
 		param     string
 		setupMock func(m *mocks.MockPosterRepo)
-		want      dto.PosterDTO
+		want      *dto.PosterDTO
 		wantErr   error
 	}{
 		{
@@ -226,10 +230,10 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 			setupMock: func(m *mocks.MockPosterRepo) {
 				m.EXPECT().
 					GetPosterByAlias(ctx, alias).
-					Return(entity.PosterById{}, entity.NotFoundError).
+					Return(&entity.PosterById{}, entity.NotFoundError).
 					Times(1)
 			},
-			want:    dto.PosterDTO{},
+			want:    &dto.PosterDTO{},
 			wantErr: entity.NotFoundError,
 		},
 		{
@@ -246,7 +250,7 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 					Return(nil, entity.ServiceError).
 					Times(1)
 			},
-			want:    dto.PosterDTO{},
+			want:    &dto.PosterDTO{},
 			wantErr: entity.ServiceError,
 		},
 	}
