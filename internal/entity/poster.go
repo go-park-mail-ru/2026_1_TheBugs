@@ -41,8 +41,10 @@ type PosterById struct {
 	SellerLastName  string `db:"last_name"`
 	Phone           string `db:"phone"`
 
-	CompanyName *string `db:"company_name"`
-	LogoURL     *string `db:"company_avatar_url"`
+	CompanyName      *string `db:"company_name"`
+	CompanyAvatarURL *string `db:"company_avatar_url"`
+	CompanyAlias     *string `db:"company_alias"`
+	CompanyID        *int    `db:"company_id"`
 }
 
 type Flat struct {

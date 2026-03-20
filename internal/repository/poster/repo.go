@@ -63,7 +63,7 @@ func (r *PosterRepo) GetPosterByAlias(ctx context.Context, posterAlias string) (
 			   ST_AsText(b.geo) AS building_geo, b.address, b.district, 
 			   ms.station_name, ST_AsText(ms.geo) AS metro_geo, c.city_name, 
 			   b.floor_count, pr.first_name, pr.last_name, pr.phone,
-			   uc.company_name, uc.avatar_url AS company_avatar_url
+			   uc.company_name, uc.avatar_url AS company_avatar_url, uc.alias AS company_alias, uc.id AS company_id
 		FROM posters p
 		JOIN property prop ON prop.id = p.property_id
 		JOIN property_categories pc ON pc.id = prop.category_id

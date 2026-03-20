@@ -9,16 +9,9 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
 	"github.com/pashagolub/pgxmock/v3"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 )
-
-func strPtr(s string) *string {
-	return &s
-}
-
-func geoPointPtr(g geo.GeographyPoint) *geo.GeographyPoint {
-	return &g
-}
 
 func TestGetPostersRepo(t *testing.T) {
 	expectedListPoster := []entity.Poster{
@@ -121,25 +114,27 @@ func TestGetPostersRepo(t *testing.T) {
 
 func TestGetPosterByAliasRepo(t *testing.T) {
 	expectedPoster := entity.PosterById{
-		ID:              4,
-		Alias:           "kvartira-na-arbate",
-		Price:           135000,
-		Category:        "flat",
-		Description:     "krutoy remont",
-		PropertyID:      10,
-		Area:            96.4,
-		Address:         "Arbatskaya 5k2",
-		District:        strPtr("Arbat"),
-		Metro:           strPtr("Arbat"),
-		Geo:             geo.GeographyPoint{Lon: 45.3966, Lat: 46.3489},
-		MetroGeo:        &geo.GeographyPoint{Lon: 45.3966, Lat: 46.3489},
-		City:            "Moscow",
-		FloorCount:      7,
-		SellerFirstName: "Sanya",
-		SellerLastName:  "Sashenykov",
-		Phone:           "+79144564312",
-		CompanyName:     strPtr("PIC"),
-		LogoURL:         nil,
+		ID:               4,
+		Alias:            "kvartira-na-arbate",
+		Price:            135000,
+		Category:         "flat",
+		Description:      "krutoy remont",
+		PropertyID:       10,
+		Area:             96.4,
+		Address:          "Arbatskaya 5k2",
+		District:         lo.ToPtr("Arbat"),
+		Metro:            lo.ToPtr("Arbat"),
+		Geo:              geo.GeographyPoint{Lon: 45.3966, Lat: 46.3489},
+		MetroGeo:         &geo.GeographyPoint{Lon: 45.3966, Lat: 46.3489},
+		City:             "Moscow",
+		FloorCount:       7,
+		SellerFirstName:  "Sanya",
+		SellerLastName:   "Sashenykov",
+		Phone:            "+79144564312",
+		CompanyName:      lo.ToPtr("PIC"),
+		CompanyAvatarURL: lo.ToPtr("http://img.com"),
+		CompanyAlias:     lo.ToPtr("dick"),
+		CompanyID:        lo.ToPtr(12),
 		Images: []entity.PosterImage{
 			{ImgURL: "img1.jpg", Order: 1},
 			{ImgURL: "img2.jpg", Order: 2},
@@ -154,7 +149,7 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 			   ST_AsText(b.geo) AS building_geo, b.address, b.district, 
 			   ms.station_name, ST_AsText(ms.geo) AS metro_geo, c.city_name, 
 			   b.floor_count, pr.first_name, pr.last_name, pr.phone,
-			   uc.company_name, uc.avatar_url AS company_avatar_url
+			   uc.company_name, uc.avatar_url AS company_avatar_url, uc.alias AS company_alias, uc.id AS company_id
 		FROM posters p
 		JOIN property prop ON prop.id = p.property_id
 		JOIN property_categories pc ON pc.id = prop.category_id
@@ -191,14 +186,14 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 					"building_geo", "address", "district",
 					"station_name", "metro_geo", "city_name",
 					"floor_count", "first_name", "last_name",
-					"phone", "company_name", "company_avatar_url",
+					"phone", "company_name", "company_avatar_url", "company_alias", "company_id",
 				}).AddRow(
 					4, "kvartira-na-arbate", 135000.0,
 					"flat", "krutoy remont", 96.4, 10,
 					"POINT(45.3966 46.3489)", "Arbatskaya 5k2",
-					strPtr("Arbat"), strPtr("Arbat"),
+					lo.ToPtr("Arbat"), lo.ToPtr("Arbat"),
 					&geo.GeographyPoint{Lon: 45.3966, Lat: 46.3489}, "Moscow", 7, "Sanya", "Sashenykov",
-					"+79144564312", strPtr("PIC"), nil,
+					"+79144564312", lo.ToPtr("PIC"), lo.ToPtr("http://img.com"), lo.ToPtr("dick"), lo.ToPtr(12),
 				)
 
 				imageRows := pgxmock.NewRows([]string{
@@ -228,7 +223,7 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 					"building_geo", "address", "district",
 					"station_name", "metro_geo", "city_name",
 					"floor_count", "first_name", "last_name",
-					"phone", "company_name", "company_avatar_url",
+					"phone", "company_name", "company_avatar_url", "company_alias", "company_id",
 				})
 
 				m.ExpectQuery(posterQuery).
@@ -248,14 +243,14 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 					"building_geo", "address", "district",
 					"station_name", "metro_geo", "city_name",
 					"floor_count", "first_name", "last_name",
-					"phone", "company_name", "company_avatar_url",
+					"phone", "company_name", "company_avatar_url", "company_alias", "company_id",
 				}).AddRow(
 					"bad-id", "kvartira-na-arbate", 135000.0,
 					"flat", "krutoy remont", 96.4, 10,
 					"POINT(45.3966 46.3489)", "Arbatskaya 5k2",
-					strPtr("Arbat"), strPtr("Arbat"),
+					lo.ToPtr("Arbat"), lo.ToPtr("Arbat"),
 					&geo.GeographyPoint{Lon: 45.3966, Lat: 46.3489}, "Moscow", 7, "Sanya", "Sashenykov", "+79144564312",
-					strPtr("PIC"), nil,
+					lo.ToPtr("PIC"), lo.ToPtr("http://img.com"), lo.ToPtr("dick"), lo.ToPtr(12),
 				)
 
 				m.ExpectQuery(posterQuery).
@@ -275,14 +270,14 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 					"building_geo", "address", "district",
 					"station_name", "metro_geo", "city_name",
 					"floor_count", "first_name", "last_name",
-					"phone", "company_name", "company_avatar_url",
+					"phone", "company_name", "company_avatar_url", "company_alias", "company_id",
 				}).AddRow(
 					4, "kvartira-na-arbate", 135000.0,
 					"flat", "krutoy remont", 96.4, 10,
 					"POINT(45.3966 46.3489)", "Arbatskaya 5k2",
-					strPtr("Arbat"), strPtr("Arbat"),
+					lo.ToPtr("Arbat"), lo.ToPtr("Arbat"),
 					nil, "Moscow", 7, "Sanya", "Sashenykov", "+79144564312",
-					strPtr("PIC"), nil,
+					lo.ToPtr("PIC"), lo.ToPtr("http://img.com"), lo.ToPtr("dick"), lo.ToPtr(12),
 				)
 
 				imageRows := pgxmock.NewRows([]string{

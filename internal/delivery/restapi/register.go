@@ -27,7 +27,7 @@ import (
 
 // @license.name  MIT
 
-// @host      dom-deli.ru
+// @host      localhost:8000
 // @BasePath  /api
 
 // @securityDefinitions.apikey BearerAuth

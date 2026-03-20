@@ -57,10 +57,10 @@ type PosterDTO struct {
 	FloorCount  int             `json:"floor_count"`
 	Images      []PhotoDTO      `json:"images"`
 	Seller      PosterSellerDTO `json:"seller"`
-	Flat        *FlatDTO        `json:"flat"`
-	House       *HouseDTO       `json:"house"`
-	CompanyName *string         `json:"company"`
-	LogoCompany *string         `json:"company_logo"`
+	Flat        *FlatDTO        `json:"flat,omitempty"`
+	House       *HouseDTO       `json:"house,omitempty"`
+
+	Company *UtilityCompanyCardDTO `json:"company,omitempty"`
 }
 
 func PosterToPosterDTO(poster entity.PosterById) PosterDTO {
@@ -80,7 +80,6 @@ func PosterToPosterDTO(poster entity.PosterById) PosterDTO {
 		FloorCount:  poster.FloorCount,
 		Images:      posterImagesToPosterImagesDTO(poster),
 		Seller:      posterToPosterSellerDTO(poster),
-		CompanyName: poster.CompanyName,
-		LogoCompany: poster.LogoURL,
+		Company:     posterToUtilityCompanyCardDTO(poster),
 	}
 }

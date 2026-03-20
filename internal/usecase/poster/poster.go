@@ -70,6 +70,7 @@ func (uc *PosterUseCase) GetPosterByAliasUseCase(ctx context.Context, posterAlia
 
 		flatDTO := dto.FlatToFlatFlatDTO(flat)
 		posterDTO.Flat = flatDTO
+
 	case PropertyHouse:
 	}
 
