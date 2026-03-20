@@ -52,6 +52,21 @@ func (mr *MockUserRepoMockRecorder) CreateUser(ctx, dto interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockUserRepo)(nil).CreateUser), ctx, dto)
 }
 
+// CreateUserByProvider mocks base method.
+func (m *MockUserRepo) CreateUserByProvider(ctx context.Context, dto dto.CreateUserByProviderDTO) (*entity.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateUserByProvider", ctx, dto)
+	ret0, _ := ret[0].(*entity.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateUserByProvider indicates an expected call of CreateUserByProvider.
+func (mr *MockUserRepoMockRecorder) CreateUserByProvider(ctx, dto interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUserByProvider", reflect.TypeOf((*MockUserRepo)(nil).CreateUserByProvider), ctx, dto)
+}
+
 // GetUserByEmail mocks base method.
 func (m *MockUserRepo) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
 	m.ctrl.T.Helper()
@@ -65,6 +80,21 @@ func (m *MockUserRepo) GetUserByEmail(ctx context.Context, email string) (*entit
 func (mr *MockUserRepoMockRecorder) GetUserByEmail(ctx, email interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByEmail", reflect.TypeOf((*MockUserRepo)(nil).GetUserByEmail), ctx, email)
+}
+
+// GetUserByProvider mocks base method.
+func (m *MockUserRepo) GetUserByProvider(ctx context.Context, provider, email string) (*entity.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByProvider", ctx, provider, email)
+	ret0, _ := ret[0].(*entity.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByProvider indicates an expected call of GetUserByProvider.
+func (mr *MockUserRepoMockRecorder) GetUserByProvider(ctx, provider, email interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByProvider", reflect.TypeOf((*MockUserRepo)(nil).GetUserByProvider), ctx, provider, email)
 }
 
 // MockPosterRepo is a mock of PosterRepo interface.
@@ -103,6 +133,36 @@ func (m *MockPosterRepo) CountPosters(ctx context.Context) (int, error) {
 func (mr *MockPosterRepoMockRecorder) CountPosters(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountPosters", reflect.TypeOf((*MockPosterRepo)(nil).CountPosters), ctx)
+}
+
+// GetFlatByPropetyID mocks base method.
+func (m *MockPosterRepo) GetFlatByPropetyID(ctx context.Context, propertyID int) (*entity.Flat, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFlatByPropetyID", ctx, propertyID)
+	ret0, _ := ret[0].(*entity.Flat)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFlatByPropetyID indicates an expected call of GetFlatByPropetyID.
+func (mr *MockPosterRepoMockRecorder) GetFlatByPropetyID(ctx, propertyID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFlatByPropetyID", reflect.TypeOf((*MockPosterRepo)(nil).GetFlatByPropetyID), ctx, propertyID)
+}
+
+// GetPosterByAlias mocks base method.
+func (m *MockPosterRepo) GetPosterByAlias(ctx context.Context, posterAlias string) (*entity.PosterById, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPosterByAlias", ctx, posterAlias)
+	ret0, _ := ret[0].(*entity.PosterById)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPosterByAlias indicates an expected call of GetPosterByAlias.
+func (mr *MockPosterRepoMockRecorder) GetPosterByAlias(ctx, posterAlias interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPosterByAlias", reflect.TypeOf((*MockPosterRepo)(nil).GetPosterByAlias), ctx, posterAlias)
 }
 
 // GetPosters mocks base method.

@@ -9,15 +9,7 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "termsOfService": "http://swagger.io/terms/",
-        "contact": {
-            "name": "API Support",
-            "url": "http://www.swagger.io/support",
-            "email": "support@swagger.io"
-        },
-        "license": {
-            "name": "MIT"
-        },
+        "contact": {},
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
@@ -446,6 +438,14 @@ const docTemplate = `{
                 }
             }
         },
+        "response.PosterResponse": {
+            "type": "object",
+            "properties": {
+                "poster": {
+                    "$ref": "#/definitions/dto.PosterDTO"
+                }
+            }
+        },
         "response.PostersResponse": {
             "type": "object",
             "properties": {
@@ -455,7 +455,7 @@ const docTemplate = `{
                 "posters": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/dto.PosterDTO"
+                        "$ref": "#/definitions/dto.PosterCardDTO"
                     }
                 }
             }
@@ -471,17 +471,6 @@ const docTemplate = `{
                 }
             }
         }
-    },
-    "securityDefinitions": {
-        "BearerAuth": {
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
-        }
-    },
-    "externalDocs": {
-        "description": "OpenAPI",
-        "url": "https://swagger.io/resources/open-api/"
     }
 }`
 
@@ -491,8 +480,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8000",
 	BasePath:         "/api",
 	Schemes:          []string{},
-	Title:            "DomDeli API",
-	Description:      "Created by TheBugs in 2026",
+	Title:            "",
+	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

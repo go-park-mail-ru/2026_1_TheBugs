@@ -13,3 +13,14 @@ func GeographyPointToGeographyDTO(point geo.GeographyPoint) GeographyDTO {
 		Lon: point.Lon,
 	}
 }
+
+func GeographyPointPtrToGeographyDTO(point *geo.GeographyPoint) *GeographyDTO {
+	if point == nil {
+		return nil
+	}
+
+	return &GeographyDTO{
+		Lat: point.Lat,
+		Lon: point.Lon,
+	}
+}

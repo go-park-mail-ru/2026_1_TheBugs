@@ -1,4 +1,3 @@
-basePath: /api
 definitions:
   auth.LoginResponse:
     properties:
@@ -68,13 +67,18 @@ definitions:
       error:
         type: string
     type: object
+  response.PosterResponse:
+    properties:
+      poster:
+        $ref: '#/definitions/dto.PosterDTO'
+    type: object
   response.PostersResponse:
     properties:
       len:
         type: integer
       posters:
         items:
-          $ref: '#/definitions/dto.PosterDTO'
+          $ref: '#/definitions/dto.PosterCardDTO'
         type: array
     type: object
   response.ValidationErrorResponse:
@@ -89,16 +93,7 @@ externalDocs:
   url: https://swagger.io/resources/open-api/
 host: localhost:8000
 info:
-  contact:
-    email: support@swagger.io
-    name: API Support
-    url: http://www.swagger.io/support
-  description: Created by TheBugs in 2026
-  license:
-    name: MIT
-  termsOfService: http://swagger.io/terms/
-  title: DomDeli API
-  version: "1.0"
+  contact: {}
 paths:
   /auth/login:
     post:

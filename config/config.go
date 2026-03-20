@@ -29,16 +29,24 @@ type (
 		Postgres `yaml:"postgres"`
 		Redis    `yaml:"redis"`
 		JWT      `yaml:"jwt"`
+		OAuth    `yaml:"oauth"`
 	}
- 	Redis struct {
- 		Host     string `yaml:"host" env:"REDIS_HOST" env-default:"localhost"`
- 		Port     int    `yaml:"port" env:"REDIS_PORT" env-default:"6379"`
- 		Password string `yaml:"password" env:"REDIS_PASSWORD" env-default:""`
- 		DB       int    `yaml:"db" env:"REDIS_DB" env-default:"0"`
- 	}
+	Redis struct {
+		Host     string `yaml:"host" env:"REDIS_HOST" env-default:"localhost"`
+		Port     int    `yaml:"port" env:"REDIS_PORT" env-default:"6379"`
+		Password string `yaml:"password" env:"REDIS_PASSWORD" env-default:""`
+		DB       int    `yaml:"db" env:"REDIS_DB" env-default:"0"`
+	}
 	CORS struct {
 		AllowedHosts []string
 		CookieHost   string
+	}
+	OAuth struct {
+		VKClientID         string `yaml:"vk-client-id"    env:"VKClientID" env-default:"client_id"`
+		YandexClientID     string `yaml:"yandex-client-id"    env:"YandexClientID" env-default:"client_id"`
+		VKRedirectURI      string `yaml:"vk-redirect-uri"    env:"VKRedirectURI" env-default:"https://dom-deli.ru/oauth/vk"`
+		YandexRedirectURI  string `yaml:"yandex-redirect-uri"    env:"YandexRedirectURI" env-default:"https://dom-deli.ru/oauth/yandex"`
+		YandexClientSecret string `yaml:"yandex-client-secret"    env:"YandexClientSecret" env-default:"client_secret"`
 	}
 
 	Server struct {
