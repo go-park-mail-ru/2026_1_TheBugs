@@ -1,9 +1,19 @@
+basePath: /api
 definitions:
   auth.LoginResponse:
     properties:
       access_token:
         type: string
       expire_at:
+        type: integer
+    type: object
+  dto.FlatDTO:
+    properties:
+      flat_category:
+        type: string
+      flat_number:
+        type: integer
+      floor:
         type: integer
     type: object
   dto.GeographyDTO:
@@ -13,6 +23,19 @@ definitions:
       lon:
         type: number
     type: object
+  dto.HouseDTO:
+    type: object
+  dto.OAuthCodeFlow:
+    properties:
+      code:
+        type: string
+      code_verifier:
+        type: string
+      device_id:
+        type: string
+      state:
+        type: string
+    type: object
   dto.PhotoDTO:
     properties:
       img_url:
@@ -20,9 +43,11 @@ definitions:
       order:
         type: integer
     type: object
-  dto.PosterDTO:
+  dto.PosterCardDTO:
     properties:
       address:
+        type: string
+      alias:
         type: string
       area:
         type: number
@@ -38,6 +63,67 @@ definitions:
         type: number
       rating:
         type: number
+    type: object
+  dto.PosterDTO:
+    properties:
+      address:
+        type: string
+      alias:
+        type: string
+      area:
+        type: number
+      building_geo:
+        $ref: '#/definitions/dto.GeographyDTO'
+      category:
+        type: string
+      city:
+        type: string
+      company:
+        $ref: '#/definitions/dto.UtilityCompanyCardDTO'
+      description:
+        type: string
+      district:
+        type: string
+      flat:
+        $ref: '#/definitions/dto.FlatDTO'
+      floor_count:
+        type: integer
+      house:
+        $ref: '#/definitions/dto.HouseDTO'
+      id:
+        type: integer
+      images:
+        items:
+          $ref: '#/definitions/dto.PhotoDTO'
+        type: array
+      metro:
+        type: string
+      metro_geo:
+        $ref: '#/definitions/dto.GeographyDTO'
+      price:
+        type: number
+      seller:
+        $ref: '#/definitions/dto.PosterSellerDTO'
+    type: object
+  dto.PosterSellerDTO:
+    properties:
+      seller_first_name:
+        type: string
+      seller_last_name:
+        type: string
+      seller_phone:
+        type: string
+    type: object
+  dto.UtilityCompanyCardDTO:
+    properties:
+      alias:
+        type: string
+      avatar_url:
+        type: string
+      company_name:
+        type: string
+      id:
+        type: integer
     type: object
   dto.UtilityCompanyDTO:
     properties:
@@ -93,7 +179,16 @@ externalDocs:
   url: https://swagger.io/resources/open-api/
 host: localhost:8000
 info:
-  contact: {}
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Created by TheBugs in 2026
+  license:
+    name: MIT
+  termsOfService: http://swagger.io/terms/
+  title: DomDeli API
+  version: "1.0"
 paths:
   /auth/login:
     post:
@@ -212,6 +307,21 @@ paths:
         name: password
         required: true
         type: string
+      - description: User phone
+        in: formData
+        name: phone
+        required: true
+        type: string
+      - description: User firstname
+        in: formData
+        name: firstname
+        required: true
+        type: string
+      - description: User lastname
+        in: formData
+        name: lastname
+        required: true
+        type: string
       responses:
         "204":
           description: No Content
@@ -230,6 +340,43 @@ paths:
       summary: Register new user
       tags:
       - Auth
+  /auth/yandex:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return access token + set refresh token cookie
+      parameters:
+      - description: OAuth user cred by Authorization code flow
+        in: body
+        name: flow
+        required: true
+        schema:
+          $ref: '#/definitions/dto.OAuthCodeFlow'
+      responses:
+        "200":
+          description: Successful login, returns access token
+          headers:
+            Set-Cookie:
+              description: refresh_token=<NEW_REFRESH_TOKEN>; HttpOnly; Path=/api/auth/refresh;
+                Max-Age=...
+              type: string
+          schema:
+            $ref: '#/definitions/auth.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ValidationErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Login user from Yandex
+      tags:
+      - Auth
   /posters:
     get:
       description: Returns the number of retrieved posters and their list
@@ -246,6 +393,10 @@ paths:
         minimum: 0
         name: offset
         type: integer
+      - description: Utility company
+        in: query
+        name: utility_company
+        type: string
       produces:
       - application/json
       responses:
@@ -272,7 +423,42 @@ paths:
       summary: Get list of posters
       tags:
       - posters
-  /utility_companies/alias/{alias}:
+  /posters/by-alias/{alias}:
+    get:
+      description: Returns the poster with all information about it
+      parameters:
+      - description: Alias of poster
+        in: path
+        name: alias
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PosterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get poster by alias
+      tags:
+      - posters
+  /utility-companies/by-alias/{alias}:
     get:
       description: Returns utility complex details along with its photos by the given
         alias

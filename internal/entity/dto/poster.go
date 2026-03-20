@@ -6,6 +6,7 @@ import (
 
 type PosterCardDTO struct {
 	ID      int      `json:"id"`
+	Alias   string   `json:"alias"`
 	Price   float64  `json:"price"`
 	ImgURL  *string  `json:"imageUrl"`
 	Address string   `json:"address"`
@@ -35,6 +36,7 @@ func PostersToPostersDTO(posters []entity.Poster) []PosterCardDTO {
 			Area:    poster.Area,
 			Rating:  &rating,
 			Beds:    &count,
+			Alias:   poster.Alias,
 		}
 
 		listPosters = append(listPosters, posterDTO)

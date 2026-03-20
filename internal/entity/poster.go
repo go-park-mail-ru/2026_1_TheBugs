@@ -9,6 +9,7 @@ type Poster struct {
 	Address string  `db:"address"`
 	Metro   *string `db:"station_name"`
 	Area    float64 `db:"area"`
+	Alias   string  `db:"alias"`
 	Floor   int     `db:"floor"`
 }
 

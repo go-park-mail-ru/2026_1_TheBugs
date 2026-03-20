@@ -9,7 +9,15 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "contact": {},
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
+        },
+        "license": {
+            "name": "MIT"
+        },
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
@@ -189,11 +197,87 @@ const docTemplate = `{
                         "name": "password",
                         "in": "formData",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User phone",
+                        "name": "phone",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User firstname",
+                        "name": "firstname",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User lastname",
+                        "name": "lastname",
+                        "in": "formData",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "204": {
                         "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ValidationErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/yandex": {
+            "post": {
+                "description": "Authenticate user and return access token + set refresh token cookie",
+                "consumes": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login user from Yandex",
+                "parameters": [
+                    {
+                        "description": "OAuth user cred by Authorization code flow",
+                        "name": "flow",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.OAuthCodeFlow"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful login, returns access token",
+                        "schema": {
+                            "$ref": "#/definitions/auth.LoginResponse"
+                        },
+                        "headers": {
+                            "Set-Cookie": {
+                                "type": "string",
+                                "description": "refresh_token=\u003cNEW_REFRESH_TOKEN\u003e; HttpOnly; Path=/api/auth/refresh; Max-Age=..."
+                            }
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -242,6 +326,12 @@ const docTemplate = `{
                         "description": "Pagination offset",
                         "name": "offset",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Utility company",
+                        "name": "utility_company",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -278,7 +368,60 @@ const docTemplate = `{
                 }
             }
         },
-        "/utility_companies/alias/{alias}": {
+        "/posters/by-alias/{alias}": {
+            "get": {
+                "description": "Returns the poster with all information about it",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posters"
+                ],
+                "summary": "Get poster by alias",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Alias of poster",
+                        "name": "alias",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.PosterResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/utility-companies/by-alias/{alias}": {
             "get": {
                 "description": "Returns utility complex details along with its photos by the given alias",
                 "produces": [
@@ -344,6 +487,20 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.FlatDTO": {
+            "type": "object",
+            "properties": {
+                "flat_category": {
+                    "type": "string"
+                },
+                "flat_number": {
+                    "type": "integer"
+                },
+                "floor": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.GeographyDTO": {
             "type": "object",
             "properties": {
@@ -352,6 +509,26 @@ const docTemplate = `{
                 },
                 "lon": {
                     "type": "number"
+                }
+            }
+        },
+        "dto.HouseDTO": {
+            "type": "object"
+        },
+        "dto.OAuthCodeFlow": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "code_verifier": {
+                    "type": "string"
+                },
+                "device_id": {
+                    "type": "string"
+                },
+                "state": {
+                    "type": "string"
                 }
             }
         },
@@ -366,10 +543,13 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.PosterDTO": {
+        "dto.PosterCardDTO": {
             "type": "object",
             "properties": {
                 "address": {
+                    "type": "string"
+                },
+                "alias": {
                     "type": "string"
                 },
                 "area": {
@@ -392,6 +572,99 @@ const docTemplate = `{
                 },
                 "rating": {
                     "type": "number"
+                }
+            }
+        },
+        "dto.PosterDTO": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "alias": {
+                    "type": "string"
+                },
+                "area": {
+                    "type": "number"
+                },
+                "building_geo": {
+                    "$ref": "#/definitions/dto.GeographyDTO"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "company": {
+                    "$ref": "#/definitions/dto.UtilityCompanyCardDTO"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "district": {
+                    "type": "string"
+                },
+                "flat": {
+                    "$ref": "#/definitions/dto.FlatDTO"
+                },
+                "floor_count": {
+                    "type": "integer"
+                },
+                "house": {
+                    "$ref": "#/definitions/dto.HouseDTO"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.PhotoDTO"
+                    }
+                },
+                "metro": {
+                    "type": "string"
+                },
+                "metro_geo": {
+                    "$ref": "#/definitions/dto.GeographyDTO"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "seller": {
+                    "$ref": "#/definitions/dto.PosterSellerDTO"
+                }
+            }
+        },
+        "dto.PosterSellerDTO": {
+            "type": "object",
+            "properties": {
+                "seller_first_name": {
+                    "type": "string"
+                },
+                "seller_last_name": {
+                    "type": "string"
+                },
+                "seller_phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UtilityCompanyCardDTO": {
+            "type": "object",
+            "properties": {
+                "alias": {
+                    "type": "string"
+                },
+                "avatar_url": {
+                    "type": "string"
+                },
+                "company_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
                 }
             }
         },
@@ -471,6 +744,17 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    },
+    "externalDocs": {
+        "description": "OpenAPI",
+        "url": "https://swagger.io/resources/open-api/"
     }
 }`
 
@@ -480,8 +764,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8000",
 	BasePath:         "/api",
 	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Title:            "DomDeli API",
+	Description:      "Created by TheBugs in 2026",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

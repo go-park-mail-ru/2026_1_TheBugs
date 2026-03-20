@@ -12,7 +12,7 @@ import (
 
 const (
 	MaxPostersLimit = 12
-	PropertyFlat    = "flat"
+	PropertyFlat    = "Квартиры" // TODO: делать по id а не по имени а то оно меняется либо поменять в бд
 	PropertyHouse   = "house"
 )
 
@@ -54,6 +54,7 @@ func (uc *PosterUseCase) GetPosterByAliasUseCase(ctx context.Context, posterAlia
 	}
 
 	posterDTO = dto.PosterToPosterDTO(poster)
+	log.Println(poster, posterDTO)
 
 	switch poster.Category {
 	case PropertyFlat:
