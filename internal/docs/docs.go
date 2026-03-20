@@ -9,15 +9,7 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "termsOfService": "http://swagger.io/terms/",
-        "contact": {
-            "name": "API Support",
-            "url": "http://www.swagger.io/support",
-            "email": "support@swagger.io"
-        },
-        "license": {
-            "name": "MIT"
-        },
+        "contact": {},
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
@@ -285,6 +277,59 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/posters/by-alias/{alias}": {
+            "get": {
+                "description": "Returns the poster with all information about it",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posters"
+                ],
+                "summary": "Get poster by alias",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Alias of poster",
+                        "name": "alias",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.PosterResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -299,7 +344,46 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.PosterDTO": {
+        "dto.FlatDTO": {
+            "type": "object",
+            "properties": {
+                "flat_catigory": {
+                    "type": "string"
+                },
+                "flat_number": {
+                    "type": "integer"
+                },
+                "floor": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.GeographyDTO": {
+            "type": "object",
+            "properties": {
+                "lat": {
+                    "type": "number"
+                },
+                "lon": {
+                    "type": "number"
+                }
+            }
+        },
+        "dto.HouseDTO": {
+            "type": "object"
+        },
+        "dto.PhotoDTO": {
+            "type": "object",
+            "properties": {
+                "img_url": {
+                    "type": "string"
+                },
+                "order": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.PosterCardDTO": {
             "type": "object",
             "properties": {
                 "address": {
@@ -328,6 +412,85 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.PosterDTO": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "alias": {
+                    "type": "string"
+                },
+                "area": {
+                    "type": "number"
+                },
+                "building_geo": {
+                    "$ref": "#/definitions/dto.GeographyDTO"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "company": {
+                    "type": "string"
+                },
+                "company_logo": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "district": {
+                    "type": "string"
+                },
+                "flat": {
+                    "$ref": "#/definitions/dto.FlatDTO"
+                },
+                "floor_count": {
+                    "type": "integer"
+                },
+                "house": {
+                    "$ref": "#/definitions/dto.HouseDTO"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.PhotoDTO"
+                    }
+                },
+                "metro": {
+                    "type": "string"
+                },
+                "metro_geo": {
+                    "$ref": "#/definitions/dto.GeographyDTO"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "seller": {
+                    "$ref": "#/definitions/dto.PosterSellerDTO"
+                }
+            }
+        },
+        "dto.PosterSellerDTO": {
+            "type": "object",
+            "properties": {
+                "seller_first_name": {
+                    "type": "string"
+                },
+                "seller_last_name": {
+                    "type": "string"
+                },
+                "seller_phone": {
+                    "type": "string"
+                }
+            }
+        },
         "response.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -336,6 +499,14 @@ const docTemplate = `{
                 },
                 "error": {
                     "type": "string"
+                }
+            }
+        },
+        "response.PosterResponse": {
+            "type": "object",
+            "properties": {
+                "poster": {
+                    "$ref": "#/definitions/dto.PosterDTO"
                 }
             }
         },
@@ -348,7 +519,7 @@ const docTemplate = `{
                 "posters": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/dto.PosterDTO"
+                        "$ref": "#/definitions/dto.PosterCardDTO"
                     }
                 }
             }
@@ -364,28 +535,17 @@ const docTemplate = `{
                 }
             }
         }
-    },
-    "securityDefinitions": {
-        "BearerAuth": {
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
-        }
-    },
-    "externalDocs": {
-        "description": "OpenAPI",
-        "url": "https://swagger.io/resources/open-api/"
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
-	Host:             "dom-deli.ru",
-	BasePath:         "/api",
+	Version:          "",
+	Host:             "",
+	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "DomDeli API",
-	Description:      "Created by TheBugs in 2026",
+	Title:            "",
+	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
