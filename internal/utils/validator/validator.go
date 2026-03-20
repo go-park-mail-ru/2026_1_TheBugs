@@ -8,10 +8,15 @@ import (
 
 const emailRegexPattern = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 const pwdRegexPattern = `^[a-zA-Z\d!@#$%^&*\-]{8,}$`
+
+const phoneRegexp = `^(\+7|8)\s?[\s(]?\d{3}[\s)\-]?\s?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}$`
+
 const maxEmailLength = 254
 
 const minPwdLenght = 8
 const maxPwdLenght = 64
+const maxPhoneLenght = 20
+const maxNameLenght = 40
 
 func ValidateEmail(email string) bool {
 	if len(email) > maxEmailLength {
@@ -19,6 +24,22 @@ func ValidateEmail(email string) bool {
 	}
 	re := regexp.MustCompile(emailRegexPattern)
 	return re.MatchString(email)
+}
+
+func ValidatePhone(phone string) bool {
+	if len(phone) > maxPhoneLenght {
+		return false
+	}
+	re := regexp.MustCompile(phoneRegexp)
+	return re.MatchString(phone)
+
+}
+
+func ValidateName(name string) bool {
+	if len(name) > maxNameLenght {
+		return false
+	}
+	return true
 }
 
 func ValidatePwd(pwd string) bool {
@@ -38,6 +59,19 @@ func ValidateCred(email string, pwd string) error {
 	}
 	if !ValidatePwd(pwd) {
 		return entity.NewValidationError("password")
+	}
+	return nil
+}
+
+func ValidateProfile(phone string, firstname string, lastname string) error {
+	if !ValidatePhone(phone) {
+		return entity.NewValidationError("phone")
+	}
+	if !ValidateName(firstname) {
+		return entity.NewValidationError("firstname")
+	}
+	if !ValidateName(lastname) {
+		return entity.NewValidationError("lastname")
 	}
 	return nil
 }

@@ -13,6 +13,8 @@ import (
 type UserRepo interface {
 	GetUserByEmail(ctx context.Context, email string) (*entity.User, error)
 	CreateUser(ctx context.Context, dto dto.CreateUserDTO) (*entity.User, error)
+	CreateUserByProvider(ctx context.Context, dto dto.CreateUserByProviderDTO) (*entity.User, error)
+	GetUserByProvider(ctx context.Context, provider string, email string) (*entity.User, error)
 }
 
 type PosterRepo interface {

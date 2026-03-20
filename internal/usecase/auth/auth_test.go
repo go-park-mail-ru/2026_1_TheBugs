@@ -10,6 +10,7 @@ import (
 	"bou.ke/monkey"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/mocks"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/pwd"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/tokens"
@@ -24,15 +25,19 @@ func TestRegisterUseCase(t *testing.T) {
 
 	cases := []struct {
 		name      string
-		email     string
-		password  string
+		data      dto.CreateUserDTO
 		setupMock func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo)
 		wantErr   error
 	}{
 		{
-			name:     "OK",
-			email:    "test@gmail.com",
-			password: "dpofdOPOOo12",
+			name: "OK",
+			data: dto.CreateUserDTO{
+				Email:     "test@gmail.com",
+				Password:  "dpofdOPOOo12",
+				FirstName: "Mark",
+				LastName:  "Mini",
+				Phone:     "8 800 955 12 12",
+			},
 			setupMock: func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo) {
 				gomock.InOrder(
 					userMock.EXPECT().GetUserByEmail(ctx, gomock.Any()).Return(nil, nil).Times(1),
@@ -42,9 +47,14 @@ func TestRegisterUseCase(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name:     "Conflict",
-			email:    "test@gmail.com",
-			password: "dpofdOPOOo12",
+			name: "Conflict",
+			data: dto.CreateUserDTO{
+				Email:     "test@gmail.com",
+				Password:  "dpofdOPOOo12",
+				FirstName: "Mark",
+				LastName:  "Mini",
+				Phone:     "8 800 955 12 12",
+			},
 			setupMock: func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo) {
 				existingUser := &entity.User{Email: "test"}
 				userMock.EXPECT().GetUserByEmail(ctx, gomock.Any()).Return(existingUser, nil)
@@ -53,9 +63,14 @@ func TestRegisterUseCase(t *testing.T) {
 			wantErr: entity.AlredyExitError,
 		},
 		{
-			name:     "InvalidInput",
-			email:    "wrong_email",
-			password: "dpofdOPOOo121",
+			name: "InvalidInput",
+			data: dto.CreateUserDTO{
+				Email:     "wrong_email",
+				Password:  "dpofdOPOOo121",
+				FirstName: "Mark",
+				LastName:  "Mini",
+				Phone:     "8 800 955 12 12",
+			},
 			setupMock: func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo) {
 			},
 			wantErr: entity.InvalidInput,
@@ -78,7 +93,7 @@ func TestRegisterUseCase(t *testing.T) {
 			}
 
 			uc := NewAuthUseCase(userMock, authMock)
-			err := uc.RegisterUseCase(ctx, tc.email, tc.password)
+			err := uc.RegisterUseCase(ctx, tc.data)
 
 			require.ErrorIs(t, err, tc.wantErr)
 		})
@@ -106,8 +121,8 @@ func TestLoginUseCase(t *testing.T) {
 				existingUser := entity.User{
 					ID:             0,
 					Email:          "test@gmail.com",
-					HashedPassword: hashed,
-					Salt:           salt,
+					HashedPassword: &hashed,
+					Salt:           &salt,
 				}
 
 				gomock.InOrder(
@@ -127,8 +142,8 @@ func TestLoginUseCase(t *testing.T) {
 				existingUser := entity.User{
 					ID:             0,
 					Email:          "test@gmail.com",
-					HashedPassword: hashed,
-					Salt:           salt,
+					HashedPassword: &hashed,
+					Salt:           &salt,
 				}
 				userMock.EXPECT().GetUserByEmail(ctx, gomock.Any()).Return(&existingUser, nil)
 			},

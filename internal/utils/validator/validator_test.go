@@ -266,3 +266,109 @@ func TestValidateCred(t *testing.T) {
 		})
 	}
 }
+
+func TestNormolizatePhone(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		inp  string
+		out  string
+	}{
+		{
+			name: "With spaces",
+			inp:  "+7 (893) 121-12-12",
+			out:  "+7 893 121 12 12",
+		},
+		{
+			name: "With 8 prefix",
+			inp:  "8 (893) 121-12-12",
+			out:  "8 893 121 12 12",
+		},
+		{
+			name: "With equeal",
+			inp:  "8 893 121 12 12",
+			out:  "8 893 121 12 12",
+		},
+		{
+			name: "With one trim",
+			inp:  "+7 893 121 12-12",
+			out:  "+7 893 121 12 12",
+		},
+		{
+			name: "With all trim",
+			inp:  "+7 893-121-12-12",
+			out:  "+7 893 121 12 12",
+		},
+		{
+			name: "Withount spaces",
+			inp:  "88931211212",
+			out:  "8 893 121 12 12",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := NormolizePhoneNumber(tt.inp)
+			require.Equal(t, tt.out, result)
+		})
+	}
+
+}
+
+func TestValidatePhone(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		inp  string
+		out  bool
+	}{
+		{
+			name: "With spaces",
+			inp:  "+7 (893) 121-12-12",
+			out:  true,
+		},
+		{
+			name: "With 8 prefix",
+			inp:  "8 (893) 121-12-12",
+			out:  true,
+		},
+		{
+			name: "With equeal",
+			inp:  "8 893 121 12 12",
+			out:  true,
+		},
+		{
+			name: "Withount spaces",
+			inp:  "88931211212",
+			out:  true,
+		},
+		{
+			name: "With one trim",
+			inp:  "+7 893 121 12-12",
+			out:  true,
+		},
+		{
+			name: "With all trim",
+			inp:  "+7 893-121-12-12",
+			out:  true,
+		},
+		{
+			name: "Wrong country",
+			inp:  "+10 893-121-12-12",
+			out:  false,
+		},
+		{
+			name: "Wrong ()",
+			inp:  "+7 (893)-121-12-12",
+			out:  false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := ValidatePhone(tt.inp)
+			require.Equal(t, tt.out, result)
+		})
+	}
+}

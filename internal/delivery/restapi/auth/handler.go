@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"log"
@@ -22,6 +24,14 @@ type FormDataCredential struct {
 	Password string `schema:"password"`
 }
 
+type FormDataCreateUser struct {
+	Email     string `schema:"email"`
+	Password  string `schema:"password"`
+	Phone     string `schema:"phone"`
+	FirstName string `schema:"firstname"`
+	LastName  string `schema:"lastname"`
+}
+
 type LoginResponse struct {
 	AccessToken    string `json:"access_token"`
 	AccessTokenExp int    `json:"expire_at"`
@@ -38,13 +48,16 @@ func NewAuthHandler(uc *auth.AuthUseCase) *AuthHandler {
 // @Accept        x-www-form-urlencoded
 // @Param         email formData string true "User email"
 // @Param         password formData string true "User password"
+// @Param         phone formData string true "User phone"
+// @Param         firstname formData string true "User firstname"
+// @Param         lastname formData string true "User lastname"
 // @Success       204
 // @Failure       400 {object} response.ValidationErrorResponse
 // @Failure       404 {object} response.ErrorResponse
 // @Failure       500 {object} response.ErrorResponse
 // @Router        /auth/reg [post]
 func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
-	var cred FormDataCredential
+	var cred FormDataCreateUser
 	err := parse.ParseFormData(r, &cred)
 	log.Println(cred)
 	if err != nil {
@@ -52,7 +65,13 @@ func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		utils.HandelError(w, err)
 		return
 	}
-	err = h.uc.RegisterUseCase(r.Context(), cred.Email, cred.Password)
+	err = h.uc.RegisterUseCase(r.Context(), dto.CreateUserDTO{
+		Email:     cred.Email,
+		Password:  cred.Password,
+		Phone:     cred.Phone,
+		LastName:  cred.LastName,
+		FirstName: cred.FirstName,
+	})
 	if err != nil {
 		log.Printf("h.uc.RegisterUseCase: %s", err)
 		utils.HandelError(w, err)
@@ -182,4 +201,77 @@ func (h AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteStrictMode,
 	})
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// POST /api/auth/vk/login
+func (h AuthHandler) VKLogin(w http.ResponseWriter, r *http.Request) {
+	var flow dto.OAuthCodeFlow
+	if err := json.NewDecoder(r.Body).Decode(&flow); err != nil {
+		fmt.Printf("json.NewDecoder(r.Body).Decode(&flow): %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	if flow.Code == "" || flow.DeviceID == nil || flow.State == nil {
+		fmt.Println("flow.Code || flow.DeviceID || flow.State empty ")
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	accessCred, err := h.uc.LoginUserFromVKUseCase(r.Context(), flow)
+	if err != nil {
+		log.Printf("login vk error: %v", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	resp := LoginResponse{
+		AccessToken:    accessCred.AccessToken,
+		AccessTokenExp: accessCred.AccessTokenExp,
+	}
+
+	utils.SetRefreshCookie(w, accessCred)
+	utils.JSONResponse(w, http.StatusOK, &resp)
+}
+
+// LoginYandexUser
+// @Summary       Login user from Yandex
+// @Description   Authenticate user and return access token + set refresh token cookie
+// @Tags          Auth
+// @Accept        json
+// @Param  flow body dto.OAuthCodeFlow true "OAuth user cred by Authorization code flow"
+// @Success       200 {object} LoginResponse "Successful login, returns access token"
+// @Header        200 {string} Set-Cookie "refresh_token=<NEW_REFRESH_TOKEN>; HttpOnly; Path=/api/auth/refresh; Max-Age=..."
+// @Failure       400 {object} response.ValidationErrorResponse
+// @Failure       404 {object} response.ErrorResponse
+// @Failure       500 {object} response.ErrorResponse
+// @Router        /auth/yandex [post]
+func (h AuthHandler) YandexLogin(w http.ResponseWriter, r *http.Request) {
+	var flow dto.OAuthCodeFlow
+	if err := json.NewDecoder(r.Body).Decode(&flow); err != nil {
+		fmt.Printf("json.NewDecoder(r.Body).Decode(&flow): %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	if flow.Code == "" {
+		fmt.Println("flow.Code empty ")
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	accessCred, err := h.uc.LoginUserFromYandexUseCase(r.Context(), flow)
+	if err != nil {
+		log.Printf("login yandex error: %v", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	resp := LoginResponse{
+		AccessToken:    accessCred.AccessToken,
+		AccessTokenExp: accessCred.AccessTokenExp,
+	}
+
+	utils.SetRefreshCookie(w, accessCred)
+	utils.JSONResponse(w, http.StatusOK, &resp)
 }
