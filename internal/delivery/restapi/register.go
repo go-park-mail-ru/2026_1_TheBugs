@@ -61,6 +61,8 @@ func RegisterHandlers(app *mux.Router, auth *auth.AuthHandler, post *poster.Post
 		apiGroup.HandleFunc("/auth/login", auth.LoginUser).Methods(http.MethodPost)
 		apiGroup.HandleFunc("/auth/logout", auth.Logout).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.HandleFunc("/auth/refresh", auth.RefreshToken).Methods(http.MethodPost)
+		apiGroup.HandleFunc("/auth/vkid", auth.VKLogin).Methods(http.MethodPost, http.MethodOptions)
+		apiGroup.HandleFunc("/auth/yandex", auth.YandexLogin).Methods(http.MethodPost, http.MethodOptions)
 
 		apiGroup.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 

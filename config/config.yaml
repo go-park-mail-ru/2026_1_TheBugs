@@ -32,3 +32,11 @@ redis:
   port: 6379
   password: ""
   db: 0
+
+
+oauth:
+  vk-client-id: "54483363"
+  yandex-client-id: "8bcbe6284aee41e2944c4330e34a712e"
+  yandex-client-secret: "881de9a229a041a9aacdfab5bf0775ae"
+  vk-redirect-uri: "https://dom-deli.ru/oauth/vk"
+  yandex-redirect-uri: "http://localhost:5173/oauth/yandex"
