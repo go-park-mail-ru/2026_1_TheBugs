@@ -31,3 +31,7 @@ type AuthRepo interface {
 	BlacklistToken(ctx context.Context, tokenID string, ttl time.Duration) error
 	IsBlacklisted(ctx context.Context, tokenID string) (bool, error)
 }
+
+type UtilityCompanyRepo interface {
+	GetUtilityCompanyByAlias(ctx context.Context, alias string) (*dto.UtilityCompanyDTO, error)
+}

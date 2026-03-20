@@ -6,23 +6,12 @@ definitions:
       expire_at:
         type: integer
     type: object
-  dto.FlatDTO:
-    properties:
-      flat_catigory:
-        type: string
-      flat_number:
-        type: integer
-      floor:
-        type: integer
-    type: object
   dto.GeographyDTO:
     properties:
       lat:
         type: number
       lon:
         type: number
-    type: object
-  dto.HouseDTO:
     type: object
   dto.PhotoDTO:
     properties:
@@ -31,7 +20,7 @@ definitions:
       order:
         type: integer
     type: object
-  dto.PosterCardDTO:
+  dto.PosterDTO:
     properties:
       address:
         type: string
@@ -50,57 +39,26 @@ definitions:
       rating:
         type: number
     type: object
-  dto.PosterDTO:
+  dto.UtilityCompanyDTO:
     properties:
       address:
         type: string
       alias:
         type: string
-      area:
-        type: number
-      building_geo:
+      avatar_url:
+        type: string
+      company_name:
+        type: string
+      geo:
         $ref: '#/definitions/dto.GeographyDTO'
-      category:
-        type: string
-      city:
-        type: string
-      company:
-        type: string
-      company_logo:
-        type: string
-      description:
-        type: string
-      district:
-        type: string
-      flat:
-        $ref: '#/definitions/dto.FlatDTO'
-      floor_count:
-        type: integer
-      house:
-        $ref: '#/definitions/dto.HouseDTO'
       id:
         type: integer
-      images:
+      phone:
+        type: string
+      photos:
         items:
           $ref: '#/definitions/dto.PhotoDTO'
         type: array
-      metro:
-        type: string
-      metro_geo:
-        $ref: '#/definitions/dto.GeographyDTO'
-      price:
-        type: number
-      seller:
-        $ref: '#/definitions/dto.PosterSellerDTO'
-    type: object
-  dto.PosterSellerDTO:
-    properties:
-      seller_first_name:
-        type: string
-      seller_last_name:
-        type: string
-      seller_phone:
-        type: string
     type: object
   response.ErrorResponse:
     properties:
@@ -130,6 +88,10 @@ definitions:
       field:
         type: string
     type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+host: localhost:8000
 info:
   contact: {}
 paths:
@@ -310,11 +272,12 @@ paths:
       summary: Get list of posters
       tags:
       - posters
-  /posters/by-alias/{alias}:
+  /utility_companies/alias/{alias}:
     get:
-      description: Returns the poster with all information about it
+      description: Returns utility complex details along with its photos by the given
+        alias
       parameters:
-      - description: Alias of poster
+      - description: Utility Complex Alias
         in: path
         name: alias
         required: true
@@ -325,7 +288,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.PosterResponse'
+            $ref: '#/definitions/dto.UtilityCompanyDTO'
         "400":
           description: Bad Request
           schema:
@@ -342,7 +305,12 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
-      summary: Get poster by alias
+      summary: Get utility complex by alias
       tags:
-      - posters
+      - utility_complexes
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

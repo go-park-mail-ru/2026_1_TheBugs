@@ -278,20 +278,20 @@ const docTemplate = `{
                 }
             }
         },
-        "/posters/by-alias/{alias}": {
+        "/utility_companies/alias/{alias}": {
             "get": {
-                "description": "Returns the poster with all information about it",
+                "description": "Returns utility complex details along with its photos by the given alias",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "posters"
+                    "utility_complexes"
                 ],
-                "summary": "Get poster by alias",
+                "summary": "Get utility complex by alias",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Alias of poster",
+                        "description": "Utility Complex Alias",
                         "name": "alias",
                         "in": "path",
                         "required": true
@@ -301,7 +301,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.PosterResponse"
+                            "$ref": "#/definitions/dto.UtilityCompanyDTO"
                         }
                     },
                     "400": {
@@ -344,20 +344,6 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.FlatDTO": {
-            "type": "object",
-            "properties": {
-                "flat_catigory": {
-                    "type": "string"
-                },
-                "flat_number": {
-                    "type": "integer"
-                },
-                "floor": {
-                    "type": "integer"
-                }
-            }
-        },
         "dto.GeographyDTO": {
             "type": "object",
             "properties": {
@@ -368,9 +354,6 @@ const docTemplate = `{
                     "type": "number"
                 }
             }
-        },
-        "dto.HouseDTO": {
-            "type": "object"
         },
         "dto.PhotoDTO": {
             "type": "object",
@@ -383,7 +366,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.PosterCardDTO": {
+        "dto.PosterDTO": {
             "type": "object",
             "properties": {
                 "address": {
@@ -412,7 +395,7 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.PosterDTO": {
+        "dto.UtilityCompanyDTO": {
             "type": "object",
             "properties": {
                 "address": {
@@ -421,73 +404,26 @@ const docTemplate = `{
                 "alias": {
                     "type": "string"
                 },
-                "area": {
-                    "type": "number"
+                "avatar_url": {
+                    "type": "string"
                 },
-                "building_geo": {
+                "company_name": {
+                    "type": "string"
+                },
+                "geo": {
                     "$ref": "#/definitions/dto.GeographyDTO"
-                },
-                "category": {
-                    "type": "string"
-                },
-                "city": {
-                    "type": "string"
-                },
-                "company": {
-                    "type": "string"
-                },
-                "company_logo": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "district": {
-                    "type": "string"
-                },
-                "flat": {
-                    "$ref": "#/definitions/dto.FlatDTO"
-                },
-                "floor_count": {
-                    "type": "integer"
-                },
-                "house": {
-                    "$ref": "#/definitions/dto.HouseDTO"
                 },
                 "id": {
                     "type": "integer"
                 },
-                "images": {
+                "phone": {
+                    "type": "string"
+                },
+                "photos": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/dto.PhotoDTO"
                     }
-                },
-                "metro": {
-                    "type": "string"
-                },
-                "metro_geo": {
-                    "$ref": "#/definitions/dto.GeographyDTO"
-                },
-                "price": {
-                    "type": "number"
-                },
-                "seller": {
-                    "$ref": "#/definitions/dto.PosterSellerDTO"
-                }
-            }
-        },
-        "dto.PosterSellerDTO": {
-            "type": "object",
-            "properties": {
-                "seller_first_name": {
-                    "type": "string"
-                },
-                "seller_last_name": {
-                    "type": "string"
-                },
-                "seller_phone": {
-                    "type": "string"
                 }
             }
         },
@@ -540,9 +476,9 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
-	Host:             "",
-	BasePath:         "",
+	Version:          "1.0",
+	Host:             "localhost:8000",
+	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "",
 	Description:      "",

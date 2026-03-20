@@ -30,6 +30,7 @@ func NewPosterHandler(uc *poster.PosterUseCase) *PosterHandler {
 // @Produce json
 // @Param limit query int false "Number of posters" default(12) minimum(1)
 // @Param offset query int false "Pagination offset" default(0) minimum(0)
+// @Param utility_company query string false "Utility company"
 // @Success 200 {object} response.PostersResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 401 {object} response.ErrorResponse
@@ -41,6 +42,7 @@ func (h *PosterHandler) GetPosters(w http.ResponseWriter, r *http.Request) {
 
 	limit := r.URL.Query().Get("limit")
 	offset := r.URL.Query().Get("offset")
+	utilityCompany := r.URL.Query().Get("utility_company")
 
 	if limit == "" {
 		limit = defaultLimit
@@ -67,6 +69,9 @@ func (h *PosterHandler) GetPosters(w http.ResponseWriter, r *http.Request) {
 	}
 
 	params.Offset = reqOffset
+	if utilityCompany != "" {
+		params.UtilityCompany = &utilityCompany
+	}
 
 	posters, err := h.uc.GetPostersUseCase(r.Context(), params)
 	if err != nil {
