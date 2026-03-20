@@ -14,8 +14,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     CONSTRAINT first_name_length_check CHECK ( LENGTH(first_name) < 40 ),
     CONSTRAINT last_name_length_check CHECK ( LENGTH(last_name) < 40 ) 
 ); 
-COMMENT ON TABLE profiles IS 'Профиль'
-;
+COMMENT ON TABLE profiles IS 'Профиль';
 
 CREATE TABLE IF NOT EXISTS users ( 
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
