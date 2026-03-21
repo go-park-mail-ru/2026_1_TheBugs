@@ -10,6 +10,7 @@ type UtilityCompany struct {
 	Alias       string             `db:"alias"`
 	AvatarURL   *string            `db:"avatar_url"`
 	CompanyName string             `db:"company_name"`
+	Description string             `db:"description"`
 }
 
 type UtilityCompanyPhoto struct {
@@ -17,4 +18,10 @@ type UtilityCompanyPhoto struct {
 	UtilityCompanyID *int    `db:"utility_company_id"`
 	ImgURL           *string `db:"img_url"`
 	Order            *int    `db:"sequence_order"`
+}
+
+type Developer struct {
+	ID            int     `db:"id"`
+	AvatarURL     *string `db:"avatar_url"`
+	DeveloperName string  `db:"developer_name"`
 }

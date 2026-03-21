@@ -54,14 +54,62 @@ INSERT INTO property_categories (name) VALUES
     ('Апартаменты');
 
 -- ============================================================
+-- Застройщики (developers)
+-- ============================================================
+INSERT INTO developers (developer_name, avatar_url) VALUES
+    ('ГК СтройГрупп Девелопмент', 'https://example.com/dev_stroigroup.jpg'),
+    ('ПремиумДом Девелопмент', 'https://example.com/dev_premiumdom.jpg'),
+    ('НордСтрой Девелопмент', 'https://example.com/dev_nordstroy.jpg'),
+    ('КазаньИнвест Девелопмент', 'https://example.com/dev_kazaninvest.jpg'),
+    ('УралСтройКом Девелопмент', 'https://example.com/dev_uralstroy.jpg');
+
+-- ============================================================
 -- 6. ЖК Компании (utility_companies)
 -- ============================================================
-INSERT INTO utility_companies (company_name, phone, geo, address, avatar_url, alias) VALUES
-    ('СтройГрупп', '+7 495 123 48 77', ST_GeogFromText('SRID=4326;POINT(37.6173 55.7558)'), 'г. Москва, ул. Тверская, д. 10, офис 5', NULL, 'stroigroup'),
-    ('ПремиумДом', '+7 495 987 65 43', ST_GeogFromText('SRID=4326;POINT(37.5806 55.7495)'), 'г. Москва, ул. Арбат, д. 20', NULL, 'premiumdom'),
-    ('НордСтрой', '+7 812 111 22 33', ST_GeogFromText('SRID=4326;POINT(30.3141 59.9311)'), 'г. Санкт-Петербург, Невский пр., д. 50', NULL, 'nordstroy'),
-    ('КазаньИнвест', '+7 843 444 55 66', ST_GeogFromText('SRID=4326;POINT(49.1221 55.7887)'), 'г. Казань, ул. Баумана, д. 15', NULL, 'kazaninvest'),
-    ('УралСтройКом', '+7 343 777 88 99', ST_GeogFromText('SRID=4326;POINT(60.6122 56.8519)'), 'г. Екатеринбург, ул. Ленина, д. 30', NULL, 'uralstroy');
+INSERT INTO utility_companies 
+(company_name, phone, geo, address, avatar_url, alias, description, developer_id) 
+VALUES
+    ('СтройГрупп', '+7 495 123 48 77',
+     ST_GeogFromText('SRID=4326;POINT(37.6173 55.7558)'),
+     'г. Москва, ул. Тверская, д. 10, офис 5',
+     NULL,
+     'stroigroup',
+     'Современный жилой комплекс бизнес-класса в центре Москвы с развитой инфраструктурой и подземным паркингом.',
+     (SELECT id FROM developers WHERE developer_name = 'ГК СтройГрупп Девелопмент')),
+
+    ('ПремиумДом', '+7 495 987 65 43',
+     ST_GeogFromText('SRID=4326;POINT(37.5806 55.7495)'),
+     'г. Москва, ул. Арбат, д. 20',
+     NULL,
+     'premiumdom',
+     'Элитный жилой комплекс с дизайнерской архитектурой, закрытой территорией и круглосуточной охраной.',
+     (SELECT id FROM developers WHERE developer_name = 'ПремиумДом Девелопмент')),
+
+    ('НордСтрой', '+7 812 111 22 33',
+     ST_GeogFromText('SRID=4326;POINT(30.3141 59.9311)'),
+     'г. Санкт-Петербург, Невский пр., д. 50',
+     NULL,
+     'nordstroy',
+     'ЖК в историческом центре Санкт-Петербурга с видом на Неву и удобной транспортной доступностью.',
+     (SELECT id FROM developers WHERE developer_name = 'НордСтрой Девелопмент')),
+
+    ('КазаньИнвест', '+7 843 444 55 66',
+     ST_GeogFromText('SRID=4326;POINT(49.1221 55.7887)'),
+     'г. Казань, ул. Баумана, д. 15',
+     NULL,
+     'kazaninvest',
+     'Комфортный жилой комплекс в центре Казани с благоустроенными дворами и развитой инфраструктурой.',
+     (SELECT id FROM developers WHERE developer_name = 'КазаньИнвест Девелопмент')),
+
+    ('УралСтройКом', '+7 343 777 88 99',
+     ST_GeogFromText('SRID=4326;POINT(60.6122 56.8519)'),
+     'г. Екатеринбург, ул. Ленина, д. 30',
+     NULL,
+     'uralstroy',
+     'Современный ЖК в Екатеринбурге с просторными квартирами и удобным доступом к деловому центру города.',
+     (SELECT id FROM developers WHERE developer_name = 'УралСтройКом Девелопмент'));
+
+
 
 INSERT INTO utility_companies_photos (img_url, sequence_order, utility_company_id) VALUES
     ('https://example.com/stroigroup.jpg', 1, (SELECT id FROM utility_companies WHERE alias = 'stroigroup')),
