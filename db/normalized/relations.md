@@ -2,310 +2,255 @@
 
 ## Сущности
 
-### `cities`
-Хранит список городов.
-- `id` — уникальный идентификатор
-- `city_name` — название города (уникальное, до 40 символов)
-
-### `metro_stations`
-Хранит список станций метро.
-- `id` — уникальный идентификатор
-- `station_name` — название станции (уникальное, до 40 символов)
-
-### `utility_companies`
-Хранит информацию об управляющих компаниях (ЖК).
-- `id` — уникальный идентификатор
-- `company_name` — название компании
-- `contacts` — контактная информация
-- `geo` — географические координаты (тип PostGIS GEOGRAPHY POINT)
-- `address` — адрес
-- `created_at` — дата создания записи
-- `updated_at` — дата последнего обновления записи
-- `city_id` — идентификатор города (FK → `cities`)
-- `metro_station_id` — идентификатор ближайшей станции метро (FK → `metro_stations`)
-
-### `users`
-Хранит информацию о пользователях платформы.
-- `id` — уникальный идентификатор
-- `email` — адрес электронной почты
-- `hashed_password` — хеш пароля (может быть NULL при входе через OAuth)
-- `provider` — провайдер OAuth (может быть NULL при входе по паролю)
-- `created_at` — дата регистрации
-- `updated_at` — дата последнего обновления
-- `salt` — соль для пароля
-- `company_id` — идентификатор управляющей компании (FK → `utility_companies`)
-
-### `refresh_tokens`
-Хранит рефреш-токены пользователей
-- `id` — уникальный идентификатор
-- `token_id` — уникальный идентификатор токена
-- `user_id` — пользователь которому был выдан данный токен (FK → `users`)
-- `created_at` — дата регистрации
-- `expires_at ` — дата истечения токена
-
-### `buildings`
-Хранит информацию о домах/зданиях.
-- `id` — уникальный идентификатор
-- `geo` — географические координаты здания (тип PostGIS GEOGRAPHY POINT)
-- `address` — адрес здания
-- `district` — район
-- `company_id` — управляющая компания (FK → `utility_companies`)
-- `city_id` — город (FK → `cities`)
-- `metro_station_id` — ближайшая станция метро (FK → `metro_stations`)
-
-### `apartment_categories`
-Хранит типы/категории помещений.
-- `id` — уникальный идентификатор
-- `name` — название категории (например, «квартира», «коммерческое», «паркинг»)
-- `description` — описание категории
-
-### `apartments`
-Хранит информацию о помещениях (квартирах).
-- `id` — уникальный идентификатор
-- `floor` — этаж
-- `number` — номер помещения
-- `area` - площадь
-- `building_id` — здание, в котором находится помещение (FK → `buildings`)
-- `category_id` — категория помещения (FK → `apartment_categories`)
-
-### `posters`
-Хранит объявления о продаже/аренде помещений.
-- `id` — уникальный идентификатор
-- `title` — заголовок объявления
-- `price` — цена
-- `avatar_url` — ссылка на главное изображение объявления
-- `description` — описание
-- `created_at` — дата создания объявления
-- `updated_at` — дата последнего обновления
-- `user_id` — пользователь, разместивший объявление (FK → `users`)
-- `apartment_id` — помещение, о котором объявление (FK → `apartments`)
-
-### `price_history`
-Хранит историю изменения цены по объявлению.
-- `id` — уникальный идентификатор
-- `price` — цена на момент изменения
-- `changed_at` — дата и время изменения цены
-- `poster_id` — идентификатор объявления (FK → `posters`)
-
-### `likes`
-Хранит лайки пользователей на объявления.
-- `id` — уникальный идентификатор
-- `created_at` — дата создания лайка
-- `updated_at` — дата последнего обновления
-- `user_id` — пользователь, поставивший лайк (FK → `users`)
-- `poster_id` — объявление, которому поставлен лайк (FK → `posters`)
-
-### `views`
-Хранит просмотры объявлений пользователями.
-- `id` — уникальный идентификатор
-- `created_at` — дата первого просмотра
-- `updated_at` — дата последнего просмотра
-- `user_id` — пользователь, просмотревший объявление (FK → `users`)
-- `poster_id` — просмотренное объявление (FK → `posters`)
-
-### `poster_photos`
-Хранит фотографии, прикреплённые к объявлению.
-- `id` — уникальный идентификатор
-- `img_url` — ссылка на изображение
-- `sequence_order` — порядковый номер фото в галерее
-- `poster_id` — идентификатор объявления (FK → `posters`)
-
----
-
-## Сущности и их функциональные зависимости
-
-### cities
-`{id} → {city_name}`  
-**1NF**: ✓ **2NF**: ✓ **3NF**: ✓ **BCNF**: ✓
-
-### metro_stations
-`{id} → {station_name}`  
-**1NF**: ✓ **2NF**: ✓ **3NF**: ✓ **BCNF**: ✓
-
-### utility_companies
-`{id} → {company_name, contacts, geo, address, created_at, updated_at, city_id, metro_station_id}`  
-**1NF**: ✓ **2NF**: ✓ **3NF**: ✓ **BCNF**: ✓
+### profiles
+**Описание**: Профили пользователей с контактной информацией.
+- `id` — уникальный идентификатор (PK, GENERATED ALWAYS AS IDENTITY)
+- `phone` — номер телефона (с CHECK регуляркой для РФ)
+- `first_name` — имя (до 40 символов)
+- `last_name` — фамилия (до 40 символов)
+- `created_at` — дата создания (TIMESTAMPTZ DEFAULT NOW())
+- `updated_at` — дата обновления (TIMESTAMPTZ DEFAULT NOW())
 
 ### users
-`{id} → {email, hashed_password, provider, created_at, updated_at, salt, company_id}`  
-**1NF**: ✓ **2NF**: ✓ **3NF**: ✓ **BCNF**: ✓
+**Описание**: Пользователи платформы с авторизацией.
+- `id` — уникальный идентификатор (PK, GENERATED ALWAYS AS IDENTITY)
+- `email` — email (UNIQUE, CHECK формат)
+- `hashed_password` — хеш пароля (может быть NULL)
+- `provider` — OAuth провайдер (может быть NULL)
+- `provider_id` — ID в OAuth (UNIQUE)
+- `salt` — соль для пароля
+- `profile_id` — профиль (FK → profiles)
+- `created_at`, `updated_at`
 
 ### refresh_tokens
-`{id} → {token_id, user_id, expires_at, created_at}`  
-**1NF**: ✓ **2NF**: ✓ **3NF**: ✓ **BCNF**: ✓
+**Описание**: Рефреш-токены пользователей.
+- `id` — уникальный идентификатор (PK, GENERATED ALWAYS AS IDENTITY)
+- `token_id` — UUID токена (UNIQUE)
+- `user_id` — владелец (FK → users)
+- `expires_at` — срок действия
+- `created_at`
+
+### cities
+**Описание**: Города.
+- `id` — уникальный идентификатор (PK)
+- `city_name` — название (UNIQUE, до 40 символов)
+
+### metro_stations
+**Описание**: Станции метро с геоданными.
+- `id` — уникальный идентификатор (PK)
+- `station_name` — название (до 40 символов)
+- `geo` — координаты (GEOGRAPHY(POINT, 4326))
+
+### utility_companies
+**Описание**: Управляющие компании (ЖК).
+- `id` — уникальный идентификатор (PK)
+- `company_name` — название
+- `phone` — телефон (CHECK РФ формат)
+- `geo` — координаты (GEOGRAPHY)
+- `address` — адрес (CHECK кириллица, длина)
+- `avatar_url` — аватар
+- `alias` — уникальный алиас (UNIQUE)
 
 ### buildings
-`{id} → {geo, address, district, company_id, city_id, metro_station_id}`  
-**1NF**: ✓ **2NF**: ✓ **3NF**: ✓ **BCNF**: ✓
+**Описание**: Дома/здания.
+- `id` — уникальный идентификатор (PK)
+- `address` — адрес (CHECK формат)
+- `geo` — координаты (GEOGRAPHY)
+- `city_id` — город (FK → cities)
+- `metro_station_id` — метро (FK → metro_stations, NULLABLE)
+- `district` — район (до 30 символов)
+- `floor_count` — этажность (SMALLINT < 100)
+- `company_id` — ЖК (FK → utility_companies, NULLABLE)
 
-### apartment_categories
-`{id} → {name, description}`  
-**1NF**: ✓ **2NF**: ✓ **3NF**: ✓ **BCNF**: ✓
+### property_categories
+**Описание**: Типы недвижимости.
+- `id` — уникальный идентификатор (PK)
+- `name` — название (до 30 символов)
 
-### apartments
-`{id} → {floor, number, building_id, category_id, area}`  
-**1NF**: ✓ **2NF**: ✓ **3NF**: ✓ **BCNF**: ✓
+### property
+**Описание**: Объекты недвижимости.
+- `id` — уникальный идентификатор (PK)
+- `category_id` — тип (FK → property_categories)
+- `building_id` — дом (FK → buildings)
+- `area` — площадь (NUMERIC(10,2) > 0)
+
+### flat_categories
+**Описание**: Категории квартир.
+- `id` — уникальный идентификатор (PK)
+- `name` — название
+
+### flat
+**Описание**: Детали квартир (расширение property).
+- `property_id` — объект (PK, FK → property)
+- `floor` — этаж (SMALLINT > 0)
+- `number` — номер (INT > 0)
+- `category_id` — категория (FK → flat_categories)
 
 ### posters
-`{id} → {title, price, avatar_url, description, created_at, updated_at, user_id, apartment_id}`  
-**1NF**: ✓ **2NF**: ✓ **3NF**: ✓ **BCNF**: ✓
-
-### price_history
-`{id} → {price, changed_at, poster_id}`  
-**1NF**: ✓ **2NF**: ✓ **3NF**: ✓ **BCNF**: ✓
-
-### likes
-`{id} → {created_at, updated_at, user_id, poster_id}`  
-**1NF**: ✓ **2NF**: ✓ **3NF**: ✓ **BCNF**: ✓
-
-### views
-`{id} → {created_at, updated_at, user_id, poster_id}`  
-**1NF**: ✓ **2NF**: ✓ **3NF**: ✓ **BCNF**: ✓
+**Описание**: Объявления о продаже/аренде.
+- `id` — уникальный идентификатор (PK)
+- `price` — цена (NUMERIC(10,2) > 0)
+- `avatar_url` — главное фото
+- `description` — описание (до 500 символов)
+- `alias` — уникальный slug (UNIQUE)
+- `user_id` — автор (FK → users)
+- `property_id` — объект (FK → property)
+- `created_at`, `updated_at`
 
 ### poster_photos
-`{id} → {img_url, sequence_order, poster_id}`  
-**1NF**: ✓ **2NF**: ✓ **3NF**: ✓ **BCNF**: ✓
+**Описание**: Галерея объявлений.
+- `id` — уникальный идентификатор (PK)
+- `img_url` — ссылка на фото
+- `sequence_order` — порядок (SMALLINT 1-15)
+- `poster_id` — объявление (FK → posters)
 
----
+### utility_companies_photos
+**Описание**: Фото ЖК.
+- `id` — уникальный идентификатор (PK)
+- `img_url` — ссылка
+- `sequence_order` — порядок (SMALLINT 1-15)
+- `utility_company_id` — ЖК (FK)
 
-## Общее заключение
+### likes, views
+**Описание**: Взаимодействия с объявлениями.
+- `id` — PK
+- `user_id`, `poster_id` — FK
+- `created_at`, `updated_at`
 
-Все отношения в схеме соответствуют требованиям:
-- **1NF**: Все атрибуты атомарны, нет повторяющихся групп
-- **2NF**: Нет частичных зависимостей (все PK состоят из одного атрибута)
-- **3NF**: Нет транзитивных зависимостей
-- **BCNF**: Все детерминанты являются потенциальными ключами
+## Нормализация
 
-Схема полностью нормализована и не содержит аномалий вставки, обновления и удаления.
+### profiles `{id} → {phone, first_name, last_name, created_at, updated_at}`
+**1NF**: ✓  
+**2NF**: ✓  
+**3NF**: ✓  
+**BCNF**: ✓
 
----
+### users `{id} → {email, hashed_password, provider, provider_id, salt, profile_id, created_at, updated_at}`
+**1NF**: ✓  
+**2NF**: ✓  
+**3NF**: ✓  
+**BCNF**: ✓
 
-## ER-диаграмма базы данных
+### refresh_tokens `{id} → {token_id, user_id, expires_at, created_at}`
+**1NF**: ✓  
+**2NF**: ✓  
+**3NF**: ✓  
+**BCNF**: ✓
 
+### cities `{id} → {city_name}`
+**1NF**: ✓  
+**2NF**: ✓  
+**3NF**: ✓  
+**BCNF**: ✓
+
+### metro_stations `{id} → {station_name, geo}`
+**1NF**: ✓  
+**2NF**: ✓  
+**3NF**: ✓  
+**BCNF**: ✓
+
+### utility_companies `{id} → {company_name, phone, geo, address, avatar_url, alias}`
+**1NF**: ✓  
+**2NF**: ✓  
+**3NF**: ✓  
+**BCNF**: ✓
+
+### buildings `{id} → {address, geo, city_id, metro_station_id, district, floor_count, company_id}`
+**1NF**: ✓  
+**2NF**: ✓  
+**3NF**: ✓  
+**BCNF**: ✓
+
+### property_categories `{id} → {name}`
+**1NF**: ✓  
+**2NF**: ✓  
+**3NF**: ✓  
+**BCNF**: ✓
+
+### property `{id} → {category_id, building_id, area}`
+**1NF**: ✓  
+**2NF**: ✓  
+**3NF**: ✓  
+**BCNF**: ✓
+
+### flat_categories `{id} → {name}`
+**1NF**: ✓  
+**2NF**: ✓  
+**3NF**: ✓  
+**BCNF**: ✓
+
+### flat `{property_id} → {floor, number, category_id}`
+**1NF**: ✓  
+**2NF**: ✓  
+**3NF**: ✓  
+**BCNF**: ✓
+
+### posters `{id} → {price, avatar_url, description, user_id, property_id, alias, created_at, updated_at}`
+**1NF**: ✓  
+**2NF**: ✓  
+**3NF**: ✓  
+**BCNF**: ✓
+
+### poster_photos `{id} → {img_url, sequence_order, poster_id}`
+**1NF**: ✓  
+**2NF**: ✓  
+**3NF**: ✓  
+**BCNF**: ✓
+
+### utility_companies_photos `{id} → {img_url, sequence_order, utility_company_id}`
+**1NF**: ✓  
+**2NF**: ✓  
+**3NF**: ✓  
+**BCNF**: ✓
+
+### likes `{id} → {created_at, updated_at, user_id, poster_id}`
+**1NF**: ✓  
+**2NF**: ✓  
+**3NF**: ✓  
+**BCNF**: ✓
+
+### views `{id} → {created_at, updated_at, user_id, poster_id}`
+**1NF**: ✓  
+**2NF**: ✓  
+**3NF**: ✓  
+**BCNF**: ✓
+
+## ER-диаграмма
 ```mermaid
 erDiagram
-
-    cities {
-        bigint id PK
-        text city_name
-    }
-
-    metro_stations {
-        bigint id PK
-        text station_name
-    }
-
-    utility_companies {
-        bigint id PK
-        text company_name
-        text contacts
-        geography geo
-        text address
-        timestamptz created_at
-        timestamptz updated_at
-        bigint city_id FK
-        bigint metro_station_id FK
-    }
-    refresh_tokens{
-        bigint id PK
-        uuid token_id
-        bigint user_id FK
-        timestamptz created_at
-        timestamptz expires_at
-    }
-    users {
-        bigint id PK
-        text email
-        text hashed_password
-        text provider
-        timestamptz created_at
-        timestamptz updated_at
-        text salt
-        bigint company_id FK
-    }
-
-    buildings {
-        bigint id PK
-        geography geo
-        text address
-        text district
-        bigint company_id FK
-        bigint city_id FK
-        bigint metro_station_id FK
-    }
-
-    apartment_categories {
-        bigint id PK
-        text name
-        text description
-    }
-
-    apartments {
-        bigint id PK
-        smallint floor
-        smallint number
-        numeric area 
-        bigint building_id FK
-        bigint category_id FK
-    }
-
-    posters {
-        bigint id PK
-        text title
-        numeric price
-        text avatar_url
-        text description
-        timestamptz created_at
-        timestamptz updated_at
-        bigint user_id FK
-        bigint apartment_id FK
-    }
-
-    price_history {
-        bigint id PK
-        numeric price
-        timestamptz changed_at
-        bigint poster_id FK
-    }
-
-    likes {
-        bigint id PK
-        timestamptz created_at
-        timestamptz updated_at
-        bigint user_id FK
-        bigint poster_id FK
-    }
-
-    views {
-        bigint id PK
-        timestamptz created_at
-        timestamptz updated_at
-        bigint user_id FK
-        bigint poster_id FK
-    }
-
-    poster_photos {
-        bigint id PK
-        text img_url
-        smallint sequence_order
-        bigint poster_id FK
-    }
-
-    cities ||--o{ utility_companies : ""
-    cities ||--o{ buildings : ""
-    metro_stations ||--o{ utility_companies : ""
-    metro_stations ||--o{ buildings : ""
-    utility_companies ||--o{ users : ""
-    utility_companies ||--o{ buildings : ""
-    buildings ||--o{ apartments : ""
-    apartment_categories ||--o{ apartments : ""
-    apartments ||--o{ posters : ""
-    users ||--o{ posters : ""
-    users ||--o{ refresh_tokens: ""
-    posters ||--o{ price_history : ""
-    posters ||--o{ likes : ""
-    posters ||--o{ views : ""
-    posters ||--o{ poster_photos : ""
-    users ||--o{ likes : ""
-    users ||--o{ views : ""
+    profiles ||--o{ users : "has"
+    users ||--o{ posters : "creates"
+    users ||--o{ refresh_tokens : "owns"
+    users ||--o{ likes : "gives"
+    users ||--o{ views : "views"
+    
+    cities ||--o{ buildings : "in"
+    cities ||--o{ utility_companies : "in"
+    
+    metro_stations ||--o{ buildings : "near"
+    metro_stations ||--o{ utility_companies : "near"
+    
+    utility_companies ||--o{ buildings : "manages"
+    
+    buildings ||--o{ property : "contains"
+    property_categories ||--o{ property : "type"
+    property ||--|| flat : "extends"
+    flat_categories ||--o{ flat : "category"
+    
+    property ||--o{ posters : "advertised"
+    posters ||--o{ poster_photos : "has"
+    posters ||--o{ likes : "liked"
+    posters ||--o{ views : "viewed"
+    
+    utility_companies ||--o{ utility_companies_photos : "has"
 ```
+
+
+## Индексы
+```
+- ФК: user_id, poster_id, property_id, building_id
+- Поиск: price, area, alias, created_at (DESC)
+- Гео: GiST на GEOGRAPHY(POINT, 4326)
+- Композитные: idx_buildings_city_metro_company
+```
+
