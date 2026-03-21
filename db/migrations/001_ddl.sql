@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     phone TEXT NOT NULL, 
     first_name TEXT NOT NULL, 
     last_name TEXT NOT NULL, 
+    avatar_url TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), 
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), 
  

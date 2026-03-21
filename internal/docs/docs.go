@@ -487,6 +487,17 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.DeveloperDTO": {
+            "type": "object",
+            "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
+                "developer_name": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.FlatDTO": {
             "type": "object",
             "properties": {
@@ -640,13 +651,16 @@ const docTemplate = `{
         "dto.PosterSellerDTO": {
             "type": "object",
             "properties": {
-                "seller_first_name": {
+                "avatar_url": {
                     "type": "string"
                 },
-                "seller_last_name": {
+                "first_name": {
                     "type": "string"
                 },
-                "seller_phone": {
+                "last_name": {
+                    "type": "string"
+                },
+                "phone": {
                     "type": "string"
                 }
             }
@@ -682,6 +696,12 @@ const docTemplate = `{
                 },
                 "company_name": {
                     "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "developer": {
+                    "$ref": "#/definitions/dto.DeveloperDTO"
                 },
                 "geo": {
                     "$ref": "#/definitions/dto.GeographyDTO"
