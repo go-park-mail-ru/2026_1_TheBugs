@@ -297,7 +297,7 @@ erDiagram
     }
     
     flat {
-        bigint property_id PK "FK"
+        bigint property_id PK
         smallint floor
         int number
         bigint category_id FK
@@ -345,9 +345,8 @@ erDiagram
         bigint poster_id FK
     }
 
-    %% Связи
     profiles ||--o{ users : "has"
-    users ||--o{ posters : "creates" 
+    users ||--o{ posters : "creates"
     users ||--o{ refresh_tokens : "owns"
     users ||--o{ likes : "gives"
     users ||--o{ views : "views"
