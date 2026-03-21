@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository"
+	repository "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -37,7 +37,7 @@ func (r UtilityCompanyPgRepo) GetUtilityCompanyByID(ctx context.Context, id int)
 
 }
 
-func (r UtilityCompanyPgRepo) GetUtilityCompanyByAlias(ctx context.Context, alias string) (*dto.UtilityCompanyDTO, error) {
+func (r UtilityCompanyPgRepo) GetByAlias(ctx context.Context, alias string) (*dto.UtilityCompanyDTO, error) {
 	sql := `
 		SELECT uc.id, uc.phone, uc.company_name, ST_AsText(uc.geo) AS geo, uc.address, uc.avatar_url, uc.alias,
 		       up.id as photo_id, up.utility_company_id, up.img_url, up.sequence_order

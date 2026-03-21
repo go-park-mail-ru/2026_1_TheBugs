@@ -35,9 +35,9 @@ func (uc *PosterUseCase) GetPostersUseCase(ctx context.Context, filters dto.Post
 		filters.Limit = MaxPostersLimit
 	}
 
-	posters, err := uc.repo.GetPosters(ctx, filters)
+	posters, err := uc.repo.GetAll(ctx, filters)
 	if err != nil {
-		log.Printf("uc.repo.GetPosters: %s", err)
+		log.Printf("uc.repo.GetAll: %s", err)
 		return nil, err
 	}
 
@@ -47,9 +47,9 @@ func (uc *PosterUseCase) GetPostersUseCase(ctx context.Context, filters dto.Post
 func (uc *PosterUseCase) GetPosterByAliasUseCase(ctx context.Context, posterAlias string) (*dto.PosterDTO, error) {
 	var posterDTO *dto.PosterDTO
 
-	poster, err := uc.repo.GetPosterByAlias(ctx, posterAlias)
+	poster, err := uc.repo.GetByAlias(ctx, posterAlias)
 	if err != nil {
-		log.Printf("uc.repo.GetPosterByAlias: %s", err)
+		log.Printf("uc.repo.GetByAlias: %s", err)
 		return nil, err
 	}
 
@@ -60,7 +60,7 @@ func (uc *PosterUseCase) GetPosterByAliasUseCase(ctx context.Context, posterAlia
 	case PropertyFlat:
 		flat, err := uc.repo.GetFlatByPropetyID(ctx, poster.PropertyID)
 		if err != nil {
-			log.Printf("uc.repo.GetPosters: %s", err)
+			log.Printf("uc.repo.GetAll: %s", err)
 			return nil, err
 		}
 

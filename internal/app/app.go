@@ -14,10 +14,8 @@ import (
 	authHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/auth"
 	complexHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/complex"
 	posterHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
-	authRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/auth"
-	complexRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/complex"
-	posterrepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/poster"
-	userRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/user"
+	tokensRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/redis/tokens"
+	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
 	authUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
 	complexUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/complex"
 	posterUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
@@ -32,6 +30,7 @@ import (
 
 func Run(cfg *config.ProjectConfig) {
 	dsn := dsn.BuildDSN(cfg.Postgres)
+	rdb := redis.NewClient(&redis.Options{Addr: fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port), Password: cfg.Redis.Password, DB: cfg.Redis.DB})
 	logger := logrus.New()
 
 	pool, err := pgxpool.New(context.Background(), dsn)
@@ -39,19 +38,16 @@ func Run(cfg *config.ProjectConfig) {
 		log.Fatalf("cannot create pgx pool: %v", err)
 	}
 
-	posterRepo := posterrepo.NewPosterRepo(pool)
-	posterUC := posterUC.NewPosterUseCase(posterRepo)
+	uow := uowSql.NewSQLStorage(pool)
+	tokenRepo := tokensRepo.NewTokenRepo(rdb)
+
+	posterUC := posterUC.NewPosterUseCase(uow.Posters())
 	posterHandler := posterHandler.NewPosterHandler(posterUC)
 
-	userRepo := userRepo.NewUserRepo(pool)
-	rdb := redis.NewClient(&redis.Options{Addr: fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port), Password: cfg.Redis.Password, DB: cfg.Redis.DB})
-
-	authRepo := authRepo.NewAuthRepo(pool, rdb)
-	authUC := authUC.NewAuthUseCase(userRepo, authRepo)
+	authUC := authUC.NewAuthUseCase(uow, tokenRepo)
 	authHandler := authHandler.NewAuthHandler(authUC)
 
-	UtilityCompanyRepo := complexRepo.NewUtilityCompanyRepo(pool)
-	UtilityCompanyUC := complexUC.NewUtilityCompanyUseCase(UtilityCompanyRepo)
+	UtilityCompanyUC := complexUC.NewUtilityCompanyUseCase(uow.UtilityCompany())
 	UtilityCompanyHandler := complexHandler.NewUtilityCompanyHandler(UtilityCompanyUC)
 
 	r := mux.NewRouter()

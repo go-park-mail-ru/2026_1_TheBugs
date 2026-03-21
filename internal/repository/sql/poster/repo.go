@@ -7,7 +7,7 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository"
+	repository "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql"
 	"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -22,8 +22,8 @@ func NewPosterRepo(pool repository.DB) *PosterRepo {
 	}
 }
 
-func (r *PosterRepo) GetPosters(ctx context.Context, filters dto.PostersFiltersDTO) ([]entity.Poster, error) {
-	log := middleware.GetLogger(ctx).WithField("op", "PosterRepo.GetPosters")
+func (r *PosterRepo) GetAll(ctx context.Context, filters dto.PostersFiltersDTO) ([]entity.Poster, error) {
+	log := middleware.GetLogger(ctx).WithField("op", "PosterRepo.GetAll")
 	log.Info("start db query")
 	query := `
         SELECT p.id, p.price, p.avatar_url,
@@ -71,7 +71,7 @@ func (r *PosterRepo) CountPosters(ctx context.Context) (int, error) {
 	return count, nil
 }
 
-func (r *PosterRepo) GetPosterByAlias(ctx context.Context, posterAlias string) (*entity.PosterById, error) {
+func (r *PosterRepo) GetByAlias(ctx context.Context, posterAlias string) (*entity.PosterById, error) {
 	query := `
 		SELECT p.id, p.alias, p.price, pc.name AS category,
 			   p.description, prop.area, prop.id AS property_id, 

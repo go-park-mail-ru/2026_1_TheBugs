@@ -1,24 +1,25 @@
-package dto
+package complex
 
 import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 )
 
 type UtilityCompanyDTO struct {
-	ID          int          `json:"id"`
-	Phone       string       `json:"phone"`
-	CompanyName string       `json:"company_name"`
-	GEO         GeographyDTO `json:"geo"`
-	Address     string       `json:"address"`
-	AvatarURL   *string      `json:"avatar_url"`
-	Alias       string       `json:"alias"`
-	Photos      []PhotoDTO   `json:"photos"`
+	ID          int              `json:"id"`
+	Phone       string           `json:"phone"`
+	CompanyName string           `json:"company_name"`
+	GEO         dto.GeographyDTO `json:"geo"`
+	Address     string           `json:"address"`
+	AvatarURL   *string          `json:"avatar_url"`
+	Alias       string           `json:"alias"`
+	Photos      []dto.PhotoDTO   `json:"photos"`
 }
 
 func ToUtilityCompanyDTO(complex *entity.UtilityCompany, photos []entity.UtilityCompanyPhoto) *UtilityCompanyDTO {
-	photoDTOs := make([]PhotoDTO, len(photos))
+	photoDTOs := make([]dto.PhotoDTO, len(photos))
 	for i, photo := range photos {
-		photoDTOs[i] = PhotoDTO{
+		photoDTOs[i] = dto.PhotoDTO{
 			ImgURL: *photo.ImgURL,
 			Order:  *photo.Order,
 		}
@@ -27,7 +28,7 @@ func ToUtilityCompanyDTO(complex *entity.UtilityCompany, photos []entity.Utility
 		ID:          complex.ID,
 		Phone:       complex.Phone,
 		CompanyName: complex.CompanyName,
-		GEO:         GeographyDTO{Lat: complex.GEO.Lat, Lon: complex.GEO.Lon},
+		GEO:         dto.GeographyDTO{Lat: complex.GEO.Lat, Lon: complex.GEO.Lon},
 		Address:     complex.Address,
 		AvatarURL:   complex.AvatarURL,
 		Photos:      photoDTOs,

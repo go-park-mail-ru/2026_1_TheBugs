@@ -80,7 +80,7 @@ func TestGetUserByEmail(t *testing.T) {
 
 			repo := NewUserRepo(mock)
 
-			got, err := repo.GetUserByEmail(context.Background(), test.email)
+			got, err := repo.GetByEmail(context.Background(), test.email)
 			if test.wantErr != nil {
 				require.ErrorIs(t, err, test.wantErr)
 				return
@@ -172,7 +172,7 @@ func TestCreateUser(t *testing.T) {
 
 			repo := NewUserRepo(mock)
 
-			got, err := repo.CreateUser(context.Background(), test.dto)
+			got, err := repo.Create(context.Background(), test.dto)
 			if test.wantErr != nil {
 				require.ErrorIs(t, err, test.wantErr)
 				return

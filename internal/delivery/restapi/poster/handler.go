@@ -37,8 +37,8 @@ func NewPosterHandler(uc *poster.PosterUseCase) *PosterHandler {
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Router /posters [get]
-func (h *PosterHandler) GetPosters(w http.ResponseWriter, r *http.Request) {
-	op := "PosterHandler.GetPosters"
+func (h *PosterHandler) GetAll(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GetAll"
 	log := middleware.GetLogger(r.Context()).WithField("op", op)
 
 	var params dto.PostersFiltersDTO

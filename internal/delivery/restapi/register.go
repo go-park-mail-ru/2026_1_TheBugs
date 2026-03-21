@@ -70,7 +70,7 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 
 		apiGroup.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 
-		apiGroup.HandleFunc("/posters", post.GetPosters).Methods(http.MethodGet)
+		apiGroup.HandleFunc("/posters", post.GetAll).Methods(http.MethodGet)
 		apiGroup.HandleFunc("/posters/by-alias/{alias}", post.GetPoster).Methods(http.MethodGet)
 	}
 }

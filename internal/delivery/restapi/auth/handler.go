@@ -10,7 +10,6 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/parse"
 )
 
 type AuthHandler struct {
@@ -59,7 +58,7 @@ func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	log := middleware.GetLogger(r.Context()).WithField("op", op)
 
 	var cred FormDataCreateUser
-	err := parse.ParseFormData(r, &cred)
+	err := utils.ParseFormData(r, &cred)
 	log.Println(cred)
 	if err != nil {
 		log.Errorf("parse.ParseFormData: %s", err)
@@ -100,7 +99,7 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 
 	var cred FormDataCredential
 
-	err := parse.ParseFormData(r, &cred)
+	err := utils.ParseFormData(r, &cred)
 	log.Println(cred)
 	if err != nil {
 		log.Errorf("parse.ParseFormData: %s", err)
