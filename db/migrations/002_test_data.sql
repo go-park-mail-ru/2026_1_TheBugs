@@ -57,11 +57,11 @@ INSERT INTO property_categories (name) VALUES
 -- Застройщики (developers)
 -- ============================================================
 INSERT INTO developers (developer_name, avatar_url) VALUES
-    ('ГК СтройГрупп Девелопмент', 'https://example.com/dev_stroigroup.jpg'),
-    ('ПремиумДом Девелопмент', 'https://example.com/dev_premiumdom.jpg'),
-    ('НордСтрой Девелопмент', 'https://example.com/dev_nordstroy.jpg'),
-    ('КазаньИнвест Девелопмент', 'https://example.com/dev_kazaninvest.jpg'),
-    ('УралСтройКом Девелопмент', 'https://example.com/dev_uralstroy.jpg');
+    ('ГК СтройГрупп Девелопмент', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRw0YaHp30Xwau65hiGgdHeglHZVI9tFZDzoQ&s'),
+    ('ПремиумДом Девелопмент', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRw0YaHp30Xwau65hiGgdHeglHZVI9tFZDzoQ&s'),
+    ('НордСтрой Девелопмент', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRw0YaHp30Xwau65hiGgdHeglHZVI9tFZDzoQ&s'),
+    ('КазаньИнвест Девелопмент', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRw0YaHp30Xwau65hiGgdHeglHZVI9tFZDzoQ&s'),
+    ('УралСтройКом Девелопмент', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRw0YaHp30Xwau65hiGgdHeglHZVI9tFZDzoQ&s');
 
 -- ============================================================
 -- 6. ЖК Компании (utility_companies)
@@ -112,9 +112,11 @@ VALUES
 
 
 INSERT INTO utility_companies_photos (img_url, sequence_order, utility_company_id) VALUES
-    ('https://example.com/stroigroup.jpg', 1, (SELECT id FROM utility_companies WHERE alias = 'stroigroup')),
-    ('https://example.com/premiumdom.jpg', 1, (SELECT id FROM utility_companies WHERE alias = 'premiumdom')),
-    ('https://example.com/nordstroy.jpg', 1, (SELECT id FROM utility_companies WHERE alias = 'nordstroy'));
+    ('https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 1, (SELECT id FROM utility_companies WHERE alias = 'stroigroup')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM utility_companies WHERE alias = 'stroigroup')),
+     ('https://n1s1.hsmedia.ru/0c/2e/40/0c2e4035e8da10aafba72e6f8b35b889/1000x750_0xac120003_8249795801571942265.jpg', 3, (SELECT id FROM utility_companies WHERE alias = 'stroigroup')),
+    ('https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 1, (SELECT id FROM utility_companies WHERE alias = 'premiumdom')),
+    ('https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 1, (SELECT id FROM utility_companies WHERE alias = 'nordstroy'));
 
 -- ============================================================
 -- 7. Дома (buildings)
@@ -189,18 +191,18 @@ INSERT INTO posters (price, avatar_url, description, user_id, property_id, alias
 -- 12. Фотографии объявлений
 -- ============================================================
 INSERT INTO poster_photos (img_url, sequence_order, poster_id) VALUES
-    ('https://cdn.example.com/posters/1/photo1.jpg', 1, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
-    ('https://cdn.example.com/posters/1/photo2.jpg', 2, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
-    ('https://cdn.example.com/posters/1/photo3.jpg', 3, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
-    ('https://cdn.example.com/posters/2/photo1.jpg', 1, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
-    ('https://cdn.example.com/posters/3/photo1.jpg', 1, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
-    ('https://cdn.example.com/posters/3/photo2.jpg', 2, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
-    ('https://cdn.example.com/posters/4/photo1.jpg', 1, (SELECT id FROM posters WHERE alias = '1room-arbatskaya')),
-    ('https://cdn.example.com/posters/5/photo1.jpg', 1, (SELECT id FROM posters WHERE alias = 'studio-smolenskaya')),
-    ('https://cdn.example.com/posters/6/photo1.jpg', 1, (SELECT id FROM posters WHERE alias = '1room-nevskiy')),
-    ('https://cdn.example.com/posters/7/photo1.jpg', 1, (SELECT id FROM posters WHERE alias = 'apartments-neva-view')),
-    ('https://cdn.example.com/posters/8/photo1.jpg', 1, (SELECT id FROM posters WHERE alias = '2room-sadovaya')),
-    ('https://cdn.example.com/posters/9/photo1.jpg', 1, (SELECT id FROM posters WHERE alias = '3room-kazan'));
+    ('https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 1, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 3, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = '1room-arbatskaya')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = 'studio-smolenskaya')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = '1room-nevskiy')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = 'apartments-neva-view')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = '2room-sadovaya')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = '3room-kazan'));
 
 -- ============================================================
 -- 13. Лайки 
