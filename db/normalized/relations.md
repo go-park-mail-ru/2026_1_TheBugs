@@ -218,7 +218,6 @@
 ## ER-диаграмма
 ```mermaid
 erDiagram
-    %% Profiles
     profiles {
         bigint id PK
         text phone
@@ -227,8 +226,7 @@ erDiagram
         timestamptz created_at
         timestamptz updated_at
     }
-
-    %% Users
+    
     users {
         bigint id PK
         text email
@@ -240,30 +238,26 @@ erDiagram
         timestamptz created_at
         timestamptz updated_at
     }
-
-    %% Refresh tokens
+    
     refresh_tokens {
         bigint id PK
         uuid token_id
         bigint user_id FK
-        timestamptz expires_at
         timestamptz created_at
+        timestamptz expires_at
     }
-
-    %% Cities
+    
     cities {
         bigint id PK
         text city_name
     }
-
-    %% Metro stations
+    
     metro_stations {
         bigint id PK
         text station_name
         geography geo
     }
-
-    %% Utility companies
+    
     utility_companies {
         bigint id PK
         text company_name
@@ -273,78 +267,68 @@ erDiagram
         text avatar_url
         text alias
     }
-
-    %% Utility companies photos
-    utility_companies_photos {
-        bigint id PK
-        text img_url
-        smallint sequence_order
-        bigint utility_company_id FK
-    }
-
-    %% Buildings
+    
     buildings {
         bigint id PK
-        text address
         geography geo
+        text address
+        text district
         bigint city_id FK
         bigint metro_station_id FK
-        text district
         smallint floor_count
         bigint company_id FK
     }
-
-    %% Property categories
+    
     property_categories {
         bigint id PK
         text name
-        text description
     }
-
-    %% Property
+    
     property {
         bigint id PK
         bigint category_id FK
         bigint building_id FK
         numeric area
     }
-
-    %% Flat categories
+    
     flat_categories {
         bigint id PK
         text name
     }
-
-    %% Flat
+    
     flat {
-        bigint property_id PK FK
+        bigint property_id PK "FK"
         smallint floor
         int number
         bigint category_id FK
     }
-
-    %% Posters
+    
     posters {
         bigint id PK
         numeric price
         text avatar_url
         text description
-        timestamptz created_at
-        timestamptz updated_at
+        text alias
         bigint user_id FK
         bigint property_id FK
-        text alias
+        timestamptz created_at
+        timestamptz updated_at
     }
-
-    %% Poster photos
+    
     poster_photos {
         bigint id PK
         text img_url
         smallint sequence_order
         bigint poster_id FK
     }
-
-    %% Likes
+    
+    utility_companies_photos {
+        bigint id PK
+        text img_url
+        smallint sequence_order
+        bigint utility_company_id FK
+    }
+    
     likes {
         bigint id PK
         timestamptz created_at
@@ -352,8 +336,7 @@ erDiagram
         bigint user_id FK
         bigint poster_id FK
     }
-
-    %% Views
+    
     views {
         bigint id PK
         timestamptz created_at
@@ -362,27 +345,32 @@ erDiagram
         bigint poster_id FK
     }
 
-    %% Relations
-    profiles ||--o{ users : ""
-    users ||--o{ refresh_tokens : ""
-    users ||--o{ posters : ""
-    users ||--o{ likes : ""
-    users ||--o{ views : ""
-
-    cities ||--o{ buildings : ""
-    metro_stations ||--o{ buildings : ""
-    utility_companies ||--o{ buildings : ""
-
-    utility_companies ||--o{ utility_companies_photos : ""
-
-    buildings ||--o{ property : ""
-    property_categories ||--o{ property : ""
-    property ||--o{ flat : ""
+    %% Связи
+    profiles ||--o{ users : "has"
+    users ||--o{ posters : "creates" 
+    users ||--o{ refresh_tokens : "owns"
+    users ||--o{ likes : "gives"
+    users ||--o{ views : "views"
     
-    property ||--o{ posters : ""
-    posters ||--o{ poster_photos : ""
-    posters ||--o{ likes : ""
-    posters ||--o{ views : ""
+    cities ||--o{ buildings : "in"
+    cities ||--o{ utility_companies : "in"
+    
+    metro_stations ||--o{ buildings : "near"
+    metro_stations ||--o{ utility_companies : "near"
+    
+    utility_companies ||--o{ buildings : "manages"
+    utility_companies ||--o{ utility_companies_photos : "has"
+    
+    buildings ||--o{ property : "contains"
+    
+    property_categories ||--o{ property : "type"
+    property ||--|| flat : "extends"
+    flat_categories ||--o{ flat : "category"
+    
+    property ||--o{ posters : "advertised"
+    posters ||--o{ poster_photos : "has"
+    posters ||--o{ likes : "liked"
+    posters ||--o{ views : "viewed"
 ```
 
 ## Индексы
