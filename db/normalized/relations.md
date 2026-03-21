@@ -218,6 +218,133 @@
 ## ER-диаграмма
 ```mermaid
 erDiagram
+    profiles {
+        bigint id PK
+        text phone
+        text first_name
+        text last_name
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    
+    users {
+        bigint id PK
+        text email
+        text hashed_password
+        text provider
+        text provider_id
+        text salt
+        bigint profile_id FK
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    
+    refresh_tokens {
+        bigint id PK
+        uuid token_id
+        bigint user_id FK
+        timestamptz created_at
+        timestamptz expires_at
+    }
+    
+    cities {
+        bigint id PK
+        text city_name
+    }
+    
+    metro_stations {
+        bigint id PK
+        text station_name
+        geography geo
+    }
+    
+    utility_companies {
+        bigint id PK
+        text company_name
+        text phone
+        geography geo
+        text address
+        text avatar_url
+        text alias
+    }
+    
+    buildings {
+        bigint id PK
+        geography geo
+        text address
+        text district
+        bigint city_id FK
+        bigint metro_station_id FK
+        smallint floor_count
+        bigint company_id FK
+    }
+    
+    property_categories {
+        bigint id PK
+        text name
+    }
+    
+    property {
+        bigint id PK
+        bigint category_id FK
+        bigint building_id FK
+        numeric area
+    }
+    
+    flat_categories {
+        bigint id PK
+        text name
+    }
+    
+    flat {
+        bigint property_id PK
+        smallint floor
+        int number
+        bigint category_id FK
+    }
+    
+    posters {
+        bigint id PK
+        numeric price
+        text avatar_url
+        text description
+        text alias
+        bigint user_id FK
+        bigint property_id FK
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    
+    poster_photos {
+        bigint id PK
+        text img_url
+        smallint sequence_order
+        bigint poster_id FK
+    }
+    
+    utility_companies_photos {
+        bigint id PK
+        text img_url
+        smallint sequence_order
+        bigint utility_company_id FK
+    }
+    
+    likes {
+        bigint id PK
+        timestamptz created_at
+        timestamptz updated_at
+        bigint user_id FK
+        bigint poster_id FK
+    }
+    
+    views {
+        bigint id PK
+        timestamptz created_at
+        timestamptz updated_at
+        bigint user_id FK
+        bigint poster_id FK
+    }
+
     profiles ||--o{ users : "has"
     users ||--o{ posters : "creates"
     users ||--o{ refresh_tokens : "owns"
@@ -231,8 +358,10 @@ erDiagram
     metro_stations ||--o{ utility_companies : "near"
     
     utility_companies ||--o{ buildings : "manages"
+    utility_companies ||--o{ utility_companies_photos : "has"
     
     buildings ||--o{ property : "contains"
+    
     property_categories ||--o{ property : "type"
     property ||--|| flat : "extends"
     flat_categories ||--o{ flat : "category"
@@ -241,10 +370,7 @@ erDiagram
     posters ||--o{ poster_photos : "has"
     posters ||--o{ likes : "liked"
     posters ||--o{ views : "viewed"
-    
-    utility_companies ||--o{ utility_companies_photos : "has"
 ```
-
 
 ## Индексы
 ```
