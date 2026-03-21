@@ -2,12 +2,10 @@ package auth
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
-	"log"
-
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
@@ -57,11 +55,14 @@ func NewAuthHandler(uc *auth.AuthUseCase) *AuthHandler {
 // @Failure       500 {object} response.ErrorResponse
 // @Router        /auth/reg [post]
 func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
+	op := "AuthHandler.RegisterUser"
+	log := middleware.GetLogger(r.Context()).WithField("op", op)
+
 	var cred FormDataCreateUser
 	err := parse.ParseFormData(r, &cred)
 	log.Println(cred)
 	if err != nil {
-		log.Printf("parse.ParseFormData: %s", err)
+		log.Errorf("parse.ParseFormData: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
@@ -73,7 +74,7 @@ func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		FirstName: cred.FirstName,
 	})
 	if err != nil {
-		log.Printf("h.uc.RegisterUseCase: %s", err)
+		log.Errorf("h.uc.RegisterUseCase: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
@@ -94,17 +95,21 @@ func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 // @Failure       500 {object} response.ErrorResponse
 // @Router        /auth/login [post]
 func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
+	op := "AuthHandler.LoginUser"
+	log := middleware.GetLogger(r.Context()).WithField("op", op)
+
 	var cred FormDataCredential
+
 	err := parse.ParseFormData(r, &cred)
 	log.Println(cred)
 	if err != nil {
-		log.Printf("parse.ParseFormData: %s", err)
+		log.Errorf("parse.ParseFormData: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
 	accessCred, err := h.uc.LoginUseCase(r.Context(), cred.Email, cred.Password)
 	if err != nil {
-		log.Printf("h.uc.LoginUseCase: %s", err)
+		log.Errorf("h.uc.LoginUseCase: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
@@ -132,16 +137,19 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 // @Failure       500 {object} response.ErrorResponse
 // @Router        /auth/refresh [post]
 func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
+	op := "AuthHandler.RefreshToken"
+	log := middleware.GetLogger(r.Context()).WithField("op", op)
+
 	cookie, err := r.Cookie("refresh_token")
 	if err != nil {
-		log.Printf("r.Cookie: %s", err)
+		log.Errorf("r.Cookie: %s", err)
 		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
 	refreshToken := cookie.Value
 	accessCred, err := h.uc.RefreshTokenUseCase(r.Context(), refreshToken)
 	if err != nil {
-		log.Printf("h.uc.RefreshTokenUseCase: %s", err)
+		log.Errorf("h.uc.RefreshTokenUseCase: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
@@ -168,15 +176,18 @@ func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 // @Failure      500 {object} response.ErrorResponse "Blacklist error"
 // @Router       /auth/logout [post]
 func (h AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	op := "AuthHandler.Logout"
+	log := middleware.GetLogger(r.Context()).WithField("op", op)
+
 	accessToken, err := utils.GetAccessToken(r)
 	if err != nil {
-		log.Printf("utils.GetAccessToken: %s", err)
+		log.Errorf("utils.GetAccessToken: %s", err)
 		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
 	cookie, err := r.Cookie("refresh_token")
 	if err != nil {
-		log.Printf("r.Cookie: %s", err)
+		log.Errorf("r.Cookie: %s", err)
 		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
@@ -205,22 +216,25 @@ func (h AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 
 // POST /api/auth/vk/login
 func (h AuthHandler) VKLogin(w http.ResponseWriter, r *http.Request) {
+	op := "AuthHandler.VKLogin"
+	log := middleware.GetLogger(r.Context()).WithField("op", op)
+
 	var flow dto.OAuthCodeFlow
 	if err := json.NewDecoder(r.Body).Decode(&flow); err != nil {
-		fmt.Printf("json.NewDecoder(r.Body).Decode(&flow): %s", err)
+		log.Errorf("json.NewDecoder(r.Body).Decode(&flow): %s", err)
 		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
 
 	if flow.Code == "" || flow.DeviceID == nil || flow.State == nil {
-		fmt.Println("flow.Code || flow.DeviceID || flow.State empty ")
+		log.Errorf("flow.Code || flow.DeviceID || flow.State empty ")
 		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
 
 	accessCred, err := h.uc.LoginUserFromVKUseCase(r.Context(), flow)
 	if err != nil {
-		log.Printf("login vk error: %v", err)
+		log.Errorf("login vk error: %v", err)
 		utils.HandelError(w, err)
 		return
 	}
@@ -247,22 +261,25 @@ func (h AuthHandler) VKLogin(w http.ResponseWriter, r *http.Request) {
 // @Failure       500 {object} response.ErrorResponse
 // @Router        /auth/yandex [post]
 func (h AuthHandler) YandexLogin(w http.ResponseWriter, r *http.Request) {
+	op := "AuthHandler.YandexLogin"
+	log := middleware.GetLogger(r.Context()).WithField("op", op)
+
 	var flow dto.OAuthCodeFlow
 	if err := json.NewDecoder(r.Body).Decode(&flow); err != nil {
-		fmt.Printf("json.NewDecoder(r.Body).Decode(&flow): %s", err)
+		log.Errorf("json.NewDecoder(r.Body).Decode(&flow): %s", err)
 		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
 
 	if flow.Code == "" {
-		fmt.Println("flow.Code empty ")
+		log.Errorf("flow.Code empty ")
 		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
 
 	accessCred, err := h.uc.LoginUserFromYandexUseCase(r.Context(), flow)
 	if err != nil {
-		log.Printf("login yandex error: %v", err)
+		log.Errorf("login yandex error: %v", err)
 		utils.HandelError(w, err)
 		return
 	}

@@ -12,7 +12,7 @@ import (
 
 const (
 	MaxPostersLimit = 12
-	PropertyFlat    = "Квартиры" // TODO: делать по id а не по имени а то оно меняется либо поменять в бд
+	PropertyFlat    = "Квартиры" // TODO: делать по id а не по имени а то оно меняется либо поменять в
 	PropertyHouse   = "house"
 )
 

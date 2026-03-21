@@ -6,13 +6,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 )
 
@@ -44,6 +44,9 @@ type YandexPublicUserInfo struct {
 }
 
 func ChangeYandexCodeToAccessToken(ctx context.Context, flow dto.OAuthCodeFlow) (*YandexCred, error) {
+	op := "ChangeYandexCodeToAccessToken"
+	log := middleware.GetLogger(ctx).WithField("op", op)
+
 	creds := config.Config.OAuth.YandexClientID + ":" + config.Config.OAuth.YandexClientSecret
 	basicAuth := "Basic " + base64.StdEncoding.EncodeToString([]byte(creds))
 
@@ -56,8 +59,8 @@ func ChangeYandexCodeToAccessToken(ctx context.Context, flow dto.OAuthCodeFlow) 
 		"state":         {*flow.State},
 	}
 
-	log.Printf("Yandex token request body: %s", reqBody.Encode())
-	log.Printf("Yandex Basic Auth: %s", basicAuth[:20]+"...")
+	log.Infof("Yandex token request body: %s", reqBody.Encode())
+	log.Infof("Yandex Basic Auth: %s", basicAuth[:20]+"...")
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
 		oAuthYandexURI,
@@ -77,7 +80,7 @@ func ChangeYandexCodeToAccessToken(ctx context.Context, flow dto.OAuthCodeFlow) 
 	defer resp.Body.Close()
 
 	body, _ := io.ReadAll(resp.Body)
-	log.Printf("Yandex response: %d %s", resp.StatusCode, string(body))
+	log.Infof("Yandex response: %d %s", resp.StatusCode, string(body))
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("yandex status %d: %s", resp.StatusCode, string(body))

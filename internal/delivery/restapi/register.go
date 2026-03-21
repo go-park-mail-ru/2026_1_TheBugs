@@ -10,6 +10,7 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
 	"github.com/rs/cors"
+	"github.com/sirupsen/logrus"
 
 	"github.com/gorilla/mux"
 
@@ -37,7 +38,7 @@ import (
 
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
-func RegisterHandlers(app *mux.Router, auth *auth.AuthHandler, post *poster.PosterHandler, UtilityCompany *complex.UtilityCompanyHandler) {
+func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHandler, post *poster.PosterHandler, UtilityCompany *complex.UtilityCompanyHandler) {
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   config.Config.CORS.AllowedHosts,
@@ -47,7 +48,7 @@ func RegisterHandlers(app *mux.Router, auth *auth.AuthHandler, post *poster.Post
 		ExposedHeaders:   []string{"Set-Cookie"},
 	})
 
-	app.Use(middleware.LoggingMiddleware)
+	app.Use(middleware.LoggingMiddleware(logger))
 	app.Use(c.Handler)
 
 	// Routers

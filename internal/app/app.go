@@ -21,6 +21,7 @@ import (
 	authUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
 	complexUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/complex"
 	posterUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
+	"github.com/sirupsen/logrus"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/dsn"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -31,6 +32,7 @@ import (
 
 func Run(cfg *config.ProjectConfig) {
 	dsn := dsn.BuildDSN(cfg.Postgres)
+	logger := logrus.New()
 
 	pool, err := pgxpool.New(context.Background(), dsn)
 	if err != nil {
@@ -53,7 +55,7 @@ func Run(cfg *config.ProjectConfig) {
 	UtilityCompanyHandler := complexHandler.NewUtilityCompanyHandler(UtilityCompanyUC)
 
 	r := mux.NewRouter()
-	restapi.RegisterHandlers(r, authHandler, posterHandler, UtilityCompanyHandler)
+	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, UtilityCompanyHandler)
 	serverAddress := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	srv := &http.Server{
 		Handler:      r,

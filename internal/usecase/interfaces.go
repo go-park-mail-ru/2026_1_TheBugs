@@ -35,3 +35,9 @@ type AuthRepo interface {
 type UtilityCompanyRepo interface {
 	GetUtilityCompanyByAlias(ctx context.Context, alias string) (*dto.UtilityCompanyDTO, error)
 }
+
+type Repositories interface {
+	Users() UserRepo
+	Poster() PosterRepo
+	Do(ctx context.Context, fn func(r Repositories) error) error
+}

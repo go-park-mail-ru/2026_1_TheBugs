@@ -1,10 +1,10 @@
 package poster
 
 import (
-	"log"
 	"net/http"
 	"strconv"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/response"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
@@ -38,6 +38,9 @@ func NewPosterHandler(uc *poster.PosterUseCase) *PosterHandler {
 // @Failure 500 {object} response.ErrorResponse
 // @Router /posters [get]
 func (h *PosterHandler) GetPosters(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GetPosters"
+	log := middleware.GetLogger(r.Context()).WithField("op", op)
+
 	var params dto.PostersFiltersDTO
 
 	limit := r.URL.Query().Get("limit")
@@ -54,7 +57,7 @@ func (h *PosterHandler) GetPosters(w http.ResponseWriter, r *http.Request) {
 
 	reqLimit, err := strconv.Atoi(limit)
 	if err != nil {
-		log.Printf("Atoi: %s", err)
+		log.Errorf("Atoi: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
@@ -63,7 +66,7 @@ func (h *PosterHandler) GetPosters(w http.ResponseWriter, r *http.Request) {
 
 	reqOffset, err := strconv.Atoi(offset)
 	if err != nil {
-		log.Printf("Atoi: %s", err)
+		log.Errorf("Atoi: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
@@ -75,7 +78,7 @@ func (h *PosterHandler) GetPosters(w http.ResponseWriter, r *http.Request) {
 
 	posters, err := h.uc.GetPostersUseCase(r.Context(), params)
 	if err != nil {
-		log.Printf("h.uc.GetPostersUseCase: %s", err)
+		log.Errorf("h.uc.GetPostersUseCase: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
@@ -102,6 +105,9 @@ func (h *PosterHandler) GetPosters(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} response.ErrorResponse
 // @Router /posters/by-alias/{alias} [get]
 func (h *PosterHandler) GetPoster(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GetPoster"
+	log := middleware.GetLogger(r.Context()).WithField("op", op)
+
 	alias, err := utils.ParseAliasFromRequest(r)
 	if err != nil {
 		utils.JSONResponse(w, http.StatusBadRequest, response.ErrorResponse{Error: "invalid alias"})
@@ -110,7 +116,7 @@ func (h *PosterHandler) GetPoster(w http.ResponseWriter, r *http.Request) {
 
 	poster, err := h.uc.GetPosterByAliasUseCase(r.Context(), alias)
 	if err != nil {
-		log.Printf("h.uc.GetPosterByAliasUseCase: %s", err)
+		log.Errorf("h.uc.GetPosterByAliasUseCase: %s", err)
 		utils.HandelError(w, err)
 		return
 	}

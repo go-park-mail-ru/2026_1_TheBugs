@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository"
@@ -22,6 +23,8 @@ func NewPosterRepo(pool repository.DB) *PosterRepo {
 }
 
 func (r *PosterRepo) GetPosters(ctx context.Context, filters dto.PostersFiltersDTO) ([]entity.Poster, error) {
+	log := middleware.GetLogger(ctx).WithField("op", "PosterRepo.GetPosters")
+	log.Info("start db query")
 	query := `
         SELECT p.id, p.price, p.avatar_url,
                b.address, m.station_name, prop.area, f.floor, p.alias
