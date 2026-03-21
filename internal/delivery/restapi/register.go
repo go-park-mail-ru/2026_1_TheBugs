@@ -14,7 +14,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	_ "github.com/go-park-mail-ru/2026_1_TheBugs/internal/docs"
+	_ "github.com/go-park-mail-ru/2026_1_TheBugs/docs"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
