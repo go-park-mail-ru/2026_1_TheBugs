@@ -16,5 +16,5 @@ func NewUtilityCompanyUseCase(repo usecase.UtilityCompanyRepo) *UtilityCompanyUs
 }
 
 func (uc *UtilityCompanyUseCase) GetUtilityCompany(ctx context.Context, alias string) (*dto.UtilityCompanyDTO, error) {
-	return uc.repo.GetUtilityCompanyByAlias(ctx, alias)
+	return uc.repo.GetByAlias(ctx, alias)
 }

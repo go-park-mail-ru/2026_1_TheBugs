@@ -1,9 +1,9 @@
 package complex
 
 import (
-	"log"
 	"net/http"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/response"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/complex"
@@ -29,6 +29,9 @@ func NewUtilityCompanyHandler(uc *complex.UtilityCompanyUseCase) *UtilityCompany
 // @Failure 500 {object} response.ErrorResponse
 // @Router /utility-companies/by-alias/{alias} [get]
 func (h *UtilityCompanyHandler) GetUtilityCompany(w http.ResponseWriter, r *http.Request) {
+	op := "UtilityCompanyHandler.GetUtilityCompany"
+	log := middleware.GetLogger(r.Context()).WithField("op", op)
+
 	alias, err := utils.ParseAliasFromRequest(r)
 	if err != nil {
 		utils.JSONResponse(w, http.StatusBadRequest, response.ErrorResponse{Error: "invalid alias"})

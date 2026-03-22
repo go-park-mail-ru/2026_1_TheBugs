@@ -1,6 +1,8 @@
 package dto
 
-import "github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
+import (
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
+)
 
 type GeographyDTO struct {
 	Lat float64 `json:"lat"`

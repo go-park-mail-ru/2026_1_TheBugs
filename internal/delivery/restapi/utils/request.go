@@ -2,10 +2,12 @@ package utils
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/gorilla/schema"
 )
 
 func ParseIDFromRequest(r *http.Request) (int, error) {
@@ -33,4 +35,16 @@ func ParseAliasFromRequest(r *http.Request) (string, error) {
 	}
 
 	return alias, nil
+}
+
+func ParseFormData(r *http.Request, form interface{}) error {
+	var decoder = schema.NewDecoder()
+	err := r.ParseForm()
+	if err != nil {
+		log.Printf("r.ParseForm: %s", err)
+		return fmt.Errorf("r.ParseForm, %w", err)
+	}
+	decoder.IgnoreUnknownKeys(true)
+	err = decoder.Decode(form, r.PostForm)
+	return err
 }
