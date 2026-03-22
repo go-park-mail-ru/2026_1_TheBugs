@@ -190,19 +190,27 @@ INSERT INTO posters (price, avatar_url, description, user_id, property_id, alias
 -- ============================================================
 -- 12. Фотографии объявлений
 -- ============================================================
+-- Фотографии для объявлений
 INSERT INTO poster_photos (img_url, sequence_order, poster_id) VALUES
     ('https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 1, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
     ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 3, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
+    ('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTj_cN2apQuTB2vu5_v4J3FnyrhHD6Y5x_BXA&s', 3, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 4, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
     ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
+    ('https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 2, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
+    ('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTj_cN2apQuTB2vu5_v4J3FnyrhHD6Y5x_BXA&s', 3, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
+    ('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTj_cN2apQuTB2vu5_v4J3FnyrhHD6Y5x_BXA&s', 1, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
     ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = '1room-arbatskaya')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = 'studio-smolenskaya')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = '1room-nevskiy')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = 'apartments-neva-view')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = '2room-sadovaya')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = '3room-kazan'));
+    ('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxc4pnGQ858I3MeioxaDuJavns23B_bbJ_pw&s', 1, (SELECT id FROM posters WHERE alias = '1room-arbatskaya')),
+    ('https://n1s1.hsmedia.ru/0c/2e/40/0c2e4035e8da10aafba72e6f8b35b889/1000x750_0xac120003_8249795801571942265.jpg', 1, (SELECT id FROM posters WHERE alias = 'studio-smolenskaya')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM posters WHERE alias = 'studio-smolenskaya')),
+    ('https://inminecraft.ru/_ph/7/937019994.png', 1, (SELECT id FROM posters WHERE alias = '1room-nevskiy')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM posters WHERE alias = '1room-nevskiy')),
+    ('https://st.dg-home.ru/upload/blog_editor/18b/2hwc7stcrv1vq9vx40o0k7bt3skuc1xn/11_divan.jpg', 1, (SELECT id FROM posters WHERE alias = 'apartments-neva-view')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM posters WHERE alias = 'apartments-neva-view')),
+    ('https://cs14.pikabu.ru/post_img/big/2024/01/12/11/1705087246125258124.jpg', 1, (SELECT id FROM posters WHERE alias = '2room-sadovaya')),
+    ('https://garagetek.ru/uploads/images/GarageTek_Etush01.jpg', 1, (SELECT id FROM posters WHERE alias = '3room-kazan'));
+
 
 -- ============================================================
 -- 13. Лайки 
