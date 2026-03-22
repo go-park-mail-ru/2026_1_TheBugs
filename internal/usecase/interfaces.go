@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/domains"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 )
 
@@ -15,6 +16,7 @@ type UserRepo interface {
 	Create(ctx context.Context, dto dto.CreateUserDTO) (*entity.User, error)
 	CreateByProvider(ctx context.Context, dto dto.CreateUserByProviderDTO) (*entity.User, error)
 	GetByProvider(ctx context.Context, provider string, email string) (*entity.User, error)
+	UpdatePwd(ctx context.Context, email string, pwd string, salt string) error
 }
 
 type PosterRepo interface {
@@ -42,7 +44,16 @@ type UnitOfWork interface {
 	Do(ctx context.Context, fn func(r UnitOfWork) error) error
 }
 
-type TokenRepo interface {
+type Сache interface {
 	BlacklistToken(ctx context.Context, tokenID string, ttl time.Duration) error
 	IsBlacklisted(ctx context.Context, tokenID string) (bool, error)
+	CreateRecoverSession(ctx context.Context, sessionID string, data domains.RecoverSession, ttl time.Duration) error
+	GetRecoverSession(ctx context.Context, sessionID string) (*domains.RecoverSession, error)
+	DeleteRecoverSession(ctx context.Context, sessionID string) error
+	IncrementRecoverAttempts(ctx context.Context, sessionID string) (int64, error)
+	SetRecoverVerified(ctx context.Context, sessionID string, verified bool) error
+}
+
+type MailSender interface {
+	SendCode(ctx context.Context, to string, code string) error
 }

@@ -4,6 +4,7 @@ import "time"
 
 const AccessTokenType = "access"
 const RefreshTokenType = "refresh"
+const RecoveryTokenType = "recovery"
 
 type RefreshToken struct {
 	ID        int       `db:"id"`

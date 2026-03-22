@@ -14,6 +14,7 @@ import (
 	authHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/auth"
 	complexHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/complex"
 	posterHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/email"
 	tokensRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/redis/tokens"
 	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
 	authUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
@@ -38,13 +39,15 @@ func Run(cfg *config.ProjectConfig) {
 		log.Fatalf("cannot create pgx pool: %v", err)
 	}
 
+	em := email.NewSMTPSender(fmt.Sprintf("%s:%d", cfg.SMTP.Host, cfg.SMTP.Port), nil)
+
 	uow := uowSql.NewSQLStorage(pool)
 	tokenRepo := tokensRepo.NewTokenRepo(rdb)
 
 	posterUC := posterUC.NewPosterUseCase(uow.Posters())
 	posterHandler := posterHandler.NewPosterHandler(posterUC)
 
-	authUC := authUC.NewAuthUseCase(uow, tokenRepo)
+	authUC := authUC.NewAuthUseCase(uow, tokenRepo, em)
 	authHandler := authHandler.NewAuthHandler(authUC)
 
 	UtilityCompanyUC := complexUC.NewUtilityCompanyUseCase(uow.UtilityCompany())

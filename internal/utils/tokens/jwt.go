@@ -67,3 +67,11 @@ func GenerateAccessToken(userID int, exp time.Duration) (string, error) {
 	}
 	return GenerateJWT(claims, exp)
 }
+
+func GenerateRecoveryToken(email string, exp time.Duration) (string, error) {
+	claims := Claims{
+		Sub:  email,
+		Type: entity.RecoveryTokenType,
+	}
+	return GenerateJWT(claims, exp)
+}
