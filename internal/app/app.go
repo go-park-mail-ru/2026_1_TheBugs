@@ -39,7 +39,7 @@ func Run(cfg *config.ProjectConfig) {
 		log.Fatalf("cannot create pgx pool: %v", err)
 	}
 
-	em := email.NewSMTPSender(fmt.Sprintf("%s:%d", cfg.SMTP.Host, cfg.SMTP.Port), nil)
+	em := email.NewSMTPSender(config.Config.SMTP.Host, config.Config.SMTP.Port, config.Config.SMTP.Email, config.Config.SMTP.Pwd)
 
 	uow := uowSql.NewSQLStorage(pool)
 	tokenRepo := tokensRepo.NewTokenRepo(rdb)

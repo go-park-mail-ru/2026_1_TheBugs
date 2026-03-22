@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/joho/godotenv"
 )
 
 var Config ProjectConfig
@@ -90,6 +91,9 @@ type (
 func Read() error {
 	var err error
 	// c:/Users/Артемий/OneDrive/Desktop/code/2026_1_TheBugs/ этот оставил для дебага у вас будет свой
+	if err := godotenv.Load(".env"); err != nil {
+		log.Printf("No .env file found: %v", err)
+	}
 	if err = cleanenv.ReadConfig("config/config.yaml", &Config); err != nil {
 		return fmt.Errorf("error while reading application configuration: %w", err)
 	}

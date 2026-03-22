@@ -3,38 +3,48 @@ package email
 import (
 	"context"
 	"fmt"
-	"net/smtp"
+	"log"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
+	gomail "gopkg.in/gomail.v2"
 )
 
 type SMTPSender struct {
-	cred    *smtp.Auth
-	address string
+	username string
+	password string
+	host     string
+	port     int
 }
 
-func NewSMTPSender(addres string, cred *smtp.Auth) *SMTPSender {
+func NewSMTPSender(host string, port int, username, password string) *SMTPSender {
 	return &SMTPSender{
-		cred:    cred,
-		address: addres,
+		host:     host,
+		port:     port,
+		username: username,
+		password: password,
 	}
 }
-func (e SMTPSender) SendCode(ctx context.Context, email string, code string) error {
+
+func (e *SMTPSender) SendCode(ctx context.Context, email, code string) error {
 	from := config.Config.SMTP.Email
-	to := []string{email}
 
-	msg := []byte(
-		fmt.Sprintf("From: %s\r\n", from) +
-			fmt.Sprintf("To: %s\r\n", email) +
-			"Subject: DomDeli verification code\r\n" +
-			"\r\n" +
-			fmt.Sprintf("Your code: %s", code))
+	m := gomail.NewMessage()
+	m.SetHeader("From", fmt.Sprintf(`"DomDeli" <%s>`, from))
+	m.SetHeader("To", email)
+	m.SetHeader("Subject", "Домдели смена пароля")
+	m.SetHeader("Reply-To", from)
+	m.SetBody("text/html", fmt.Sprintf(`
+        <h2>Ваш код подтверждения:</h2>
+        <h1 style="color: #007bff">%s</h1>
+        <p>Код действителен 5 минут.</p>
+    `, code))
 
-	err := smtp.SendMail(e.address, nil, from, to, msg)
+	dialer := gomail.NewDialer(e.host, e.port, e.username, e.password)
 
-	if err != nil {
-		return fmt.Errorf("smtp.SendMail: %e", err)
+	if err := dialer.DialAndSend(m); err != nil {
+		return fmt.Errorf("gomail send: %w", err)
 	}
 
+	log.Printf("✅ Code sent to %s", email)
 	return nil
 }

@@ -349,7 +349,7 @@ func (uc AuthUseCase) SendVerificationCode(ctx context.Context, email string) (s
 		return "", fmt.Errorf("uc.cache.CreateRecoverSession: %w", err)
 	}
 	go func(ctx context.Context) error {
-
+		log.Info("send code")
 		if err := uc.sender.SendCode(context.Background(), email, code); err != nil {
 			log.Errorf("send code: %v", err)
 		}
@@ -364,7 +364,9 @@ func (uc AuthUseCase) CheckRecoveryCode(ctx context.Context, sessionID string, c
 	if err != nil {
 		return fmt.Errorf("uc.cache.GetRecoverSession: %w", err)
 	}
-	log.Println(sessionID, code, session.Code)
+	if session == nil {
+		return fmt.Errorf("session is empty: %w", entity.BadCredentials)
+	}
 
 	if session.Code != code {
 		attempts, _ := uc.cache.IncrementRecoverAttempts(ctx, sessionID)
@@ -381,8 +383,6 @@ func (uc AuthUseCase) CheckRecoveryCode(ctx context.Context, sessionID string, c
 }
 
 func (uc AuthUseCase) UpdateUserPassword(ctx context.Context, sessionID string, password string) error {
-	op := "AuthUseCase.SendVerificationCode"
-	log := middleware.GetLogger(ctx).WithField("op", op)
 
 	session, err := uc.cache.GetRecoverSession(ctx, sessionID)
 	if err != nil {
@@ -391,7 +391,6 @@ func (uc AuthUseCase) UpdateUserPassword(ctx context.Context, sessionID string, 
 	if session == nil {
 		return fmt.Errorf("session empty: %w", entity.BadCredentials)
 	}
-	log.Info("session: %v", session)
 	if !session.Verified {
 		return fmt.Errorf("session unvirified: %w", entity.BadCredentials)
 	}
