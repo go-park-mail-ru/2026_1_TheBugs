@@ -150,7 +150,7 @@ func TestGetComplexRepo(t *testing.T) {
 
 			repo := NewUtilityCompanyRepo(mock)
 
-			got, err := repo.GetUtilityCompanyByAlias(context.Background(), test.alias)
+			got, err := repo.GetByAlias(context.Background(), test.alias)
 			if test.wantErr != nil {
 				require.ErrorIs(t, err, test.wantErr)
 				require.NoError(t, mock.ExpectationsWereMet())

@@ -1,6 +1,8 @@
 package dto
 
-import "github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+import (
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+)
 
 type DeveloperDTO struct {
 	DeveloperName string  `json:"developer_name"`
@@ -42,7 +44,10 @@ func ToUtilityCompanyDTO(complex *entity.UtilityCompany, photos []entity.Utility
 		AvatarURL:   complex.AvatarURL,
 		Photos:      photoDTOs,
 		Alias:       complex.Alias,
+<<<<<<< HEAD
 		Developer:   developerDTO,
+=======
+>>>>>>> origin/feature/36-improve-backend
 	}
 }
 

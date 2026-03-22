@@ -99,7 +99,7 @@ func TestGetPostersRepo(t *testing.T) {
 
 			repo := NewPosterRepo(mock)
 
-			got, err := repo.GetPosters(context.Background(), test.params)
+			got, err := repo.GetAll(context.Background(), test.params)
 			if test.wantErr != nil {
 				require.ErrorIs(t, err, test.wantErr)
 				return
@@ -308,7 +308,7 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 
 			repo := NewPosterRepo(mock)
 
-			got, err := repo.GetPosterByAlias(context.Background(), test.param)
+			got, err := repo.GetByAlias(context.Background(), test.param)
 			if test.wantErr != nil {
 				require.ErrorIs(t, err, test.wantErr)
 				return
