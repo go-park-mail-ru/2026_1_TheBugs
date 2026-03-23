@@ -416,20 +416,6 @@ func (m *MockСache) EXPECT() *MockСacheMockRecorder {
 	return m.recorder
 }
 
-// BlacklistToken mocks base method.
-func (m *MockСache) BlacklistToken(ctx context.Context, tokenID string, ttl time.Duration) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BlacklistToken", ctx, tokenID, ttl)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// BlacklistToken indicates an expected call of BlacklistToken.
-func (mr *MockСacheMockRecorder) BlacklistToken(ctx, tokenID, ttl interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlacklistToken", reflect.TypeOf((*MockСache)(nil).BlacklistToken), ctx, tokenID, ttl)
-}
-
 // CreateRecoverSession mocks base method.
 func (m *MockСache) CreateRecoverSession(ctx context.Context, sessionID string, data domains.RecoverSession, ttl time.Duration) error {
 	m.ctrl.T.Helper()
@@ -489,18 +475,32 @@ func (mr *MockСacheMockRecorder) IncrementRecoverAttempts(ctx, sessionID interf
 }
 
 // IsBlacklisted mocks base method.
-func (m *MockСache) IsBlacklisted(ctx context.Context, tokenID string) (bool, error) {
+func (m *MockСache) IsBlacklisted(ctx context.Context, val string) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsBlacklisted", ctx, tokenID)
+	ret := m.ctrl.Call(m, "IsBlacklisted", ctx, val)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IsBlacklisted indicates an expected call of IsBlacklisted.
-func (mr *MockСacheMockRecorder) IsBlacklisted(ctx, tokenID interface{}) *gomock.Call {
+func (mr *MockСacheMockRecorder) IsBlacklisted(ctx, val interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsBlacklisted", reflect.TypeOf((*MockСache)(nil).IsBlacklisted), ctx, tokenID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsBlacklisted", reflect.TypeOf((*MockСache)(nil).IsBlacklisted), ctx, val)
+}
+
+// SetBlacklist mocks base method.
+func (m *MockСache) SetBlacklist(ctx context.Context, val string, ttl time.Duration) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetBlacklist", ctx, val, ttl)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SetBlacklist indicates an expected call of SetBlacklist.
+func (mr *MockСacheMockRecorder) SetBlacklist(ctx, val, ttl interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetBlacklist", reflect.TypeOf((*MockСache)(nil).SetBlacklist), ctx, val, ttl)
 }
 
 // SetRecoverVerified mocks base method.
