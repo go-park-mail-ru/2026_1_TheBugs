@@ -21,3 +21,18 @@ services:
     ports:
       - "6379:6379"
     restart: unless-stopped
+
+  maildev:
+    image: maildev/maildev
+    ports:
+      - "1080:1080"
+      - "1025:1025"
+    environment:
+    - TZ=Europe/Moscow
+    - MAILDEV_WEB_PORT=1080
+    - MAILDEV_SMTP_PORT=1025
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "3"

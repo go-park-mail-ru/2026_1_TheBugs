@@ -159,6 +159,21 @@ definitions:
           $ref: '#/definitions/dto.PhotoDTO'
         type: array
     type: object
+  request.UpdatePwdDTO:
+    properties:
+      password:
+        type: string
+    type: object
+  request.UserEmail:
+    properties:
+      email:
+        type: string
+    type: object
+  request.VerifyCodeDTO:
+    properties:
+      code:
+        type: string
+    type: object
   response.ErrorResponse:
     properties:
       details:
@@ -269,6 +284,117 @@ paths:
       security:
       - BearerAuth: []
       summary: User logout
+      tags:
+      - Auth
+  /auth/recover:
+    post:
+      consumes:
+      - application/json
+      description: Generates recovery session, sends verification code to user's email
+        and sets session_id cookie
+      parameters:
+      - description: User email
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.UserEmail'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Status OK
+          headers:
+            Set-Cookie:
+              description: session_id=<SESSION_ID>; HttpOnly; Path=/api/auth; Max-Age=600
+              type: string
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ValidationErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Send recovery code to email
+      tags:
+      - Auth
+  /auth/recover/reset:
+    post:
+      consumes:
+      - application/json
+      description: Updates password using verified recovery session (session_id cookie
+        required)
+      parameters:
+      - description: New password
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdatePwdDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password updated
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ValidationErrorResponse'
+        "401":
+          description: Session not verified or invalid
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Update user password
+      tags:
+      - Auth
+  /auth/recover/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verifies code from email using session_id cookie and marks session
+        as verified
+      parameters:
+      - description: Verification code
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.VerifyCodeDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Status verified
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ValidationErrorResponse'
+        "401":
+          description: Invalid code or session
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Verify recovery code
       tags:
       - Auth
   /auth/refresh:

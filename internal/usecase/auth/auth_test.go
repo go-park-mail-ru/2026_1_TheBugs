@@ -97,7 +97,7 @@ func TestRegisterUseCase(t *testing.T) {
 				tc.setupMock(userMock, authMock)
 			}
 
-			uc := NewAuthUseCase(uowMock, nil)
+			uc := NewAuthUseCase(uowMock, nil, nil)
 			err := uc.RegisterUseCase(ctx, tc.data)
 
 			require.ErrorIs(t, err, tc.wantErr)
@@ -212,7 +212,7 @@ func TestLoginUseCase(t *testing.T) {
 				patchRefresh.Unpatch()
 			}()
 
-			uc := NewAuthUseCase(uowMock, nil)
+			uc := NewAuthUseCase(uowMock, nil, nil)
 			cred, err := uc.LoginUseCase(ctx, tc.email, tc.password)
 
 			require.ErrorIs(t, err, tc.wantErr)
@@ -353,7 +353,7 @@ func TestRefreshUseCase(t *testing.T) {
 
 			uowMock := mocks.NewMockUnitOfWork(ctrl)
 			authMock := mocks.NewMockAuthRepo(ctrl)
-			tokenMock := mocks.NewMockTokenRepo(ctrl)
+			tokenMock := mocks.NewMockСache(ctrl)
 
 			uowMock.EXPECT().Autho().Return(authMock).AnyTimes()
 
@@ -364,7 +364,7 @@ func TestRefreshUseCase(t *testing.T) {
 			unpatch := tc.patchParseFunc()
 			defer unpatch()
 
-			uc := NewAuthUseCase(uowMock, tokenMock)
+			uc := NewAuthUseCase(uowMock, tokenMock, nil)
 			dto, err := uc.RefreshTokenUseCase(ctx, tc.refreshToken)
 
 			if tc.wantErr != nil {

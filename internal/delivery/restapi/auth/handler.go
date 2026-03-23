@@ -3,9 +3,11 @@ package auth
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/request"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
@@ -290,4 +292,147 @@ func (h AuthHandler) YandexLogin(w http.ResponseWriter, r *http.Request) {
 
 	utils.SetRefreshCookie(w, accessCred)
 	utils.JSONResponse(w, http.StatusOK, &resp)
+}
+
+// SendCodeOnEmail
+// @Summary       Send recovery code to email
+// @Description   Generates recovery session, sends verification code to user's email and sets session_id cookie
+// @Tags          Auth
+// @Accept        json
+// @Produce       json
+// @Param         data body request.UserEmail true "User email"
+// @Success       200 {object} map[string]string "Status OK"
+// @Header        200 {string} Set-Cookie "session_id=<SESSION_ID>; HttpOnly; Path=/api/auth; Max-Age=600"
+// @Failure       400 {object} response.ValidationErrorResponse
+// @Failure       500 {object} response.ErrorResponse
+// @Router        /auth/recover [post]
+func (h AuthHandler) SendCodeOnEmail(w http.ResponseWriter, r *http.Request) {
+	op := "AuthHandler.SendCodeOnEmail"
+	log := middleware.GetLogger(r.Context()).WithField("op", op)
+
+	var data request.UserEmail
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		log.Errorf("decode: %v", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	sessionID, err := h.uc.SendVerificationCode(r.Context(), data.Email)
+	if err != nil {
+		log.Errorf("SendVerificationCode: %v", err)
+		utils.HandelError(w, err)
+		return
+	}
+	http.SetCookie(
+		w,
+		&http.Cookie{
+			Name:     "session_id",
+			Value:    sessionID,
+			Path:     "/api/auth",
+			HttpOnly: true,
+			Domain:   config.Config.CORS.CookieHost,
+			SameSite: http.SameSiteLaxMode,
+			Expires:  time.Now().Add(time.Duration(int(config.Config.JWT.RecoverExp) * int(time.Second))),
+			MaxAge:   int(config.Config.JWT.RecoverExp),
+		},
+	)
+
+	utils.JSONResponse(w, http.StatusOK, map[string]string{
+		"status": "ok",
+	})
+}
+
+// VerifyRecoveryCode
+// @Summary       Verify recovery code
+// @Description   Verifies code from email using session_id cookie and marks session as verified
+// @Tags          Auth
+// @Accept        json
+// @Produce       json
+// @Param         data body request.VerifyCodeDTO true "Verification code"
+// @Success       200 {object} map[string]string "Status verified"
+// @Failure       400 {object} response.ValidationErrorResponse
+// @Failure       401 {object} response.ErrorResponse "Invalid code or session"
+// @Failure       500 {object} response.ErrorResponse
+// @Router        /auth/recover/verify [post]
+func (h AuthHandler) VerifyRecoveryCode(w http.ResponseWriter, r *http.Request) {
+	op := "AuthHandler.VerifyRecoveryCode"
+	log := middleware.GetLogger(r.Context()).WithField("op", op)
+
+	cookie, err := r.Cookie("session_id")
+	if err != nil {
+		log.Errorf("r.Cookie: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+	sessionId := cookie.Value
+	if sessionId == "" {
+		log.Errorf("sessionId is empty")
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	var data request.VerifyCodeDTO
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		log.Errorf("decode: %v", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	err = h.uc.CheckRecoveryCode(r.Context(), sessionId, data.Code)
+	if err != nil {
+		log.Errorf("CheckRecoveryCode: %v", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, map[string]string{
+		"status": "verified",
+	})
+}
+
+// UpdatePassword
+// @Summary       Update user password
+// @Description   Updates password using verified recovery session (session_id cookie required)
+// @Tags          Auth
+// @Accept        json
+// @Produce       json
+// @Param         data body request.UpdatePwdDTO true "New password"
+// @Success       200 {object} map[string]string "Password updated"
+// @Failure       400 {object} response.ValidationErrorResponse
+// @Failure       401 {object} response.ErrorResponse "Session not verified or invalid"
+// @Failure       500 {object} response.ErrorResponse
+// @Router        /auth/recover/reset [post]
+func (h AuthHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
+	op := "AuthHandler.UpdatePassword"
+	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	cookie, err := r.Cookie("session_id")
+	if err != nil {
+		log.Errorf("r.Cookie: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+	sessionId := cookie.Value
+	if sessionId == "" {
+		log.Errorf("sessionId is empty")
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	var data request.UpdatePwdDTO
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		log.Errorf("decode: %v", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	err = h.uc.UpdateUserPassword(r.Context(), sessionId, data.Password)
+	if err != nil {
+		log.Errorf("UpdateUserPassword: %v", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, map[string]string{
+		"status": "password_updated",
+	})
 }

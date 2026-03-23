@@ -110,3 +110,18 @@ func (r *UserRepo) GetByProvider(ctx context.Context, provider string, email str
 
 	return &user, nil
 }
+
+func (r *UserRepo) UpdatePwd(ctx context.Context, email string, pwd string, salt string) error {
+	sql := `UPDATE users SET hashed_password=$1, salt=$2 WHERE email=$3`
+	ct, err := r.pool.Exec(ctx, sql, pwd, salt, email)
+
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+
+	if ct.RowsAffected() == 0 {
+		return repository.HandelPgErrors(pgx.ErrNoRows)
+	}
+
+	return nil
+}
