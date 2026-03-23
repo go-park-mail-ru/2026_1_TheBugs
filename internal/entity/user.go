@@ -3,6 +3,7 @@ package entity
 type ProviderType string
 
 var VK ProviderType = "vk"
+var Yandex ProviderType = "yandex"
 
 type User struct {
 	ID             int     `db:"id"`

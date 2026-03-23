@@ -3,24 +3,20 @@ package auth
 import (
 	"context"
 	"log"
-	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository"
+	repository "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql"
 	"github.com/jackc/pgx/v5"
-	"github.com/redis/go-redis/v9"
 )
 
 type AuthRepo struct {
-	pool        repository.DB
-	redisClient *redis.Client
+	pool repository.DB
 }
 
-func NewAuthRepo(pool repository.DB, rdb *redis.Client) *AuthRepo {
+func NewAuthRepo(pool repository.DB) *AuthRepo {
 	return &AuthRepo{
-		pool:        pool,
-		redisClient: rdb,
+		pool: pool,
 	}
 }
 
@@ -60,27 +56,4 @@ func (r *AuthRepo) DeleteToken(ctx context.Context, tokenID string, userID int) 
 		return repository.HandelPgErrors(err)
 	}
 	return nil
-}
-
-func (r *AuthRepo) BlacklistToken(ctx context.Context, tokenID string, ttl time.Duration) error {
-	if r.redisClient == nil {
-		return nil
-	}
-	key := "blacklist:access:" + tokenID
-	return r.redisClient.Set(ctx, key, "1", ttl).Err()
-}
-
-func (r *AuthRepo) IsBlacklisted(ctx context.Context, tokenID string) (bool, error) {
-	if r.redisClient == nil {
-		return false, nil
-	}
-	key := "blacklist:access:" + tokenID
-	res, err := r.redisClient.Get(ctx, key).Result()
-	if err == redis.Nil {
-		return false, nil
-	}
-	if err != nil {
-		return false, err
-	}
-	return res == "1", nil
 }

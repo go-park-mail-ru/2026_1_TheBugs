@@ -45,7 +45,7 @@ func TestGetPostersUseCase(t *testing.T) {
 				Offset: 0,
 			},
 			setupMock: func(m *mocks.MockPosterRepo) {
-				m.EXPECT().GetPosters(ctx, dto.PostersFiltersDTO{
+				m.EXPECT().GetAll(ctx, dto.PostersFiltersDTO{
 					Limit:  12,
 					Offset: 0,
 				}).Return(existingListPoster, nil).Times(1)
@@ -70,7 +70,7 @@ func TestGetPostersUseCase(t *testing.T) {
 				Offset: 0,
 			},
 			setupMock: func(m *mocks.MockPosterRepo) {
-				m.EXPECT().GetPosters(ctx, dto.PostersFiltersDTO{
+				m.EXPECT().GetAll(ctx, dto.PostersFiltersDTO{
 					Limit:  MaxPostersLimit,
 					Offset: 0,
 				}).Return(existingListPoster, nil).Times(1)
@@ -95,7 +95,7 @@ func TestGetPostersUseCase(t *testing.T) {
 				Offset: 0,
 			},
 			setupMock: func(m *mocks.MockPosterRepo) {
-				m.EXPECT().GetPosters(ctx, dto.PostersFiltersDTO{
+				m.EXPECT().GetAll(ctx, dto.PostersFiltersDTO{
 					Limit:  12,
 					Offset: 0,
 				}).Return(nil, entity.NotFoundError).Times(1)
@@ -208,7 +208,7 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 			param: alias,
 			setupMock: func(m *mocks.MockPosterRepo) {
 				m.EXPECT().
-					GetPosterByAlias(ctx, alias).
+					GetByAlias(ctx, alias).
 					Return(existingPoster, nil).
 					Times(1)
 
@@ -225,7 +225,7 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 			param: alias,
 			setupMock: func(m *mocks.MockPosterRepo) {
 				m.EXPECT().
-					GetPosterByAlias(ctx, alias).
+					GetByAlias(ctx, alias).
 					Return(&entity.PosterById{}, entity.NotFoundError).
 					Times(1)
 			},
@@ -237,7 +237,7 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 			param: alias,
 			setupMock: func(m *mocks.MockPosterRepo) {
 				m.EXPECT().
-					GetPosterByAlias(ctx, alias).
+					GetByAlias(ctx, alias).
 					Return(existingPoster, nil).
 					Times(1)
 

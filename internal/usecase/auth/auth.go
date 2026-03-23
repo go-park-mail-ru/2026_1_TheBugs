@@ -12,22 +12,22 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/oauth"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/oauth"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/validator"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/pwd"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/tokens"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/validator"
 	"github.com/google/uuid"
 )
 
 type AuthUseCase struct {
-	userRepo usecase.UserRepo
-	authRepo usecase.AuthRepo
+	uow       usecase.UnitOfWork
+	blacklist usecase.TokenRepo
 }
 
-func NewAuthUseCase(userRepo usecase.UserRepo, authRepo usecase.AuthRepo) *AuthUseCase {
+func NewAuthUseCase(uow usecase.UnitOfWork, blacklist usecase.TokenRepo) *AuthUseCase {
 	return &AuthUseCase{
-		userRepo: userRepo,
-		authRepo: authRepo,
+		uow:       uow,
+		blacklist: blacklist,
 	}
 }
 func (uc AuthUseCase) RegisterUseCase(ctx context.Context, data dto.CreateUserDTO) error {
@@ -37,13 +37,13 @@ func (uc AuthUseCase) RegisterUseCase(ctx context.Context, data dto.CreateUserDT
 	if err := validator.ValidateProfile(data.Phone, data.FirstName, data.LastName); err != nil {
 		return err
 	}
-	existing, err := uc.userRepo.GetUserByEmail(ctx, data.Email)
+	existing, err := uc.uow.Users().GetByEmail(ctx, data.Email)
 	if existing != nil {
 		return entity.AlredyExitError
 	}
 	if err != nil {
 		if !errors.Is(err, entity.NotFoundError) {
-			return fmt.Errorf("uc.userRepo.GetUserByEmail: %w", err)
+			return fmt.Errorf("uc.userRepo.GetByEmail: %w", err)
 		}
 
 	}
@@ -52,7 +52,7 @@ func (uc AuthUseCase) RegisterUseCase(ctx context.Context, data dto.CreateUserDT
 		return fmt.Errorf("pwd.GenerateSalt: %w", err)
 	}
 	hashedPwd := pwd.HashPassword(data.Password, []byte(salt))
-	_, err = uc.userRepo.CreateUser(ctx, dto.CreateUserDTO{
+	_, err = uc.uow.Users().Create(ctx, dto.CreateUserDTO{
 		Email:          data.Email,
 		HashedPassword: &hashedPwd,
 		Salt:           &salt,
@@ -61,7 +61,7 @@ func (uc AuthUseCase) RegisterUseCase(ctx context.Context, data dto.CreateUserDT
 		Phone:          validator.NormolizePhoneNumber(data.Phone),
 	})
 	if err != nil {
-		return fmt.Errorf("uc.userRepo.CreateUser: %w", err)
+		return fmt.Errorf("uc.userRepo.Create: %w", err)
 	}
 	return nil
 }
@@ -71,7 +71,7 @@ func (uc AuthUseCase) LoginUseCase(ctx context.Context, email string, passwod st
 	if err := validator.ValidateCred(email, passwod); err != nil {
 		return &cred, err
 	}
-	user, err := uc.userRepo.GetUserByEmail(ctx, email)
+	user, err := uc.uow.Users().GetByEmail(ctx, email)
 
 	if err != nil {
 		return &cred, entity.NotFoundError
@@ -115,7 +115,7 @@ func (uc AuthUseCase) createAndSaveRefreshToken(ctx context.Context, userID int)
 		return "", time.Time{}, fmt.Errorf("tokens.GenerateRefreshToken: %w", entity.ServiceError)
 	}
 
-	err = uc.authRepo.CreateToken(ctx, dto.CreateRefreshTokenDTO{
+	err = uc.uow.Autho().CreateToken(ctx, dto.CreateRefreshTokenDTO{
 		TokenID:   refreshTokenID,
 		UserID:    userID,
 		ExpiresAt: refreshTokenExpAt,
@@ -134,19 +134,37 @@ func (uc AuthUseCase) RefreshTokenUseCase(ctx context.Context, refreshToken stri
 	if err != nil {
 		return &cred, fmt.Errorf("uc.ValidateRefreshToken: %w", err)
 	}
-	err = uc.authRepo.DeleteToken(ctx, tokenData.ID, userID)
-	if err != nil {
-		return &cred, fmt.Errorf("uc.authRepo.DeleteToken: %w", err)
-	}
-
 	accessToken, err := tokens.GenerateAccessToken(userID, config.Config.JWT.AccessExp)
 	if err != nil {
 		return &cred, fmt.Errorf("tokens.GenerateAccessToken: %w", err)
 	}
-	refreshToken, _, err = uc.createAndSaveRefreshToken(ctx, userID)
+	refreshTokenID := uuid.NewString()
+	refreshTokenExp := config.Config.JWT.RefreshExp
+	refreshTokenExpAt := time.Now().Add(refreshTokenExp)
+
+	refreshToken, err = tokens.GenerateRefreshToken(refreshTokenID, userID, refreshTokenExp)
 	if err != nil {
-		return &cred, fmt.Errorf("uc.createAndSaveRefreshToken: %w", err)
+		return &cred, fmt.Errorf("tokens.GenerateRefreshToken: %w", entity.ServiceError)
 	}
+	err = uc.uow.Do(ctx, func(r usecase.UnitOfWork) error {
+		err = uc.uow.Autho().DeleteToken(ctx, tokenData.ID, userID)
+		if err != nil {
+			return fmt.Errorf("uc.authRepo.DeleteToken: %w", err)
+		}
+		err = uc.uow.Autho().CreateToken(ctx, dto.CreateRefreshTokenDTO{
+			TokenID:   refreshTokenID,
+			UserID:    userID,
+			ExpiresAt: refreshTokenExpAt,
+		})
+		if err != nil {
+			return fmt.Errorf("uc.authRepo.CreateToken: %w", err)
+		}
+		return nil
+	})
+	if err != nil {
+		return &cred, fmt.Errorf("uc.uow.Do: %w", err)
+	}
+
 	cred = dto.UserAccessCredDTO{
 		AccessToken:     accessToken,
 		AccessTokenExp:  int(config.Config.JWT.AccessExp.Seconds()),
@@ -163,7 +181,7 @@ func (uc AuthUseCase) ValidateAccessToken(ctx context.Context, accessToken strin
 	if accessData.Type != entity.AccessTokenType {
 		return nil, entity.JWTError
 	}
-	if ok, err := uc.authRepo.IsBlacklisted(ctx, accessData.ID); err != nil || ok {
+	if ok, err := uc.blacklist.IsBlacklisted(ctx, accessData.ID); err != nil || ok {
 		return nil, fmt.Errorf("uc.authRepo.IsBlacklisted: %w", entity.JWTError)
 	}
 
@@ -182,7 +200,7 @@ func (uc AuthUseCase) ValidateRefreshToken(ctx context.Context, refreshToken str
 	if err != nil {
 		return nil, 0, fmt.Errorf("strconv.Atoi: %w", entity.JWTError)
 	}
-	storedToken, err := uc.authRepo.GetToken(ctx, refreshData.ID, userID)
+	storedToken, err := uc.uow.Autho().GetToken(ctx, refreshData.ID, userID)
 	if err != nil {
 		return nil, 0, fmt.Errorf("uc.authRepo.GetToken: %w", entity.JWTError)
 	}
@@ -204,13 +222,13 @@ func (uc AuthUseCase) LogoutUseCase(ctx context.Context, logoutCred dto.LogoutDT
 		return fmt.Errorf("uc.ValidateRefreshToken: %w", err)
 	}
 
-	err = uc.authRepo.DeleteToken(ctx, refreshData.ID, userID)
+	err = uc.uow.Autho().DeleteToken(ctx, refreshData.ID, userID)
 	if err != nil {
 		return fmt.Errorf("uc.authRepo.DeleteToken: %w", entity.JWTError)
 	}
 	ttl := config.Config.JWT.AccessExp
 	if ttl > 0 {
-		if err := uc.authRepo.BlacklistToken(ctx, accessData.ID, ttl); err != nil {
+		if err := uc.blacklist.BlacklistToken(ctx, accessData.ID, ttl); err != nil {
 			return fmt.Errorf("uc.authRepo.BlacklistToken: %w", entity.JWTError)
 		}
 	}
@@ -227,17 +245,17 @@ func (uc AuthUseCase) LoginUserFromVKUseCase(ctx context.Context, flow dto.OAuth
 		return nil, fmt.Errorf("oauth.GetUserPublicInfoVK: %w", err)
 	}
 	log.Printf("VK claims: sub=%s, email=%s, name=%s", data.User.UserID, data.User.Email, data.User.FirstName)
-	user, err := uc.userRepo.GetUserByProvider(ctx, data.User.Email, "vk")
+	user, err := uc.uow.Users().GetByProvider(ctx, data.User.Email, "vk")
 	if err != nil {
 		if !errors.Is(err, entity.NotFoundError) {
 			return nil, err
 		} else {
-			user, err = uc.userRepo.CreateUserByProvider(ctx, dto.CreateUserByProviderDTO{
+			user, err = uc.uow.Users().CreateByProvider(ctx, dto.CreateUserByProviderDTO{
 				Provider: "vk",
 				Email:    data.User.Email,
 			})
 			if err != nil {
-				return nil, fmt.Errorf("uc.userRepo.CreateUserByProvider: %w", err)
+				return nil, fmt.Errorf("uc.userRepo.CreateByProvider: %w", err)
 			}
 		}
 	}
@@ -270,12 +288,12 @@ func (uc AuthUseCase) LoginUserFromYandexUseCase(ctx context.Context, flow dto.O
 		return nil, fmt.Errorf("oauth.GetYandexUserPublicInfo: %w", err)
 	}
 	log.Printf("Yandex claims: sub=%s, email=%s, name=%s", data.ID, data.DefaultEmail, data.FirstName)
-	user, err := uc.userRepo.GetUserByEmail(ctx, data.DefaultEmail)
+	user, err := uc.uow.Users().GetByEmail(ctx, data.DefaultEmail)
 	if err != nil {
 		if !errors.Is(err, entity.NotFoundError) {
 			return nil, err
 		} else {
-			user, err = uc.userRepo.CreateUserByProvider(ctx, dto.CreateUserByProviderDTO{
+			user, err = uc.uow.Users().CreateByProvider(ctx, dto.CreateUserByProviderDTO{
 				Provider:   "yandex",
 				Email:      data.DefaultEmail,
 				Phone:      validator.NormolizePhoneNumber(data.DefaultPhone.Number),
@@ -284,7 +302,7 @@ func (uc AuthUseCase) LoginUserFromYandexUseCase(ctx context.Context, flow dto.O
 				ProviderID: &data.ID,
 			})
 			if err != nil {
-				return nil, fmt.Errorf("uc.userRepo.CreateUserByProvider: %w", err)
+				return nil, fmt.Errorf("uc.userRepo.CreateByProvider: %w", err)
 			}
 		}
 	}

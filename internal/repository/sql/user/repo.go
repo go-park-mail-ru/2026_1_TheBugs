@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository"
+	repository "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql"
 	"github.com/jackc/pgx/v5"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
@@ -21,7 +21,7 @@ func NewUserRepo(pool repository.DB) *UserRepo {
 	}
 }
 
-func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (*entity.User, error) {
+func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*entity.User, error) {
 	sql := `SELECT id, email, salt, hashed_password, provider FROM users WHERE email=$1`
 	row, err := r.pool.Query(ctx, sql, email)
 
@@ -40,7 +40,7 @@ func (r *UserRepo) GetUserByEmail(ctx context.Context, email string) (*entity.Us
 
 }
 
-func (r *UserRepo) CreateUser(ctx context.Context, dto dto.CreateUserDTO) (*entity.User, error) {
+func (r *UserRepo) Create(ctx context.Context, dto dto.CreateUserDTO) (*entity.User, error) {
 	var profileID int
 
 	profileSql := `INSERT INTO profiles (phone, first_name, last_name) VALUES ($1, $2, $3) RETURNING id`
@@ -67,7 +67,7 @@ func (r *UserRepo) CreateUser(ctx context.Context, dto dto.CreateUserDTO) (*enti
 	return &user, nil
 }
 
-func (r *UserRepo) CreateUserByProvider(ctx context.Context, dto dto.CreateUserByProviderDTO) (*entity.User, error) {
+func (r *UserRepo) CreateByProvider(ctx context.Context, dto dto.CreateUserByProviderDTO) (*entity.User, error) {
 	var profileID int
 
 	profileSql := `INSERT INTO profiles (phone, first_name, last_name) VALUES ($1, $2, $3) RETURNING id`
@@ -93,7 +93,7 @@ func (r *UserRepo) CreateUserByProvider(ctx context.Context, dto dto.CreateUserB
 	return &user, nil
 }
 
-func (r *UserRepo) GetUserByProvider(ctx context.Context, provider string, email string) (*entity.User, error) {
+func (r *UserRepo) GetByProvider(ctx context.Context, provider string, email string) (*entity.User, error) {
 	sql := `SELECT id, email, salt, hashed_password, provider FROM users WHERE email=$1 AND provider=$2`
 	row, err := r.pool.Query(ctx, sql, email, provider)
 
