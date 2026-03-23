@@ -233,7 +233,7 @@ func (uc AuthUseCase) LogoutUseCase(ctx context.Context, logoutCred dto.LogoutDT
 	}
 	ttl := config.Config.JWT.AccessExp
 	if ttl > 0 {
-		if err := uc.cache.BlacklistToken(ctx, accessData.ID, ttl); err != nil {
+		if err := uc.cache.SetBlacklist(ctx, accessData.ID, ttl); err != nil {
 			return fmt.Errorf("uc.authRepo.BlacklistToken: %w", entity.JWTError)
 		}
 	}
@@ -340,9 +340,19 @@ func (uc AuthUseCase) SendVerificationCode(ctx context.Context, email string) (s
 	if err != nil {
 		return "", fmt.Errorf("uc.uow.Users().GetByEmail: %w", err)
 	}
-
+	blocked, err := uc.cache.IsBlacklisted(ctx, email)
+	if err != nil {
+		return "", fmt.Errorf("uc.cache.IsBlacklisted: %w", err)
+	}
+	if blocked {
+		return "", fmt.Errorf("max limit offset: %w", entity.ToManyRequest)
+	}
+	err = uc.cache.SetBlacklist(ctx, email, time.Duration(1*time.Minute))
+	if err != nil {
+		return "", fmt.Errorf("uc.cache.SetBlacklist: %w", err)
+	}
 	seed := rand.New(rand.NewSource(time.Now().UnixNano()))
-	code := fmt.Sprintf("%04d", seed.Intn(10000))
+	code := fmt.Sprintf("%05d", seed.Intn(100000))
 	sessionId := fmt.Sprintf("%010x", seed.Int())[:10]
 	err = uc.cache.CreateRecoverSession(ctx, sessionId, domains.RecoverSession{Email: email, Code: code, Attempts: 0, Verified: false}, config.Config.JWT.RecoverExp)
 	if err != nil {
@@ -372,6 +382,7 @@ func (uc AuthUseCase) CheckRecoveryCode(ctx context.Context, sessionID string, c
 		attempts, _ := uc.cache.IncrementRecoverAttempts(ctx, sessionID)
 		if attempts > MaxAttemptsRecovery {
 			_ = uc.cache.DeleteRecoverSession(ctx, sessionID)
+			return fmt.Errorf("max limit offset: %w", entity.ToManyRequest)
 		}
 		return fmt.Errorf("bad code: %w", entity.BadCredentials)
 	}

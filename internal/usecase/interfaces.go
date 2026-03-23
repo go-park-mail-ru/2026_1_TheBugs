@@ -45,8 +45,8 @@ type UnitOfWork interface {
 }
 
 type Сache interface {
-	BlacklistToken(ctx context.Context, tokenID string, ttl time.Duration) error
-	IsBlacklisted(ctx context.Context, tokenID string) (bool, error)
+	SetBlacklist(ctx context.Context, val string, ttl time.Duration) error
+	IsBlacklisted(ctx context.Context, val string) (bool, error)
 	CreateRecoverSession(ctx context.Context, sessionID string, data domains.RecoverSession, ttl time.Duration) error
 	GetRecoverSession(ctx context.Context, sessionID string) (*domains.RecoverSession, error)
 	DeleteRecoverSession(ctx context.Context, sessionID string) error

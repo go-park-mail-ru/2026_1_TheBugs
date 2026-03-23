@@ -19,13 +19,13 @@ func NewTokenRepo(rdb *redis.Client) *TokenRepo {
 	}
 }
 
-func (r *TokenRepo) BlacklistToken(ctx context.Context, tokenID string, ttl time.Duration) error {
-	key := "blacklist:access:" + tokenID
+func (r *TokenRepo) SetBlacklist(ctx context.Context, val string, ttl time.Duration) error {
+	key := "blacklist:" + val
 	return r.redisClient.Set(ctx, key, "1", ttl).Err()
 }
 
-func (r *TokenRepo) IsBlacklisted(ctx context.Context, tokenID string) (bool, error) {
-	key := "blacklist:access:" + tokenID
+func (r *TokenRepo) IsBlacklisted(ctx context.Context, val string) (bool, error) {
+	key := "blacklist:" + val
 	res, err := r.redisClient.Get(ctx, key).Result()
 	if err == redis.Nil {
 		return false, nil

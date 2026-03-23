@@ -45,6 +45,8 @@ func HandelError(w http.ResponseWriter, err error) {
 		WriteError(w, "bad jwt", http.StatusUnauthorized)
 	case errors.Is(err, entity.OffsetOutOfRange):
 		WriteError(w, "not enought records", http.StatusNotFound)
+	case errors.Is(err, entity.ToManyRequest):
+		WriteError(w, "to many requests", http.StatusTooManyRequests)
 	default:
 		WriteError(w, "internal", http.StatusInternalServerError)
 	}
