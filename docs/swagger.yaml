@@ -7,6 +7,13 @@ definitions:
       expire_at:
         type: integer
     type: object
+  dto.DeveloperDTO:
+    properties:
+      avatar_url:
+        type: string
+      developer_name:
+        type: string
+    type: object
   dto.FlatDTO:
     properties:
       flat_category:
@@ -107,11 +114,13 @@ definitions:
     type: object
   dto.PosterSellerDTO:
     properties:
-      seller_first_name:
+      avatar_url:
         type: string
-      seller_last_name:
+      first_name:
         type: string
-      seller_phone:
+      last_name:
+        type: string
+      phone:
         type: string
     type: object
   dto.UtilityCompanyCardDTO:
@@ -135,6 +144,10 @@ definitions:
         type: string
       company_name:
         type: string
+      description:
+        type: string
+      developer:
+        $ref: '#/definitions/dto.DeveloperDTO'
       geo:
         $ref: '#/definitions/dto.GeographyDTO'
       id:

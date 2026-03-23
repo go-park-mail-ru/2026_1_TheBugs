@@ -38,9 +38,10 @@ type PosterById struct {
 
 	Images []PosterImage `db:"-"`
 
-	SellerFirstName string `db:"first_name"`
-	SellerLastName  string `db:"last_name"`
-	Phone           string `db:"phone"`
+	SellerFirstName string  `db:"first_name"`
+	SellerLastName  string  `db:"last_name"`
+	SellerAvatarURL *string `db:"seller_avatar_url"`
+	Phone           string  `db:"phone"`
 
 	CompanyName      *string `db:"company_name"`
 	CompanyAvatarURL *string `db:"company_avatar_url"`

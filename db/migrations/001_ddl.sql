@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     phone TEXT NOT NULL, 
     first_name TEXT NOT NULL, 
     last_name TEXT NOT NULL, 
+    avatar_url TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), 
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), 
  
@@ -72,6 +73,19 @@ CREATE TABLE IF NOT EXISTS property_categories (
     CONSTRAINT name_length_check CHECK ( LENGTH(name) < 30 ) 
 ); 
 COMMENT ON TABLE property_categories IS 'Тип помещения';
+
+CREATE TABLE IF NOT EXISTS developers (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    developer_name TEXT NOT NULL,
+    avatar_url TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT developer_name_length_check CHECK (LENGTH(developer_name) < 100)
+);
+
+COMMENT ON TABLE developers IS 'Застройщики';
+
  
 CREATE TABLE IF NOT EXISTS utility_companies(
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
@@ -79,11 +93,15 @@ CREATE TABLE IF NOT EXISTS utility_companies(
     phone TEXT NOT NULL,
     geo GEOGRAPHY(POINT, 4326) NOT NULL, 
     address TEXT NOT NULL,
-    avatar_url TEXT,
     alias TEXT UNIQUE NOT NULL,
+    description TEXT,
+    avatar_url TEXT,
+    developer_id BIGINT,
 
     CONSTRAINT phone_check CHECK (phone ~ '^(\+7|8)\s\d{3}\s\d{3}\s\d{2}\s\d{2}$'), 
-    CONSTRAINT address_check CHECK ( address ~ '^[а-яА-ЯёЁ\s\-\,\.\d\/]+$' AND LENGTH(address) >= 5 AND LENGTH(address) < 150 )
+    CONSTRAINT address_check CHECK ( address ~ '^[а-яА-ЯёЁ\s\-\,\.\d\/]+$' AND LENGTH(address) >= 5 AND LENGTH(address) < 150 ),
+    CONSTRAINT fk_developer FOREIGN KEY (developer_id) REFERENCES developers(id),
+    CONSTRAINT description_length_check CHECK ( LENGTH(description) < 1000 )
 );
 COMMENT ON TABLE utility_companies IS 'Компании услуг/ЖК';
 
@@ -236,6 +254,7 @@ CREATE INDEX idx_poster_photos_poster_id ON poster_photos(poster_id);
 CREATE INDEX idx_flat_property_id ON flat(property_id);
 CREATE INDEX idx_flat_category_id ON flat(category_id);
 CREATE INDEX idx_utility_companies_photos_company_id ON utility_companies_photos(utility_company_id);
+CREATE INDEX idx_utility_companies_developer_id ON utility_companies(developer_id);
 
 -- Поисковые индексы
 CREATE INDEX idx_posters_price ON posters(price);

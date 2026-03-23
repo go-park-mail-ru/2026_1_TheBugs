@@ -39,9 +39,10 @@ func (r UtilityCompanyPgRepo) GetUtilityCompanyByID(ctx context.Context, id int)
 
 func (r UtilityCompanyPgRepo) GetByAlias(ctx context.Context, alias string) (*dto.UtilityCompanyDTO, error) {
 	sql := `
-		SELECT uc.id, uc.phone, uc.company_name, ST_AsText(uc.geo) AS geo, uc.address, uc.avatar_url, uc.alias,
-		       up.id as photo_id, up.utility_company_id, up.img_url, up.sequence_order
+		SELECT uc.id, uc.phone, uc.company_name, uc.description, ST_AsText(uc.geo) AS geo, uc.address, uc.avatar_url, uc.alias,
+		       up.id as photo_id, up.utility_company_id, up.img_url, up.sequence_order, d.id, d.developer_name, d.avatar_url
 		FROM utility_companies uc
+		LEFT JOIN developers d ON d.id = uc.developer_id
 		LEFT JOIN utility_companies_photos up ON uc.id = up.utility_company_id
 		WHERE uc.alias = $1
 	`
@@ -54,11 +55,12 @@ func (r UtilityCompanyPgRepo) GetByAlias(ctx context.Context, alias string) (*dt
 	defer row.Close()
 	var u entity.UtilityCompany
 	var photos []entity.UtilityCompanyPhoto
+	var d entity.Developer
 	found := false
 	for row.Next() {
 		found = true
 		var p entity.UtilityCompanyPhoto
-		err := row.Scan(&u.ID, &u.Phone, &u.CompanyName, &u.GEO, &u.Address, &u.AvatarURL, &u.Alias, &p.ID, &p.UtilityCompanyID, &p.ImgURL, &p.Order)
+		err := row.Scan(&u.ID, &u.Phone, &u.CompanyName, &u.Description, &u.GEO, &u.Address, &u.AvatarURL, &u.Alias, &p.ID, &p.UtilityCompanyID, &p.ImgURL, &p.Order, &d.ID, &d.DeveloperName, &d.AvatarURL)
 		if err != nil {
 			return nil, repository.HandelPgErrors(err)
 		}
@@ -69,6 +71,6 @@ func (r UtilityCompanyPgRepo) GetByAlias(ctx context.Context, alias string) (*dt
 	if !found {
 		return nil, repository.HandelPgErrors(pgx.ErrNoRows)
 	}
-	return dto.ToUtilityCompanyDTO(&u, photos), nil
+	return dto.ToUtilityCompanyDTO(&u, photos, &d), nil
 
 }
