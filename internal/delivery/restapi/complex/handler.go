@@ -3,10 +3,10 @@ package complex
 import (
 	"net/http"
 
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/response"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/complex"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 )
 
 type UtilityCompanyHandler struct {
@@ -30,7 +30,7 @@ func NewUtilityCompanyHandler(uc *complex.UtilityCompanyUseCase) *UtilityCompany
 // @Router /utility-companies/by-alias/{alias} [get]
 func (h *UtilityCompanyHandler) GetUtilityCompany(w http.ResponseWriter, r *http.Request) {
 	op := "UtilityCompanyHandler.GetUtilityCompany"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	alias, err := utils.ParseAliasFromRequest(r)
 	if err != nil {

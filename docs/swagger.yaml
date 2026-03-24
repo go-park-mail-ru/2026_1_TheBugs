@@ -597,6 +597,37 @@ paths:
       summary: Get poster by alias
       tags:
       - posters
+  /posters/me:
+    get:
+      description: Returns the number of retrieved posters and their list
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PosterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get list of user`s posters
+      tags:
+      - posters
   /utility-companies/by-alias/{alias}:
     get:
       description: Returns utility complex details along with its photos by the given
