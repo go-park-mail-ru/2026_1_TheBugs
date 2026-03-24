@@ -6,8 +6,10 @@ import (
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/domains"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	repository "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
 	"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -156,4 +158,25 @@ func getPosterImages(r *PosterRepo, ctx context.Context, id int) ([]entity.Poste
 	}
 
 	return images, rows.Err()
+}
+
+func (r *PosterRepo) GetMetroStationByRadius(ctx context.Context, buildingGeo dto.GeographyDTO, radius domains.Metre) ([]entity.MetroStation, error) {
+	query := `
+		SELECT m.id, m.station_name, ST_AsText(m.geo) AS metro_geo
+		FROM metro_stations m WHERE ST_DWithin(m.geo, $1, $2) 
+		ORDER BY m.geo <-> $1
+	`
+	rows, err := r.pool.Query(ctx, query, geo.GeographyPoint{Lat: buildingGeo.Lat, Lon: buildingGeo.Lon}, int(radius))
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	defer rows.Close()
+
+	stations, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.MetroStation])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return stations, rows.Err()
 }

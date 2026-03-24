@@ -10,3 +10,8 @@ type PostersResponse struct {
 type PosterResponse struct {
 	Poster *dto.PosterDTO `json:"poster"`
 }
+
+type MetroResponse struct {
+	Len           int                   `json:"len"`
+	MetroStations []dto.MetroStationDTO `json:"metro_stations"`
+}

@@ -126,3 +126,47 @@ func (h *PosterHandler) GetPoster(w http.ResponseWriter, r *http.Request) {
 
 	utils.JSONResponse(w, http.StatusOK, response)
 }
+
+// @Summary Get metro stations by geo
+// @Description Returns the metro stations
+// @Tags posters
+// @Produce json
+// @Param lat path float32 true "lat"
+// @Param lon path float32 true "lon"
+// @Success 200 {object} response.MetroResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/metro-stations [get]
+func (h *PosterHandler) GetMetrosStation(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GetMetrosStation"
+	log := middleware.GetLogger(r.Context()).WithField("op", op)
+
+	latVal := r.URL.Query().Get("lat")
+	lonVal := r.URL.Query().Get("lon")
+	lat, err := strconv.ParseFloat(latVal, 32)
+	if err != nil {
+		log.Errorf("Atoi: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+	lon, err := strconv.ParseFloat(lonVal, 32)
+	if err != nil {
+		log.Errorf("Atoi: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	stations, err := h.uc.GetMetroStationsByRadius(r.Context(), dto.GeographyDTO{Lat: lat, Lon: lon})
+	if err != nil {
+		log.Errorf("h.uc.GetMetroStationsByRadius: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, response.MetroResponse{
+		MetroStations: stations,
+		Len:           len(stations),
+	})
+}

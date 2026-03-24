@@ -196,6 +196,21 @@ func (mr *MockPosterRepoMockRecorder) GetFlatByPropetyID(ctx, propertyID interfa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFlatByPropetyID", reflect.TypeOf((*MockPosterRepo)(nil).GetFlatByPropetyID), ctx, propertyID)
 }
 
+// GetMetroStationByRadius mocks base method.
+func (m *MockPosterRepo) GetMetroStationByRadius(ctx context.Context, buidingGeo dto.GeographyDTO, radius domains.Metre) ([]entity.MetroStation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMetroStationByRadius", ctx, buidingGeo, radius)
+	ret0, _ := ret[0].([]entity.MetroStation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMetroStationByRadius indicates an expected call of GetMetroStationByRadius.
+func (mr *MockPosterRepoMockRecorder) GetMetroStationByRadius(ctx, buidingGeo, radius interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMetroStationByRadius", reflect.TypeOf((*MockPosterRepo)(nil).GetMetroStationByRadius), ctx, buidingGeo, radius)
+}
+
 // MockAuthRepo is a mock of AuthRepo interface.
 type MockAuthRepo struct {
 	ctrl     *gomock.Controller

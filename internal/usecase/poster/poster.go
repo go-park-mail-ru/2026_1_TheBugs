@@ -74,3 +74,16 @@ func (uc *PosterUseCase) GetPosterByAliasUseCase(ctx context.Context, posterAlia
 
 	return posterDTO, nil
 }
+
+func (uc *PosterUseCase) GetMetroStationsByRadius(ctx context.Context, coords dto.GeographyDTO) ([]dto.MetroStationDTO, error) {
+	stations, err := uc.repo.GetMetroStationByRadius(ctx, coords, 1000)
+	if err != nil {
+		return nil, fmt.Errorf("uc.repo.GetMetroStationByRadius: %s", err)
+	}
+	dtos := make([]dto.MetroStationDTO, 0, len(stations))
+	for _, d := range stations {
+		dtos = append(dtos, dto.MetroToMetroStationDTO(d))
+	}
+	return dtos, nil
+
+}

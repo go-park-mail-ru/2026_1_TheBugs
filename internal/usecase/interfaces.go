@@ -24,6 +24,7 @@ type PosterRepo interface {
 	CountPosters(ctx context.Context) (int, error)
 	GetByAlias(ctx context.Context, posterAlias string) (*entity.PosterById, error)
 	GetFlatByPropetyID(ctx context.Context, propertyID int) (*entity.Flat, error)
+	GetMetroStationByRadius(ctx context.Context, buidingGeo dto.GeographyDTO, radius domains.Metre) ([]entity.MetroStation, error)
 }
 
 type AuthRepo interface {

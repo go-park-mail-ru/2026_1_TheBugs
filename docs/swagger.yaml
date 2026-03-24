@@ -32,6 +32,13 @@ definitions:
     type: object
   dto.HouseDTO:
     type: object
+  dto.MetroStationDTO:
+    properties:
+      station_geo:
+        $ref: '#/definitions/dto.GeographyDTO'
+      station_name:
+        type: string
+    type: object
   dto.OAuthCodeFlow:
     properties:
       code:
@@ -180,6 +187,15 @@ definitions:
         type: string
       error:
         type: string
+    type: object
+  response.MetroResponse:
+    properties:
+      len:
+        type: integer
+      metro_stations:
+        items:
+          $ref: '#/definitions/dto.MetroStationDTO'
+        type: array
     type: object
   response.PosterResponse:
     properties:
@@ -595,6 +611,48 @@ paths:
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: Get poster by alias
+      tags:
+      - posters
+  /posters/metro-stations:
+    get:
+      description: Returns the metro stations
+      parameters:
+      - description: lat
+        format: float32
+        in: path
+        name: lat
+        required: true
+        type: number
+      - description: lon
+        format: float32
+        in: path
+        name: lon
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.MetroResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get metro stations by geo
       tags:
       - posters
   /utility-companies/by-alias/{alias}:
