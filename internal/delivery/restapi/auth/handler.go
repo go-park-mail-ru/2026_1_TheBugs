@@ -64,7 +64,7 @@ func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	log.Println(cred)
 	if err != nil {
 		log.Errorf("parse.ParseFormData: %s", err)
-		utils.HandelError(w, err)
+		utils.WriteError(w, "invalid form data", http.StatusBadRequest)
 		return
 	}
 	err = h.uc.RegisterUseCase(r.Context(), dto.CreateUserDTO{
@@ -105,7 +105,7 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	log.Println(cred)
 	if err != nil {
 		log.Errorf("parse.ParseFormData: %s", err)
-		utils.HandelError(w, err)
+		utils.WriteError(w, "invalid form data", http.StatusBadRequest)
 		return
 	}
 	accessCred, err := h.uc.LoginUseCase(r.Context(), cred.Email, cred.Password)
@@ -144,7 +144,7 @@ func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("refresh_token")
 	if err != nil {
 		log.Errorf("r.Cookie: %s", err)
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "invalid cookie", http.StatusBadRequest)
 		return
 	}
 	refreshToken := cookie.Value
@@ -183,7 +183,7 @@ func (h AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	accessToken, err := utils.GetAccessToken(r)
 	if err != nil {
 		log.Errorf("utils.GetAccessToken: %s", err)
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "invalid access token", http.StatusUnauthorized)
 		return
 	}
 	cookie, err := r.Cookie("refresh_token")
@@ -223,13 +223,13 @@ func (h AuthHandler) VKLogin(w http.ResponseWriter, r *http.Request) {
 	var flow dto.OAuthCodeFlow
 	if err := json.NewDecoder(r.Body).Decode(&flow); err != nil {
 		log.Errorf("json.NewDecoder(r.Body).Decode(&flow): %s", err)
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
 	if flow.Code == "" || flow.DeviceID == nil || flow.State == nil {
 		log.Errorf("flow.Code || flow.DeviceID || flow.State empty ")
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
@@ -268,13 +268,13 @@ func (h AuthHandler) YandexLogin(w http.ResponseWriter, r *http.Request) {
 	var flow dto.OAuthCodeFlow
 	if err := json.NewDecoder(r.Body).Decode(&flow); err != nil {
 		log.Errorf("json.NewDecoder(r.Body).Decode(&flow): %s", err)
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
 	if flow.Code == "" {
 		log.Errorf("flow.Code empty ")
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
@@ -313,7 +313,7 @@ func (h AuthHandler) SendCodeOnEmail(w http.ResponseWriter, r *http.Request) {
 	var data request.UserEmail
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		log.Errorf("decode: %v", err)
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
@@ -361,20 +361,20 @@ func (h AuthHandler) VerifyRecoveryCode(w http.ResponseWriter, r *http.Request) 
 	cookie, err := r.Cookie("session_id")
 	if err != nil {
 		log.Errorf("r.Cookie: %s", err)
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "invalid cookie", http.StatusBadRequest)
 		return
 	}
 	sessionId := cookie.Value
 	if sessionId == "" {
 		log.Errorf("sessionId is empty")
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "session_id is empty", http.StatusBadRequest)
 		return
 	}
 
 	var data request.VerifyCodeDTO
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		log.Errorf("decode: %v", err)
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
@@ -408,20 +408,20 @@ func (h AuthHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session_id")
 	if err != nil {
 		log.Errorf("r.Cookie: %s", err)
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "invalid cookie", http.StatusBadRequest)
 		return
 	}
 	sessionId := cookie.Value
 	if sessionId == "" {
 		log.Errorf("sessionId is empty")
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "session_id is empty", http.StatusBadRequest)
 		return
 	}
 
 	var data request.UpdatePwdDTO
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		log.Errorf("decode: %v", err)
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 

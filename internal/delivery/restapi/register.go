@@ -59,6 +59,8 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 	apiGroup := app.PathPrefix("/api").Subrouter()
 	apiGroup.Use(mux.CORSMethodMiddleware(apiGroup))
 	{
+		apiGroup.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
+
 		apiGroup.HandleFunc("/auth/reg", auth.RegisterUser).Methods(http.MethodPost)
 		apiGroup.HandleFunc("/auth/login", auth.LoginUser).Methods(http.MethodPost)
 		apiGroup.HandleFunc("/auth/logout", auth.Logout).Methods(http.MethodPost, http.MethodOptions)
@@ -70,8 +72,6 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		apiGroup.HandleFunc("/auth/recover/reset", auth.UpdatePassword).Methods(http.MethodPost, http.MethodOptions)
 
 		apiGroup.HandleFunc("/utility-companies/by-alias/{alias}", UtilityCompany.GetUtilityCompany).Methods(http.MethodGet)
-
-		apiGroup.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 
 		apiGroup.HandleFunc("/posters", post.GetAll).Methods(http.MethodGet)
 		apiGroup.HandleFunc("/posters/by-alias/{alias}", post.GetPoster).Methods(http.MethodGet)

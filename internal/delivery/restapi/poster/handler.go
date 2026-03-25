@@ -7,7 +7,6 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/response"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
 )
@@ -59,7 +58,7 @@ func (h *PosterHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	reqLimit, err := strconv.Atoi(limit)
 	if err != nil {
 		log.Errorf("Atoi: %s", err)
-		utils.HandelError(w, err)
+		utils.WriteError(w, "bad limit query param", http.StatusBadRequest)
 		return
 	}
 
@@ -68,7 +67,7 @@ func (h *PosterHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	reqOffset, err := strconv.Atoi(offset)
 	if err != nil {
 		log.Errorf("Atoi: %s", err)
-		utils.HandelError(w, err)
+		utils.WriteError(w, "bad offset query param", http.StatusBadRequest)
 		return
 	}
 
@@ -150,13 +149,13 @@ func (h *PosterHandler) GetMetrosStation(w http.ResponseWriter, r *http.Request)
 	lat, err := strconv.ParseFloat(latVal, 32)
 	if err != nil {
 		log.Errorf("Atoi: %s", err)
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "lat query param is requered", http.StatusBadRequest)
 		return
 	}
 	lon, err := strconv.ParseFloat(lonVal, 32)
 	if err != nil {
 		log.Errorf("Atoi: %s", err)
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "lon query param is requered", http.StatusBadRequest)
 		return
 	}
 
