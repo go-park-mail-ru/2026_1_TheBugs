@@ -49,10 +49,10 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	authHandler := authHandler.NewAuthHandler(authUC)
 
 	UtilityCompanyUC := complexUC.NewUtilityCompanyUseCase(uow.UtilityCompany())
-	UtilityCompanyHandler := complexHandler.NewUtilityCompanyHandler(UtilityCompanyUC)
+	utilityCompanyHandler := complexHandler.NewUtilityCompanyHandler(UtilityCompanyUC)
 
 	r := mux.NewRouter()
-	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, UtilityCompanyHandler)
+	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler)
 	serverAddress := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	srv := &http.Server{
 		Handler:      r,

@@ -51,14 +51,14 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 	app.Use(middleware.LoggingMiddleware(logger))
 	app.Use(c.Handler)
 
-	// Routers
+	app.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
+	}).Methods(http.MethodGet)
+
+	// API Routers
 	apiGroup := app.PathPrefix("/api").Subrouter()
 	apiGroup.Use(mux.CORSMethodMiddleware(apiGroup))
 	{
-		apiGroup.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-			_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
-		}).Methods(http.MethodGet)
-
 		apiGroup.HandleFunc("/auth/reg", auth.RegisterUser).Methods(http.MethodPost)
 		apiGroup.HandleFunc("/auth/login", auth.LoginUser).Methods(http.MethodPost)
 		apiGroup.HandleFunc("/auth/logout", auth.Logout).Methods(http.MethodPost, http.MethodOptions)
