@@ -29,16 +29,15 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func Run(cfg *config.ProjectConfig) {
+func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	dsn := dsn.BuildDSN(cfg.Postgres)
 	rdb := redis.NewClient(&redis.Options{Addr: fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port), Password: cfg.Redis.Password, DB: cfg.Redis.DB})
-	logger := logrus.New()
 
 	pool, err := pgxpool.New(context.Background(), dsn)
 	if err != nil {
 		log.Fatalf("cannot create pgx pool: %v", err)
 	}
-	em := smtp.NewSMTPSender(config.Config.SMTP.Host, config.Config.SMTP.Port, config.Config.SMTP.Email, config.Config.SMTP.Pwd)
+	senderRepo := smtp.NewSMTPSender(config.Config.SMTP.Host, config.Config.SMTP.Port, config.Config.SMTP.Email, config.Config.SMTP.Pwd)
 
 	uow := uowSql.NewSQLStorage(pool)
 	tokenRepo := tokensRepo.NewTokenRepo(rdb)
@@ -46,7 +45,7 @@ func Run(cfg *config.ProjectConfig) {
 	posterUC := posterUC.NewPosterUseCase(uow.Posters())
 	posterHandler := posterHandler.NewPosterHandler(posterUC)
 
-	authUC := authUC.NewAuthUseCase(uow, tokenRepo, em)
+	authUC := authUC.NewAuthUseCase(uow, tokenRepo, senderRepo)
 	authHandler := authHandler.NewAuthHandler(authUC)
 
 	UtilityCompanyUC := complexUC.NewUtilityCompanyUseCase(uow.UtilityCompany())
@@ -63,10 +62,10 @@ func Run(cfg *config.ProjectConfig) {
 		IdleTimeout:  cfg.IdleTimeout,
 	}
 
-	log.Printf("start listen: %s \n", serverAddress)
+	logger.Infof("start listen: %s", serverAddress)
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
-			log.Println(err)
+			logger.Error(err)
 		}
 	}()
 	c := make(chan os.Signal, 1)
@@ -75,7 +74,7 @@ func Run(cfg *config.ProjectConfig) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer cancel()
 	_ = srv.Shutdown(ctx)
-	log.Println("shutting down")
+	logger.Warn("shutting down")
 	os.Exit(0)
 
 }
