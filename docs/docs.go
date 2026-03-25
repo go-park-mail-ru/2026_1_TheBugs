@@ -602,7 +602,7 @@ const docTemplate = `{
                         "format": "float32",
                         "description": "lat",
                         "name": "lat",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     },
                     {
@@ -610,7 +610,7 @@ const docTemplate = `{
                         "format": "float32",
                         "description": "lon",
                         "name": "lon",
-                        "in": "path",
+                        "in": "query",
                         "required": true
                     }
                 ],

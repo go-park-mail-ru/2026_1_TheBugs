@@ -619,13 +619,13 @@ paths:
       parameters:
       - description: lat
         format: float32
-        in: path
+        in: query
         name: lat
         required: true
         type: number
       - description: lon
         format: float32
-        in: path
+        in: query
         name: lon
         required: true
         type: number

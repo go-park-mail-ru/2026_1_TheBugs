@@ -75,5 +75,6 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 
 		apiGroup.HandleFunc("/posters", post.GetAll).Methods(http.MethodGet)
 		apiGroup.HandleFunc("/posters/by-alias/{alias}", post.GetPoster).Methods(http.MethodGet)
+		apiGroup.HandleFunc("/posters/metro-stations", post.GetMetrosStation).Methods(http.MethodGet)
 	}
 }

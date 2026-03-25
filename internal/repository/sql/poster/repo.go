@@ -162,10 +162,11 @@ func getPosterImages(r *PosterRepo, ctx context.Context, id int) ([]entity.Poste
 
 func (r *PosterRepo) GetMetroStationByRadius(ctx context.Context, buildingGeo dto.GeographyDTO, radius domains.Metre) ([]entity.MetroStation, error) {
 	query := `
-		SELECT m.id, m.station_name, ST_AsText(m.geo) AS metro_geo
-		FROM metro_stations m WHERE ST_DWithin(m.geo, $1, $2) 
-		ORDER BY m.geo <-> $1
-	`
+    SELECT m.id, m.station_name, ST_AsText(m.geo) AS metro_geo
+    FROM metro_stations m 
+    WHERE ST_DWithin(m.geo, ST_GeogFromText($1), $2)
+    ORDER BY m.geo <-> ST_GeogFromText($1)
+`
 	rows, err := r.pool.Query(ctx, query, geo.GeographyPoint{Lat: buildingGeo.Lat, Lon: buildingGeo.Lon}, int(radius))
 	if err != nil {
 		return nil, repository.HandelPgErrors(err)

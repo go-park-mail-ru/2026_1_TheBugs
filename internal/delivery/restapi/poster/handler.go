@@ -7,6 +7,7 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/response"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
 )
@@ -131,8 +132,8 @@ func (h *PosterHandler) GetPoster(w http.ResponseWriter, r *http.Request) {
 // @Description Returns the metro stations
 // @Tags posters
 // @Produce json
-// @Param lat path float32 true "lat"
-// @Param lon path float32 true "lon"
+// @Param lat query float32 true "lat"
+// @Param lon query float32 true "lon"
 // @Success 200 {object} response.MetroResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 401 {object} response.ErrorResponse
@@ -145,16 +146,17 @@ func (h *PosterHandler) GetMetrosStation(w http.ResponseWriter, r *http.Request)
 
 	latVal := r.URL.Query().Get("lat")
 	lonVal := r.URL.Query().Get("lon")
+	log.Infof("lat: %s, lon: %s", latVal, lonVal)
 	lat, err := strconv.ParseFloat(latVal, 32)
 	if err != nil {
 		log.Errorf("Atoi: %s", err)
-		utils.HandelError(w, err)
+		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
 	lon, err := strconv.ParseFloat(lonVal, 32)
 	if err != nil {
 		log.Errorf("Atoi: %s", err)
-		utils.HandelError(w, err)
+		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
 

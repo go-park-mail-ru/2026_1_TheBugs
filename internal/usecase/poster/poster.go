@@ -14,6 +14,7 @@ const (
 	MaxPostersLimit = 12
 	PropertyFlat    = "Квартиры" // TODO: делать по id а не по имени а то оно меняется либо поменять в
 	PropertyHouse   = "house"
+	MetroRadius     = 2500
 )
 
 type PosterUseCase struct {
@@ -76,7 +77,7 @@ func (uc *PosterUseCase) GetPosterByAliasUseCase(ctx context.Context, posterAlia
 }
 
 func (uc *PosterUseCase) GetMetroStationsByRadius(ctx context.Context, coords dto.GeographyDTO) ([]dto.MetroStationDTO, error) {
-	stations, err := uc.repo.GetMetroStationByRadius(ctx, coords, 1000)
+	stations, err := uc.repo.GetMetroStationByRadius(ctx, coords, MetroRadius)
 	if err != nil {
 		return nil, fmt.Errorf("uc.repo.GetMetroStationByRadius: %s", err)
 	}
