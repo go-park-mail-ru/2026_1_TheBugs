@@ -14,8 +14,8 @@ import (
 	authHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/auth"
 	complexHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/complex"
 	posterHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/email"
 	tokensRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/redis/tokens"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/smtp"
 	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
 	authUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
 	complexUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/complex"
@@ -38,7 +38,7 @@ func Run(cfg *config.ProjectConfig) {
 	if err != nil {
 		log.Fatalf("cannot create pgx pool: %v", err)
 	}
-	em := email.NewSMTPSender(config.Config.SMTP.Host, config.Config.SMTP.Port, config.Config.SMTP.Email, config.Config.SMTP.Pwd)
+	em := smtp.NewSMTPSender(config.Config.SMTP.Host, config.Config.SMTP.Port, config.Config.SMTP.Email, config.Config.SMTP.Pwd)
 
 	uow := uowSql.NewSQLStorage(pool)
 	tokenRepo := tokensRepo.NewTokenRepo(rdb)

@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
 )
 

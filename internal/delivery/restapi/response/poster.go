@@ -1,6 +1,6 @@
 package response
 
-import "github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
+import "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 
 type PostersResponse struct {
 	Len     int                 `json:"len"`

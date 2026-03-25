@@ -10,11 +10,11 @@ import (
 	"bou.ke/monkey"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/mocks"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
+	tokens "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/jwt"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/pwd"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/tokens"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"

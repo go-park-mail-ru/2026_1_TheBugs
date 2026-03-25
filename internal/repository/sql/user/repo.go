@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	repository "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/jackc/pgx/v5"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"

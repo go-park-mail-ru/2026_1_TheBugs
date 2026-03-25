@@ -12,13 +12,12 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/domains"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
+	tokens "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/jwt"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/oauth"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/validator"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/pwd"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/tokens"
 	"github.com/google/uuid"
 )
 
@@ -354,7 +353,7 @@ func (uc AuthUseCase) SendVerificationCode(ctx context.Context, email string) (s
 	seed := rand.New(rand.NewSource(time.Now().UnixNano()))
 	code := fmt.Sprintf("%05d", seed.Intn(100000))
 	sessionId := fmt.Sprintf("%010x", seed.Int())[:10]
-	err = uc.cache.CreateRecoverSession(ctx, sessionId, domains.RecoverSession{Email: email, Code: code, Attempts: 0, Verified: false}, config.Config.JWT.RecoverExp)
+	err = uc.cache.CreateRecoverSession(ctx, sessionId, entity.RecoverSession{Email: email, Code: code, Attempts: 0, Verified: false}, config.Config.JWT.RecoverExp)
 	if err != nil {
 		return "", fmt.Errorf("uc.cache.CreateRecoverSession: %w", err)
 	}

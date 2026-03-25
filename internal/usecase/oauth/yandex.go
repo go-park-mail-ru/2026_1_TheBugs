@@ -13,7 +13,7 @@ import (
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 )
 
 const oAuthYandexURI = "https://oauth.yandex.ru/token"
