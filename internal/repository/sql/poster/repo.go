@@ -41,7 +41,6 @@ func (r *PosterRepo) GetAll(ctx context.Context, filters dto.PostersFiltersDTO) 
 		query += ` JOIN utility_companies uc ON b.company_id = uc.id 
 		WHERE uc.alias = $` + fmt.Sprintf("%d", argIndex)
 		args = append(args, *filters.UtilityCompany)
-		argIndex++
 	}
 
 	query += ` ORDER BY p.created_at DESC LIMIT $1 OFFSET $2`

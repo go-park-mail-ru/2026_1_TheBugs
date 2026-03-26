@@ -232,10 +232,9 @@ func (uc AuthUseCase) LogoutUseCase(ctx context.Context, logoutCred dto.LogoutDT
 		return fmt.Errorf("uc.authRepo.DeleteToken: %w", entity.JWTError)
 	}
 	ttl := config.Config.JWT.AccessExp
-	if ttl > 0 {
-		if err := uc.cache.SetBlacklist(ctx, accessData.ID, ttl); err != nil {
-			return fmt.Errorf("uc.authRepo.BlacklistToken: %w", entity.JWTError)
-		}
+
+	if err := uc.cache.SetBlacklist(ctx, accessData.ID, ttl); err != nil {
+		return fmt.Errorf("uc.authRepo.BlacklistToken: %w", entity.JWTError)
 	}
 	return nil
 }
@@ -358,13 +357,10 @@ func (uc AuthUseCase) SendVerificationCode(ctx context.Context, email string) (s
 	if err != nil {
 		return "", fmt.Errorf("uc.cache.CreateRecoverSession: %w", err)
 	}
-	go func(ctx context.Context) error {
-		log.Info("send code")
-		if err := uc.sender.SendCode(context.Background(), email, code); err != nil {
-			log.Errorf("send code: %v", err)
-		}
-		return nil
-	}(ctx)
+	log.Info("send code")
+	if err := uc.sender.SendCode(ctx, email, code); err != nil {
+		log.Errorf("send code: %v", err)
+	}
 
 	return sessionId, nil
 }

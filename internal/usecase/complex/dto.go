@@ -43,7 +43,7 @@ type UtilityCompanyCardDTO struct {
 	Alias       string  `json:"alias"`
 }
 
-func posterToUtilityCompanyCardDTO(poster *entity.PosterById) *UtilityCompanyCardDTO {
+func PosterToUtilityCompanyCardDTO(poster *entity.PosterById) *UtilityCompanyCardDTO {
 	if poster.CompanyID == nil {
 		return nil
 	}
