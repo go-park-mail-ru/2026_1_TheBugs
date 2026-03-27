@@ -285,6 +285,21 @@ func (m *MockUtilityCompanyRepo) EXPECT() *MockUtilityCompanyRepoMockRecorder {
 	return m.recorder
 }
 
+// GetAllByCompanyID mocks base method.
+func (m *MockUtilityCompanyRepo) GetAllByCompanyID(ctx context.Context, companyID int) ([]dto.UtilityCompanyCardDTO, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllByCompanyID", ctx, companyID)
+	ret0, _ := ret[0].([]dto.UtilityCompanyCardDTO)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllByCompanyID indicates an expected call of GetAllByCompanyID.
+func (mr *MockUtilityCompanyRepoMockRecorder) GetAllByCompanyID(ctx, companyID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllByCompanyID", reflect.TypeOf((*MockUtilityCompanyRepo)(nil).GetAllByCompanyID), ctx, companyID)
+}
+
 // GetByAlias mocks base method.
 func (m *MockUtilityCompanyRepo) GetByAlias(ctx context.Context, alias string) (*dto.UtilityCompanyDTO, error) {
 	m.ctrl.T.Helper()
@@ -298,6 +313,21 @@ func (m *MockUtilityCompanyRepo) GetByAlias(ctx context.Context, alias string) (
 func (mr *MockUtilityCompanyRepoMockRecorder) GetByAlias(ctx, alias interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByAlias", reflect.TypeOf((*MockUtilityCompanyRepo)(nil).GetByAlias), ctx, alias)
+}
+
+// GetCompanies mocks base method.
+func (m *MockUtilityCompanyRepo) GetCompanies(ctx context.Context) ([]dto.DeveloperDTO, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCompanies", ctx)
+	ret0, _ := ret[0].([]dto.DeveloperDTO)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCompanies indicates an expected call of GetCompanies.
+func (mr *MockUtilityCompanyRepoMockRecorder) GetCompanies(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCompanies", reflect.TypeOf((*MockUtilityCompanyRepo)(nil).GetCompanies), ctx)
 }
 
 // MockUnitOfWork is a mock of UnitOfWork interface.

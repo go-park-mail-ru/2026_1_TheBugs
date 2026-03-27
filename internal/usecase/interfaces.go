@@ -34,6 +34,8 @@ type AuthRepo interface {
 
 type UtilityCompanyRepo interface {
 	GetByAlias(ctx context.Context, alias string) (*dto.UtilityCompanyDTO, error)
+	GetAllByDeveloperID(ctx context.Context, companyID int) ([]dto.UtilityCompanyCardDTO, error)
+	GetAllDevelopers(ctx context.Context) ([]dto.DeveloperDTO, error)
 }
 
 type UnitOfWork interface {

@@ -586,6 +586,59 @@ const docTemplate = `{
                 }
             }
         },
+        "/utility-companies/": {
+            "get": {
+                "description": "Returns utility complexies by developers",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "utility_complexes"
+                ],
+                "summary": "Get utility complexies by developers",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Developer id",
+                        "name": "developer_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.CompaniesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/utility-companies/by-alias/{alias}": {
             "get": {
                 "description": "Returns utility complex details along with its photos by the given alias",
@@ -638,6 +691,50 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/utility-companies/developers": {
+            "get": {
+                "description": "Returns developers",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "utility_complexes"
+                ],
+                "summary": "Get developers",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.DevelopersResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -658,7 +755,21 @@ const docTemplate = `{
                 "avatar_url": {
                     "type": "string"
                 },
+                "developer_id": {
+                    "type": "integer"
+                },
                 "developer_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.FacilityDTO": {
+            "type": "object",
+            "properties": {
+                "alias": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }
@@ -780,6 +891,12 @@ const docTemplate = `{
                 },
                 "district": {
                     "type": "string"
+                },
+                "facilities": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.FacilityDTO"
+                    }
                 },
                 "flat": {
                     "$ref": "#/definitions/dto.FlatDTO"
@@ -906,6 +1023,34 @@ const docTemplate = `{
             "properties": {
                 "code": {
                     "type": "string"
+                }
+            }
+        },
+        "response.CompaniesResponse": {
+            "type": "object",
+            "properties": {
+                "len": {
+                    "type": "integer"
+                },
+                "utility_companies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.UtilityCompanyCardDTO"
+                    }
+                }
+            }
+        },
+        "response.DevelopersResponse": {
+            "type": "object",
+            "properties": {
+                "developers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.DeveloperDTO"
+                    }
+                },
+                "len": {
+                    "type": "integer"
                 }
             }
         },

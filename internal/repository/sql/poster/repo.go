@@ -106,6 +106,10 @@ func (r *PosterRepo) GetByAlias(ctx context.Context, posterAlias string) (*entit
 	if err != nil {
 		return &poster, repository.HandelPgErrors(err)
 	}
+	poster.Facilities, err = getPosterFacilities(r, ctx, poster.ID)
+	if err != nil {
+		return &poster, repository.HandelPgErrors(err)
+	}
 
 	return &poster, nil
 }
@@ -155,4 +159,30 @@ func getPosterImages(r *PosterRepo, ctx context.Context, id int) ([]entity.Poste
 	}
 
 	return images, rows.Err()
+}
+
+func getPosterFacilities(r *PosterRepo, ctx context.Context, id int) ([]entity.Facility, error) {
+	query := `
+		SELECT f.id, f.name, f.alias
+		FROM facilities f 
+		JOIN facility_property fp ON fp.facility_id = f.id
+		JOIN property pr ON pr.id = fp.property_id
+		JOIN posters pt ON pt.property_id = pr.id
+		WHERE pt.id = $1
+		ORDER BY f.name
+	`
+
+	rows, err := r.pool.Query(ctx, query, id)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	defer rows.Close()
+
+	facilities, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.Facility])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return facilities, rows.Err()
 }
