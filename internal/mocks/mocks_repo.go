@@ -314,6 +314,36 @@ func (m *MockUtilityCompanyRepo) EXPECT() *MockUtilityCompanyRepoMockRecorder {
 	return m.recorder
 }
 
+// GetAllByDeveloperID mocks base method.
+func (m *MockUtilityCompanyRepo) GetAllByDeveloperID(ctx context.Context, companyID int) ([]dto.UtilityCompanyCardDTO, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllByDeveloperID", ctx, companyID)
+	ret0, _ := ret[0].([]dto.UtilityCompanyCardDTO)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllByDeveloperID indicates an expected call of GetAllByDeveloperID.
+func (mr *MockUtilityCompanyRepoMockRecorder) GetAllByDeveloperID(ctx, companyID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllByDeveloperID", reflect.TypeOf((*MockUtilityCompanyRepo)(nil).GetAllByDeveloperID), ctx, companyID)
+}
+
+// GetAllDevelopers mocks base method.
+func (m *MockUtilityCompanyRepo) GetAllDevelopers(ctx context.Context) ([]dto.DeveloperDTO, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllDevelopers", ctx)
+	ret0, _ := ret[0].([]dto.DeveloperDTO)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllDevelopers indicates an expected call of GetAllDevelopers.
+func (mr *MockUtilityCompanyRepoMockRecorder) GetAllDevelopers(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllDevelopers", reflect.TypeOf((*MockUtilityCompanyRepo)(nil).GetAllDevelopers), ctx)
+}
+
 // GetByAlias mocks base method.
 func (m *MockUtilityCompanyRepo) GetByAlias(ctx context.Context, alias string) (*dto.UtilityCompanyDTO, error) {
 	m.ctrl.T.Helper()

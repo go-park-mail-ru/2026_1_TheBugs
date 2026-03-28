@@ -13,6 +13,13 @@ type UtilityCompany struct {
 	Description string             `db:"description"`
 }
 
+type UtilityCompanyCard struct {
+	ID          int     `db:"id"`
+	Alias       string  `db:"alias"`
+	AvatarURL   *string `db:"avatar_url"`
+	CompanyName string  `db:"company_name"`
+}
+
 type UtilityCompanyPhoto struct {
 	ID               *int    `db:"id"`
 	UtilityCompanyID *int    `db:"utility_company_id"`
