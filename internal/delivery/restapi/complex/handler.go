@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/response"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/complex"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 )
 
 type UtilityCompanyHandler struct {
@@ -31,7 +31,7 @@ func NewUtilityCompanyHandler(uc *complex.UtilityCompanyUseCase) *UtilityCompany
 // @Router /utility-companies/by-alias/{alias} [get]
 func (h *UtilityCompanyHandler) GetUtilityCompany(w http.ResponseWriter, r *http.Request) {
 	op := "UtilityCompanyHandler.GetUtilityCompany"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	alias, err := utils.ParseAliasFromRequest(r)
 	if err != nil {
@@ -61,7 +61,7 @@ func (h *UtilityCompanyHandler) GetUtilityCompany(w http.ResponseWriter, r *http
 // @Router /utility-companies/developers [get]
 func (h *UtilityCompanyHandler) GetAllDevelopers(w http.ResponseWriter, r *http.Request) {
 	op := "UtilityCompanyHandler.GetAllDevelopers"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 	developers, err := h.uc.GetAllDevelopers(r.Context())
 	if err != nil {
 		log.Printf("h.uc.GetAllDevelopers: %v", err)
@@ -91,7 +91,7 @@ func (h *UtilityCompanyHandler) GetAllDevelopers(w http.ResponseWriter, r *http.
 // @Router /utility-companies/ [get]
 func (h *UtilityCompanyHandler) GetUtilityCompaniesByDeveloper(w http.ResponseWriter, r *http.Request) {
 	op := "UtilityCompanyHandler.GetUtilityCompaniesByDeveloper"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	val := r.URL.Query().Get("developer_id")
 	if val == "" {

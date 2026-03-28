@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	repository "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 	"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -23,7 +23,7 @@ func NewPosterRepo(pool repository.DB) *PosterRepo {
 }
 
 func (r *PosterRepo) GetAll(ctx context.Context, filters dto.PostersFiltersDTO) ([]entity.Poster, error) {
-	log := middleware.GetLogger(ctx).WithField("op", "PosterRepo.GetAll")
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetAll")
 	log.Info("start db query")
 	query := `
         SELECT p.id, p.price, p.avatar_url,
@@ -57,7 +57,7 @@ func (r *PosterRepo) GetAll(ctx context.Context, filters dto.PostersFiltersDTO) 
 		return nil, repository.HandelPgErrors(err)
 	}
 
-	return posters, rows.Err()
+	return posters, nil
 }
 
 func (r *PosterRepo) CountPosters(ctx context.Context) (int, error) {
@@ -136,6 +136,31 @@ func (r *PosterRepo) GetFlatByPropetyID(ctx context.Context, propertyID int) (*e
 	}
 
 	return &flat, nil
+}
+
+func (r *PosterRepo) GetByUserID(ctx context.Context, userID int) ([]entity.Poster, error) {
+	sql := `
+		SELECT p.id, p.price, p.avatar_url,
+               b.address, m.station_name, prop.area, f.floor, p.alias
+        FROM posters p
+        JOIN property prop ON prop.id = p.property_id
+        JOIN flat f ON f.property_id = p.id
+        JOIN property_categories pc ON pc.id = prop.category_id
+        JOIN buildings b ON b.id = prop.building_id
+        JOIN metro_stations m ON b.metro_station_id = m.id
+		WHERE p.user_id = $1
+		ORDER BY p.created_at DESC
+	`
+	rows, err := r.pool.Query(ctx, sql, userID)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+	posters, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.Poster])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+	return posters, nil
+
 }
 
 func getPosterImages(r *PosterRepo, ctx context.Context, id int) ([]entity.PosterImage, error) {

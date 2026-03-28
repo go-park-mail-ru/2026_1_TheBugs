@@ -10,13 +10,13 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/domains"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/oauth"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/validator"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/pwd"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/tokens"
 	"github.com/google/uuid"
@@ -333,7 +333,7 @@ const MaxAttemptsRecovery = 5
 
 func (uc AuthUseCase) SendVerificationCode(ctx context.Context, email string) (string, error) {
 	op := "AuthUseCase.SendVerificationCode"
-	log := middleware.GetLogger(ctx).WithField("op", op)
+	log := ctxLogger.GetLogger(ctx).WithField("op", op)
 
 	_, err := uc.uow.Users().GetByEmail(ctx, email)
 	if err != nil {

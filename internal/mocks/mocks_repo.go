@@ -181,6 +181,21 @@ func (mr *MockPosterRepoMockRecorder) GetByAlias(ctx, posterAlias interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByAlias", reflect.TypeOf((*MockPosterRepo)(nil).GetByAlias), ctx, posterAlias)
 }
 
+// GetByUserID mocks base method.
+func (m *MockPosterRepo) GetByUserID(ctx context.Context, userID int) ([]entity.Poster, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByUserID", ctx, userID)
+	ret0, _ := ret[0].([]entity.Poster)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByUserID indicates an expected call of GetByUserID.
+func (mr *MockPosterRepoMockRecorder) GetByUserID(ctx, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUserID", reflect.TypeOf((*MockPosterRepo)(nil).GetByUserID), ctx, userID)
+}
+
 // GetFlatByPropetyID mocks base method.
 func (m *MockPosterRepo) GetFlatByPropetyID(ctx context.Context, propertyID int) (*entity.Flat, error) {
 	m.ctrl.T.Helper()
@@ -285,19 +300,34 @@ func (m *MockUtilityCompanyRepo) EXPECT() *MockUtilityCompanyRepoMockRecorder {
 	return m.recorder
 }
 
-// GetAllByCompanyID mocks base method.
-func (m *MockUtilityCompanyRepo) GetAllByCompanyID(ctx context.Context, companyID int) ([]dto.UtilityCompanyCardDTO, error) {
+// GetAllByDeveloperID mocks base method.
+func (m *MockUtilityCompanyRepo) GetAllByDeveloperID(ctx context.Context, companyID int) ([]dto.UtilityCompanyCardDTO, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllByCompanyID", ctx, companyID)
+	ret := m.ctrl.Call(m, "GetAllByDeveloperID", ctx, companyID)
 	ret0, _ := ret[0].([]dto.UtilityCompanyCardDTO)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetAllByCompanyID indicates an expected call of GetAllByCompanyID.
-func (mr *MockUtilityCompanyRepoMockRecorder) GetAllByCompanyID(ctx, companyID interface{}) *gomock.Call {
+// GetAllByDeveloperID indicates an expected call of GetAllByDeveloperID.
+func (mr *MockUtilityCompanyRepoMockRecorder) GetAllByDeveloperID(ctx, companyID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllByCompanyID", reflect.TypeOf((*MockUtilityCompanyRepo)(nil).GetAllByCompanyID), ctx, companyID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllByDeveloperID", reflect.TypeOf((*MockUtilityCompanyRepo)(nil).GetAllByDeveloperID), ctx, companyID)
+}
+
+// GetAllDevelopers mocks base method.
+func (m *MockUtilityCompanyRepo) GetAllDevelopers(ctx context.Context) ([]dto.DeveloperDTO, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllDevelopers", ctx)
+	ret0, _ := ret[0].([]dto.DeveloperDTO)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllDevelopers indicates an expected call of GetAllDevelopers.
+func (mr *MockUtilityCompanyRepoMockRecorder) GetAllDevelopers(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllDevelopers", reflect.TypeOf((*MockUtilityCompanyRepo)(nil).GetAllDevelopers), ctx)
 }
 
 // GetByAlias mocks base method.
@@ -313,21 +343,6 @@ func (m *MockUtilityCompanyRepo) GetByAlias(ctx context.Context, alias string) (
 func (mr *MockUtilityCompanyRepoMockRecorder) GetByAlias(ctx, alias interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByAlias", reflect.TypeOf((*MockUtilityCompanyRepo)(nil).GetByAlias), ctx, alias)
-}
-
-// GetCompanies mocks base method.
-func (m *MockUtilityCompanyRepo) GetCompanies(ctx context.Context) ([]dto.DeveloperDTO, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCompanies", ctx)
-	ret0, _ := ret[0].([]dto.DeveloperDTO)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetCompanies indicates an expected call of GetCompanies.
-func (mr *MockUtilityCompanyRepoMockRecorder) GetCompanies(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCompanies", reflect.TypeOf((*MockUtilityCompanyRepo)(nil).GetCompanies), ctx)
 }
 
 // MockUnitOfWork is a mock of UnitOfWork interface.

@@ -74,3 +74,11 @@ func (uc *PosterUseCase) GetPosterByAliasUseCase(ctx context.Context, posterAlia
 
 	return posterDTO, nil
 }
+
+func (uc *PosterUseCase) GetPosterByUserID(ctx context.Context, userID int) ([]dto.PosterCardDTO, error) {
+	posters, err := uc.repo.GetByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	return dto.PostersToPostersDTO(posters), nil
+}

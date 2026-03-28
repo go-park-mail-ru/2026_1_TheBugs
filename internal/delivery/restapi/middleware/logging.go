@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/domains"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 	"github.com/sirupsen/logrus"
 )
 
@@ -25,8 +26,8 @@ func LoggingMiddleware(logger *logrus.Logger) func(next http.Handler) http.Handl
 				"path":        r.URL.Path,
 			})
 
-			ctxLogger := logger.WithField("request_id", reqId)
-			ctx = SetLogger(ctx, ctxLogger)
+			log := logger.WithField("request_id", reqId)
+			ctx = ctxLogger.SetLogger(ctx, log)
 
 			midLogger.Info("request started")
 			startTime := time.Now()
@@ -38,16 +39,4 @@ func LoggingMiddleware(logger *logrus.Logger) func(next http.Handler) http.Handl
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
-}
-
-func SetLogger(ctx context.Context, logger *logrus.Entry) context.Context {
-	return context.WithValue(ctx, domains.LoggerCtx{}, logger)
-}
-
-func GetLogger(ctx context.Context) *logrus.Entry {
-	log, ok := ctx.Value(domains.LoggerCtx{}).(*logrus.Entry)
-	if !ok {
-		return logrus.NewEntry(logrus.New())
-	}
-	return log
 }
