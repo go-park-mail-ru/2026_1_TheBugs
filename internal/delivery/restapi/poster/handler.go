@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/response"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 )
 
 const defaultLimit = "12"
@@ -39,7 +39,7 @@ func NewPosterHandler(uc *poster.PosterUseCase) *PosterHandler {
 // @Router /posters [get]
 func (h *PosterHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	op := "PosterHandler.GetAll"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	var params dto.PostersFiltersDTO
 
@@ -83,11 +83,10 @@ func (h *PosterHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postersLen := len(posters)
-
-	var response response.PostersResponse
-	response.Len = postersLen
-	response.Posters = posters
+	response := response.PostersResponse{
+		Posters: posters,
+		Len:     len(posters),
+	}
 
 	utils.JSONResponse(w, http.StatusOK, response)
 
@@ -106,7 +105,7 @@ func (h *PosterHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 // @Router /posters/by-alias/{alias} [get]
 func (h *PosterHandler) GetPoster(w http.ResponseWriter, r *http.Request) {
 	op := "PosterHandler.GetPoster"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	alias, err := utils.ParseAliasFromRequest(r)
 	if err != nil {
@@ -125,4 +124,40 @@ func (h *PosterHandler) GetPoster(w http.ResponseWriter, r *http.Request) {
 	response.Poster = poster
 
 	utils.JSONResponse(w, http.StatusOK, response)
+}
+
+// @Summary Get list of user`s posters
+// @Description Returns the number of retrieved posters and their list
+// @Tags posters
+// @Produce json
+// @Security     BearerAuth
+// @Success 200 {object} response.PosterResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/me [get]
+func (h *PosterHandler) GetPostersByUser(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GetPostersByUser"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	userID, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.Errorf("h.uc.GetPosterByAliasUseCase: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	posters, err := h.uc.GetPosterByUserID(r.Context(), userID)
+	if err != nil {
+		log.Errorf("h.uc.GetPosterByUserID: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+	response := response.PostersResponse{
+		Posters: posters,
+		Len:     len(posters),
+	}
+	utils.JSONResponse(w, http.StatusOK, response)
+
 }

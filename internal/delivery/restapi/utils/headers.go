@@ -1,9 +1,13 @@
 package utils
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/domains"
 )
 
 func GetAccessToken(r *http.Request) (string, error) {
@@ -23,4 +27,18 @@ func GetAccessToken(r *http.Request) (string, error) {
 	}
 
 	return token, nil
+}
+
+func GetUserID(ctx context.Context) (int, error) {
+	val := ctx.Value(domains.UserID{})
+	userID, ok := val.(int)
+	fmt.Println(val)
+	if !ok {
+		return 0, fmt.Errorf("wrong userID type %T", userID)
+	}
+	return userID, nil
+}
+
+func SetUserID(ctx context.Context, userID int) context.Context {
+	return context.WithValue(ctx, domains.UserID{}, userID)
 }
