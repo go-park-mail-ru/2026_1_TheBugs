@@ -10,9 +10,8 @@ import (
 	time "time"
 
 	entity "github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
-	domains "github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/domains"
-	dto "github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	usecase "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
+	dto "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -181,6 +180,21 @@ func (mr *MockPosterRepoMockRecorder) GetByAlias(ctx, posterAlias interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByAlias", reflect.TypeOf((*MockPosterRepo)(nil).GetByAlias), ctx, posterAlias)
 }
 
+// GetByUserID mocks base method.
+func (m *MockPosterRepo) GetByUserID(ctx context.Context, userID int) ([]entity.Poster, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByUserID", ctx, userID)
+	ret0, _ := ret[0].([]entity.Poster)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByUserID indicates an expected call of GetByUserID.
+func (mr *MockPosterRepoMockRecorder) GetByUserID(ctx, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUserID", reflect.TypeOf((*MockPosterRepo)(nil).GetByUserID), ctx, userID)
+}
+
 // GetFlatByPropetyID mocks base method.
 func (m *MockPosterRepo) GetFlatByPropetyID(ctx context.Context, propertyID int) (*entity.Flat, error) {
 	m.ctrl.T.Helper()
@@ -194,6 +208,21 @@ func (m *MockPosterRepo) GetFlatByPropetyID(ctx context.Context, propertyID int)
 func (mr *MockPosterRepoMockRecorder) GetFlatByPropetyID(ctx, propertyID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFlatByPropetyID", reflect.TypeOf((*MockPosterRepo)(nil).GetFlatByPropetyID), ctx, propertyID)
+}
+
+// GetMetroStationByRadius mocks base method.
+func (m *MockPosterRepo) GetMetroStationByRadius(ctx context.Context, buidingGeo dto.GeographyDTO, radius entity.Metre) ([]entity.MetroStation, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMetroStationByRadius", ctx, buidingGeo, radius)
+	ret0, _ := ret[0].([]entity.MetroStation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMetroStationByRadius indicates an expected call of GetMetroStationByRadius.
+func (mr *MockPosterRepoMockRecorder) GetMetroStationByRadius(ctx, buidingGeo, radius interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMetroStationByRadius", reflect.TypeOf((*MockPosterRepo)(nil).GetMetroStationByRadius), ctx, buidingGeo, radius)
 }
 
 // MockAuthRepo is a mock of AuthRepo interface.
@@ -417,7 +446,7 @@ func (m *MockСache) EXPECT() *MockСacheMockRecorder {
 }
 
 // CreateRecoverSession mocks base method.
-func (m *MockСache) CreateRecoverSession(ctx context.Context, sessionID string, data domains.RecoverSession, ttl time.Duration) error {
+func (m *MockСache) CreateRecoverSession(ctx context.Context, sessionID string, data entity.RecoverSession, ttl time.Duration) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateRecoverSession", ctx, sessionID, data, ttl)
 	ret0, _ := ret[0].(error)
@@ -445,10 +474,10 @@ func (mr *MockСacheMockRecorder) DeleteRecoverSession(ctx, sessionID interface{
 }
 
 // GetRecoverSession mocks base method.
-func (m *MockСache) GetRecoverSession(ctx context.Context, sessionID string) (*domains.RecoverSession, error) {
+func (m *MockСache) GetRecoverSession(ctx context.Context, sessionID string) (*entity.RecoverSession, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRecoverSession", ctx, sessionID)
-	ret0, _ := ret[0].(*domains.RecoverSession)
+	ret0, _ := ret[0].(*entity.RecoverSession)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

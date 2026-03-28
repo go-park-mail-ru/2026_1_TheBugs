@@ -5,8 +5,7 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/domains"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 )
 
 //go:generate mockgen -source=interfaces.go -destination=../mocks/mocks_repo.go -package=mocks
@@ -25,6 +24,7 @@ type PosterRepo interface {
 	GetByAlias(ctx context.Context, posterAlias string) (*entity.PosterById, error)
 	GetFlatByPropetyID(ctx context.Context, propertyID int) (*entity.Flat, error)
 	GetByUserID(ctx context.Context, userID int) ([]entity.Poster, error)
+	GetMetroStationByRadius(ctx context.Context, buidingGeo dto.GeographyDTO, radius entity.Metre) ([]entity.MetroStation, error)
 }
 
 type AuthRepo interface {
@@ -48,8 +48,8 @@ type UnitOfWork interface {
 type Сache interface {
 	SetBlacklist(ctx context.Context, val string, ttl time.Duration) error
 	IsBlacklisted(ctx context.Context, val string) (bool, error)
-	CreateRecoverSession(ctx context.Context, sessionID string, data domains.RecoverSession, ttl time.Duration) error
-	GetRecoverSession(ctx context.Context, sessionID string) (*domains.RecoverSession, error)
+	CreateRecoverSession(ctx context.Context, sessionID string, data entity.RecoverSession, ttl time.Duration) error
+	GetRecoverSession(ctx context.Context, sessionID string) (*entity.RecoverSession, error)
 	DeleteRecoverSession(ctx context.Context, sessionID string) error
 	IncrementRecoverAttempts(ctx context.Context, sessionID string) (int64, error)
 	SetRecoverVerified(ctx context.Context, sessionID string, verified bool) error

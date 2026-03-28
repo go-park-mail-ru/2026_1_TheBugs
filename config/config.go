@@ -3,11 +3,11 @@ package config
 import (
 	"crypto/rsa"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 )
 
 var Config ProjectConfig
@@ -88,11 +88,11 @@ type (
 	}
 )
 
-func Read() error {
+func Read(log *logrus.Logger) error {
 	var err error
 	// c:/Users/Артемий/OneDrive/Desktop/code/2026_1_TheBugs/ этот оставил для дебага у вас будет свой
 	if err := godotenv.Load(".env"); err != nil {
-		log.Printf("No .env file found: %v", err)
+		log.Warnf("No .env file found: %v", err)
 	}
 	if err = cleanenv.ReadConfig("config/config.yaml", &Config); err != nil {
 		return fmt.Errorf("error while reading application configuration: %w", err)

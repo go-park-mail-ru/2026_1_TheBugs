@@ -14,8 +14,8 @@ import (
 	authHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/auth"
 	complexHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/complex"
 	posterHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/email"
 	tokensRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/redis/tokens"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/smtp"
 	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
 	authUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
 	complexUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/complex"
@@ -29,17 +29,15 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func Run(cfg *config.ProjectConfig) {
+func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	dsn := dsn.BuildDSN(cfg.Postgres)
 	rdb := redis.NewClient(&redis.Options{Addr: fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port), Password: cfg.Redis.Password, DB: cfg.Redis.DB})
-	logger := logrus.New()
 
 	pool, err := pgxpool.New(context.Background(), dsn)
 	if err != nil {
 		log.Fatalf("cannot create pgx pool: %v", err)
 	}
-
-	em := email.NewSMTPSender(config.Config.SMTP.Host, config.Config.SMTP.Port, config.Config.SMTP.Email, config.Config.SMTP.Pwd)
+	senderRepo := smtp.NewSMTPSender(config.Config.SMTP.Host, config.Config.SMTP.Port, config.Config.SMTP.Email, config.Config.SMTP.Pwd)
 
 	uow := uowSql.NewSQLStorage(pool)
 	tokenRepo := tokensRepo.NewTokenRepo(rdb)
@@ -47,14 +45,14 @@ func Run(cfg *config.ProjectConfig) {
 	posterUC := posterUC.NewPosterUseCase(uow.Posters())
 	posterHandler := posterHandler.NewPosterHandler(posterUC)
 
-	authUC := authUC.NewAuthUseCase(uow, tokenRepo, em)
+	authUC := authUC.NewAuthUseCase(uow, tokenRepo, senderRepo)
 	authHandler := authHandler.NewAuthHandler(authUC)
 
 	UtilityCompanyUC := complexUC.NewUtilityCompanyUseCase(uow.UtilityCompany())
-	UtilityCompanyHandler := complexHandler.NewUtilityCompanyHandler(UtilityCompanyUC)
+	utilityCompanyHandler := complexHandler.NewUtilityCompanyHandler(UtilityCompanyUC)
 
 	r := mux.NewRouter()
-	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, UtilityCompanyHandler)
+	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler)
 	serverAddress := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	srv := &http.Server{
 		Handler:      r,
@@ -64,10 +62,10 @@ func Run(cfg *config.ProjectConfig) {
 		IdleTimeout:  cfg.IdleTimeout,
 	}
 
-	log.Printf("start listen: %s \n", serverAddress)
+	logger.Infof("start listen: %s", serverAddress)
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
-			log.Println(err)
+			logger.Error(err)
 		}
 	}()
 	c := make(chan os.Signal, 1)
@@ -76,7 +74,7 @@ func Run(cfg *config.ProjectConfig) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer cancel()
 	_ = srv.Shutdown(ctx)
-	log.Println("shutting down")
+	logger.Warn("shutting down")
 	os.Exit(0)
 
 }
