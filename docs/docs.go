@@ -635,29 +635,13 @@ const docTemplate = `{
                 }
             }
         },
-<<<<<<< HEAD
-        "/utility-companies/": {
-            "get": {
-                "description": "Returns utility complexies by developers",
-=======
         "/posters/metro-stations": {
             "get": {
                 "description": "Returns the metro stations",
->>>>>>> 976773329012c9e81be0dd6c7efb961b866473d2
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-<<<<<<< HEAD
-                    "utility_complexes"
-                ],
-                "summary": "Get utility complexies by developers",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Developer id",
-                        "name": "developer_id",
-=======
                     "posters"
                 ],
                 "summary": "Get metro stations by geo",
@@ -675,7 +659,6 @@ const docTemplate = `{
                         "format": "float32",
                         "description": "lon",
                         "name": "lon",
->>>>>>> 976773329012c9e81be0dd6c7efb961b866473d2
                         "in": "query",
                         "required": true
                     }
@@ -684,11 +667,60 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-<<<<<<< HEAD
-                            "$ref": "#/definitions/response.CompaniesResponse"
-=======
                             "$ref": "#/definitions/response.MetroResponse"
->>>>>>> 976773329012c9e81be0dd6c7efb961b866473d2
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/utility-companies/": {
+            "get": {
+                "description": "Returns utility complexies by developers",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "utility_complexes"
+                ],
+                "summary": "Get utility complexies by developers",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Developer id",
+                        "name": "developer_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.CompaniesResponse"
                         }
                     },
                     "400": {

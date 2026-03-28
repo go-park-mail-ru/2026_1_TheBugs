@@ -675,17 +675,6 @@ paths:
       summary: Get list of user`s posters
       tags:
       - posters
-<<<<<<< HEAD
-  /utility-companies/:
-    get:
-      description: Returns utility complexies by developers
-      parameters:
-      - description: Developer id
-        in: query
-        name: developer_id
-        required: true
-        type: integer
-=======
   /posters/metro-stations:
     get:
       description: Returns the metro stations
@@ -702,18 +691,13 @@ paths:
         name: lon
         required: true
         type: number
->>>>>>> 976773329012c9e81be0dd6c7efb961b866473d2
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-<<<<<<< HEAD
-            $ref: '#/definitions/response.CompaniesResponse'
-=======
             $ref: '#/definitions/response.MetroResponse'
->>>>>>> 976773329012c9e81be0dd6c7efb961b866473d2
         "400":
           description: Bad Request
           schema:
@@ -730,15 +714,44 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
-<<<<<<< HEAD
-      summary: Get utility complexies by developers
-      tags:
-      - utility_complexes
-=======
       summary: Get metro stations by geo
       tags:
       - posters
->>>>>>> 976773329012c9e81be0dd6c7efb961b866473d2
+  /utility-companies/:
+    get:
+      description: Returns utility complexies by developers
+      parameters:
+      - description: Developer id
+        in: query
+        name: developer_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CompaniesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get utility complexies by developers
+      tags:
+      - utility_complexes
   /utility-companies/by-alias/{alias}:
     get:
       description: Returns utility complex details along with its photos by the given
