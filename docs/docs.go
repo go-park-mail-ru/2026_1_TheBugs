@@ -635,13 +635,20 @@ const docTemplate = `{
                 }
             }
         },
+<<<<<<< HEAD
         "/utility-companies/": {
             "get": {
                 "description": "Returns utility complexies by developers",
+=======
+        "/posters/metro-stations": {
+            "get": {
+                "description": "Returns the metro stations",
+>>>>>>> 976773329012c9e81be0dd6c7efb961b866473d2
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
+<<<<<<< HEAD
                     "utility_complexes"
                 ],
                 "summary": "Get utility complexies by developers",
@@ -650,6 +657,25 @@ const docTemplate = `{
                         "type": "integer",
                         "description": "Developer id",
                         "name": "developer_id",
+=======
+                    "posters"
+                ],
+                "summary": "Get metro stations by geo",
+                "parameters": [
+                    {
+                        "type": "number",
+                        "format": "float32",
+                        "description": "lat",
+                        "name": "lat",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "format": "float32",
+                        "description": "lon",
+                        "name": "lon",
+>>>>>>> 976773329012c9e81be0dd6c7efb961b866473d2
                         "in": "query",
                         "required": true
                     }
@@ -658,7 +684,11 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
+<<<<<<< HEAD
                             "$ref": "#/definitions/response.CompaniesResponse"
+=======
+                            "$ref": "#/definitions/response.MetroResponse"
+>>>>>>> 976773329012c9e81be0dd6c7efb961b866473d2
                         }
                     },
                     "400": {
@@ -850,6 +880,17 @@ const docTemplate = `{
         },
         "dto.HouseDTO": {
             "type": "object"
+        },
+        "dto.MetroStationDTO": {
+            "type": "object",
+            "properties": {
+                "station_geo": {
+                    "$ref": "#/definitions/dto.GeographyDTO"
+                },
+                "station_name": {
+                    "type": "string"
+                }
+            }
         },
         "dto.OAuthCodeFlow": {
             "type": "object",
@@ -1111,6 +1152,20 @@ const docTemplate = `{
                 },
                 "error": {
                     "type": "string"
+                }
+            }
+        },
+        "response.MetroResponse": {
+            "type": "object",
+            "properties": {
+                "len": {
+                    "type": "integer"
+                },
+                "metro_stations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.MetroStationDTO"
+                    }
                 }
             }
         },

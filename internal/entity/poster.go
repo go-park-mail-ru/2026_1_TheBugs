@@ -57,6 +57,12 @@ type Flat struct {
 	Floor        int    `db:"floor"`
 }
 
+type MetroStation struct {
+	ID          int                `db:"id"`
+	StationName string             `db:"station_name"`
+	StationGEO  geo.GeographyPoint `db:"metro_geo"`
+}
+
 type Facility struct {
 	ID    int    `db:"id"`
 	Name  string `db:"name"`

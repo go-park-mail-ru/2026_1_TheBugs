@@ -6,14 +6,15 @@ import (
 	"log"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 )
 
 const (
 	MaxPostersLimit = 12
 	PropertyFlat    = "Квартиры" // TODO: делать по id а не по имени а то оно меняется либо поменять в
 	PropertyHouse   = "house"
+	MetroRadius     = 2500
 )
 
 type PosterUseCase struct {
@@ -81,4 +82,17 @@ func (uc *PosterUseCase) GetPosterByUserID(ctx context.Context, userID int) ([]d
 		return nil, err
 	}
 	return dto.PostersToPostersDTO(posters), nil
+}
+
+func (uc *PosterUseCase) GetMetroStationsByRadius(ctx context.Context, coords dto.GeographyDTO) ([]dto.MetroStationDTO, error) {
+	stations, err := uc.repo.GetMetroStationByRadius(ctx, coords, MetroRadius)
+	if err != nil {
+		return nil, fmt.Errorf("uc.repo.GetMetroStationByRadius: %s", err)
+	}
+	dtos := make([]dto.MetroStationDTO, 0, len(stations))
+	for _, d := range stations {
+		dtos = append(dtos, dto.MetroToMetroStationDTO(d))
+	}
+	return dtos, nil
+
 }

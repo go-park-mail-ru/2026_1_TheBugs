@@ -41,6 +41,13 @@ definitions:
     type: object
   dto.HouseDTO:
     type: object
+  dto.MetroStationDTO:
+    properties:
+      station_geo:
+        $ref: '#/definitions/dto.GeographyDTO'
+      station_name:
+        type: string
+    type: object
   dto.OAuthCodeFlow:
     properties:
       code:
@@ -211,6 +218,15 @@ definitions:
         type: string
       error:
         type: string
+    type: object
+  response.MetroResponse:
+    properties:
+      len:
+        type: integer
+      metro_stations:
+        items:
+          $ref: '#/definitions/dto.MetroStationDTO'
+        type: array
     type: object
   response.PosterResponse:
     properties:
@@ -659,6 +675,7 @@ paths:
       summary: Get list of user`s posters
       tags:
       - posters
+<<<<<<< HEAD
   /utility-companies/:
     get:
       description: Returns utility complexies by developers
@@ -668,13 +685,35 @@ paths:
         name: developer_id
         required: true
         type: integer
+=======
+  /posters/metro-stations:
+    get:
+      description: Returns the metro stations
+      parameters:
+      - description: lat
+        format: float32
+        in: query
+        name: lat
+        required: true
+        type: number
+      - description: lon
+        format: float32
+        in: query
+        name: lon
+        required: true
+        type: number
+>>>>>>> 976773329012c9e81be0dd6c7efb961b866473d2
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
+<<<<<<< HEAD
             $ref: '#/definitions/response.CompaniesResponse'
+=======
+            $ref: '#/definitions/response.MetroResponse'
+>>>>>>> 976773329012c9e81be0dd6c7efb961b866473d2
         "400":
           description: Bad Request
           schema:
@@ -691,9 +730,15 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+<<<<<<< HEAD
       summary: Get utility complexies by developers
       tags:
       - utility_complexes
+=======
+      summary: Get metro stations by geo
+      tags:
+      - posters
+>>>>>>> 976773329012c9e81be0dd6c7efb961b866473d2
   /utility-companies/by-alias/{alias}:
     get:
       description: Returns utility complex details along with its photos by the given

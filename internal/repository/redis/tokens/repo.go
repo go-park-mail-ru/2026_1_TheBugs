@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/domains"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -36,7 +36,7 @@ func (r *TokenRepo) IsBlacklisted(ctx context.Context, val string) (bool, error)
 	return res == "1", nil
 }
 
-func (r *TokenRepo) CreateRecoverSession(ctx context.Context, sessionID string, data domains.RecoverSession, ttl time.Duration) error {
+func (r *TokenRepo) CreateRecoverSession(ctx context.Context, sessionID string, data entity.RecoverSession, ttl time.Duration) error {
 	key := "auth:recover:session:" + sessionID
 
 	err := r.redisClient.HSet(ctx, key, map[string]interface{}{
@@ -52,7 +52,7 @@ func (r *TokenRepo) CreateRecoverSession(ctx context.Context, sessionID string, 
 	return r.redisClient.Expire(ctx, key, ttl).Err()
 }
 
-func (r *TokenRepo) GetRecoverSession(ctx context.Context, sessionID string) (*domains.RecoverSession, error) {
+func (r *TokenRepo) GetRecoverSession(ctx context.Context, sessionID string) (*entity.RecoverSession, error) {
 	key := "auth:recover:session:" + sessionID
 
 	res, err := r.redisClient.HGetAll(ctx, key).Result()
@@ -66,7 +66,7 @@ func (r *TokenRepo) GetRecoverSession(ctx context.Context, sessionID string) (*d
 	attempts, _ := strconv.Atoi(res["attempts"])
 	verified := res["verified"] == "1"
 
-	return &domains.RecoverSession{
+	return &entity.RecoverSession{
 		Email:    res["email"],
 		Code:     res["code"],
 		Attempts: attempts,

@@ -10,12 +10,11 @@ import (
 	"bou.ke/monkey"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/domains"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/mocks"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
+	tokens "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/jwt"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/pwd"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/tokens"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
@@ -1010,7 +1009,7 @@ func TestCheckRecoveryCode(t *testing.T) {
 			name: "OK",
 			code: "code",
 			setup: func(mockCache *mocks.MockСache) {
-				session := &domains.RecoverSession{
+				session := &entity.RecoverSession{
 					Email:    "test@email.com",
 					Code:     "code",
 					Attempts: 0,
@@ -1027,7 +1026,7 @@ func TestCheckRecoveryCode(t *testing.T) {
 			name: "Session is empty",
 			code: "code",
 			setup: func(mockCache *mocks.MockСache) {
-				var session *domains.RecoverSession
+				var session *entity.RecoverSession
 
 				gomock.InOrder(
 					mockCache.EXPECT().GetRecoverSession(ctx, sessionID).Return(session, nil),
@@ -1039,7 +1038,7 @@ func TestCheckRecoveryCode(t *testing.T) {
 			name: "Invalid code",
 			code: "wrong_code",
 			setup: func(mockCache *mocks.MockСache) {
-				session := &domains.RecoverSession{
+				session := &entity.RecoverSession{
 					Email:    "test@email.com",
 					Code:     "code",
 					Attempts: 0,
@@ -1057,7 +1056,7 @@ func TestCheckRecoveryCode(t *testing.T) {
 			name: "Invalid code and max limit",
 			code: "wrong_code",
 			setup: func(mockCache *mocks.MockСache) {
-				session := &domains.RecoverSession{
+				session := &entity.RecoverSession{
 					Email:    "test@email.com",
 					Code:     "code",
 					Attempts: MaxAttemptsRecovery,
@@ -1116,7 +1115,7 @@ func TestUpdateUserPassword(t *testing.T) {
 			pwd:  "new_pwd",
 			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockСache) {
 				email := "test@email.com"
-				session := &domains.RecoverSession{
+				session := &entity.RecoverSession{
 					Email:    email,
 					Verified: true,
 				}
@@ -1133,7 +1132,7 @@ func TestUpdateUserPassword(t *testing.T) {
 			name: "Empty session",
 			pwd:  "new_pwd",
 			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockСache) {
-				var session *domains.RecoverSession
+				var session *entity.RecoverSession
 
 				gomock.InOrder(
 					mockCache.EXPECT().GetRecoverSession(ctx, sessionID).Return(session, nil),
@@ -1147,7 +1146,7 @@ func TestUpdateUserPassword(t *testing.T) {
 			pwd:  "new_pwd",
 			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockСache) {
 				email := "test@email.com"
-				session := &domains.RecoverSession{
+				session := &entity.RecoverSession{
 					Email:    email,
 					Verified: false,
 				}
