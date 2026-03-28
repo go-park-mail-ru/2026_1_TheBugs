@@ -180,6 +180,21 @@ func (mr *MockPosterRepoMockRecorder) GetByAlias(ctx, posterAlias interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByAlias", reflect.TypeOf((*MockPosterRepo)(nil).GetByAlias), ctx, posterAlias)
 }
 
+// GetByUserID mocks base method.
+func (m *MockPosterRepo) GetByUserID(ctx context.Context, userID int) ([]entity.Poster, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByUserID", ctx, userID)
+	ret0, _ := ret[0].([]entity.Poster)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByUserID indicates an expected call of GetByUserID.
+func (mr *MockPosterRepoMockRecorder) GetByUserID(ctx, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUserID", reflect.TypeOf((*MockPosterRepo)(nil).GetByUserID), ctx, userID)
+}
+
 // GetFlatByPropetyID mocks base method.
 func (m *MockPosterRepo) GetFlatByPropetyID(ctx context.Context, propertyID int) (*entity.Flat, error) {
 	m.ctrl.T.Helper()

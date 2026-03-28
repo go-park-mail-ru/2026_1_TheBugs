@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/domains"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 )
 
 func GetAccessToken(r *http.Request) (string, error) {
@@ -30,7 +30,7 @@ func GetAccessToken(r *http.Request) (string, error) {
 }
 
 func GetUserID(ctx context.Context) (int, error) {
-	val := ctx.Value(domains.UserID{})
+	val := ctx.Value(entity.UserID{})
 	userID, ok := val.(int)
 	fmt.Println(val)
 	if !ok {
@@ -40,5 +40,5 @@ func GetUserID(ctx context.Context) (int, error) {
 }
 
 func SetUserID(ctx context.Context, userID int) context.Context {
-	return context.WithValue(ctx, domains.UserID{}, userID)
+	return context.WithValue(ctx, entity.UserID{}, userID)
 }

@@ -586,11 +586,6 @@ const docTemplate = `{
                 }
             }
         },
-<<<<<<< HEAD
-        "/posters/metro-stations": {
-            "get": {
-                "description": "Returns the metro stations",
-=======
         "/posters/me": {
             "get": {
                 "security": [
@@ -599,14 +594,56 @@ const docTemplate = `{
                     }
                 ],
                 "description": "Returns the number of retrieved posters and their list",
->>>>>>> dev
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "posters"
                 ],
-<<<<<<< HEAD
+                "summary": "Get list of user` + "`" + `s posters",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.PosterResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/posters/metro-stations": {
+            "get": {
+                "description": "Returns the metro stations",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posters"
+                ],
                 "summary": "Get metro stations by geo",
                 "parameters": [
                     {
@@ -626,18 +663,11 @@ const docTemplate = `{
                         "required": true
                     }
                 ],
-=======
-                "summary": "Get list of user` + "`" + `s posters",
->>>>>>> dev
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-<<<<<<< HEAD
                             "$ref": "#/definitions/response.MetroResponse"
-=======
-                            "$ref": "#/definitions/response.PosterResponse"
->>>>>>> dev
                         }
                     },
                     "400": {

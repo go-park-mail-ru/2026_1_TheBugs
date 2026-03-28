@@ -613,39 +613,16 @@ paths:
       summary: Get poster by alias
       tags:
       - posters
-<<<<<<< HEAD
-  /posters/metro-stations:
-    get:
-      description: Returns the metro stations
-      parameters:
-      - description: lat
-        format: float32
-        in: query
-        name: lat
-        required: true
-        type: number
-      - description: lon
-        format: float32
-        in: query
-        name: lon
-        required: true
-        type: number
-=======
   /posters/me:
     get:
       description: Returns the number of retrieved posters and their list
->>>>>>> dev
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-<<<<<<< HEAD
-            $ref: '#/definitions/response.MetroResponse'
-=======
             $ref: '#/definitions/response.PosterResponse'
->>>>>>> dev
         "400":
           description: Bad Request
           schema:
@@ -662,13 +639,51 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
-<<<<<<< HEAD
-      summary: Get metro stations by geo
-=======
       security:
       - BearerAuth: []
       summary: Get list of user`s posters
->>>>>>> dev
+      tags:
+      - posters
+  /posters/metro-stations:
+    get:
+      description: Returns the metro stations
+      parameters:
+      - description: lat
+        format: float32
+        in: query
+        name: lat
+        required: true
+        type: number
+      - description: lon
+        format: float32
+        in: query
+        name: lon
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.MetroResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get metro stations by geo
       tags:
       - posters
   /utility-companies/by-alias/{alias}:

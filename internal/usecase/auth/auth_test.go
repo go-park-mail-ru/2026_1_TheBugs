@@ -1009,7 +1009,7 @@ func TestCheckRecoveryCode(t *testing.T) {
 			name: "OK",
 			code: "code",
 			setup: func(mockCache *mocks.MockСache) {
-				session := &domains.RecoverSession{
+				session := &entity.RecoverSession{
 					Email:    "test@email.com",
 					Code:     "code",
 					Attempts: 0,
@@ -1026,7 +1026,7 @@ func TestCheckRecoveryCode(t *testing.T) {
 			name: "Session is empty",
 			code: "code",
 			setup: func(mockCache *mocks.MockСache) {
-				var session *domains.RecoverSession
+				var session *entity.RecoverSession
 
 				gomock.InOrder(
 					mockCache.EXPECT().GetRecoverSession(ctx, sessionID).Return(session, nil),
@@ -1038,7 +1038,7 @@ func TestCheckRecoveryCode(t *testing.T) {
 			name: "Invalid code",
 			code: "wrong_code",
 			setup: func(mockCache *mocks.MockСache) {
-				session := &domains.RecoverSession{
+				session := &entity.RecoverSession{
 					Email:    "test@email.com",
 					Code:     "code",
 					Attempts: 0,
@@ -1056,7 +1056,7 @@ func TestCheckRecoveryCode(t *testing.T) {
 			name: "Invalid code and max limit",
 			code: "wrong_code",
 			setup: func(mockCache *mocks.MockСache) {
-				session := &domains.RecoverSession{
+				session := &entity.RecoverSession{
 					Email:    "test@email.com",
 					Code:     "code",
 					Attempts: MaxAttemptsRecovery,
@@ -1115,7 +1115,7 @@ func TestUpdateUserPassword(t *testing.T) {
 			pwd:  "new_pwd",
 			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockСache) {
 				email := "test@email.com"
-				session := &domains.RecoverSession{
+				session := &entity.RecoverSession{
 					Email:    email,
 					Verified: true,
 				}
@@ -1132,7 +1132,7 @@ func TestUpdateUserPassword(t *testing.T) {
 			name: "Empty session",
 			pwd:  "new_pwd",
 			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockСache) {
-				var session *domains.RecoverSession
+				var session *entity.RecoverSession
 
 				gomock.InOrder(
 					mockCache.EXPECT().GetRecoverSession(ctx, sessionID).Return(session, nil),
@@ -1146,7 +1146,7 @@ func TestUpdateUserPassword(t *testing.T) {
 			pwd:  "new_pwd",
 			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockСache) {
 				email := "test@email.com"
-				session := &domains.RecoverSession{
+				session := &entity.RecoverSession{
 					Email:    email,
 					Verified: false,
 				}
