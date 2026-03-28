@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 )
 
 const oAuthYandexURI = "https://oauth.yandex.ru/token"
@@ -45,7 +45,7 @@ type YandexPublicUserInfo struct {
 
 func ChangeYandexCodeToAccessToken(ctx context.Context, flow dto.OAuthCodeFlow) (*YandexCred, error) {
 	op := "ChangeYandexCodeToAccessToken"
-	log := middleware.GetLogger(ctx).WithField("op", op)
+	log := ctxLogger.GetLogger(ctx).WithField("op", op)
 
 	creds := config.Config.OAuth.YandexClientID + ":" + config.Config.OAuth.YandexClientSecret
 	basicAuth := "Basic " + base64.StdEncoding.EncodeToString([]byte(creds))

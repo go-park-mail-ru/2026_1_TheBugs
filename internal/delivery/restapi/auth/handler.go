@@ -12,6 +12,7 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
+	ctxLogger "github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 )
 
 type AuthHandler struct {
@@ -40,6 +41,10 @@ func NewAuthHandler(uc *auth.AuthUseCase) *AuthHandler {
 	return &AuthHandler{uc: uc}
 }
 
+func (h *AuthHandler) GetAuthMiddlewary() func(http.Handler) http.Handler {
+	return middleware.AuthMiddleware(h.uc)
+}
+
 // RegisterUser
 // @Summary       Register new user
 // @Description   Register new user with email and password
@@ -57,7 +62,7 @@ func NewAuthHandler(uc *auth.AuthUseCase) *AuthHandler {
 // @Router        /auth/reg [post]
 func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.RegisterUser"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	var cred FormDataCreateUser
 	err := utils.ParseFormData(r, &cred)
@@ -97,7 +102,7 @@ func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 // @Router        /auth/login [post]
 func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.LoginUser"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	var cred FormDataCredential
 
@@ -139,7 +144,7 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 // @Router        /auth/refresh [post]
 func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.RefreshToken"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	cookie, err := r.Cookie("refresh_token")
 	if err != nil {
@@ -178,7 +183,7 @@ func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 // @Router       /auth/logout [post]
 func (h AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.Logout"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	accessToken, err := utils.GetAccessToken(r)
 	if err != nil {
@@ -218,7 +223,7 @@ func (h AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 // POST /api/auth/vk/login
 func (h AuthHandler) VKLogin(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.VKLogin"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	var flow dto.OAuthCodeFlow
 	if err := json.NewDecoder(r.Body).Decode(&flow); err != nil {
@@ -263,7 +268,7 @@ func (h AuthHandler) VKLogin(w http.ResponseWriter, r *http.Request) {
 // @Router        /auth/yandex [post]
 func (h AuthHandler) YandexLogin(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.YandexLogin"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	var flow dto.OAuthCodeFlow
 	if err := json.NewDecoder(r.Body).Decode(&flow); err != nil {
@@ -308,7 +313,7 @@ func (h AuthHandler) YandexLogin(w http.ResponseWriter, r *http.Request) {
 // @Router        /auth/recover [post]
 func (h AuthHandler) SendCodeOnEmail(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.SendCodeOnEmail"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	var data request.UserEmail
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
@@ -356,7 +361,7 @@ func (h AuthHandler) SendCodeOnEmail(w http.ResponseWriter, r *http.Request) {
 // @Router        /auth/recover/verify [post]
 func (h AuthHandler) VerifyRecoveryCode(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.VerifyRecoveryCode"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	cookie, err := r.Cookie("session_id")
 	if err != nil {
@@ -404,7 +409,7 @@ func (h AuthHandler) VerifyRecoveryCode(w http.ResponseWriter, r *http.Request) 
 // @Router        /auth/recover/reset [post]
 func (h AuthHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.UpdatePassword"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 	cookie, err := r.Cookie("session_id")
 	if err != nil {
 		log.Errorf("r.Cookie: %s", err)

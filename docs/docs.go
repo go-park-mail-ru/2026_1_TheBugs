@@ -586,15 +586,27 @@ const docTemplate = `{
                 }
             }
         },
+<<<<<<< HEAD
         "/posters/metro-stations": {
             "get": {
                 "description": "Returns the metro stations",
+=======
+        "/posters/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the number of retrieved posters and their list",
+>>>>>>> dev
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "posters"
                 ],
+<<<<<<< HEAD
                 "summary": "Get metro stations by geo",
                 "parameters": [
                     {
@@ -614,11 +626,18 @@ const docTemplate = `{
                         "required": true
                     }
                 ],
+=======
+                "summary": "Get list of user` + "`" + `s posters",
+>>>>>>> dev
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
+<<<<<<< HEAD
                             "$ref": "#/definitions/response.MetroResponse"
+=======
+                            "$ref": "#/definitions/response.PosterResponse"
+>>>>>>> dev
                         }
                     },
                     "400": {

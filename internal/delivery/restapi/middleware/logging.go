@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 	"github.com/sirupsen/logrus"
 )
 
@@ -25,8 +26,8 @@ func LoggingMiddleware(logger *logrus.Logger) func(next http.Handler) http.Handl
 				"path":        r.URL.Path,
 			})
 
-			ctxLogger := logger.WithField("request_id", reqId)
-			ctx = SetLogger(ctx, ctxLogger)
+			log := logger.WithField("request_id", reqId)
+			ctx = ctxLogger.SetLogger(ctx, log)
 
 			midLogger.Info("request started")
 			startTime := time.Now()
