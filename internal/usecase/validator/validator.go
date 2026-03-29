@@ -1,6 +1,8 @@
 package validator
 
 import (
+	"mime/multipart"
+	"path/filepath"
 	"regexp"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
@@ -17,6 +19,8 @@ const minPwdLenght = 8
 const maxPwdLenght = 64
 const maxPhoneLenght = 20
 const maxNameLenght = 40
+
+const maxPhotoSize = 10 << 20
 
 func ValidateEmail(email string) bool {
 	if len(email) > maxEmailLength {
@@ -74,4 +78,26 @@ func ValidateProfile(phone string, firstname string, lastname string) error {
 		return entity.NewValidationError("lastname")
 	}
 	return nil
+}
+
+func ValidatePhoto(fileHeader *multipart.FileHeader) bool {
+	if fileHeader == nil {
+		return false
+	}
+
+	if fileHeader.Size <= 0 || fileHeader.Size > maxPhotoSize {
+		return false
+	}
+
+	ext := filepath.Ext(fileHeader.Filename)
+	if ext != ".png" && ext != ".jpg" && ext != ".jpeg" && ext != ".svg" {
+		return false
+	}
+
+	contentType := fileHeader.Header.Get("Content-Type")
+	if contentType != "image/png" && contentType != "image/jpeg" && contentType != "image/svg+xml" {
+		return false
+	}
+
+	return true
 }

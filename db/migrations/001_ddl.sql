@@ -127,8 +127,8 @@ COMMENT ON TABLE buildings IS 'Дома';
 
 CREATE TABLE IF NOT EXISTS property ( 
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
-    category_id BIGINT, 
-    building_id BIGINT, 
+    category_id BIGINT NOT NULL, 
+    building_id BIGINT NOT NULL UNIQUE, 
     area NUMERIC(10,2) NOT NULL, 
  
     CONSTRAINT fk_category FOREIGN KEY (category_id) REFERENCES property_categories(id), 

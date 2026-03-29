@@ -1,4 +1,3 @@
-basePath: /api
 definitions:
   auth.LoginResponse:
     properties:
@@ -187,21 +186,8 @@ definitions:
       field:
         type: string
     type: object
-externalDocs:
-  description: OpenAPI
-  url: https://swagger.io/resources/open-api/
-host: localhost:8000
 info:
-  contact:
-    email: support@swagger.io
-    name: API Support
-    url: http://www.swagger.io/support
-  description: Created by TheBugs in 2026
-  license:
-    name: MIT
-  termsOfService: http://swagger.io/terms/
-  title: DomDeli API
-  version: "1.0"
+  contact: {}
 paths:
   /auth/login:
     post:
@@ -471,6 +457,116 @@ paths:
       summary: Get poster by alias
       tags:
       - posters
+  /posters/flat:
+    post:
+      description: Creates a flat poster with photos
+      parameters:
+      - description: Poster price
+        in: formData
+        name: price
+        required: true
+        type: number
+      - description: Poster description
+        in: formData
+        name: description
+        required: true
+        type: string
+      - description: Property category ID
+        in: formData
+        name: category_id
+        required: true
+        type: integer
+      - description: Property area
+        in: formData
+        name: area
+        required: true
+        type: number
+      - description: Building address
+        in: formData
+        name: address
+        required: true
+        type: string
+      - description: City ID
+        in: formData
+        name: city_id
+        required: true
+        type: integer
+      - description: Metro station ID
+        in: formData
+        name: metro_station_id
+        type: integer
+      - description: District
+        in: formData
+        name: district
+        type: string
+      - description: Building floor count
+        in: formData
+        name: floor_count
+        required: true
+        type: integer
+      - description: Company ID
+        in: formData
+        name: company_id
+        type: integer
+      - description: Latitude
+        in: formData
+        name: geo.lat
+        required: true
+        type: number
+      - description: Longitude
+        in: formData
+        name: geo.lon
+        required: true
+        type: number
+      - description: Flat category ID
+        in: formData
+        name: flat.category_id
+        required: true
+        type: integer
+      - description: Flat number
+        in: formData
+        name: flat.flat_number
+        required: true
+        type: integer
+      - description: Flat floor
+        in: formData
+        name: flat.floor
+        required: true
+        type: integer
+      - description: First photo file
+        in: formData
+        name: photos.0.file
+        type: file
+      - description: First photo order
+        in: formData
+        name: photos.0.order
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.PosterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Create flat poster
+      tags:
+      - posters
   /utility-companies/by-alias/{alias}:
     get:
       description: Returns utility complex details along with its photos by the given
@@ -507,9 +603,4 @@ paths:
       summary: Get utility complex by alias
       tags:
       - utility_complexes
-securityDefinitions:
-  BearerAuth:
-    in: header
-    name: Authorization
-    type: apiKey
 swagger: "2.0"

@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"io"
 	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
@@ -22,6 +23,12 @@ type PosterRepo interface {
 	CountPosters(ctx context.Context) (int, error)
 	GetByAlias(ctx context.Context, posterAlias string) (*entity.PosterById, error)
 	GetFlatByPropetyID(ctx context.Context, propertyID int) (*entity.Flat, error)
+	CreateBuilding(ctx context.Context, poster *entity.PosterInput) (int, error)
+	CreateProperty(ctx context.Context, poster *entity.PosterInput, buildingID int) (int, error)
+	Create(ctx context.Context, poster *entity.PosterInput, propertyID int) (int, error)
+	InsertFlat(ctx context.Context, flat *entity.FlatInput) error
+	InsertPhotos(ctx context.Context, posterID int, photos []entity.PhotoInput) error
+	InsertMainPhoto(ctx context.Context, posterID int, avatarURL string) error
 }
 
 type AuthRepo interface {
@@ -45,4 +52,10 @@ type UnitOfWork interface {
 type TokenRepo interface {
 	BlacklistToken(ctx context.Context, tokenID string, ttl time.Duration) error
 	IsBlacklisted(ctx context.Context, tokenID string) (bool, error)
+}
+
+type FileRepo interface {
+	Upload(ctx context.Context, key string, reader io.Reader, size int64, contentType string) error
+	Delete(ctx context.Context, key string) error
+	Get(ctx context.Context, key string) (io.ReadCloser, error)
 }

@@ -3,11 +3,12 @@ package poster
 import (
 	"context"
 	"fmt"
+	"strings"
 
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	repository "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 	"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -23,7 +24,7 @@ func NewPosterRepo(pool repository.DB) *PosterRepo {
 }
 
 func (r *PosterRepo) GetAll(ctx context.Context, filters dto.PostersFiltersDTO) ([]entity.Poster, error) {
-	log := middleware.GetLogger(ctx).WithField("op", "PosterRepo.GetAll")
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetAll")
 	log.Info("start db query")
 	query := `
         SELECT p.id, p.price, p.avatar_url,
@@ -62,6 +63,9 @@ func (r *PosterRepo) GetAll(ctx context.Context, filters dto.PostersFiltersDTO) 
 }
 
 func (r *PosterRepo) CountPosters(ctx context.Context) (int, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.CountPosters")
+	log.Info("start db query")
+
 	var count int
 	row := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM posters")
 	err := row.Scan(&count)
@@ -72,6 +76,9 @@ func (r *PosterRepo) CountPosters(ctx context.Context) (int, error) {
 }
 
 func (r *PosterRepo) GetByAlias(ctx context.Context, posterAlias string) (*entity.PosterById, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetByAlias")
+	log.Info("start db query")
+
 	query := `
 		SELECT p.id, p.alias, p.price, pc.name AS category,
 			   p.description, prop.area, prop.id AS property_id, 
@@ -112,6 +119,9 @@ func (r *PosterRepo) GetByAlias(ctx context.Context, posterAlias string) (*entit
 }
 
 func (r *PosterRepo) GetFlatByPropetyID(ctx context.Context, propertyID int) (*entity.Flat, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetFlatByPropetyID")
+	log.Info("start db query")
+
 	query := `
 		SELECT f.property_id, f.number, f.floor,
 			   fc.name AS flat_category
@@ -156,4 +166,141 @@ func getPosterImages(r *PosterRepo, ctx context.Context, id int) ([]entity.Poste
 	}
 
 	return images, rows.Err()
+}
+
+func (r *PosterRepo) CreateBuilding(ctx context.Context, poster *entity.PosterInput) (int, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.CreateBuilding")
+	log.Info("start db query")
+
+	buildingQuery := `
+		INSERT INTO buildings (address, geo, city_id,
+			metro_station_id, district, floor_count, company_id)
+		VALUES ($1, ST_GeogFromText($2), $3, $4, $5, $6, $7)
+		RETURNING id
+	`
+
+	var buildingID int
+	err := r.pool.QueryRow(ctx, buildingQuery, poster.Address,
+		poster.Geo.ToGeo(), poster.CityID, poster.MetroStationID,
+		poster.District, poster.FloorCount, poster.CompanyID,
+	).Scan(&buildingID)
+
+	if err != nil {
+		return 0, repository.HandelPgErrors(err)
+	}
+
+	return buildingID, nil
+}
+
+func (r *PosterRepo) CreateProperty(ctx context.Context, poster *entity.PosterInput, buildingID int) (int, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.CreateProperty")
+	log.Info("start db query")
+
+	propertyQuery := `
+		INSERT INTO property (category_id, building_id, area)
+		VALUES ($1, $2, $3)
+		RETURNING id
+	`
+
+	var propertyID int
+	err := r.pool.QueryRow(ctx, propertyQuery,
+		poster.CategoryID, buildingID, poster.Area,
+	).Scan(&propertyID)
+
+	if err != nil {
+		return 0, repository.HandelPgErrors(err)
+	}
+
+	return propertyID, nil
+}
+
+func (r *PosterRepo) Create(ctx context.Context, poster *entity.PosterInput, propertyID int) (int, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.Create")
+	log.Info("start db query")
+
+	posterQuery := `
+		INSERT INTO posters (price, description,
+			user_id, property_id, alias)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id
+	`
+
+	var posterID int
+	err := r.pool.QueryRow(ctx, posterQuery,
+		poster.Price, poster.Description,
+		poster.UserID, propertyID, poster.Alias,
+	).Scan(&posterID)
+
+	if err != nil {
+		return 0, repository.HandelPgErrors(err)
+	}
+
+	return posterID, nil
+}
+
+func (r *PosterRepo) InsertFlat(ctx context.Context, flat *entity.FlatInput) error {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.InsertFlat")
+	log.Info("start db query")
+
+	query := `
+		INSERT INTO flat (property_id,
+			floor, number, category_id)
+		VALUES ($1, $2, $3, $4)
+	`
+
+	_, err := r.pool.Exec(ctx, query, flat.PropertyID,
+		flat.Floor, flat.Number, flat.CategoryID,
+	)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+
+	return nil
+}
+
+func (r *PosterRepo) InsertPhotos(ctx context.Context, posterID int, photos []entity.PhotoInput) error {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.InsertPhotos")
+	log.Info("start db query")
+
+	if len(photos) == 0 {
+		return nil
+	}
+
+	args := make([]any, 0, len(photos)*3)
+	list := make([]string, 0, len(photos))
+
+	for i, photo := range photos {
+		base := i * 3
+		list = append(list, fmt.Sprintf("($%d, $%d, $%d)", base+1, base+2, base+3))
+		args = append(args, photo.Path, photo.Order, posterID)
+	}
+
+	query := `
+		INSERT INTO poster_photos (img_url, sequence_order, poster_id)
+		VALUES ` + strings.Join(list, ",")
+
+	_, err := r.pool.Exec(ctx, query, args...)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+
+	return nil
+}
+
+func (r *PosterRepo) InsertMainPhoto(ctx context.Context, posterID int, avatarURL string) error {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.InsertMainPhoto")
+	log.Info("start db query")
+
+	query := `
+		UPDATE posters
+		SET avatar_url = $1
+		WHERE id = $2
+	`
+
+	_, err := r.pool.Exec(ctx, query, avatarURL, posterID)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+
+	return nil
 }

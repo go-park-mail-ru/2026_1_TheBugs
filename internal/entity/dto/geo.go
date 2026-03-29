@@ -26,3 +26,15 @@ func GeographyPointPtrToGeographyDTO(point *geo.GeographyPoint) *GeographyDTO {
 		Lon: point.Lon,
 	}
 }
+
+type GeographyInputDTO struct {
+	Lat float64 `schema:"lat"`
+	Lon float64 `schema:"lon"`
+}
+
+func GeographyInputDTOtoGeographyPoint(point GeographyInputDTO) geo.GeographyPoint {
+	return geo.GeographyPoint{
+		Lat: point.Lat,
+		Lon: point.Lon,
+	}
+}

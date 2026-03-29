@@ -6,6 +6,7 @@ package mocks
 
 import (
 	context "context"
+	io "io"
 	reflect "reflect"
 	time "time"
 
@@ -136,6 +137,21 @@ func (mr *MockPosterRepoMockRecorder) CountPosters(ctx interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountPosters", reflect.TypeOf((*MockPosterRepo)(nil).CountPosters), ctx)
 }
 
+// Create mocks base method.
+func (m *MockPosterRepo) Create(ctx context.Context, poster *entity.PosterInput) (*entity.BaseListID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", ctx, poster)
+	ret0, _ := ret[0].(*entity.BaseListID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockPosterRepoMockRecorder) Create(ctx, poster interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockPosterRepo)(nil).Create), ctx, poster)
+}
+
 // GetAll mocks base method.
 func (m *MockPosterRepo) GetAll(ctx context.Context, dto dto.PostersFiltersDTO) ([]entity.Poster, error) {
 	m.ctrl.T.Helper()
@@ -179,6 +195,34 @@ func (m *MockPosterRepo) GetFlatByPropetyID(ctx context.Context, propertyID int)
 func (mr *MockPosterRepoMockRecorder) GetFlatByPropetyID(ctx, propertyID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFlatByPropetyID", reflect.TypeOf((*MockPosterRepo)(nil).GetFlatByPropetyID), ctx, propertyID)
+}
+
+// InsertFlat mocks base method.
+func (m *MockPosterRepo) InsertFlat(ctx context.Context, flat *entity.FlatInput) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertFlat", ctx, flat)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// InsertFlat indicates an expected call of InsertFlat.
+func (mr *MockPosterRepoMockRecorder) InsertFlat(ctx, flat interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertFlat", reflect.TypeOf((*MockPosterRepo)(nil).InsertFlat), ctx, flat)
+}
+
+// InsertPhotos mocks base method.
+func (m *MockPosterRepo) InsertPhotos(ctx context.Context, posterID int, photos []entity.PhotoInput) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertPhotos", ctx, posterID, photos)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// InsertPhotos indicates an expected call of InsertPhotos.
+func (mr *MockPosterRepoMockRecorder) InsertPhotos(ctx, posterID, photos interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertPhotos", reflect.TypeOf((*MockPosterRepo)(nil).InsertPhotos), ctx, posterID, photos)
 }
 
 // MockAuthRepo is a mock of AuthRepo interface.
@@ -428,4 +472,70 @@ func (m *MockTokenRepo) IsBlacklisted(ctx context.Context, tokenID string) (bool
 func (mr *MockTokenRepoMockRecorder) IsBlacklisted(ctx, tokenID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsBlacklisted", reflect.TypeOf((*MockTokenRepo)(nil).IsBlacklisted), ctx, tokenID)
+}
+
+// MockFileRepo is a mock of FileRepo interface.
+type MockFileRepo struct {
+	ctrl     *gomock.Controller
+	recorder *MockFileRepoMockRecorder
+}
+
+// MockFileRepoMockRecorder is the mock recorder for MockFileRepo.
+type MockFileRepoMockRecorder struct {
+	mock *MockFileRepo
+}
+
+// NewMockFileRepo creates a new mock instance.
+func NewMockFileRepo(ctrl *gomock.Controller) *MockFileRepo {
+	mock := &MockFileRepo{ctrl: ctrl}
+	mock.recorder = &MockFileRepoMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockFileRepo) EXPECT() *MockFileRepoMockRecorder {
+	return m.recorder
+}
+
+// Delete mocks base method.
+func (m *MockFileRepo) Delete(ctx context.Context, key string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", ctx, key)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockFileRepoMockRecorder) Delete(ctx, key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockFileRepo)(nil).Delete), ctx, key)
+}
+
+// Get mocks base method.
+func (m *MockFileRepo) Get(ctx context.Context, key string) (io.ReadCloser, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", ctx, key)
+	ret0, _ := ret[0].(io.ReadCloser)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockFileRepoMockRecorder) Get(ctx, key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockFileRepo)(nil).Get), ctx, key)
+}
+
+// Upload mocks base method.
+func (m *MockFileRepo) Upload(ctx context.Context, key string, reader io.Reader, size int64, contentType string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Upload", ctx, key, reader, size, contentType)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Upload indicates an expected call of Upload.
+func (mr *MockFileRepoMockRecorder) Upload(ctx, key, reader, size, contentType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Upload", reflect.TypeOf((*MockFileRepo)(nil).Upload), ctx, key, reader, size, contentType)
 }

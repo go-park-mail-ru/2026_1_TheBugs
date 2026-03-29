@@ -86,3 +86,52 @@ func PosterToPosterDTO(poster *entity.PosterById) *PosterDTO {
 		Company:     posterToUtilityCompanyCardDTO(poster),
 	}
 }
+
+type PosterInputFlatDTO struct {
+	UserID      int     `schema:"-"`
+	Alias       *string `schema:"-"`
+	Price       float64 `schema:"price"`
+	Description string  `schema:"description"`
+
+	CategoryID int          `schema:"category_id"`
+	Flat       FlatInputDTO `schema:"flat"`
+	Area       float64      `schema:"area"`
+
+	Address        string            `schema:"address"`
+	Geo            GeographyInputDTO `schema:"geo"`
+	CityID         int               `schema:"city_id"`
+	MetroStationID *int              `schema:"metro_station_id"`
+	District       *string           `schema:"district"`
+	FloorCount     int               `schema:"floor_count"`
+
+	CompanyID *int `schema:"company_id"`
+
+	Images []PhotoInputDTO `schema:"-"`
+}
+
+func PosterInputFlatDTOtoPosterInput(poster *PosterInputFlatDTO) *entity.PosterInput {
+	return &entity.PosterInput{
+		UserID:      poster.UserID,
+		Price:       poster.Price,
+		Description: poster.Description,
+
+		CategoryID: poster.CategoryID,
+		Area:       poster.Area,
+
+		Address:        poster.Address,
+		Geo:            GeographyInputDTOtoGeographyPoint(poster.Geo),
+		CityID:         poster.CityID,
+		MetroStationID: poster.MetroStationID,
+		District:       poster.District,
+		FloorCount:     poster.FloorCount,
+
+		CompanyID: poster.CompanyID,
+
+		Images: posterPhotosInputFlatDTOtoPhotosInput(poster),
+	}
+}
+
+type CreatedPoster struct {
+	ID    int    `json:"id"`
+	Alias string `json:"alias"`
+}

@@ -19,3 +19,17 @@ func FlatToFlatFlatDTO(flat *entity.Flat) *FlatDTO {
 		Floor:        flat.Floor,
 	}
 }
+
+type FlatInputDTO struct {
+	FlatCategoryID int `schema:"category_id"`
+	Number         int `schema:"flat_number"`
+	Floor          int `schema:"floor"`
+}
+
+func PosterInputFlatDTOtoFlatInput(poster *PosterInputFlatDTO) *entity.FlatInput {
+	return &entity.FlatInput{
+		CategoryID: poster.Flat.FlatCategoryID,
+		Floor:      poster.Flat.Floor,
+		Number:     poster.Flat.Number,
+	}
+}

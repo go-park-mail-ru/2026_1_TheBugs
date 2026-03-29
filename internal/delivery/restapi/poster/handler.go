@@ -4,11 +4,12 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/response"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 )
 
 const defaultLimit = "12"
@@ -39,7 +40,7 @@ func NewPosterHandler(uc *poster.PosterUseCase) *PosterHandler {
 // @Router /posters [get]
 func (h *PosterHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	op := "PosterHandler.GetAll"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	var params dto.PostersFiltersDTO
 
@@ -106,7 +107,7 @@ func (h *PosterHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 // @Router /posters/by-alias/{alias} [get]
 func (h *PosterHandler) GetPoster(w http.ResponseWriter, r *http.Request) {
 	op := "PosterHandler.GetPoster"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	alias, err := utils.ParseAliasFromRequest(r)
 	if err != nil {
@@ -125,4 +126,72 @@ func (h *PosterHandler) GetPoster(w http.ResponseWriter, r *http.Request) {
 	response.Poster = poster
 
 	utils.JSONResponse(w, http.StatusOK, response)
+}
+
+// @Summary Create flat poster
+// @Description Creates a flat poster with photos
+// @Tags posters
+// @Produce json
+// @Param price formData number true "Poster price"
+// @Param description formData string true "Poster description"
+// @Param category_id formData integer true "Property category ID"
+// @Param area formData number true "Property area"
+// @Param address formData string true "Building address"
+// @Param city_id formData integer true "City ID"
+// @Param metro_station_id formData integer false "Metro station ID"
+// @Param district formData string false "District"
+// @Param floor_count formData integer true "Building floor count"
+// @Param company_id formData integer false "Company ID"
+// @Param geo.lat formData number true "Latitude"
+// @Param geo.lon formData number true "Longitude"
+// @Param flat.category_id formData integer true "Flat category ID"
+// @Param flat.flat_number formData integer true "Flat number"
+// @Param flat.floor formData integer true "Flat floor"
+// @Param photos.0.file formData file false "First photo file"
+// @Param photos.0.order formData integer false "First photo order"
+// @Success 201 {object} response.CreatedPosterResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/flat [post]
+func (h *PosterHandler) CreateFlatPoster(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.CreateFlatPoster"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	userID, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.Errorf("utils.GetUserID: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	var req dto.PosterInputFlatDTO
+
+	req.UserID = userID
+	err = utils.ParseFormData(r, &req)
+	if err != nil {
+		log.Errorf("utils.ParseFormData: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	req.Images, err = utils.ParsePhotos(r)
+	if err != nil {
+		log.Errorf("utils.ParsePhotos: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	poster, err := h.uc.CreateFlatPoster(r.Context(), &req)
+	if err != nil {
+		log.Errorf("h.uc.CreateFlatPoster: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	var response response.CreatedPosterResponse
+	response.Poster = poster
+
+	utils.JSONResponse(w, http.StatusCreated, response)
 }

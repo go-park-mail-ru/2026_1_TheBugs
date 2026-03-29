@@ -30,6 +30,7 @@ type (
 		Redis    `yaml:"redis"`
 		JWT      `yaml:"jwt"`
 		OAuth    `yaml:"oauth"`
+		Minio    `yaml:"minio"`
 	}
 	Redis struct {
 		Host     string `yaml:"host" env:"REDIS_HOST" env-default:"localhost"`
@@ -76,6 +77,14 @@ type (
 	RSAKeys struct {
 		PublicKey  *rsa.PublicKey
 		PrivateKey *rsa.PrivateKey
+	}
+
+	Minio struct {
+		Endpoint   string `yaml:"endpoint" env:"MINIO_ENDPOINT" env-default:"localhost:9000"`
+		AccessKey  string `yaml:"access_key" env:"MINIO_ACCESS_KEY" env-default:"admin123"`
+		SecretKey  string `yaml:"secret_key" env:"MINIO_SECRET_KEY" env-default:"admin123"`
+		Bucket     string `yaml:"bucket" env:"MINIO_BUCKET" env-default:"media"`
+		PublicHost string `yaml:"public_host" env:"MINIO_PUBLIC_HOST" env-default:"http://localhost:9000"`
 	}
 )
 

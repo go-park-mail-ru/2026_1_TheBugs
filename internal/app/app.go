@@ -14,11 +14,14 @@ import (
 	authHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/auth"
 	complexHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/complex"
 	posterHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
+	minioRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/minio"
 	tokensRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/redis/tokens"
 	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
 	authUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
 	complexUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/complex"
 	posterUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/sirupsen/logrus"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/dsn"
@@ -28,9 +31,14 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// переименовать endpoint
 func Run(cfg *config.ProjectConfig) {
 	dsn := dsn.BuildDSN(cfg.Postgres)
 	rdb := redis.NewClient(&redis.Options{Addr: fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port), Password: cfg.Redis.Password, DB: cfg.Redis.DB})
+	minioClient, err := minio.New(cfg.Endpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
+		Secure: false,
+	})
 	logger := logrus.New()
 
 	pool, err := pgxpool.New(context.Background(), dsn)
@@ -40,8 +48,9 @@ func Run(cfg *config.ProjectConfig) {
 
 	uow := uowSql.NewSQLStorage(pool)
 	tokenRepo := tokensRepo.NewTokenRepo(rdb)
+	fileRepo := minioRepo.NewFileRepo(minioClient, cfg.Bucket)
 
-	posterUC := posterUC.NewPosterUseCase(uow.Posters())
+	posterUC := posterUC.NewPosterUseCase(uow, fileRepo)
 	posterHandler := posterHandler.NewPosterHandler(posterUC)
 
 	authUC := authUC.NewAuthUseCase(uow, tokenRepo)

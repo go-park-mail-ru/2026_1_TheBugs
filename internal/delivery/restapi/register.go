@@ -55,6 +55,8 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 	apiGroup := app.PathPrefix("/api").Subrouter()
 	apiGroup.Use(mux.CORSMethodMiddleware(apiGroup))
 	{
+		AuthMiddlewary := auth.GetAuthMiddlewary()
+
 		apiGroup.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 			_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 		}).Methods(http.MethodGet)
@@ -72,5 +74,7 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 
 		apiGroup.HandleFunc("/posters", post.GetAll).Methods(http.MethodGet)
 		apiGroup.HandleFunc("/posters/by-alias/{alias}", post.GetPoster).Methods(http.MethodGet)
+
+		apiGroup.Handle("/posters/flat", AuthMiddlewary(http.HandlerFunc(post.CreateFlatPoster))).Methods(http.MethodPost)
 	}
 }
