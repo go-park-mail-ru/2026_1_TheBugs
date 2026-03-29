@@ -132,6 +132,7 @@ func (h *PosterHandler) GetPoster(w http.ResponseWriter, r *http.Request) {
 // @Description Creates a flat poster with photos
 // @Tags posters
 // @Produce json
+// @Security     BearerAuth
 // @Param price formData number true "Poster price"
 // @Param description formData string true "Poster description"
 // @Param category_id formData integer true "Property category ID"
@@ -169,7 +170,7 @@ func (h *PosterHandler) CreateFlatPoster(w http.ResponseWriter, r *http.Request)
 	var req dto.PosterInputFlatDTO
 
 	req.UserID = userID
-	err = utils.ParseFormData(r, &req)
+	err = utils.ParseMultipartFormData(r, &req)
 	if err != nil {
 		log.Errorf("utils.ParseFormData: %s", err)
 		utils.HandelError(w, entity.InvalidInput)

@@ -1,9 +1,17 @@
+basePath: /api
 definitions:
   auth.LoginResponse:
     properties:
       access_token:
         type: string
       expire_at:
+        type: integer
+    type: object
+  dto.CreatedPoster:
+    properties:
+      alias:
+        type: string
+      id:
         type: integer
     type: object
   dto.DeveloperDTO:
@@ -158,6 +166,11 @@ definitions:
           $ref: '#/definitions/dto.PhotoDTO'
         type: array
     type: object
+  response.CreatedPosterResponse:
+    properties:
+      poster:
+        $ref: '#/definitions/dto.CreatedPoster'
+    type: object
   response.ErrorResponse:
     properties:
       details:
@@ -186,8 +199,21 @@ definitions:
       field:
         type: string
     type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+host: localhost:8000
 info:
-  contact: {}
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Created by TheBugs in 2026
+  license:
+    name: MIT
+  termsOfService: http://swagger.io/terms/
+  title: DomDeli API
+  version: "1.0"
 paths:
   /auth/login:
     post:
@@ -547,7 +573,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/response.PosterResponse'
+            $ref: '#/definitions/response.CreatedPosterResponse'
         "400":
           description: Bad Request
           schema:
@@ -564,6 +590,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Create flat poster
       tags:
       - posters
@@ -603,4 +631,9 @@ paths:
       summary: Get utility complex by alias
       tags:
       - utility_complexes
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

@@ -133,8 +133,10 @@ func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.Poste
 			}
 		}
 
-		createdPoster.ID = posterID
-		createdPoster.Alias = post.Alias
+		createdPoster = &dto.CreatedPoster{
+			ID:    posterID,
+			Alias: post.Alias,
+		}
 
 		return nil
 	})

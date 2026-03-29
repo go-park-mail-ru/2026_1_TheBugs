@@ -1,8 +1,21 @@
 {
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "description": "Created by TheBugs in 2026",
+        "title": "DomDeli API",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
+        },
+        "license": {
+            "name": "MIT"
+        },
+        "version": "1.0"
     },
+    "host": "localhost:8000",
+    "basePath": "/api",
     "paths": {
         "/auth/login": {
             "post": {
@@ -404,6 +417,11 @@
         },
         "/posters/flat": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Creates a flat poster with photos",
                 "produces": [
                     "application/json"
@@ -532,7 +550,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/response.PosterResponse"
+                            "$ref": "#/definitions/response.CreatedPosterResponse"
                         }
                     },
                     "400": {
@@ -624,6 +642,17 @@
                     "type": "string"
                 },
                 "expire_at": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.CreatedPoster": {
+            "type": "object",
+            "properties": {
+                "alias": {
+                    "type": "string"
+                },
+                "id": {
                     "type": "integer"
                 }
             }
@@ -861,6 +890,14 @@
                 }
             }
         },
+        "response.CreatedPosterResponse": {
+            "type": "object",
+            "properties": {
+                "poster": {
+                    "$ref": "#/definitions/dto.CreatedPoster"
+                }
+            }
+        },
         "response.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -905,5 +942,16 @@
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    },
+    "externalDocs": {
+        "description": "OpenAPI",
+        "url": "https://swagger.io/resources/open-api/"
     }
 }
