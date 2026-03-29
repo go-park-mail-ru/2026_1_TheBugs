@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/mocks"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
 	"github.com/golang/mock/gomock"
 	"github.com/samber/lo"
@@ -15,7 +15,7 @@ import (
 
 func TestGetPostersUseCase(t *testing.T) {
 	ctx := context.Background()
-	existingListPoster := []entity.Poster{
+	existingListPoster := []entity.PosterFlat{
 		{ID: 1, Price: 11111, Address: "street_1"},
 		{ID: 2, Price: 22222, Address: "street_2"},
 		{ID: 3, Price: 33333, Address: "street_3"},
@@ -45,7 +45,7 @@ func TestGetPostersUseCase(t *testing.T) {
 				Offset: 0,
 			},
 			setupMock: func(m *mocks.MockPosterRepo) {
-				m.EXPECT().GetAll(ctx, dto.PostersFiltersDTO{
+				m.EXPECT().GetFlatsAll(ctx, dto.PostersFiltersDTO{
 					Limit:  12,
 					Offset: 0,
 				}).Return(existingListPoster, nil).Times(1)
@@ -70,7 +70,7 @@ func TestGetPostersUseCase(t *testing.T) {
 				Offset: 0,
 			},
 			setupMock: func(m *mocks.MockPosterRepo) {
-				m.EXPECT().GetAll(ctx, dto.PostersFiltersDTO{
+				m.EXPECT().GetFlatsAll(ctx, dto.PostersFiltersDTO{
 					Limit:  MaxPostersLimit,
 					Offset: 0,
 				}).Return(existingListPoster, nil).Times(1)
@@ -95,7 +95,7 @@ func TestGetPostersUseCase(t *testing.T) {
 				Offset: 0,
 			},
 			setupMock: func(m *mocks.MockPosterRepo) {
-				m.EXPECT().GetAll(ctx, dto.PostersFiltersDTO{
+				m.EXPECT().GetFlatsAll(ctx, dto.PostersFiltersDTO{
 					Limit:  12,
 					Offset: 0,
 				}).Return(nil, entity.NotFoundError).Times(1)

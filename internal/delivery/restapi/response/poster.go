@@ -15,3 +15,8 @@ type MetroResponse struct {
 	Len           int                   `json:"len"`
 	MetroStations []dto.MetroStationDTO `json:"metro_stations"`
 }
+
+type MyPostersResponse struct {
+	Len     int               `json:"len"`
+	Posters []dto.MyPosterDTO `json:"posters"`
+}

@@ -2,15 +2,25 @@ package entity
 
 import "github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
 
+type PosterFlat struct {
+	ID           int     `db:"id"`
+	Price        float64 `db:"price"`
+	ImgURL       *string `db:"avatar_url"`
+	Address      string  `db:"address"`
+	Metro        *string `db:"station_name"`
+	Area         float64 `db:"area"`
+	Alias        string  `db:"alias"`
+	Floor        int     `db:"floor"`
+	FlatCategory *string `db:"flat_category"`
+}
+
 type Poster struct {
-	ID      int     `db:"id"`
-	Price   float64 `db:"price"`
-	ImgURL  *string `db:"avatar_url"`
-	Address string  `db:"address"`
-	Metro   *string `db:"station_name"`
-	Area    float64 `db:"area"`
-	Alias   string  `db:"alias"`
-	Floor   int     `db:"floor"`
+	ID        int     `db:"id"`
+	Alias     string  `db:"alias"`
+	Address   string  `db:"address"`
+	Area      float64 `db:"area"`
+	Price     float64 `db:"price"`
+	AvatarURl *string `db:"avatar_url"`
 }
 
 type PosterImage struct {
@@ -55,6 +65,7 @@ type Flat struct {
 	FlatCategory string `db:"flat_category"`
 	Number       int    `db:"number"`
 	Floor        int    `db:"floor"`
+	RoomCount    int    `db:"room_count"`
 }
 
 type MetroStation struct {

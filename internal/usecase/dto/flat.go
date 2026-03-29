@@ -6,6 +6,7 @@ type FlatDTO struct {
 	FlatCategory string `json:"flat_category"`
 	Number       int    `json:"flat_number"`
 	Floor        int    `json:"floor"`
+	RoomCount    int    `json:"room_count"`
 }
 
 func FlatToFlatFlatDTO(flat *entity.Flat) *FlatDTO {
@@ -17,5 +18,6 @@ func FlatToFlatFlatDTO(flat *entity.Flat) *FlatDTO {
 		FlatCategory: flat.FlatCategory,
 		Number:       flat.Number,
 		Floor:        flat.Floor,
+		RoomCount:    flat.RoomCount,
 	}
 }

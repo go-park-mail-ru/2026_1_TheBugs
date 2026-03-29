@@ -14,12 +14,14 @@ import (
 	authHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/auth"
 	complexHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/complex"
 	posterHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
+	userHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
 	tokensRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/redis/tokens"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/smtp"
 	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
 	authUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
 	complexUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/complex"
 	posterUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
+	userUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/user"
 	"github.com/sirupsen/logrus"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/dsn"
@@ -51,8 +53,11 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	UtilityCompanyUC := complexUC.NewUtilityCompanyUseCase(uow.UtilityCompany())
 	utilityCompanyHandler := complexHandler.NewUtilityCompanyHandler(UtilityCompanyUC)
 
+	userUC := userUC.NewUserUseCase(uow)
+	userHandler := userHandler.NewUserHandler(userUC)
+
 	r := mux.NewRouter()
-	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler)
+	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler, userHandler)
 	serverAddress := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	srv := &http.Server{
 		Handler:      r,

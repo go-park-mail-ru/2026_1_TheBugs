@@ -37,9 +37,9 @@ func NewPosterHandler(uc *poster.PosterUseCase) *PosterHandler {
 // @Failure 401 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /posters [get]
-func (h *PosterHandler) GetAll(w http.ResponseWriter, r *http.Request) {
-	op := "PosterHandler.GetAll"
+// @Router /posters/flats [get]
+func (h *PosterHandler) GetFlatsAll(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GetFlatsAll"
 	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	var params dto.PostersFiltersDTO
@@ -155,7 +155,7 @@ func (h *PosterHandler) GetPostersByUser(w http.ResponseWriter, r *http.Request)
 		utils.HandelError(w, err)
 		return
 	}
-	response := response.PostersResponse{
+	response := response.MyPostersResponse{
 		Posters: posters,
 		Len:     len(posters),
 	}
