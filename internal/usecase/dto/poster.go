@@ -62,6 +62,7 @@ type PosterDTO struct {
 	Seller      PosterSellerDTO `json:"seller"`
 	Flat        *FlatDTO        `json:"flat,omitempty"`
 	House       *HouseDTO       `json:"house,omitempty"`
+	Facilities  []FacilityDTO   `json:"facilities"`
 
 	Company *UtilityCompanyCardDTO `json:"company,omitempty"`
 }
@@ -81,9 +82,10 @@ func PosterToPosterDTO(poster *entity.PosterById) *PosterDTO {
 		MetroGeo:    GeographyPointPtrToGeographyDTO(poster.MetroGeo),
 		City:        poster.City,
 		FloorCount:  poster.FloorCount,
-		Images:      posterImagesToPosterImagesDTO(poster),
+		Images:      posterImagesToPosterImagesDTO(poster.Images),
 		Seller:      posterToPosterSellerDTO(poster),
 		Company:     posterToUtilityCompanyCardDTO(poster),
+		Facilities:  FacilitiesToFacilitiesDTO(poster.Facilities),
 	}
 }
 

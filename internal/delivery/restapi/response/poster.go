@@ -1,6 +1,6 @@
 package response
 
-import "github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
+import "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 
 type PostersResponse struct {
 	Len     int                 `json:"len"`
@@ -9,6 +9,11 @@ type PostersResponse struct {
 
 type PosterResponse struct {
 	Poster *dto.PosterDTO `json:"poster"`
+}
+
+type MetroResponse struct {
+	Len           int                   `json:"len"`
+	MetroStations []dto.MetroStationDTO `json:"metro_stations"`
 }
 
 type CreatedPosterResponse struct {

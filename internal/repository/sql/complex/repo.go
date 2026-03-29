@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	repository "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -72,5 +72,50 @@ func (r UtilityCompanyPgRepo) GetByAlias(ctx context.Context, alias string) (*dt
 		return nil, repository.HandelPgErrors(pgx.ErrNoRows)
 	}
 	return dto.ToUtilityCompanyDTO(&u, photos, &d), nil
+
+}
+
+func (r UtilityCompanyPgRepo) GetAllDevelopers(ctx context.Context) ([]dto.DeveloperDTO, error) {
+	sql := `
+		SELECT d.id, d.developer_name, d.avatar_url
+		FROM developers d
+		ORDER BY d.id
+	`
+	rows, err := r.pool.Query(ctx, sql)
+
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	defer rows.Close()
+
+	dev, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.Developer])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+	return dto.DevelopersToDevelopersDTO(dev), nil
+
+}
+
+func (r UtilityCompanyPgRepo) GetAllByDeveloperID(ctx context.Context, companyID int) ([]dto.UtilityCompanyCardDTO, error) {
+	sql := `
+		SELECT uc.id, uc.company_name, uc.avatar_url, uc.alias
+		FROM utility_companies uc
+		WHERE uc.developer_id = $1
+		ORDER BY uc.id
+	`
+	rows, err := r.pool.Query(ctx, sql, companyID)
+
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	defer rows.Close()
+
+	utils, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.UtilityCompanyCard])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+	return dto.UtilityCompaniesToUtilityCompaniesDTO(utils), nil
 
 }

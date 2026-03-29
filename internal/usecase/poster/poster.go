@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/validator"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/alias"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/photo"
@@ -18,6 +18,7 @@ const (
 	MaxPostersLimit = 12
 	PropertyFlat    = "Квартиры" // TODO: делать по id а не по имени а то оно меняется либо поменять в
 	PropertyHouse   = "house"
+	MetroRadius     = 2500
 )
 
 type PosterUseCase struct {
@@ -78,6 +79,27 @@ func (uc *PosterUseCase) GetPosterByAliasUseCase(ctx context.Context, posterAlia
 	photo.MakeUrlsFromPaths(posterDTO, config.Config.PublicHost, config.Config.Bucket)
 
 	return posterDTO, nil
+}
+
+func (uc *PosterUseCase) GetPosterByUserID(ctx context.Context, userID int) ([]dto.PosterCardDTO, error) {
+	posters, err := uc.uow.Posters().GetByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	return dto.PostersToPostersDTO(posters), nil
+}
+
+func (uc *PosterUseCase) GetMetroStationsByRadius(ctx context.Context, coords dto.GeographyDTO) ([]dto.MetroStationDTO, error) {
+	stations, err := uc.uow.Posters().GetMetroStationByRadius(ctx, coords, MetroRadius)
+	if err != nil {
+		return nil, fmt.Errorf("uc.repo.GetMetroStationByRadius: %s", err)
+	}
+	dtos := make([]dto.MetroStationDTO, 0, len(stations))
+	for _, d := range stations {
+		dtos = append(dtos, dto.MetroToMetroStationDTO(d))
+	}
+	return dtos, nil
+
 }
 
 func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.PosterInputFlatDTO) (*dto.CreatedPoster, error) {

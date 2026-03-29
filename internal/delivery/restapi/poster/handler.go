@@ -7,7 +7,7 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/response"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 )
@@ -59,7 +59,7 @@ func (h *PosterHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	reqLimit, err := strconv.Atoi(limit)
 	if err != nil {
 		log.Errorf("Atoi: %s", err)
-		utils.HandelError(w, err)
+		utils.WriteError(w, "bad limit query param", http.StatusBadRequest)
 		return
 	}
 
@@ -68,7 +68,7 @@ func (h *PosterHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	reqOffset, err := strconv.Atoi(offset)
 	if err != nil {
 		log.Errorf("Atoi: %s", err)
-		utils.HandelError(w, err)
+		utils.WriteError(w, "bad offset query param", http.StatusBadRequest)
 		return
 	}
 
@@ -84,11 +84,10 @@ func (h *PosterHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postersLen := len(posters)
-
-	var response response.PostersResponse
-	response.Len = postersLen
-	response.Posters = posters
+	response := response.PostersResponse{
+		Posters: posters,
+		Len:     len(posters),
+	}
 
 	utils.JSONResponse(w, http.StatusOK, response)
 

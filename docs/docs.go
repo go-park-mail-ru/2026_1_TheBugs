@@ -9,7 +9,15 @@ const docTemplate = `{
     "info": {
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
-        "contact": {},
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.swagger.io/support",
+            "email": "support@swagger.io"
+        },
+        "license": {
+            "name": "MIT"
+        },
         "version": "{{.Version}}"
     },
     "host": "{{.Host}}",
@@ -111,6 +119,171 @@ const docTemplate = `{
                     },
                     "500": {
                         "description": "Blacklist error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/recover": {
+            "post": {
+                "description": "Generates recovery session, sends verification code to user's email and sets session_id cookie",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Send recovery code to email",
+                "parameters": [
+                    {
+                        "description": "User email",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UserEmail"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        },
+                        "headers": {
+                            "Set-Cookie": {
+                                "type": "string",
+                                "description": "session_id=\u003cSESSION_ID\u003e; HttpOnly; Path=/api/auth; Max-Age=600"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ValidationErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/recover/reset": {
+            "post": {
+                "description": "Updates password using verified recovery session (session_id cookie required)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Update user password",
+                "parameters": [
+                    {
+                        "description": "New password",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UpdatePwdDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Password updated",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ValidationErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Session not verified or invalid",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/recover/verify": {
+            "post": {
+                "description": "Verifies code from email using session_id cookie and marks session as verified",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Verify recovery code",
+                "parameters": [
+                    {
+                        "description": "Verification code",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.VerifyCodeDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status verified",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ValidationErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid code or session",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -543,7 +716,60 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/response.PosterResponse"
+                            "$ref": "#/definitions/response.CreatedPosterResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/utility-companies/": {
+            "get": {
+                "description": "Returns utility complexies by developers",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "utility_complexes"
+                ],
+                "summary": "Get utility complexies by developers",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Developer id",
+                        "name": "developer_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.CompaniesResponse"
                         }
                     },
                     "400": {
@@ -625,6 +851,50 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/utility-companies/developers": {
+            "get": {
+                "description": "Returns developers",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "utility_complexes"
+                ],
+                "summary": "Get developers",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.DevelopersResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -639,13 +909,38 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CreatedPoster": {
+            "type": "object",
+            "properties": {
+                "alias": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.DeveloperDTO": {
             "type": "object",
             "properties": {
                 "avatar_url": {
                     "type": "string"
                 },
+                "developer_id": {
+                    "type": "integer"
+                },
                 "developer_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.FacilityDTO": {
+            "type": "object",
+            "properties": {
+                "alias": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }
@@ -768,6 +1063,12 @@ const docTemplate = `{
                 "district": {
                     "type": "string"
                 },
+                "facilities": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.FacilityDTO"
+                    }
+                },
                 "flat": {
                     "$ref": "#/definitions/dto.FlatDTO"
                 },
@@ -872,6 +1173,66 @@ const docTemplate = `{
                 }
             }
         },
+        "request.UpdatePwdDTO": {
+            "type": "object",
+            "properties": {
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.UserEmail": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "request.VerifyCodeDTO": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.CompaniesResponse": {
+            "type": "object",
+            "properties": {
+                "len": {
+                    "type": "integer"
+                },
+                "utility_companies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.UtilityCompanyCardDTO"
+                    }
+                }
+            }
+        },
+        "response.CreatedPosterResponse": {
+            "type": "object",
+            "properties": {
+                "poster": {
+                    "$ref": "#/definitions/dto.CreatedPoster"
+                }
+            }
+        },
+        "response.DevelopersResponse": {
+            "type": "object",
+            "properties": {
+                "developers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.DeveloperDTO"
+                    }
+                },
+                "len": {
+                    "type": "integer"
+                }
+            }
+        },
         "response.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -916,17 +1277,28 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    },
+    "externalDocs": {
+        "description": "OpenAPI",
+        "url": "https://swagger.io/resources/open-api/"
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
-	Host:             "",
-	BasePath:         "",
+	Version:          "1.0",
+	Host:             "localhost:8000",
+	BasePath:         "/api",
 	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Title:            "DomDeli API",
+	Description:      "Created by TheBugs in 2026",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

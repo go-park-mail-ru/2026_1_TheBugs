@@ -1,3 +1,4 @@
+basePath: /api
 definitions:
   auth.LoginResponse:
     properties:
@@ -6,11 +7,27 @@ definitions:
       expire_at:
         type: integer
     type: object
+  dto.CreatedPoster:
+    properties:
+      alias:
+        type: string
+      id:
+        type: integer
+    type: object
   dto.DeveloperDTO:
     properties:
       avatar_url:
         type: string
+      developer_id:
+        type: integer
       developer_name:
+        type: string
+    type: object
+  dto.FacilityDTO:
+    properties:
+      alias:
+        type: string
+      name:
         type: string
     type: object
   dto.FlatDTO:
@@ -90,6 +107,10 @@ definitions:
         type: string
       district:
         type: string
+      facilities:
+        items:
+          $ref: '#/definitions/dto.FacilityDTO'
+        type: array
       flat:
         $ref: '#/definitions/dto.FlatDTO'
       floor_count:
@@ -158,6 +179,44 @@ definitions:
           $ref: '#/definitions/dto.PhotoDTO'
         type: array
     type: object
+  request.UpdatePwdDTO:
+    properties:
+      password:
+        type: string
+    type: object
+  request.UserEmail:
+    properties:
+      email:
+        type: string
+    type: object
+  request.VerifyCodeDTO:
+    properties:
+      code:
+        type: string
+    type: object
+  response.CompaniesResponse:
+    properties:
+      len:
+        type: integer
+      utility_companies:
+        items:
+          $ref: '#/definitions/dto.UtilityCompanyCardDTO'
+        type: array
+    type: object
+  response.CreatedPosterResponse:
+    properties:
+      poster:
+        $ref: '#/definitions/dto.CreatedPoster'
+    type: object
+  response.DevelopersResponse:
+    properties:
+      developers:
+        items:
+          $ref: '#/definitions/dto.DeveloperDTO'
+        type: array
+      len:
+        type: integer
+    type: object
   response.ErrorResponse:
     properties:
       details:
@@ -186,8 +245,21 @@ definitions:
       field:
         type: string
     type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+host: localhost:8000
 info:
-  contact: {}
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Created by TheBugs in 2026
+  license:
+    name: MIT
+  termsOfService: http://swagger.io/terms/
+  title: DomDeli API
+  version: "1.0"
 paths:
   /auth/login:
     post:
@@ -255,6 +327,117 @@ paths:
       security:
       - BearerAuth: []
       summary: User logout
+      tags:
+      - Auth
+  /auth/recover:
+    post:
+      consumes:
+      - application/json
+      description: Generates recovery session, sends verification code to user's email
+        and sets session_id cookie
+      parameters:
+      - description: User email
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.UserEmail'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Status OK
+          headers:
+            Set-Cookie:
+              description: session_id=<SESSION_ID>; HttpOnly; Path=/api/auth; Max-Age=600
+              type: string
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ValidationErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Send recovery code to email
+      tags:
+      - Auth
+  /auth/recover/reset:
+    post:
+      consumes:
+      - application/json
+      description: Updates password using verified recovery session (session_id cookie
+        required)
+      parameters:
+      - description: New password
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdatePwdDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password updated
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ValidationErrorResponse'
+        "401":
+          description: Session not verified or invalid
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Update user password
+      tags:
+      - Auth
+  /auth/recover/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verifies code from email using session_id cookie and marks session
+        as verified
+      parameters:
+      - description: Verification code
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.VerifyCodeDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Status verified
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ValidationErrorResponse'
+        "401":
+          description: Invalid code or session
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Verify recovery code
       tags:
       - Auth
   /auth/refresh:
@@ -547,7 +730,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/response.PosterResponse'
+            $ref: '#/definitions/response.CreatedPosterResponse'
         "400":
           description: Bad Request
           schema:
@@ -567,6 +750,41 @@ paths:
       summary: Create flat poster
       tags:
       - posters
+  /utility-companies/:
+    get:
+      description: Returns utility complexies by developers
+      parameters:
+      - description: Developer id
+        in: query
+        name: developer_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CompaniesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get utility complexies by developers
+      tags:
+      - utility_complexes
   /utility-companies/by-alias/{alias}:
     get:
       description: Returns utility complex details along with its photos by the given
@@ -603,4 +821,38 @@ paths:
       summary: Get utility complex by alias
       tags:
       - utility_complexes
+  /utility-companies/developers:
+    get:
+      description: Returns developers
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.DevelopersResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get developers
+      tags:
+      - utility_complexes
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

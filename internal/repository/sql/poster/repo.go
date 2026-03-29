@@ -6,9 +6,10 @@ import (
 	"strings"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	repository "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
 	"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
@@ -42,7 +43,6 @@ func (r *PosterRepo) GetAll(ctx context.Context, filters dto.PostersFiltersDTO) 
 		query += ` JOIN utility_companies uc ON b.company_id = uc.id 
 		WHERE uc.alias = $` + fmt.Sprintf("%d", argIndex)
 		args = append(args, *filters.UtilityCompany)
-		argIndex++
 	}
 
 	query += ` ORDER BY p.created_at DESC LIMIT $1 OFFSET $2`
@@ -59,7 +59,7 @@ func (r *PosterRepo) GetAll(ctx context.Context, filters dto.PostersFiltersDTO) 
 		return nil, repository.HandelPgErrors(err)
 	}
 
-	return posters, rows.Err()
+	return posters, nil
 }
 
 func (r *PosterRepo) CountPosters(ctx context.Context) (int, error) {
@@ -114,6 +114,10 @@ func (r *PosterRepo) GetByAlias(ctx context.Context, posterAlias string) (*entit
 	if err != nil {
 		return &poster, repository.HandelPgErrors(err)
 	}
+	poster.Facilities, err = getPosterFacilities(r, ctx, poster.ID)
+	if err != nil {
+		return &poster, repository.HandelPgErrors(err)
+	}
 
 	return &poster, nil
 }
@@ -145,6 +149,31 @@ func (r *PosterRepo) GetFlatByPropetyID(ctx context.Context, propertyID int) (*e
 	return &flat, nil
 }
 
+func (r *PosterRepo) GetByUserID(ctx context.Context, userID int) ([]entity.Poster, error) {
+	sql := `
+		SELECT p.id, p.price, p.avatar_url,
+               b.address, m.station_name, prop.area, f.floor, p.alias
+        FROM posters p
+        JOIN property prop ON prop.id = p.property_id
+        JOIN flat f ON f.property_id = p.id
+        JOIN property_categories pc ON pc.id = prop.category_id
+        JOIN buildings b ON b.id = prop.building_id
+        JOIN metro_stations m ON b.metro_station_id = m.id
+		WHERE p.user_id = $1
+		ORDER BY p.created_at DESC
+	`
+	rows, err := r.pool.Query(ctx, sql, userID)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+	posters, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.Poster])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+	return posters, nil
+
+}
+
 func getPosterImages(r *PosterRepo, ctx context.Context, id int) ([]entity.PosterImage, error) {
 	query := `
 		SELECT im.img_url, im.sequence_order
@@ -166,6 +195,54 @@ func getPosterImages(r *PosterRepo, ctx context.Context, id int) ([]entity.Poste
 	}
 
 	return images, rows.Err()
+}
+
+func getPosterFacilities(r *PosterRepo, ctx context.Context, id int) ([]entity.Facility, error) {
+	query := `
+		SELECT f.id, f.name, f.alias
+		FROM facilities f 
+		JOIN facility_property fp ON fp.facility_id = f.id
+		JOIN property pr ON pr.id = fp.property_id
+		JOIN posters pt ON pt.property_id = pr.id
+		WHERE pt.id = $1
+		ORDER BY f.name
+	`
+
+	rows, err := r.pool.Query(ctx, query, id)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	defer rows.Close()
+
+	facilities, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.Facility])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return facilities, rows.Err()
+}
+
+func (r *PosterRepo) GetMetroStationByRadius(ctx context.Context, buildingGeo dto.GeographyDTO, radius entity.Metre) ([]entity.MetroStation, error) {
+	query := `
+    SELECT m.id, m.station_name, ST_AsText(m.geo) AS metro_geo
+    FROM metro_stations m 
+    WHERE ST_DWithin(m.geo, ST_GeogFromText($1), $2)
+    ORDER BY m.geo <-> ST_GeogFromText($1)
+`
+	rows, err := r.pool.Query(ctx, query, geo.GeographyPoint{Lat: buildingGeo.Lat, Lon: buildingGeo.Lon}, int(radius))
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	defer rows.Close()
+
+	stations, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.MetroStation])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return stations, rows.Err()
 }
 
 func (r *PosterRepo) CreateBuilding(ctx context.Context, poster *entity.PosterInput) (int, error) {

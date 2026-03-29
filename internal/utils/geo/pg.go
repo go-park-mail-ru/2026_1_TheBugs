@@ -1,6 +1,7 @@
 package geo
 
 import (
+	"database/sql/driver"
 	"fmt"
 	"strconv"
 	"strings"
@@ -36,8 +37,8 @@ func (g *GeographyPoint) Scan(value interface{}) error {
 	return nil
 }
 
-func (g GeographyPoint) Value() (string, error) {
-	return fmt.Sprintf("ST_GeogFromText('SRID=4326;POINT(%f %f)')", g.Lon, g.Lat), nil
+func (g GeographyPoint) Value() (driver.Value, error) {
+	return fmt.Sprintf("SRID=4326;POINT(%f %f)", g.Lon, g.Lat), nil
 }
 
 func (g GeographyPoint) ToGeo() string {

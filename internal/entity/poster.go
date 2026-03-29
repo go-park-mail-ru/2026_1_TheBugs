@@ -40,7 +40,8 @@ type PosterById struct {
 	City       string              `db:"city_name"`
 	FloorCount int                 `db:"floor_count"`
 
-	Images []PosterImage `db:"-"`
+	Images     []PosterImage `db:"-"`
+	Facilities []Facility    `db:"-"`
 
 	SellerFirstName string  `db:"first_name"`
 	SellerLastName  string  `db:"last_name"`
@@ -58,6 +59,18 @@ type Flat struct {
 	FlatCategory string `db:"flat_category"`
 	Number       int    `db:"number"`
 	Floor        int    `db:"floor"`
+}
+
+type MetroStation struct {
+	ID          int                `db:"id"`
+	StationName string             `db:"station_name"`
+	StationGEO  geo.GeographyPoint `db:"metro_geo"`
+}
+
+type Facility struct {
+	ID    int    `db:"id"`
+	Name  string `db:"name"`
+	Alias string `db:"alias"`
 }
 
 type PosterInput struct {

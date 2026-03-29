@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 )
 
 func SetRefreshCookie(w http.ResponseWriter, accessCred *dto.UserAccessCredDTO) {

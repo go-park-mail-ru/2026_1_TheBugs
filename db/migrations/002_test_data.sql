@@ -72,7 +72,7 @@ VALUES
     ('СтройГрупп', '+7 495 123 48 77',
      ST_GeogFromText('SRID=4326;POINT(37.6173 55.7558)'),
      'г. Москва, ул. Тверская, д. 10, офис 5',
-     NULL,
+     'https://logotab.ru/storage/logotypes/1194/logotip-zhk-1083.jpg.jpg',
      'stroigroup',
      'Современный жилой комплекс бизнес-класса в центре Москвы с развитой инфраструктурой и подземным паркингом.',
      (SELECT id FROM developers WHERE developer_name = 'ГК СтройГрупп Девелопмент')),
@@ -80,7 +80,7 @@ VALUES
     ('ПремиумДом', '+7 495 987 65 43',
      ST_GeogFromText('SRID=4326;POINT(37.5806 55.7495)'),
      'г. Москва, ул. Арбат, д. 20',
-     NULL,
+     'https://profi-storage.storage.yandexcloud.net/iblock/6c3/ymsd8l4okdnq64hrej0l6mnjkunh3ym4/logo-_11_.svg',
      'premiumdom',
      'Элитный жилой комплекс с дизайнерской архитектурой, закрытой территорией и круглосуточной охраной.',
      (SELECT id FROM developers WHERE developer_name = 'ПремиумДом Девелопмент')),
@@ -88,7 +88,7 @@ VALUES
     ('НордСтрой', '+7 812 111 22 33',
      ST_GeogFromText('SRID=4326;POINT(30.3141 59.9311)'),
      'г. Санкт-Петербург, Невский пр., д. 50',
-     NULL,
+     'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRH_W7hzypC9OPgWn77SgqQ2OOZHYzGY1ZYXw&s',
      'nordstroy',
      'ЖК в историческом центре Санкт-Петербурга с видом на Неву и удобной транспортной доступностью.',
      (SELECT id FROM developers WHERE developer_name = 'НордСтрой Девелопмент')),
@@ -96,7 +96,7 @@ VALUES
     ('КазаньИнвест', '+7 843 444 55 66',
      ST_GeogFromText('SRID=4326;POINT(49.1221 55.7887)'),
      'г. Казань, ул. Баумана, д. 15',
-     NULL,
+     'https://mir-s3-cdn-cf.behance.net/projects/404/171d7853318135.Y3JvcCwxMDIyLDgwMCwxODcsMA.jpg',
      'kazaninvest',
      'Комфортный жилой комплекс в центре Казани с благоустроенными дворами и развитой инфраструктурой.',
      (SELECT id FROM developers WHERE developer_name = 'КазаньИнвест Девелопмент')),
@@ -104,7 +104,7 @@ VALUES
     ('УралСтройКом', '+7 343 777 88 99',
      ST_GeogFromText('SRID=4326;POINT(60.6122 56.8519)'),
      'г. Екатеринбург, ул. Ленина, д. 30',
-     NULL,
+     'https://sh.agency/upload/iblock/76b/76b329d4d06d8a87939c571a4601aa60.jpg',
      'uralstroy',
      'Современный ЖК в Екатеринбурге с просторными квартирами и удобным доступом к деловому центру города.',
      (SELECT id FROM developers WHERE developer_name = 'УралСтройКом Девелопмент'));
@@ -135,13 +135,15 @@ INSERT INTO buildings (address, geo, city_id, metro_station_id, district, floor_
 -- ============================================================
 -- 8. Категории квартир (flat_categories)
 -- ============================================================
-INSERT INTO flat_categories (name) VALUES
-    ('Студия'),
-    ('1 комнатная'),
-    ('2 комнатная'),
-    ('3 комнатная'),
-    ('Апартаменты'),
-    ('Пентхаус');
+INSERT INTO flat_categories (name, room_count) VALUES 
+    ('Студия', 0),
+    ('Однокомнатная', 1),
+    ('Двухкомнатная', 2),
+    ('Трехкомнатная', 3),
+    ('Четырехкомнатная', 4),
+    ('Пятикомнатная', 5),
+    ('Шестикомнатная+', 6);
+
 
 -- ============================================================
 -- 9. Объекты недвижимости (property)
@@ -162,16 +164,16 @@ INSERT INTO property (category_id, building_id, area) VALUES
 -- 10. Квартиры (flat)
 -- ============================================================
 INSERT INTO flat (property_id, floor, number, category_id) VALUES
-    (1, 3, 12, (SELECT id FROM flat_categories WHERE name = 'Студия')),
-    (2, 7, 54, (SELECT id FROM flat_categories WHERE name = '2 комнатная')),
-    (3, 10, 99, (SELECT id FROM flat_categories WHERE name = 'Пентхаус')),
-    (4, 2, 5, (SELECT id FROM flat_categories WHERE name = '1 комнатная')),
-    (5, 1, 2, (SELECT id FROM flat_categories WHERE name = 'Студия')),
-    (6, 6, 45, (SELECT id FROM flat_categories WHERE name = '2 комнатная')),
-    (7, 2, 8, (SELECT id FROM flat_categories WHERE name = '1 комнатная')),
-    (8, 9, 77, (SELECT id FROM flat_categories WHERE name = 'Апартаменты')),
-    (9, 3, 22, (SELECT id FROM flat_categories WHERE name = '2 комнатная')),
-    (10, 4, 35, (SELECT id FROM flat_categories WHERE name = '3 комнатная'));
+    (1, 3, 12, (SELECT id FROM flat_categories WHERE room_count = 0)),
+    (2, 7, 54, (SELECT id FROM flat_categories WHERE room_count = 1)),
+    (3, 10, 99, (SELECT id FROM flat_categories WHERE room_count = 2)),
+    (4, 2, 5, (SELECT id FROM flat_categories WHERE room_count = 2)),
+    (5, 1, 2, (SELECT id FROM flat_categories WHERE room_count = 0)),
+    (6, 6, 45, (SELECT id FROM flat_categories WHERE room_count = 3)),
+    (7, 2, 8, (SELECT id FROM flat_categories WHERE room_count = 4)),
+    (8, 9, 77, (SELECT id FROM flat_categories WHERE room_count = 5)),
+    (9, 3, 22, (SELECT id FROM flat_categories WHERE room_count = 1)),
+    (10, 4, 35, (SELECT id FROM flat_categories WHERE room_count = 1));
 
 -- ============================================================
 -- 11. Объявления (posters)
@@ -190,19 +192,27 @@ INSERT INTO posters (price, avatar_url, description, user_id, property_id, alias
 -- ============================================================
 -- 12. Фотографии объявлений
 -- ============================================================
+-- Фотографии для объявлений
 INSERT INTO poster_photos (img_url, sequence_order, poster_id) VALUES
     ('https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 1, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
     ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 3, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
+    ('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTj_cN2apQuTB2vu5_v4J3FnyrhHD6Y5x_BXA&s', 3, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 4, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
     ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
+    ('https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 2, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
+    ('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTj_cN2apQuTB2vu5_v4J3FnyrhHD6Y5x_BXA&s', 3, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
+    ('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTj_cN2apQuTB2vu5_v4J3FnyrhHD6Y5x_BXA&s', 1, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
     ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = '1room-arbatskaya')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = 'studio-smolenskaya')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = '1room-nevskiy')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = 'apartments-neva-view')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = '2room-sadovaya')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = '3room-kazan'));
+    ('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxc4pnGQ858I3MeioxaDuJavns23B_bbJ_pw&s', 1, (SELECT id FROM posters WHERE alias = '1room-arbatskaya')),
+    ('https://n1s1.hsmedia.ru/0c/2e/40/0c2e4035e8da10aafba72e6f8b35b889/1000x750_0xac120003_8249795801571942265.jpg', 1, (SELECT id FROM posters WHERE alias = 'studio-smolenskaya')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM posters WHERE alias = 'studio-smolenskaya')),
+    ('https://inminecraft.ru/_ph/7/937019994.png', 1, (SELECT id FROM posters WHERE alias = '1room-nevskiy')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM posters WHERE alias = '1room-nevskiy')),
+    ('https://st.dg-home.ru/upload/blog_editor/18b/2hwc7stcrv1vq9vx40o0k7bt3skuc1xn/11_divan.jpg', 1, (SELECT id FROM posters WHERE alias = 'apartments-neva-view')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM posters WHERE alias = 'apartments-neva-view')),
+    ('https://cs14.pikabu.ru/post_img/big/2024/01/12/11/1705087246125258124.jpg', 1, (SELECT id FROM posters WHERE alias = '2room-sadovaya')),
+    ('https://garagetek.ru/uploads/images/GarageTek_Etush01.jpg', 1, (SELECT id FROM posters WHERE alias = '3room-kazan'));
+
 
 -- ============================================================
 -- 13. Лайки 
@@ -214,3 +224,100 @@ INSERT INTO likes (user_id, poster_id) VALUES
     (4, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
     (1, (SELECT id FROM posters WHERE alias = 'apartments-neva-view')),
     (2, (SELECT id FROM posters WHERE alias = 'apartments-neva-view'));
+
+
+-- ============================================================
+-- 14. Удобства (facilities)
+-- ============================================================
+INSERT INTO facilities (name, alias) VALUES
+    ('Wi-Fi', 'wifi'),
+    ('Кондиционер', 'conditioner'),
+    ('Стиральная машина', 'washing-machine'),
+    ('Сушилка', 'dryer'),
+    ('Гладильная доска', 'ironing-board'),
+    ('Утюг', 'iron'),
+    ('Телевизор', 'tv'),
+    ('Холодильник', 'fridge'),
+    ('Микроволновка', 'microwave'),
+    ('Электроплита', 'stove'),
+    ('Посудомойка', 'dishwasher'),
+    ('Лифт', 'elevator'),
+    ('Парковка', 'parking'),
+    ('Консьерж', 'concierge'),
+    ('Детская площадка', 'playground');
+
+
+-- ============================================================
+-- 15. Связь удобства → property (для каждого постера)
+-- ============================================================
+-- studio-tverskaya (property_id=1) - базовые удобства
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (1, (SELECT id FROM facilities WHERE alias='wifi')),
+    (1, (SELECT id FROM facilities WHERE alias='conditioner')),
+    (1, (SELECT id FROM facilities WHERE alias='washing-machine')),
+    (1, (SELECT id FROM facilities WHERE alias='fridge')),
+    (1, (SELECT id FROM facilities WHERE alias='microwave'));
+
+-- 2room-tverskaya (property_id=2) - расширенный набор
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (2, (SELECT id FROM facilities WHERE alias='wifi')),
+    (2, (SELECT id FROM facilities WHERE alias='conditioner')),
+    (2, (SELECT id FROM facilities WHERE alias='washing-machine')),
+    (2, (SELECT id FROM facilities WHERE alias='dryer')),
+    (2, (SELECT id FROM facilities WHERE alias='dishwasher')),
+    (2, (SELECT id FROM facilities WHERE alias='elevator')),
+    (2, (SELECT id FROM facilities WHERE alias='parking'));
+
+-- penthouse-arbatskaya (property_id=3) - премиум
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (3, (SELECT id FROM facilities WHERE alias='wifi')),
+    (3, (SELECT id FROM facilities WHERE alias='conditioner')),
+    (3, (SELECT id FROM facilities WHERE alias='dishwasher')),
+    (3, (SELECT id FROM facilities WHERE alias='concierge')),
+    (3, (SELECT id FROM facilities WHERE alias='parking')),
+    (3, (SELECT id FROM facilities WHERE alias='elevator'));
+
+-- 1room-arbatskaya (property_id=4) - стандарт
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (4, (SELECT id FROM facilities WHERE alias='wifi')),
+    (4, (SELECT id FROM facilities WHERE alias='washing-machine')),
+    (4, (SELECT id FROM facilities WHERE alias='fridge')),
+    (4, (SELECT id FROM facilities WHERE alias='tv')),
+    (4, (SELECT id FROM facilities WHERE alias='iron'));
+
+-- studio-smolenskaya (property_id=5) - минимальный набор
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (5, (SELECT id FROM facilities WHERE alias='wifi')),
+    (5, (SELECT id FROM facilities WHERE alias='fridge')),
+    (5, (SELECT id FROM facilities WHERE alias='microwave'));
+
+-- 1room-nevskiy (property_id=7) - питерский стандарт
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (7, (SELECT id FROM facilities WHERE alias='wifi')),
+    (7, (SELECT id FROM facilities WHERE alias='conditioner')),
+    (7, (SELECT id FROM facilities WHERE alias='washing-machine')),
+    (7, (SELECT id FROM facilities WHERE alias='elevator'));
+
+-- apartments-neva-view (property_id=8) - люкс
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (8, (SELECT id FROM facilities WHERE alias='wifi')),
+    (8, (SELECT id FROM facilities WHERE alias='dishwasher')),
+    (8, (SELECT id FROM facilities WHERE alias='concierge')),
+    (8, (SELECT id FROM facilities WHERE alias='playground')),
+    (8, (SELECT id FROM facilities WHERE alias='parking'));
+
+-- 2room-sadovaya (property_id=9) - семейный
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (9, (SELECT id FROM facilities WHERE alias='wifi')),
+    (9, (SELECT id FROM facilities WHERE alias='washing-machine')),
+    (9, (SELECT id FROM facilities WHERE alias='dryer')),
+    (9, (SELECT id FROM facilities WHERE alias='playground')),
+    (9, (SELECT id FROM facilities WHERE alias='elevator'));
+
+-- 3room-kazan (property_id=10) - просторная
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (10, (SELECT id FROM facilities WHERE alias='wifi')),
+    (10, (SELECT id FROM facilities WHERE alias='conditioner')),
+    (10, (SELECT id FROM facilities WHERE alias='dishwasher')),
+    (10, (SELECT id FROM facilities WHERE alias='stove')),
+    (10, (SELECT id FROM facilities WHERE alias='parking'));

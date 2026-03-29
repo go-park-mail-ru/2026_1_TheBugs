@@ -33,6 +33,10 @@ redis:
   password: ""
   db: 0
 
+smtp:
+  host: smtp.mail.ru
+  port: 587
+  email: admin@dom-deli.ru
 
 oauth:
   vk-client-id: "54483363"

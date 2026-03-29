@@ -3,10 +3,11 @@ package config
 import (
 	"crypto/rsa"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 )
 
 var Config ProjectConfig
@@ -30,6 +31,7 @@ type (
 		Redis    `yaml:"redis"`
 		JWT      `yaml:"jwt"`
 		OAuth    `yaml:"oauth"`
+		SMTP     `yaml:"smtp"`
 		Minio    `yaml:"minio"`
 	}
 	Redis struct {
@@ -48,6 +50,12 @@ type (
 		VKRedirectURI      string `yaml:"vk-redirect-uri"    env:"VKRedirectURI" env-default:"https://dom-deli.ru/oauth/vk"`
 		YandexRedirectURI  string `yaml:"yandex-redirect-uri"    env:"YandexRedirectURI" env-default:"https://dom-deli.ru/oauth/yandex"`
 		YandexClientSecret string `yaml:"yandex-client-secret"    env:"YandexClientSecret" env-default:"client_secret"`
+	}
+	SMTP struct {
+		Host  string `yaml:"host" env:"SMTP_HOST" env-default:"localhost"`
+		Port  int    `yaml:"port" env:"SMTP_PORT" env-default:"1025"`
+		Email string `yaml:"email" env:"SMTP_EMAIL" env-default:"admin@dom-deli.ru"`
+		Pwd   string `yaml:"pwd" env:"SMTP_PWD" env-default:"1025"`
 	}
 
 	Server struct {
@@ -73,6 +81,7 @@ type (
 		PrivateKeySource string        `yaml:"private-key-source"    env:"JWT_PRIVATE_KEY_SOURCE" env-default:"private.pem"`
 		AccessExp        time.Duration `yaml:"access-exp"    env:"JWT_ACCESS_EXP" env-default:"15m"`
 		RefreshExp       time.Duration `yaml:"refresh-exp"    env:"JWT_REFRESH_EXP" env-default:"24h"`
+		RecoverExp       time.Duration `yaml:"recover-exp"    env:"JWT_RECOVER_EXP" env-default:"5m"`
 	}
 	RSAKeys struct {
 		PublicKey  *rsa.PublicKey
@@ -88,9 +97,12 @@ type (
 	}
 )
 
-func Read() error {
+func Read(log *logrus.Logger) error {
 	var err error
 	// c:/Users/Артемий/OneDrive/Desktop/code/2026_1_TheBugs/ этот оставил для дебага у вас будет свой
+	if err := godotenv.Load(".env"); err != nil {
+		log.Warnf("No .env file found: %v", err)
+	}
 	if err = cleanenv.ReadConfig("config/config.yaml", &Config); err != nil {
 		return fmt.Errorf("error while reading application configuration: %w", err)
 	}

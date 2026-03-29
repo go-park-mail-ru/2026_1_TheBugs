@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 )

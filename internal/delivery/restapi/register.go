@@ -51,15 +51,19 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 	app.Use(middleware.LoggingMiddleware(logger))
 	app.Use(c.Handler)
 
-	// Routers
+	app.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
+	}).Methods(http.MethodGet)
+
+	// API Routers
 	apiGroup := app.PathPrefix("/api").Subrouter()
 	apiGroup.Use(mux.CORSMethodMiddleware(apiGroup))
 	{
 		AuthMiddlewary := auth.GetAuthMiddlewary()
-
 		apiGroup.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 			_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 		}).Methods(http.MethodGet)
+		apiGroup.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 
 		apiGroup.HandleFunc("/auth/reg", auth.RegisterUser).Methods(http.MethodPost)
 		apiGroup.HandleFunc("/auth/login", auth.LoginUser).Methods(http.MethodPost)
@@ -67,10 +71,13 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		apiGroup.HandleFunc("/auth/refresh", auth.RefreshToken).Methods(http.MethodPost)
 		apiGroup.HandleFunc("/auth/vkid", auth.VKLogin).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.HandleFunc("/auth/yandex", auth.YandexLogin).Methods(http.MethodPost, http.MethodOptions)
+		apiGroup.HandleFunc("/auth/recover", auth.SendCodeOnEmail).Methods(http.MethodPost, http.MethodOptions)
+		apiGroup.HandleFunc("/auth/recover/verify", auth.VerifyRecoveryCode).Methods(http.MethodPost, http.MethodOptions)
+		apiGroup.HandleFunc("/auth/recover/reset", auth.UpdatePassword).Methods(http.MethodPost, http.MethodOptions)
 
 		apiGroup.HandleFunc("/utility-companies/by-alias/{alias}", UtilityCompany.GetUtilityCompany).Methods(http.MethodGet)
-
-		apiGroup.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
+		apiGroup.HandleFunc("/utility-companies/developers", UtilityCompany.GetAllDevelopers).Methods(http.MethodGet)
+		apiGroup.HandleFunc("/utility-companies/", UtilityCompany.GetUtilityCompaniesByDeveloper).Methods(http.MethodGet)
 
 		apiGroup.HandleFunc("/posters", post.GetAll).Methods(http.MethodGet)
 		apiGroup.HandleFunc("/posters/by-alias/{alias}", post.GetPoster).Methods(http.MethodGet)

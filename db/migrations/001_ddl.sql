@@ -74,6 +74,19 @@ CREATE TABLE IF NOT EXISTS property_categories (
 ); 
 COMMENT ON TABLE property_categories IS 'Тип помещения';
 
+CREATE TABLE IF NOT EXISTS facilities(
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
+    name TEXT NOT NULL, 
+    alias TEXT UNIQUE NOT NULL,
+
+    CONSTRAINT name_length_check CHECK ( LENGTH(name) < 30 ),
+    CONSTRAINT alias_length_check CHECK ( LENGTH(alias) < 50 ) 
+);
+
+COMMENT ON TABLE facilities IS 'Удобства';
+
+
+
 CREATE TABLE IF NOT EXISTS developers (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     developer_name TEXT NOT NULL,
@@ -136,6 +149,18 @@ CREATE TABLE IF NOT EXISTS property (
     CONSTRAINT fk_building FOREIGN KEY (building_id) REFERENCES buildings(id) 
 ); 
 COMMENT ON TABLE property IS 'Объект недвижимости';
+
+CREATE TABLE IF NOT EXISTS facility_property(
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
+    property_id BIGINT,
+    facility_id BIGINT,
+    CONSTRAINT fk_property_id FOREIGN KEY (property_id) REFERENCES property(id),
+    CONSTRAINT fk_facility_id FOREIGN KEY (facility_id) REFERENCES facilities(id),
+    CONSTRAINT unique_ids UNIQUE (property_id, facility_id)
+);
+
+COMMENT ON TABLE facilities IS 'Удобства-Недвижемость';
+
  
 
 CREATE TABLE IF NOT EXISTS posters ( 
@@ -174,7 +199,9 @@ COMMENT ON TABLE poster_photos IS 'Фото объявления';
  
 CREATE TABLE IF NOT EXISTS flat_categories ( 
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
-    name TEXT NOT NULL 
+    name TEXT NOT NULL,
+    room_count SMALLINT,
+    CONSTRAINT room_count_check CHECK (room_count BETWEEN 0 AND 6) 
 ); 
 
 COMMENT ON TABLE flat_categories IS 'Категории квартиры';

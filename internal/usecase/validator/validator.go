@@ -40,10 +40,7 @@ func ValidatePhone(phone string) bool {
 }
 
 func ValidateName(name string) bool {
-	if len(name) > maxNameLenght {
-		return false
-	}
-	return true
+	return len(name) <= maxNameLenght
 }
 
 func ValidatePwd(pwd string) bool {

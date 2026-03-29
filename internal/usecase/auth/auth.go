@@ -5,29 +5,33 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math/rand"
 	"strconv"
 	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
+	tokens "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/jwt"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/oauth"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/validator"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/pwd"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/tokens"
 	"github.com/google/uuid"
 )
 
 type AuthUseCase struct {
-	uow       usecase.UnitOfWork
-	blacklist usecase.TokenRepo
+	uow    usecase.UnitOfWork
+	cache  usecase.Сache
+	sender usecase.MailSender
 }
 
-func NewAuthUseCase(uow usecase.UnitOfWork, blacklist usecase.TokenRepo) *AuthUseCase {
+func NewAuthUseCase(uow usecase.UnitOfWork, cache usecase.Сache, sender usecase.MailSender) *AuthUseCase {
 	return &AuthUseCase{
-		uow:       uow,
-		blacklist: blacklist,
+		uow:    uow,
+		cache:  cache,
+		sender: sender,
 	}
 }
 func (uc AuthUseCase) RegisterUseCase(ctx context.Context, data dto.CreateUserDTO) error {
@@ -76,7 +80,7 @@ func (uc AuthUseCase) LoginUseCase(ctx context.Context, email string, passwod st
 	if err != nil {
 		return &cred, entity.NotFoundError
 	}
-	if user.Provider != nil {
+	if user.HashedPassword == nil || user.Salt == nil {
 		return nil, entity.BadCredentials
 	}
 
@@ -181,7 +185,7 @@ func (uc AuthUseCase) ValidateAccessToken(ctx context.Context, accessToken strin
 	if accessData.Type != entity.AccessTokenType {
 		return nil, entity.JWTError
 	}
-	if ok, err := uc.blacklist.IsBlacklisted(ctx, accessData.ID); err != nil || ok {
+	if ok, err := uc.cache.IsBlacklisted(ctx, accessData.ID); err != nil || ok {
 		return nil, fmt.Errorf("uc.authRepo.IsBlacklisted: %w", entity.JWTError)
 	}
 
@@ -227,10 +231,9 @@ func (uc AuthUseCase) LogoutUseCase(ctx context.Context, logoutCred dto.LogoutDT
 		return fmt.Errorf("uc.authRepo.DeleteToken: %w", entity.JWTError)
 	}
 	ttl := config.Config.JWT.AccessExp
-	if ttl > 0 {
-		if err := uc.blacklist.BlacklistToken(ctx, accessData.ID, ttl); err != nil {
-			return fmt.Errorf("uc.authRepo.BlacklistToken: %w", entity.JWTError)
-		}
+
+	if err := uc.cache.SetBlacklist(ctx, accessData.ID, ttl); err != nil {
+		return fmt.Errorf("uc.authRepo.BlacklistToken: %w", entity.JWTError)
 	}
 	return nil
 }
@@ -323,4 +326,89 @@ func (uc AuthUseCase) LoginUserFromYandexUseCase(ctx context.Context, flow dto.O
 		RefreshTokenExp: int(config.Config.JWT.RefreshExp.Seconds()),
 	}
 	return &cred, nil
+}
+
+const MaxAttemptsRecovery = 5
+
+func (uc AuthUseCase) SendVerificationCode(ctx context.Context, email string) (string, error) {
+	op := "AuthUseCase.SendVerificationCode"
+	log := ctxLogger.GetLogger(ctx).WithField("op", op)
+
+	_, err := uc.uow.Users().GetByEmail(ctx, email)
+	if err != nil {
+		return "", fmt.Errorf("uc.uow.Users().GetByEmail: %w", err)
+	}
+	blocked, err := uc.cache.IsBlacklisted(ctx, email)
+	if err != nil {
+		return "", fmt.Errorf("uc.cache.IsBlacklisted: %w", err)
+	}
+	if blocked {
+		return "", fmt.Errorf("max limit offset: %w", entity.ToManyRequest)
+	}
+	err = uc.cache.SetBlacklist(ctx, email, time.Duration(1*time.Minute))
+	if err != nil {
+		return "", fmt.Errorf("uc.cache.SetBlacklist: %w", err)
+	}
+	seed := rand.New(rand.NewSource(time.Now().UnixNano()))
+	code := fmt.Sprintf("%05d", seed.Intn(100000))
+	sessionId := fmt.Sprintf("%010x", seed.Int())[:10]
+	err = uc.cache.CreateRecoverSession(ctx, sessionId, entity.RecoverSession{Email: email, Code: code, Attempts: 0, Verified: false}, config.Config.JWT.RecoverExp)
+	if err != nil {
+		return "", fmt.Errorf("uc.cache.CreateRecoverSession: %w", err)
+	}
+	log.Info("send code")
+	if err := uc.sender.SendCode(ctx, email, code); err != nil {
+		log.Errorf("send code: %v", err)
+	}
+
+	return sessionId, nil
+}
+
+func (uc AuthUseCase) CheckRecoveryCode(ctx context.Context, sessionID string, code string) error {
+	session, err := uc.cache.GetRecoverSession(ctx, sessionID)
+	if err != nil {
+		return fmt.Errorf("uc.cache.GetRecoverSession: %w", err)
+	}
+	if session == nil {
+		return fmt.Errorf("session is empty: %w", entity.BadCredentials)
+	}
+
+	if session.Code != code {
+		attempts, _ := uc.cache.IncrementRecoverAttempts(ctx, sessionID)
+		if attempts > MaxAttemptsRecovery {
+			_ = uc.cache.DeleteRecoverSession(ctx, sessionID)
+			return fmt.Errorf("max limit offset: %w", entity.ToManyRequest)
+		}
+		return fmt.Errorf("bad code: %w", entity.BadCredentials)
+	}
+	err = uc.cache.SetRecoverVerified(ctx, sessionID, true)
+	if err != nil {
+		return fmt.Errorf("uc.cache.SetRecoverVerified: %w", err)
+	}
+	return nil
+}
+
+func (uc AuthUseCase) UpdateUserPassword(ctx context.Context, sessionID string, password string) error {
+
+	session, err := uc.cache.GetRecoverSession(ctx, sessionID)
+	if err != nil {
+		return fmt.Errorf("uc.cache.GetRecoverSession: %w", err)
+	}
+	if session == nil {
+		return fmt.Errorf("session empty: %w", entity.BadCredentials)
+	}
+	if !session.Verified {
+		return fmt.Errorf("session unvirified: %w", entity.BadCredentials)
+	}
+	salt, _ := pwd.GenerateSalt()
+	hashedPwd := pwd.HashPassword(password, []byte(salt))
+	err = uc.uow.Users().UpdatePwd(ctx, session.Email, hashedPwd, salt)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Users().UpdatePwd: %w", err)
+	}
+	err = uc.cache.DeleteRecoverSession(ctx, sessionID)
+	if err != nil {
+		return fmt.Errorf("uc.cache.DeleteRecoverSession: %w", err)
+	}
+	return nil
 }
