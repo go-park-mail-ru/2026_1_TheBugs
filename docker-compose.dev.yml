@@ -21,3 +21,33 @@ services:
     ports:
       - "6379:6379"
     restart: unless-stopped
+
+  
+  minio: 
+    image:
+      quay.io/minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment: 
+      MINIO_ACCESS_KEY: admin123
+      MINIO_SECRET_KEY: admin123
+    command: server /data --console-address ":9001"
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    environment:
+      MINIO_ALIAS: minio
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: admin123
+      MINIO_SECRET_KEY: admin123
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set minio http://minio:9000 admin123 admin123 &&
+      mc mb minio/media --ignore-existing &&
+      mc anonymous set public minio/media &&
+      echo 'Bucket media created and public for download'
+      "
+    restart: "no"
