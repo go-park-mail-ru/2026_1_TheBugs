@@ -78,7 +78,7 @@ func (uc *PosterUseCase) GetPosterByAliasUseCase(ctx context.Context, posterAlia
 		return nil, fmt.Errorf("no such category %w", entity.ServiceError)
 	}
 
-	photo.MakeUrlsFromPaths(posterDTO, config.Config.PublicHost, config.Config.Bucket)
+	dto.MakeUrlsFromPaths(posterDTO, config.Config.PublicHost, config.Config.Bucket)
 
 	return posterDTO, nil
 }
@@ -106,14 +106,17 @@ func (uc *PosterUseCase) GetMetroStationsByRadius(ctx context.Context, coords dt
 
 func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.PosterInputFlatDTO) (*dto.CreatedPoster, error) {
 	var createdPoster *dto.CreatedPoster
+	fmt.Printf("PosterInputFlatDTO: %+v\n", poster)
 	post := dto.PosterInputFlatDTOtoPosterInput(poster)
 	post.Alias = alias.GenerateAlias(post)
 
 	createFlat := dto.PosterInputFlatDTOtoFlatInput(poster)
+	fmt.Printf("CreateFlat: %+v\n", createFlat)
 
-	photo.MakePhotoPathsForPoster(post)
+	dto.MakePhotoPathsForPoster(post)
 
 	keys := make([]string, 0, len(post.Images))
+	fmt.Printf("PosterInput: %+v\n", post)
 
 	err := uc.uow.Do(ctx, func(r usecase.UnitOfWork) error {
 		buildingID, err := r.Posters().CreateBuilding(ctx, post)
@@ -157,8 +160,10 @@ func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.Poste
 			}
 		}
 
-		createdPoster.ID = posterID
-		createdPoster.Alias = post.Alias
+		createdPoster = &dto.CreatedPoster{
+			ID:    posterID,
+			Alias: post.Alias,
+		}
 
 		return nil
 	})

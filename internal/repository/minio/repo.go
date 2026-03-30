@@ -13,11 +13,35 @@ type FileRepo struct {
 	bucket string
 }
 
-func NewFileRepo(client *minio.Client, bucket string) *FileRepo {
-	return &FileRepo{
+func NewFileRepo(client *minio.Client, bucket string) (*FileRepo, error) {
+	r := &FileRepo{
 		client: client,
 		bucket: bucket,
 	}
+	ctx := context.Background()
+	exists, err := client.BucketExists(ctx, bucket)
+	if err != nil {
+		return nil, fmt.Errorf("minio: BucketExists check failed: %w", err)
+	}
+
+	if !exists {
+		if err := client.MakeBucket(ctx, bucket, minio.MakeBucketOptions{}); err != nil {
+			return nil, fmt.Errorf("minio: MakeBucket failed: %w", err)
+		}
+	}
+	policyStr, err := client.GetBucketPolicy(ctx, bucket)
+	if err != nil {
+		fmt.Printf("minio: GetBucketPolicy error: %v\n", err)
+	} else {
+		fmt.Printf("minio: Policy for %s: %s\n", bucket, policyStr)
+	}
+
+	policy := fmt.Sprintf(`{"Version":"2012-10-17","Statement":[{"Sid":"AllowPublicRead","Effect":"Allow","Principal":"*","Action":["s3:GetObject"],"Resource":["arn:aws:s3:::%s/*"]}]}`, bucket)
+	if err := client.SetBucketPolicy(ctx, bucket, policy); err != nil {
+		return nil, fmt.Errorf("minio: SetBucketPolicy failed: %w", err)
+	}
+
+	return r, nil
 }
 
 // структуру сделать

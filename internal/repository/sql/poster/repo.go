@@ -324,11 +324,12 @@ func (r *PosterRepo) InsertFlat(ctx context.Context, flat *entity.FlatInput) err
 		INSERT INTO flat (property_id,
 			floor, number, category_id)
 		VALUES ($1, $2, $3, $4)
+		RETURNING property_id
 	`
-
-	_, err := r.pool.Exec(ctx, query, flat.PropertyID,
+	var flatID int
+	err := r.pool.QueryRow(ctx, query, flat.PropertyID,
 		flat.Floor, flat.Number, flat.CategoryID,
-	)
+	).Scan(&flatID)
 	if err != nil {
 		return repository.HandelPgErrors(err)
 	}

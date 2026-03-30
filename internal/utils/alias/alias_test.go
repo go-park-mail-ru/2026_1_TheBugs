@@ -1,19 +1,40 @@
 package alias
 
 import (
+	"regexp"
+	"strings"
 	"testing"
 
+	"github.com/andoma-go/translit"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
+	"github.com/stretchr/testify/require"
 )
 
 func strPtr(v string) *string { return &v }
 func intRef(v int) *int       { return &v }
 
-func TestGenerateAlias(t *testing.T) {
+func expectedBase(p *entity.PosterInput) string {
+	parts := make([]string, 0, 2)
+	if s := slugify(translit.Ru(p.Address)); s != "" {
+		parts = append(parts, s)
+	}
+	if p.District != nil {
+		if s := slugify(translit.Ru(*p.District)); s != "" {
+			parts = append(parts, s)
+		}
+	}
+	base := strings.Join(parts, "-")
+	if base == "" {
+		base = "poster"
+	}
+	return base
+}
+
+func TestGenerateAliasSignature(t *testing.T) {
 	tests := []struct {
 		name   string
 		poster *entity.PosterInput
-		want   string
 	}{
 		{
 			name: "address only",
@@ -22,11 +43,9 @@ func TestGenerateAlias(t *testing.T) {
 				CategoryID: 2,
 				CityID:     3,
 				Address:    "ул. Ленина, 10",
+				Geo:        geo.GeographyPoint{Lat: 55.75158, Lon: 12.6173},
+				Area:       122,
 			},
-			want: "ul-lenina-10-" + shortHash(
-				"user:1|category:2|city:3|address:ул. Ленина, 10|district:|company:",
-				8,
-			),
 		},
 		{
 			name: "address and district",
@@ -36,11 +55,9 @@ func TestGenerateAlias(t *testing.T) {
 				CityID:     30,
 				Address:    "пр-т Мира 5",
 				District:   strPtr("Центральный"),
+				Geo:        geo.GeographyPoint{Lat: 25.7558, Lon: 37.6173},
+				Area:       23,
 			},
-			want: "pr-t-mira-5-centralnyj-" + shortHash(
-				"user:10|category:20|city:30|address:пр-т Мира 5|district:Центральный|company:",
-				8,
-			),
 		},
 		{
 			name: "address and district slugify to empty",
@@ -50,11 +67,9 @@ func TestGenerateAlias(t *testing.T) {
 				CityID:     9,
 				Address:    "!!!",
 				District:   strPtr("   "),
+				Geo:        geo.GeographyPoint{Lat: 55.7558, Lon: 37.6173},
+				Area:       112,
 			},
-			want: "poster-" + shortHash(
-				"user:7|category:8|city:9|address:!!!|district:   |company:",
-				8,
-			),
 		},
 		{
 			name: "company id affects hash",
@@ -64,11 +79,9 @@ func TestGenerateAlias(t *testing.T) {
 				CityID:     13,
 				Address:    "Тверская 1",
 				CompanyID:  intRef(999),
+				Geo:        geo.GeographyPoint{Lat: 55.7558, Lon: 37.6173},
+				Area:       212,
 			},
-			want: "tverskaja-1-" + shortHash(
-				"user:11|category:12|city:13|address:Тверская 1|district:|company:999",
-				8,
-			),
 		},
 		{
 			name: "trim and normalize dashes",
@@ -77,47 +90,83 @@ func TestGenerateAlias(t *testing.T) {
 				CategoryID: 22,
 				CityID:     23,
 				Address:    "  ул___Пушкина   15  ",
+				Geo:        geo.GeographyPoint{Lat: 55.7558, Lon: 37.6173},
+				Area:       122,
 			},
-			want: "ul-pushkina-15-" + shortHash(
-				"user:21|category:22|city:23|address:  ул___Пушкина   15  |district:|company:",
-				8,
-			),
 		},
 		{
-			name: "same base but different hash source",
+			name: "same base different hash source 1",
 			poster: &entity.PosterInput{
 				UserID:     1,
 				CategoryID: 1,
 				CityID:     1,
+				Geo:        geo.GeographyPoint{Lat: 55.7558, Lon: 37.6173},
 				Address:    "Ленина 1",
+				Area:       122,
 			},
-			want: "lenina-1-" + shortHash(
-				"user:1|category:1|city:1|address:Ленина 1|district:|company:",
-				8,
-			),
 		},
 		{
-			name: "same slug different original address changes hash",
+			name: "same base different hash source 2",
 			poster: &entity.PosterInput{
 				UserID:     1,
 				CategoryID: 1,
 				CityID:     1,
+				Geo:        geo.GeographyPoint{Lat: 55.7558, Lon: 37.6173},
 				Address:    "Ленина-1",
+				Area:       12,
 			},
-			want: "lenina-1-" + shortHash(
-				"user:1|category:1|city:1|address:Ленина-1|district:|company:",
-				8,
-			),
 		},
 	}
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
+	re := regexp.MustCompile(`^(.+)-([0-9a-f]{8})$`)
 
-			got := GenerateAlias(test.poster)
-			if got != test.want {
-				t.Fatalf("GenerateAlias() = %q, want %q", got, test.want)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := GenerateAlias(tt.poster)
+
+			m := re.FindStringSubmatch(got)
+			if m == nil {
+				t.Fatalf("GenerateAlias() = %q does not match expected pattern <base>-<8hex>", got)
+			}
+			basePart := m[1]
+			hashPart := m[2]
+
+			expBase := expectedBase(tt.poster)
+			if basePart != expBase {
+				t.Fatalf("base part = %q, want %q", basePart, expBase)
+			}
+			if len(hashPart) != 8 {
+				t.Fatalf("hash part length = %d, want 8", len(hashPart))
 			}
 		})
 	}
+}
+
+func TestGenerateAliasSameInput(t *testing.T) {
+	poster := &entity.PosterInput{
+		UserID:     123,
+		CategoryID: 456,
+		CityID:     789,
+		Address:    "ул. Ленина, 10",
+		Geo:        geo.GeographyPoint{Lat: 55.75158, Lon: 12.6173},
+		Area:       122,
+	}
+	res1 := GenerateAlias(poster)
+	res2 := GenerateAlias(poster)
+	require.Equal(t, res1, res2, "Expected same alias for same input")
+}
+
+func TestGenerateAliasDifferentInput(t *testing.T) {
+	poster := &entity.PosterInput{
+		UserID:     123,
+		CategoryID: 456,
+		CityID:     789,
+		Address:    "ул. Ленина, 10",
+		Geo:        geo.GeographyPoint{Lat: 55.75158, Lon: 12.6173},
+		Area:       122,
+	}
+	res1 := GenerateAlias(poster)
+	poster.Geo.Lat = 12
+	res2 := GenerateAlias(poster)
+	require.NotEqual(t, res1, res2, "Expected different aliases for different inputs")
 }

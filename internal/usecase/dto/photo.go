@@ -1,9 +1,11 @@
 package dto
 
 import (
+	"fmt"
 	"mime/multipart"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/photo"
 )
 
 type PhotoDTO struct {
@@ -38,4 +40,18 @@ func posterPhotosInputFlatDTOtoPhotosInput(poster *PosterInputFlatDTO) []entity.
 	}
 
 	return photos
+}
+
+func MakePhotoPathsForPoster(poster *entity.PosterInput) {
+	for i, image := range poster.Images {
+		path := fmt.Sprintf("/poster/img/%s/%d.jpg", poster.Alias, image.Order)
+		poster.Images[i].Path = path
+	}
+}
+
+func MakeUrlsFromPaths(poster *PosterDTO, publicHost string, bucket string) {
+	for i, image := range poster.Images {
+		url := photo.MakeUrlFromPath(image.ImgURL, publicHost, bucket)
+		poster.Images[i].ImgURL = url
+	}
 }

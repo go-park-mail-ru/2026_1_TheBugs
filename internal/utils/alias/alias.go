@@ -30,14 +30,20 @@ func GenerateAlias(poster *entity.PosterInput) string {
 	}
 
 	hashSource := fmt.Sprintf(
-		"user:%d|category:%d|city:%d|address:%s|district:%s|company:%s",
+		"user:%d|category:%d|city:%d|address:%s|district:%s|company:%s|geo:%f,%f|area:%f",
 		poster.UserID,
 		poster.CategoryID,
 		poster.CityID,
 		poster.Address,
 		stringPtr(poster.District),
 		intPtr(poster.CompanyID),
+		poster.Geo.Lat,
+		poster.Geo.Lon,
+		poster.Area,
 	)
+	// key := make([]byte, 8)
+	// rand.Read(key)
+	// hashSource += string(key)
 
 	hash := shortHash(hashSource, 8)
 

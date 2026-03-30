@@ -1,7 +1,9 @@
 package dto
 
 import (
+	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/photo"
 )
 
 type PosterCardDTO struct {
@@ -25,13 +27,18 @@ type PostersFiltersDTO struct {
 
 func PostersToPostersDTO(posters []entity.PosterFlat) []PosterCardDTO {
 	listPosters := make([]PosterCardDTO, 0, len(posters))
-	for _, poster := range posters {
-		// rating := float64((i*3/2)%10 + 1)
-		// count := (i%5 + 1)
+	for i, poster := range posters {
+		rating := float64((i*3/2)%10 + 1)
+		count := (i%5 + 1)
+		photoURL := poster.ImgURL
+		if photoURL != nil {
+			url := photo.MakeUrlFromPath(*photoURL, config.Config.Minio.PublicHost, config.Config.Minio.Bucket)
+			photoURL = &url
+		}
 		posterDTO := PosterCardDTO{
 			ID:      poster.ID,
 			Price:   poster.Price,
-			ImgURL:  poster.ImgURL,
+			ImgURL:  photoURL,
 			Address: poster.Address,
 			Metro:   poster.Metro,
 			Area:    poster.Area,
@@ -129,21 +136,24 @@ type PosterInputFlatDTO struct {
 	Alias       *string `schema:"-"`
 	Price       float64 `schema:"price"`
 	Description string  `schema:"description"`
+	CategoryID  int     `schema:"category_id"`
+	Area        float64 `schema:"area"`
 
-	CategoryID int          `schema:"category_id"`
-	Flat       FlatInputDTO `schema:"flat"`
-	Area       float64      `schema:"area"`
+	GeoLat         float64 `schema:"geo_lat"`
+	GeoLon         float64 `schema:"geo_lon"`
+	FlatCategoryID int     `schema:"flat_category_id"`
+	FlatNumber     *int    `schema:"flat_number"`
+	FlatFloor      int     `schema:"flat_floor"`
 
-	Address        string            `schema:"address"`
-	Geo            GeographyInputDTO `schema:"geo"`
-	CityID         int               `schema:"city_id"`
-	MetroStationID *int              `schema:"metro_station_id"`
-	District       *string           `schema:"district"`
-	FloorCount     int               `schema:"floor_count"`
+	Address        string  `schema:"address"`
+	CityID         int     `schema:"city_id"`
+	MetroStationID *int    `schema:"metro_station_id"`
+	District       *string `schema:"district"`
+	FloorCount     int     `schema:"floor_count"`
+	CompanyID      *int    `schema:"company_id"`
 
-	CompanyID *int `schema:"company_id"`
-
-	Images []PhotoInputDTO `schema:"-"`
+	Features []string        `schema:"features"`
+	Images   []PhotoInputDTO `schema:"-"`
 }
 
 func PosterInputFlatDTOtoPosterInput(poster *PosterInputFlatDTO) *entity.PosterInput {
@@ -156,7 +166,7 @@ func PosterInputFlatDTOtoPosterInput(poster *PosterInputFlatDTO) *entity.PosterI
 		Area:       poster.Area,
 
 		Address:        poster.Address,
-		Geo:            GeographyInputDTOtoGeographyPoint(poster.Geo),
+		Geo:            GeographyInputDTOtoGeographyPoint(GeographyInputDTO{Lat: poster.GeoLat, Lon: poster.GeoLon}),
 		CityID:         poster.CityID,
 		MetroStationID: poster.MetroStationID,
 		District:       poster.District,
