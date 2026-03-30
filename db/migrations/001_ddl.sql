@@ -309,3 +309,27 @@ $$ language 'plpgsql';
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_posters_updated_at BEFORE UPDATE ON posters FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+
+CREATE OR REPLACE FUNCTION get_explain_rows(p_sql text)
+ RETURNS bigint AS $BODY$
+ DECLARE
+    plan_text text;
+    plan_json jsonb;
+    rows_count bigint := 0;
+    v_actual text;
+ BEGIN
+    EXECUTE 'EXPLAIN (FORMAT JSON) ' || p_sql INTO plan_text;
+    plan_json := plan_text::jsonb;
+    v_actual := plan_json->0->'Plan'->>'Plan Rows';
+    IF v_actual IS NOT NULL AND v_actual <> '' THEN
+        rows_count := v_actual::bigint;
+        RETURN rows_count;
+    END IF;
+     SELECT substring(plan_text from 'rows=(\d+)')::bigint INTO rows_count;
+    RETURN COALESCE(rows_count, 0);
+ END;
+ $BODY$ LANGUAGE plpgsql;
+
+ ANALYSE;
+

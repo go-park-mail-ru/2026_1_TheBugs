@@ -19,6 +19,11 @@ type PosterCardDTO struct {
 	// Beds    *int     `json:"beds"`
 }
 
+type PostersResponse struct {
+	Len     int             `json:"len"`
+	Posters []PosterCardDTO `json:"posters"`
+}
+
 type PostersFiltersDTO struct {
 	Limit          int
 	Offset         int
@@ -117,10 +122,15 @@ type MyPosterDTO struct {
 func MyPosterToMyPosterDTO(posters []entity.Poster) []MyPosterDTO {
 	listPosters := make([]MyPosterDTO, 0, len(posters))
 	for _, poster := range posters {
+		photoURL := poster.AvatarURl
+		if photoURL != nil {
+			url := photo.MakeUrlFromPath(*photoURL, config.Config.Minio.PublicHost, config.Config.Minio.Bucket)
+			photoURL = &url
+		}
 		posterDTO := MyPosterDTO{
 			ID:        poster.ID,
 			Price:     poster.Price,
-			AvatarURl: poster.AvatarURl,
+			AvatarURl: photoURL,
 			Address:   poster.Address,
 			Area:      poster.Area,
 			Alias:     poster.Alias,
@@ -145,12 +155,11 @@ type PosterInputFlatDTO struct {
 	FlatNumber     *int    `schema:"flat_number"`
 	FlatFloor      int     `schema:"flat_floor"`
 
-	Address        string  `schema:"address"`
-	CityID         int     `schema:"city_id"`
-	MetroStationID *int    `schema:"metro_station_id"`
-	District       *string `schema:"district"`
-	FloorCount     int     `schema:"floor_count"`
-	CompanyID      *int    `schema:"company_id"`
+	Address    string  `schema:"address"`
+	CityID     int     `schema:"city_id"`
+	District   *string `schema:"district"`
+	FloorCount int     `schema:"floor_count"`
+	CompanyID  *int    `schema:"company_id"`
 
 	Features []string        `schema:"features"`
 	Images   []PhotoInputDTO `schema:"-"`
@@ -165,12 +174,11 @@ func PosterInputFlatDTOtoPosterInput(poster *PosterInputFlatDTO) *entity.PosterI
 		CategoryID: poster.CategoryID,
 		Area:       poster.Area,
 
-		Address:        poster.Address,
-		Geo:            GeographyInputDTOtoGeographyPoint(GeographyInputDTO{Lat: poster.GeoLat, Lon: poster.GeoLon}),
-		CityID:         poster.CityID,
-		MetroStationID: poster.MetroStationID,
-		District:       poster.District,
-		FloorCount:     poster.FloorCount,
+		Address:    poster.Address,
+		Geo:        GeographyInputDTOtoGeographyPoint(GeographyInputDTO{Lat: poster.GeoLat, Lon: poster.GeoLon}),
+		CityID:     poster.CityID,
+		District:   poster.District,
+		FloorCount: poster.FloorCount,
 
 		CompanyID: poster.CompanyID,
 

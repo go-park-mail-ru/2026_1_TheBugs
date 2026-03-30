@@ -129,10 +129,10 @@ func TestGetPostersUseCase(t *testing.T) {
 				require.ErrorIs(t, err, test.wantErr)
 				return
 			}
-			require.Equal(t, len(test.want), len(got))
+			require.Equal(t, len(test.want), len(got.Posters))
 			for i, p := range test.want {
-				require.Equal(t, p.ID, got[i].ID)
-				require.Equal(t, p.Address, got[i].Address)
+				require.Equal(t, p.ID, got.Posters[i].ID)
+				require.Equal(t, p.Address, got.Posters[i].Address)
 			}
 
 		})

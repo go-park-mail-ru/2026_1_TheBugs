@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/response"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
@@ -33,7 +32,7 @@ func NewPosterHandler(uc *poster.PosterUseCase) *PosterHandler {
 // @Param limit query int false "Number of posters" default(12) minimum(1)
 // @Param offset query int false "Pagination offset" default(0) minimum(0)
 // @Param utility_company query string false "Utility company"
-// @Success 200 {object} response.PostersResponse
+// @Success 200 {object} dto.PostersResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 401 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
@@ -85,12 +84,7 @@ func (h *PosterHandler) GetFlatsAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := response.PostersResponse{
-		Posters: posters,
-		Len:     len(posters),
-	}
-
-	utils.JSONResponse(w, http.StatusOK, response)
+	utils.JSONResponse(w, http.StatusOK, posters)
 
 }
 
@@ -162,51 +156,6 @@ func (h *PosterHandler) GetPostersByUser(w http.ResponseWriter, r *http.Request)
 	}
 	utils.JSONResponse(w, http.StatusOK, response)
 
-}
-
-// @Summary Get metro stations by geo
-// @Description Returns the metro stations
-// @Tags posters
-// @Produce json
-// @Param lat query float32 true "lat"
-// @Param lon query float32 true "lon"
-// @Success 200 {object} response.MetroResponse
-// @Failure 400 {object} response.ErrorResponse
-// @Failure 401 {object} response.ErrorResponse
-// @Failure 404 {object} response.ErrorResponse
-// @Failure 500 {object} response.ErrorResponse
-// @Router /posters/metro-stations [get]
-func (h *PosterHandler) GetMetrosStation(w http.ResponseWriter, r *http.Request) {
-	op := "PosterHandler.GetMetrosStation"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
-
-	latVal := r.URL.Query().Get("lat")
-	lonVal := r.URL.Query().Get("lon")
-	log.Infof("lat: %s, lon: %s", latVal, lonVal)
-	lat, err := strconv.ParseFloat(latVal, 32)
-	if err != nil {
-		log.Errorf("Atoi: %s", err)
-		utils.WriteError(w, "lat query param is requered", http.StatusBadRequest)
-		return
-	}
-	lon, err := strconv.ParseFloat(lonVal, 32)
-	if err != nil {
-		log.Errorf("Atoi: %s", err)
-		utils.WriteError(w, "lon query param is requered", http.StatusBadRequest)
-		return
-	}
-
-	stations, err := h.uc.GetMetroStationsByRadius(r.Context(), dto.GeographyDTO{Lat: lat, Lon: lon})
-	if err != nil {
-		log.Errorf("h.uc.GetMetroStationsByRadius: %s", err)
-		utils.HandelError(w, err)
-		return
-	}
-
-	utils.JSONResponse(w, http.StatusOK, response.MetroResponse{
-		MetroStations: stations,
-		Len:           len(stations),
-	})
 }
 
 // @Summary Create flat poster
