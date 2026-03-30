@@ -82,19 +82,22 @@ func (uc *PosterUseCase) GetPosterByAliasUseCase(ctx context.Context, posterAlia
 
 func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.PosterInputFlatDTO) (*dto.CreatedPoster, error) {
 	var createdPoster *dto.CreatedPoster
-	fmt.Printf("PosterInputFlatDTO: %+v\n", poster)
+
+	err := validator.ValidatePhotos(poster.Images)
+	if err != nil {
+		return nil, fmt.Errorf("validator.ValidatePhotos: %w", err)
+	}
+
 	post := dto.PosterInputFlatDTOtoPosterInput(poster)
 	post.Alias = alias.GenerateAlias(post)
 
 	createFlat := dto.PosterInputFlatDTOtoFlatInput(poster)
-	fmt.Printf("CreateFlat: %+v\n", createFlat)
 
 	dto.MakePhotoPathsForPoster(post)
 
 	keys := make([]string, 0, len(post.Images))
-	fmt.Printf("PosterInput: %+v\n", post)
 
-	err := uc.uow.Do(ctx, func(r usecase.UnitOfWork) error {
+	err = uc.uow.Do(ctx, func(r usecase.UnitOfWork) error {
 		buildingID, err := r.Posters().CreateBuilding(ctx, post)
 		if err != nil {
 			return fmt.Errorf("uc.PosterRepo.CreateBuilding: %w", err)
