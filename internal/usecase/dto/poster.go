@@ -5,15 +5,16 @@ import (
 )
 
 type PosterCardDTO struct {
-	ID      int      `json:"id"`
-	Alias   string   `json:"alias"`
-	Price   float64  `json:"price"`
-	ImgURL  *string  `json:"imageUrl"`
-	Address string   `json:"address"`
-	Metro   *string  `json:"metro"`
-	Area    float64  `json:"area"`
-	Rating  *float64 `json:"rating"`
-	Beds    *int     `json:"beds"`
+	ID           int     `json:"id"`
+	Alias        string  `json:"alias"`
+	Price        float64 `json:"price"`
+	ImgURL       *string `json:"imageUrl"`
+	Address      string  `json:"address"`
+	Metro        *string `json:"metro"`
+	Area         float64 `json:"area"`
+	FlatCategory *string `json:"flat_category"`
+	// Rating  *float64 `json:"rating"`
+	// Beds    *int     `json:"beds"`
 }
 
 type PostersFiltersDTO struct {
@@ -22,11 +23,11 @@ type PostersFiltersDTO struct {
 	UtilityCompany *string
 }
 
-func PostersToPostersDTO(posters []entity.Poster) []PosterCardDTO {
+func PostersToPostersDTO(posters []entity.PosterFlat) []PosterCardDTO {
 	listPosters := make([]PosterCardDTO, 0, len(posters))
-	for i, poster := range posters {
-		rating := float64((i*3/2)%10 + 1)
-		count := (i%5 + 1)
+	for _, poster := range posters {
+		// rating := float64((i*3/2)%10 + 1)
+		// count := (i%5 + 1)
 		posterDTO := PosterCardDTO{
 			ID:      poster.ID,
 			Price:   poster.Price,
@@ -34,9 +35,10 @@ func PostersToPostersDTO(posters []entity.Poster) []PosterCardDTO {
 			Address: poster.Address,
 			Metro:   poster.Metro,
 			Area:    poster.Area,
-			Rating:  &rating,
-			Beds:    &count,
-			Alias:   poster.Alias,
+			// Rating:  &rating,
+			// Beds:    &count,
+			Alias:        poster.Alias,
+			FlatCategory: poster.FlatCategory,
 		}
 
 		listPosters = append(listPosters, posterDTO)
@@ -87,6 +89,39 @@ func PosterToPosterDTO(poster *entity.PosterById) *PosterDTO {
 		Company:     posterToUtilityCompanyCardDTO(poster),
 		Facilities:  FacilitiesToFacilitiesDTO(poster.Facilities),
 	}
+}
+
+// id: number;
+//   alias: string;
+//   address: string;
+//   area: number;
+//   price: number;
+//   avatar_url: string;
+
+type MyPosterDTO struct {
+	ID        int     `json:"id"`
+	Alias     string  `json:"alias"`
+	Address   string  `json:"address"`
+	Area      float64 `json:"area"`
+	Price     float64 `json:"price"`
+	AvatarURl *string `json:"avatar_url"`
+}
+
+func MyPosterToMyPosterDTO(posters []entity.Poster) []MyPosterDTO {
+	listPosters := make([]MyPosterDTO, 0, len(posters))
+	for _, poster := range posters {
+		posterDTO := MyPosterDTO{
+			ID:        poster.ID,
+			Price:     poster.Price,
+			AvatarURl: poster.AvatarURl,
+			Address:   poster.Address,
+			Area:      poster.Area,
+			Alias:     poster.Alias,
+		}
+
+		listPosters = append(listPosters, posterDTO)
+	}
+	return listPosters
 }
 
 type PosterInputFlatDTO struct {

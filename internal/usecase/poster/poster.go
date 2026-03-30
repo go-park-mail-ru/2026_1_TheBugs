@@ -42,9 +42,10 @@ func (uc *PosterUseCase) GetPostersUseCase(ctx context.Context, filters dto.Post
 		filters.Limit = MaxPostersLimit
 	}
 
-	posters, err := uc.uow.Posters().GetAll(ctx, filters)
+	posters, err := uc.uow.Posters().GetFlatsAll(ctx, filters)
 	if err != nil {
-		return nil, fmt.Errorf("uc.PosterRepo.GetAll: %w", err)
+		log.Printf("uc.repo.GetFlatsAll: %s", err)
+		return nil, err
 	}
 
 	return dto.PostersToPostersDTO(posters), nil
@@ -65,7 +66,8 @@ func (uc *PosterUseCase) GetPosterByAliasUseCase(ctx context.Context, posterAlia
 	case PropertyFlat:
 		flat, err := uc.uow.Posters().GetFlatByPropetyID(ctx, poster.PropertyID)
 		if err != nil {
-			return nil, fmt.Errorf("uc.PosterRepo.GetFlatByPropetyID: %w", err)
+			log.Printf("uc.repo.GetFlatsAll: %s", err)
+			return nil, err
 		}
 
 		flatDTO := dto.FlatToFlatFlatDTO(flat)
@@ -81,12 +83,12 @@ func (uc *PosterUseCase) GetPosterByAliasUseCase(ctx context.Context, posterAlia
 	return posterDTO, nil
 }
 
-func (uc *PosterUseCase) GetPosterByUserID(ctx context.Context, userID int) ([]dto.PosterCardDTO, error) {
+func (uc *PosterUseCase) GetPosterByUserID(ctx context.Context, userID int) ([]dto.MyPosterDTO, error) {
 	posters, err := uc.uow.Posters().GetByUserID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
-	return dto.PostersToPostersDTO(posters), nil
+	return dto.MyPosterToMyPosterDTO(posters), nil
 }
 
 func (uc *PosterUseCase) GetMetroStationsByRadius(ctx context.Context, coords dto.GeographyDTO) ([]dto.MetroStationDTO, error) {

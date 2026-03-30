@@ -24,18 +24,19 @@ func NewPosterRepo(pool repository.DB) *PosterRepo {
 	}
 }
 
-func (r *PosterRepo) GetAll(ctx context.Context, filters dto.PostersFiltersDTO) ([]entity.Poster, error) {
-	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetAll")
+func (r *PosterRepo) GetFlatsAll(ctx context.Context, filters dto.PostersFiltersDTO) ([]entity.PosterFlat, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetFlatsAll")
 	log.Info("start db query")
 	query := `
         SELECT p.id, p.price, p.avatar_url,
-               b.address, m.station_name, prop.area, f.floor, p.alias
+               b.address, m.station_name, prop.area, f.floor, p.alias, fc.name AS flat_category
         FROM posters p
         JOIN property prop ON prop.id = p.property_id
-        JOIN flat f ON f.property_id = p.id
         JOIN property_categories pc ON pc.id = prop.category_id
         JOIN buildings b ON b.id = prop.building_id
-        JOIN metro_stations m ON b.metro_station_id = m.id
+        LEFT JOIN metro_stations m ON b.metro_station_id = m.id
+		LEFT JOIN flat f ON f.property_id = prop.id
+		LEFT JOIN flat_categories fc ON fc.id = f.category_id
 	`
 	args := []any{filters.Limit, filters.Offset}
 	argIndex := 3
@@ -54,7 +55,7 @@ func (r *PosterRepo) GetAll(ctx context.Context, filters dto.PostersFiltersDTO) 
 
 	defer rows.Close()
 
-	posters, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.Poster])
+	posters, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.PosterFlat])
 	if err != nil {
 		return nil, repository.HandelPgErrors(err)
 	}
@@ -128,7 +129,7 @@ func (r *PosterRepo) GetFlatByPropetyID(ctx context.Context, propertyID int) (*e
 
 	query := `
 		SELECT f.property_id, f.number, f.floor,
-			   fc.name AS flat_category
+			   fc.name AS flat_category, fc.room_count
 		FROM flat f
 		LEFT JOIN flat_categories fc ON fc.id = f.category_id
 		WHERE f.property_id = $1;
@@ -152,7 +153,7 @@ func (r *PosterRepo) GetFlatByPropetyID(ctx context.Context, propertyID int) (*e
 func (r *PosterRepo) GetByUserID(ctx context.Context, userID int) ([]entity.Poster, error) {
 	sql := `
 		SELECT p.id, p.price, p.avatar_url,
-               b.address, m.station_name, prop.area, f.floor, p.alias
+               b.address,prop.area,  p.alias
         FROM posters p
         JOIN property prop ON prop.id = p.property_id
         JOIN flat f ON f.property_id = p.id

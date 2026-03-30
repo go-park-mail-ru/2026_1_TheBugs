@@ -17,10 +17,11 @@ type UserRepo interface {
 	CreateByProvider(ctx context.Context, dto dto.CreateUserByProviderDTO) (*entity.User, error)
 	GetByProvider(ctx context.Context, provider string, email string) (*entity.User, error)
 	UpdatePwd(ctx context.Context, email string, pwd string, salt string) error
+	GetByID(ctx context.Context, id int) (*dto.UserDTO, error)
 }
 
 type PosterRepo interface {
-	GetAll(ctx context.Context, dto dto.PostersFiltersDTO) ([]entity.Poster, error)
+	GetFlatsAll(ctx context.Context, dto dto.PostersFiltersDTO) ([]entity.PosterFlat, error)
 	CountPosters(ctx context.Context) (int, error)
 	GetByAlias(ctx context.Context, posterAlias string) (*entity.PosterById, error)
 	GetFlatByPropetyID(ctx context.Context, propertyID int) (*entity.Flat, error)

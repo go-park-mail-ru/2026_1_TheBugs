@@ -14,6 +14,7 @@ import (
 	authHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/auth"
 	complexHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/complex"
 	posterHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
+	userHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
 	minioRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/minio"
 	tokensRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/redis/tokens"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/smtp"
@@ -21,6 +22,7 @@ import (
 	authUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
 	complexUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/complex"
 	posterUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
+	userUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/user"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/sirupsen/logrus"
@@ -59,8 +61,11 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	UtilityCompanyUC := complexUC.NewUtilityCompanyUseCase(uow.UtilityCompany())
 	utilityCompanyHandler := complexHandler.NewUtilityCompanyHandler(UtilityCompanyUC)
 
+	userUC := userUC.NewUserUseCase(uow)
+	userHandler := userHandler.NewUserHandler(userUC)
+
 	r := mux.NewRouter()
-	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler)
+	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler, userHandler)
 	serverAddress := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	srv := &http.Server{
 		Handler:      r,

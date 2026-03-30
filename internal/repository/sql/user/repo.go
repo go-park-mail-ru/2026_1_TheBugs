@@ -40,6 +40,28 @@ func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*entity.User, 
 
 }
 
+func (r *UserRepo) GetByID(ctx context.Context, id int) (*dto.UserDTO, error) {
+	sql := `SELECT u.id, u.email, p.first_name, p.last_name, p.avatar_url 
+			FROM users u
+			JOIN profiles p ON u.profile_id = p.id
+			WHERE u.id=$1`
+	row, err := r.pool.Query(ctx, sql, id)
+
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	defer row.Close()
+
+	user, err := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[entity.UserDetails])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return dto.UserToDTO(&user), nil
+
+}
+
 func (r *UserRepo) Create(ctx context.Context, dto dto.CreateUserDTO) (*entity.User, error) {
 	var profileID int
 
