@@ -86,7 +86,7 @@ type FlatInput struct {
 	PropertyID int
 	CategoryID int
 	Floor      int
-	Number     int
+	Number     *int
 }
 
 type PhotoInput struct {

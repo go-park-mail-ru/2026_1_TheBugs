@@ -48,7 +48,10 @@ func Run(cfg *config.ProjectConfig) {
 
 	uow := uowSql.NewSQLStorage(pool)
 	tokenRepo := tokensRepo.NewTokenRepo(rdb)
-	fileRepo := minioRepo.NewFileRepo(minioClient, cfg.Bucket)
+	fileRepo, err := minioRepo.NewFileRepo(minioClient, cfg.Bucket)
+	if err != nil {
+		log.Fatalf("cannot create file repo: %v", err)
+	}
 
 	posterUC := posterUC.NewPosterUseCase(uow, fileRepo)
 	posterHandler := posterHandler.NewPosterHandler(posterUC)

@@ -31,10 +31,10 @@ func (r *PosterRepo) GetAll(ctx context.Context, filters dto.PostersFiltersDTO) 
                b.address, m.station_name, prop.area, f.floor, p.alias
         FROM posters p
         JOIN property prop ON prop.id = p.property_id
-        JOIN flat f ON f.property_id = p.id
+        LEFT JOIN flat f ON f.property_id = prop.id
         JOIN property_categories pc ON pc.id = prop.category_id
         JOIN buildings b ON b.id = prop.building_id
-        JOIN metro_stations m ON b.metro_station_id = m.id
+        LEFT JOIN metro_stations m ON b.metro_station_id = m.id
 	`
 	args := []any{filters.Limit, filters.Offset}
 	argIndex := 3
@@ -246,11 +246,12 @@ func (r *PosterRepo) InsertFlat(ctx context.Context, flat *entity.FlatInput) err
 		INSERT INTO flat (property_id,
 			floor, number, category_id)
 		VALUES ($1, $2, $3, $4)
+		RETURNING property_id
 	`
-
-	_, err := r.pool.Exec(ctx, query, flat.PropertyID,
+	var flatID int
+	err := r.pool.QueryRow(ctx, query, flat.PropertyID,
 		flat.Floor, flat.Number, flat.CategoryID,
-	)
+	).Scan(&flatID)
 	if err != nil {
 		return repository.HandelPgErrors(err)
 	}
