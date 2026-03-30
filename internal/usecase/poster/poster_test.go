@@ -110,21 +110,29 @@ func TestGetPostersUseCase(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockRepo := mocks.NewMockPosterRepo(ctrl)
+			mockUOW := mocks.NewMockUnitOfWork(ctrl)
+			mockFile := mocks.NewMockFileRepo(ctrl)
+
+			mockUOW.EXPECT().
+				Posters().
+				Return(mockRepo).
+				AnyTimes()
+
 			if test.setupMock != nil {
 				test.setupMock(mockRepo)
 			}
 
-			uc := NewPosterUseCase(mockRepo)
+			uc := NewPosterUseCase(mockUOW, mockFile)
 
 			got, err := uc.GetPostersUseCase(ctx, test.params)
 			if test.wantErr != nil {
 				require.ErrorIs(t, err, test.wantErr)
 				return
 			}
-			require.Equal(t, len(test.want), len(got))
+			require.Equal(t, len(test.want), len(got.Posters))
 			for i, p := range test.want {
-				require.Equal(t, p.ID, got[i].ID)
-				require.Equal(t, p.Address, got[i].Address)
+				require.Equal(t, p.ID, got.Posters[i].ID)
+				require.Equal(t, p.Address, got.Posters[i].Address)
 			}
 
 		})
@@ -257,11 +265,19 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockRepo := mocks.NewMockPosterRepo(ctrl)
+			mockUOW := mocks.NewMockUnitOfWork(ctrl)
+			mockFile := mocks.NewMockFileRepo(ctrl)
+
+			mockUOW.EXPECT().
+				Posters().
+				Return(mockRepo).
+				AnyTimes()
+
 			if test.setupMock != nil {
 				test.setupMock(mockRepo)
 			}
 
-			uc := NewPosterUseCase(mockRepo)
+			uc := NewPosterUseCase(mockUOW, mockFile)
 
 			res, err := uc.GetPosterByAliasUseCase(ctx, alias)
 

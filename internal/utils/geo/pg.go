@@ -40,3 +40,7 @@ func (g *GeographyPoint) Scan(value interface{}) error {
 func (g GeographyPoint) Value() (driver.Value, error) {
 	return fmt.Sprintf("SRID=4326;POINT(%f %f)", g.Lon, g.Lat), nil
 }
+
+func (g GeographyPoint) ToGeo() string {
+	return fmt.Sprintf("SRID=4326;POINT(%f %f)", g.Lon, g.Lat)
+}

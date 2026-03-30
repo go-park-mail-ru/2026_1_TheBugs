@@ -15,6 +15,7 @@ import (
 	complexHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/complex"
 	posterHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
 	userHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
+	minioRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/minio"
 	tokensRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/redis/tokens"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/smtp"
 	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
@@ -22,6 +23,8 @@ import (
 	complexUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/complex"
 	posterUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
 	userUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/user"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/sirupsen/logrus"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/dsn"
@@ -34,6 +37,10 @@ import (
 func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	dsn := dsn.BuildDSN(cfg.Postgres)
 	rdb := redis.NewClient(&redis.Options{Addr: fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port), Password: cfg.Redis.Password, DB: cfg.Redis.DB})
+	minioClient, err := minio.New(cfg.Endpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
+		Secure: false,
+	})
 
 	pool, err := pgxpool.New(context.Background(), dsn)
 	if err != nil {
@@ -43,8 +50,12 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 
 	uow := uowSql.NewSQLStorage(pool)
 	tokenRepo := tokensRepo.NewTokenRepo(rdb)
+	fileRepo, err := minioRepo.NewFileRepo(minioClient, cfg.Bucket)
+	if err != nil {
+		log.Fatalf("cannot create file repo: %v", err)
+	}
 
-	posterUC := posterUC.NewPosterUseCase(uow.Posters())
+	posterUC := posterUC.NewPosterUseCase(uow, fileRepo)
 	posterHandler := posterHandler.NewPosterHandler(posterUC)
 
 	authUC := authUC.NewAuthUseCase(uow, tokenRepo, senderRepo)

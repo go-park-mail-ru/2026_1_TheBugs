@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"io"
 	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
@@ -22,10 +23,20 @@ type UserRepo interface {
 type PosterRepo interface {
 	GetFlatsAll(ctx context.Context, dto dto.PostersFiltersDTO) ([]entity.PosterFlat, error)
 	CountPosters(ctx context.Context) (int, error)
+
 	GetByAlias(ctx context.Context, posterAlias string) (*entity.PosterById, error)
 	GetFlatByPropetyID(ctx context.Context, propertyID int) (*entity.Flat, error)
+
 	GetByUserID(ctx context.Context, userID int) ([]entity.Poster, error)
 	GetMetroStationByRadius(ctx context.Context, buidingGeo dto.GeographyDTO, radius entity.Metre) ([]entity.MetroStation, error)
+
+	CreateBuilding(ctx context.Context, poster *entity.PosterInput) (int, error)
+	CreateProperty(ctx context.Context, poster *entity.PosterInput, buildingID int) (int, error)
+	Create(ctx context.Context, poster *entity.PosterInput, propertyID int) (int, error)
+	InsertFlat(ctx context.Context, flat *entity.FlatInput) error
+	InsertFacilities(ctx context.Context, propertyID int, features []string) error
+	InsertPhotos(ctx context.Context, posterID int, photos []entity.PhotoInput) error
+	InsertMainPhoto(ctx context.Context, posterID int, avatarURL string) error
 }
 
 type AuthRepo interface {
@@ -60,4 +71,10 @@ type Сache interface {
 
 type MailSender interface {
 	SendCode(ctx context.Context, to string, code string) error
+}
+
+type FileRepo interface {
+	Upload(ctx context.Context, key string, reader io.Reader, size int64, contentType string) error
+	Delete(ctx context.Context, key string) error
+	Get(ctx context.Context, key string) (io.ReadCloser, error)
 }

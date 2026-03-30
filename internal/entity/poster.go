@@ -1,6 +1,10 @@
 package entity
 
-import "github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
+import (
+	"mime/multipart"
+
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
+)
 
 type PosterFlat struct {
 	ID           int     `db:"id"`
@@ -78,4 +82,45 @@ type Facility struct {
 	ID    int    `db:"id"`
 	Name  string `db:"name"`
 	Alias string `db:"alias"`
+}
+
+type PosterInput struct {
+	UserID int
+
+	Alias       string
+	Price       float64
+	Description string
+
+	CategoryID int
+	Area       float64
+
+	Address        string
+	Geo            geo.GeographyPoint
+	CityID         int
+	MetroStationID *int
+	District       *string
+	FloorCount     int
+
+	CompanyID *int
+
+	Features []string
+	Images   []PhotoInput
+}
+
+type FlatInput struct {
+	PropertyID int
+	CategoryID int
+	Floor      int
+	Number     *int
+}
+
+type PhotoInput struct {
+	FileHeader *multipart.FileHeader
+	Path       string
+	Order      int
+}
+
+type BaseListID struct {
+	PosterID   int
+	PropertyID int
 }

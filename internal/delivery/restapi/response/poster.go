@@ -2,11 +2,6 @@ package response
 
 import "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 
-type PostersResponse struct {
-	Len     int                 `json:"len"`
-	Posters []dto.PosterCardDTO `json:"posters"`
-}
-
 type PosterResponse struct {
 	Poster *dto.PosterDTO `json:"poster"`
 }
@@ -19,4 +14,8 @@ type MetroResponse struct {
 type MyPostersResponse struct {
 	Len     int               `json:"len"`
 	Posters []dto.MyPosterDTO `json:"posters"`
+}
+
+type CreatedPosterResponse struct {
+	Poster *dto.CreatedPoster `json:"poster"`
 }
