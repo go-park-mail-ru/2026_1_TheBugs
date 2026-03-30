@@ -676,29 +676,36 @@ paths:
         type: integer
       - description: Latitude
         in: formData
-        name: geo.lat
+        name: geo_lat
         required: true
         type: number
       - description: Longitude
         in: formData
-        name: geo.lon
+        name: geo_lon
         required: true
         type: number
       - description: Flat category ID
         in: formData
-        name: flat.category_id
+        name: flat_category_id
         required: true
         type: integer
       - description: Flat number
         in: formData
-        name: flat.flat_number
+        name: flat_number
         required: true
         type: integer
       - description: Flat floor
         in: formData
-        name: flat.floor
+        name: flat_floor
         required: true
         type: integer
+      - collectionFormat: csv
+        description: Facilities aliases
+        in: formData
+        items:
+          type: string
+        name: features
+        type: array
       - description: First photo file
         in: formData
         name: photos.0.file

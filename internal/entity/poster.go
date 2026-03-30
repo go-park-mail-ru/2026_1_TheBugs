@@ -103,7 +103,8 @@ type PosterInput struct {
 
 	CompanyID *int
 
-	Images []PhotoInput
+	Features []string
+	Images   []PhotoInput
 }
 
 type FlatInput struct {

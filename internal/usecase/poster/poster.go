@@ -107,7 +107,12 @@ func (uc *PosterUseCase) GetMetroStationsByRadius(ctx context.Context, coords dt
 func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.PosterInputFlatDTO) (*dto.CreatedPoster, error) {
 	var createdPoster *dto.CreatedPoster
 
-	err := validator.ValidatePhotos(poster.Images)
+	err := validator.ValidatePosterInputFlat(poster)
+	if err != nil {
+		return nil, fmt.Errorf("validator.ValidatePosterInputFlat: %w", err)
+	}
+
+	err = validator.ValidatePhotos(poster.Images)
 	if err != nil {
 		return nil, fmt.Errorf("validator.ValidatePhotos: %w", err)
 	}
@@ -130,6 +135,11 @@ func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.Poste
 		propertyID, err := r.Posters().CreateProperty(ctx, post, buildingID)
 		if err != nil {
 			return fmt.Errorf("uc.PosterRepo.CreateProperty: %w", err)
+		}
+
+		err = r.Posters().InsertFacilities(ctx, propertyID, post.Features)
+		if err != nil {
+			return fmt.Errorf("uc.PosterRepo.InsertFacilities: %w", err)
 		}
 
 		posterID, err := r.Posters().Create(ctx, post, propertyID)
