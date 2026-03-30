@@ -598,37 +598,47 @@
                     {
                         "type": "number",
                         "description": "Latitude",
-                        "name": "geo.lat",
+                        "name": "geo_lat",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "number",
                         "description": "Longitude",
-                        "name": "geo.lon",
+                        "name": "geo_lon",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "integer",
                         "description": "Flat category ID",
-                        "name": "flat.category_id",
+                        "name": "flat_category_id",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "integer",
                         "description": "Flat number",
-                        "name": "flat.flat_number",
+                        "name": "flat_number",
                         "in": "formData",
                         "required": true
                     },
                     {
                         "type": "integer",
                         "description": "Flat floor",
-                        "name": "flat.floor",
+                        "name": "flat_floor",
                         "in": "formData",
                         "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Facilities aliases",
+                        "name": "features",
+                        "in": "formData"
                     },
                     {
                         "type": "file",

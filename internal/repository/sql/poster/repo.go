@@ -289,6 +289,42 @@ func (r *PosterRepo) CreateProperty(ctx context.Context, poster *entity.PosterIn
 	return propertyID, nil
 }
 
+func (r *PosterRepo) InsertFacilities(ctx context.Context, propertyID int, aliases []string) error {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.InsertFacilities")
+	log.Info("start db query")
+
+	selectQuery := `
+		SELECT id
+		FROM facilities
+		WHERE alias = ANY($1::text[])
+	`
+
+	rows, err := r.pool.Query(ctx, selectQuery, aliases)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+	defer rows.Close()
+
+	facilityIDs, err := pgx.CollectRows(rows, pgx.RowTo[int])
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+
+	insertQuery := `
+		INSERT INTO facility_property (property_id, facility_id)
+		VALUES ($1, $2)
+	`
+
+	for _, facilityID := range facilityIDs {
+		_, err = r.pool.Exec(ctx, insertQuery, propertyID, facilityID)
+		if err != nil {
+			return repository.HandelPgErrors(err)
+		}
+	}
+
+	return nil
+}
+
 func (r *PosterRepo) Create(ctx context.Context, poster *entity.PosterInput, propertyID int) (int, error) {
 	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.Create")
 	log.Info("start db query")

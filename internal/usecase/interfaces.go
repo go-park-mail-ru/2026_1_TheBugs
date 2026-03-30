@@ -23,14 +23,18 @@ type UserRepo interface {
 type PosterRepo interface {
 	GetFlatsAll(ctx context.Context, dto dto.PostersFiltersDTO) ([]entity.PosterFlat, error)
 	CountPosters(ctx context.Context) (int, error)
+
 	GetByAlias(ctx context.Context, posterAlias string) (*entity.PosterById, error)
 	GetFlatByPropetyID(ctx context.Context, propertyID int) (*entity.Flat, error)
+
 	GetByUserID(ctx context.Context, userID int) ([]entity.Poster, error)
 	GetMetroStationByRadius(ctx context.Context, buidingGeo dto.GeographyDTO, radius entity.Metre) ([]entity.MetroStation, error)
+
 	CreateBuilding(ctx context.Context, poster *entity.PosterInput) (int, error)
 	CreateProperty(ctx context.Context, poster *entity.PosterInput, buildingID int) (int, error)
 	Create(ctx context.Context, poster *entity.PosterInput, propertyID int) (int, error)
 	InsertFlat(ctx context.Context, flat *entity.FlatInput) error
+	InsertFacilities(ctx context.Context, propertyID int, features []string) error
 	InsertPhotos(ctx context.Context, posterID int, photos []entity.PhotoInput) error
 	InsertMainPhoto(ctx context.Context, posterID int, avatarURL string) error
 }

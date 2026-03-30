@@ -182,7 +182,8 @@ func PosterInputFlatDTOtoPosterInput(poster *PosterInputFlatDTO) *entity.PosterI
 
 		CompanyID: poster.CompanyID,
 
-		Images: posterPhotosInputFlatDTOtoPhotosInput(poster),
+		Features: poster.Features,
+		Images:   posterPhotosInputFlatDTOtoPhotosInput(poster),
 	}
 }
 
