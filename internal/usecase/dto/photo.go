@@ -42,9 +42,13 @@ func posterPhotosInputFlatDTOtoPhotosInput(poster *PosterInputFlatDTO) []entity.
 	return photos
 }
 
+func GeneratePhotoPathForPoster(alias string, order int) string {
+	return fmt.Sprintf("/poster/img/%s/%d.jpg", alias, order)
+}
+
 func MakePhotoPathsForPoster(poster *entity.PosterInput) {
 	for i, image := range poster.Images {
-		path := fmt.Sprintf("/poster/img/%s/%d.jpg", poster.Alias, image.Order)
+		path := GeneratePhotoPathForPoster(poster.Alias, image.Order)
 		poster.Images[i].Path = path
 	}
 }

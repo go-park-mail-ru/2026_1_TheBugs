@@ -27,9 +27,9 @@ type PostersFiltersDTO struct {
 
 func PostersToPostersDTO(posters []entity.PosterFlat) []PosterCardDTO {
 	listPosters := make([]PosterCardDTO, 0, len(posters))
-	for i, poster := range posters {
-		rating := float64((i*3/2)%10 + 1)
-		count := (i%5 + 1)
+	for _, poster := range posters {
+		// rating := float64((i*3/2)%10 + 1)
+		// count := (i%5 + 1)
 		photoURL := poster.ImgURL
 		if photoURL != nil {
 			url := photo.MakeUrlFromPath(*photoURL, config.Config.Minio.PublicHost, config.Config.Minio.Bucket)

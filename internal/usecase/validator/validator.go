@@ -1,11 +1,13 @@
 package validator
 
 import (
+	"fmt"
 	"mime/multipart"
 	"path/filepath"
 	"regexp"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 )
 
 const emailRegexPattern = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
@@ -21,6 +23,7 @@ const maxPhoneLenght = 20
 const maxNameLenght = 40
 
 const maxPhotoSize = 10 << 20
+const MaxPhotosLength = 12
 
 func ValidateEmail(email string) bool {
 	if len(email) > maxEmailLength {
@@ -97,4 +100,19 @@ func ValidatePhoto(fileHeader *multipart.FileHeader) bool {
 	}
 
 	return true
+}
+
+func ValidatePhotos(photos []dto.PhotoInputDTO) error {
+	if len(photos) == 0 {
+		return entity.NewValidationError("min photos len")
+	}
+	if len(photos) > MaxPhotosLength {
+		return entity.NewValidationError("max photos len")
+	}
+	for i, photo := range photos {
+		if !ValidatePhoto(photo.FileHeader) {
+			return entity.NewValidationError(fmt.Sprintf("photos[%d]", i))
+		}
+	}
+	return nil
 }

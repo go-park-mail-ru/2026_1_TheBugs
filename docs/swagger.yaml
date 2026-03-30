@@ -199,10 +199,43 @@ definitions:
           $ref: '#/definitions/dto.PhotoDTO'
         type: array
     type: object
+  request.UpdatePwdDTO:
+    properties:
+      password:
+        type: string
+    type: object
+  request.UserEmail:
+    properties:
+      email:
+        type: string
+    type: object
+  request.VerifyCodeDTO:
+    properties:
+      code:
+        type: string
+    type: object
+  response.CompaniesResponse:
+    properties:
+      len:
+        type: integer
+      utility_companies:
+        items:
+          $ref: '#/definitions/dto.UtilityCompanyCardDTO'
+        type: array
+    type: object
   response.CreatedPosterResponse:
     properties:
       poster:
         $ref: '#/definitions/dto.CreatedPoster'
+    type: object
+  response.DevelopersResponse:
+    properties:
+      developers:
+        items:
+          $ref: '#/definitions/dto.DeveloperDTO'
+        type: array
+      len:
+        type: integer
     type: object
   response.ErrorResponse:
     properties:
@@ -757,7 +790,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.CreatedPosterResponse'
+            $ref: '#/definitions/response.PosterResponse'
         "400":
           description: Bad Request
           schema:
@@ -776,9 +809,117 @@ paths:
             $ref: '#/definitions/response.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: Create flat poster
+      summary: Get list of user`s posters
       tags:
       - posters
+  /posters/metro-stations:
+    get:
+      description: Returns the metro stations
+      parameters:
+      - description: lat
+        format: float32
+        in: query
+        name: lat
+        required: true
+        type: number
+      - description: lon
+        format: float32
+        in: query
+        name: lon
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.MetroResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get metro stations by geo
+      tags:
+      - posters
+  /user/me:
+    get:
+      description: Returns user details
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user details
+      tags:
+      - users
+  /utility-companies/:
+    get:
+      description: Returns utility complexies by developers
+      parameters:
+      - description: Developer id
+        in: query
+        name: developer_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CompaniesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get utility complexies by developers
+      tags:
+      - utility_complexes
   /utility-companies/by-alias/{alias}:
     get:
       description: Returns utility complex details along with its photos by the given
@@ -813,6 +954,35 @@ paths:
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: Get utility complex by alias
+      tags:
+      - utility_complexes
+  /utility-companies/developers:
+    get:
+      description: Returns developers
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.DevelopersResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get developers
       tags:
       - utility_complexes
 securityDefinitions:
