@@ -306,3 +306,72 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 		})
 	}
 }
+
+func TestGetPosterByUserID(t *testing.T) {
+	userID := 0
+	ctx := context.Background()
+	tests := []struct {
+		name      string
+		want      []dto.PosterCardDTO
+		setup     func(mock *mocks.MockPosterRepo)
+		wantError error
+	}{
+		{
+			name: "OK",
+			want: []dto.PosterCardDTO{
+				{
+					ID:      1,
+					Price:   100,
+					ImgURL:  lo.ToPtr("img_url"),
+					Address: "addres",
+					Metro:   lo.ToPtr("m"),
+					Area:    10,
+					Alias:   "alias",
+				},
+			},
+			setup: func(mock *mocks.MockPosterRepo) {
+				posters := []entity.Poster{
+					{
+						ID:      1,
+						Price:   100,
+						ImgURL:  lo.ToPtr("img_url"),
+						Address: "addres",
+						Metro:   lo.ToPtr("m"),
+						Area:    10,
+						Alias:   "alias",
+						Floor:   10,
+					},
+				}
+				mock.EXPECT().GetByUserID(ctx, userID).Return(posters, nil)
+			},
+			wantError: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctx := context.Background()
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepo := mocks.NewMockPosterRepo(ctrl)
+			tt.setup(mockRepo)
+
+			uc := NewPosterUseCase(mockRepo)
+			res, err := uc.GetPosterByUserID(ctx, userID)
+
+			require.NoError(t, err)
+
+			require.Equal(t, len(tt.want), len(res))
+
+			for i, p := range res {
+				require.Equal(t, tt.want[i].ID, p.ID)
+				require.Equal(t, tt.want[i].Address, p.Address)
+				require.Equal(t, tt.want[i].Alias, p.Alias)
+				require.Equal(t, tt.want[i].ImgURL, p.ImgURL)
+				require.Equal(t, tt.want[i].Price, p.Price)
+			}
+		})
+
+	}
+}
