@@ -10,7 +10,7 @@ server:
 
 postgres:
   host: localhost
-  port: 5432
+  port: 5435
   user: thebugs
   password: thebugs
   database: main

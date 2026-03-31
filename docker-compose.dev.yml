@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: thebugs
       POSTGRES_DB: main
     ports:
-      - "5432:5432"
+      - "5435:5432"
     volumes:
       - ./db/migrations:/docker-entrypoint-initdb.d
     healthcheck:

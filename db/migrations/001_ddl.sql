@@ -333,5 +333,3 @@ CREATE OR REPLACE FUNCTION get_explain_rows(p_sql text)
  END;
  $BODY$ LANGUAGE plpgsql;
 
- ANALYSE;
-

@@ -326,3 +326,5 @@ INSERT INTO facility_property (property_id, facility_id) VALUES
     (10, (SELECT id FROM facilities WHERE alias='dishwasher')),
     (10, (SELECT id FROM facilities WHERE alias='stove')),
     (10, (SELECT id FROM facilities WHERE alias='parking'));
+
+ ANALYSE;
