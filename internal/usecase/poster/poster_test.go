@@ -4,10 +4,12 @@ import (
 	"context"
 	"testing"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/mocks"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/photo"
 	"github.com/golang/mock/gomock"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
@@ -142,6 +144,10 @@ func TestGetPostersUseCase(t *testing.T) {
 func TestGetPosterByAliasUseCase(t *testing.T) {
 	ctx := context.Background()
 	alias := "kvartira-na-arbate"
+	host := "http://testhost:8000"
+	bucket := "test_bucket"
+	config.Config.PublicHost = host
+	config.Config.Bucket = bucket
 
 	existingPoster := &entity.PosterById{
 		ID:              4,
@@ -162,8 +168,8 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 		SellerLastName:  "Sashenykov",
 		Phone:           "+79144564312",
 		Images: []entity.PosterImage{
-			{ImgURL: "img1.jpg", Order: 1},
-			{ImgURL: "img2.jpg", Order: 2},
+			{ImgURL: photo.MakeUrlFromPath("img1.jpg", host, bucket), Order: 1},
+			{ImgURL: photo.MakeUrlFromPath("img2.jpg", host, bucket), Order: 2},
 		},
 	}
 
@@ -178,7 +184,7 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 		ID:          4,
 		Alias:       alias,
 		Price:       135000,
-		Category:    PropertyFlat,
+		Category:    dto.CategoryDTO{Name: PropertyFlat, Alias: "flat"},
 		Description: "krutoy remont",
 		Area:        96.4,
 		Geo:         dto.GeographyDTO{Lon: 45.3966, Lat: 46.3489},
@@ -189,8 +195,8 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 		City:        "Moscow",
 		FloorCount:  7,
 		Images: []dto.PhotoDTO{
-			{ImgURL: "img1.jpg", Order: 1},
-			{ImgURL: "img2.jpg", Order: 2},
+			{ImgURL: photo.MakeUrlFromPath("img1.jpg", host, bucket), Order: 1},
+			{ImgURL: photo.MakeUrlFromPath("img2.jpg", host, bucket), Order: 2},
 		},
 		Seller: dto.PosterSellerDTO{
 			SellerFirstName: "Sanya",
@@ -324,38 +330,36 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 }
 
 func TestGetPosterByUserID(t *testing.T) {
+	t.Parallel()
 	userID := 0
 	ctx := context.Background()
 	tests := []struct {
 		name      string
-		want      []dto.PosterCardDTO
+		want      []dto.MyPosterDTO
 		setup     func(mock *mocks.MockPosterRepo)
 		wantError error
 	}{
 		{
 			name: "OK",
-			want: []dto.PosterCardDTO{
+			want: []dto.MyPosterDTO{
 				{
-					ID:      1,
-					Price:   100,
-					ImgURL:  lo.ToPtr("img_url"),
-					Address: "addres",
-					Metro:   lo.ToPtr("m"),
-					Area:    10,
-					Alias:   "alias",
+					ID:        1,
+					Price:     100,
+					AvatarURl: lo.ToPtr("img_url"),
+					Address:   "addres",
+					Area:      10,
+					Alias:     "alias",
 				},
 			},
 			setup: func(mock *mocks.MockPosterRepo) {
 				posters := []entity.Poster{
 					{
-						ID:      1,
-						Price:   100,
-						ImgURL:  lo.ToPtr("img_url"),
-						Address: "addres",
-						Metro:   lo.ToPtr("m"),
-						Area:    10,
-						Alias:   "alias",
-						Floor:   10,
+						ID:        1,
+						Price:     100,
+						AvatarURl: lo.ToPtr("img_url"),
+						Address:   "addres",
+						Area:      10,
+						Alias:     "alias",
 					},
 				}
 				mock.EXPECT().GetByUserID(ctx, userID).Return(posters, nil)
@@ -366,14 +370,20 @@ func TestGetPosterByUserID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 			ctx := context.Background()
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			mockRepo := mocks.NewMockPosterRepo(ctrl)
-			tt.setup(mockRepo)
+			uow := mocks.NewMockUnitOfWork(ctrl)
+			posterRepo := mocks.NewMockPosterRepo(ctrl)
+			fileRepo := mocks.NewMockFileRepo(ctrl)
 
-			uc := NewPosterUseCase(mockRepo)
+			uow.EXPECT().Posters().Return(posterRepo).AnyTimes()
+
+			tt.setup(posterRepo)
+
+			uc := NewPosterUseCase(uow, fileRepo)
 			res, err := uc.GetPosterByUserID(ctx, userID)
 
 			require.NoError(t, err)
@@ -384,7 +394,6 @@ func TestGetPosterByUserID(t *testing.T) {
 				require.Equal(t, tt.want[i].ID, p.ID)
 				require.Equal(t, tt.want[i].Address, p.Address)
 				require.Equal(t, tt.want[i].Alias, p.Alias)
-				require.Equal(t, tt.want[i].ImgURL, p.ImgURL)
 				require.Equal(t, tt.want[i].Price, p.Price)
 			}
 		})

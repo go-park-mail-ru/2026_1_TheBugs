@@ -549,9 +549,9 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "integer",
-                        "description": "Property category ID",
-                        "name": "category_id",
+                        "type": "string",
+                        "description": "Property category alias",
+                        "name": "category_alias",
                         "in": "formData",
                         "required": true
                     },
@@ -731,7 +731,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.PostersResponse"
+                            "$ref": "#/definitions/dto.PostersResponse"
                         }
                     },
                     "400": {
@@ -781,68 +781,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.PosterResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/posters/metro-stations": {
-            "get": {
-                "description": "Returns the metro stations",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "posters"
-                ],
-                "summary": "Get metro stations by geo",
-                "parameters": [
-                    {
-                        "type": "number",
-                        "format": "float32",
-                        "description": "lat",
-                        "name": "lat",
-                        "in": "query",
-                        "required": true
-                    },
-                    {
-                        "type": "number",
-                        "format": "float32",
-                        "description": "lon",
-                        "name": "lon",
-                        "in": "query",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.MetroResponse"
                         }
                     },
                     "400": {
@@ -1084,6 +1022,17 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CategoryDTO": {
+            "type": "object",
+            "properties": {
+                "alias": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.CreatedPoster": {
             "type": "object",
             "properties": {
@@ -1150,17 +1099,6 @@ const docTemplate = `{
         },
         "dto.HouseDTO": {
             "type": "object"
-        },
-        "dto.MetroStationDTO": {
-            "type": "object",
-            "properties": {
-                "station_geo": {
-                    "$ref": "#/definitions/dto.GeographyDTO"
-                },
-                "station_name": {
-                    "type": "string"
-                }
-            }
         },
         "dto.OAuthCodeFlow": {
             "type": "object",
@@ -1235,7 +1173,7 @@ const docTemplate = `{
                     "$ref": "#/definitions/dto.GeographyDTO"
                 },
                 "category": {
-                    "type": "string"
+                    "$ref": "#/definitions/dto.CategoryDTO"
                 },
                 "city": {
                     "type": "string"
@@ -1301,6 +1239,20 @@ const docTemplate = `{
                 },
                 "phone": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.PostersResponse": {
+            "type": "object",
+            "properties": {
+                "len": {
+                    "type": "integer"
+                },
+                "posters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.PosterCardDTO"
+                    }
                 }
             }
         },
@@ -1450,39 +1402,11 @@ const docTemplate = `{
                 }
             }
         },
-        "response.MetroResponse": {
-            "type": "object",
-            "properties": {
-                "len": {
-                    "type": "integer"
-                },
-                "metro_stations": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.MetroStationDTO"
-                    }
-                }
-            }
-        },
         "response.PosterResponse": {
             "type": "object",
             "properties": {
                 "poster": {
                     "$ref": "#/definitions/dto.PosterDTO"
-                }
-            }
-        },
-        "response.PostersResponse": {
-            "type": "object",
-            "properties": {
-                "len": {
-                    "type": "integer"
-                },
-                "posters": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.PosterCardDTO"
-                    }
                 }
             }
         },

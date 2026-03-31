@@ -165,7 +165,7 @@ func (h *PosterHandler) GetPostersByUser(w http.ResponseWriter, r *http.Request)
 // @Security     BearerAuth
 // @Param price formData number true "Poster price"
 // @Param description formData string true "Poster description"
-// @Param category_id formData integer true "Property category ID"
+// @Param category_alias formData string true "Property category alias"
 // @Param area formData number true "Property area"
 // @Param address formData string true "Building address"
 // @Param city_id formData integer true "City ID"

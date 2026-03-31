@@ -6,6 +6,11 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/photo"
 )
 
+type CategoryDTO struct {
+	Name  string `json:"name"`
+	Alias string `json:"alias"`
+}
+
 type PosterCardDTO struct {
 	ID           int     `json:"id"`
 	Alias        string  `json:"alias"`
@@ -62,7 +67,7 @@ type PosterDTO struct {
 	ID          int             `json:"id"`
 	Alias       string          `json:"alias"`
 	Price       float64         `json:"price"`
-	Category    string          `json:"category"`
+	Category    CategoryDTO     `json:"category"`
 	Description string          `json:"description"`
 	Area        float64         `json:"area"`
 	Geo         GeographyDTO    `json:"building_geo"`
@@ -86,7 +91,7 @@ func PosterToPosterDTO(poster *entity.PosterById) *PosterDTO {
 		ID:          poster.ID,
 		Alias:       poster.Alias,
 		Price:       poster.Price,
-		Category:    poster.Category,
+		Category:    CategoryDTO{Name: poster.Category, Alias: poster.CategoryAlias},
 		Description: poster.Description,
 		Area:        poster.Area,
 		Geo:         GeographyPointToGeographyDTO(poster.Geo),
@@ -111,12 +116,13 @@ func PosterToPosterDTO(poster *entity.PosterById) *PosterDTO {
 //   avatar_url: string;
 
 type MyPosterDTO struct {
-	ID        int     `json:"id"`
-	Alias     string  `json:"alias"`
-	Address   string  `json:"address"`
-	Area      float64 `json:"area"`
-	Price     float64 `json:"price"`
-	AvatarURl *string `json:"avatar_url"`
+	ID        int         `json:"id"`
+	Alias     string      `json:"alias"`
+	Address   string      `json:"address"`
+	Area      float64     `json:"area"`
+	Price     float64     `json:"price"`
+	AvatarURl *string     `json:"avatar_url"`
+	Category  CategoryDTO `json:"category"`
 }
 
 func MyPosterToMyPosterDTO(posters []entity.Poster) []MyPosterDTO {
@@ -134,6 +140,7 @@ func MyPosterToMyPosterDTO(posters []entity.Poster) []MyPosterDTO {
 			Address:   poster.Address,
 			Area:      poster.Area,
 			Alias:     poster.Alias,
+			Category:  CategoryDTO{Name: poster.CategoryName, Alias: poster.CategoryAlias},
 		}
 
 		listPosters = append(listPosters, posterDTO)
@@ -142,12 +149,12 @@ func MyPosterToMyPosterDTO(posters []entity.Poster) []MyPosterDTO {
 }
 
 type PosterInputFlatDTO struct {
-	UserID      int     `schema:"-"`
-	Alias       *string `schema:"-"`
-	Price       float64 `schema:"price"`
-	Description string  `schema:"description"`
-	CategoryID  int     `schema:"category_id"`
-	Area        float64 `schema:"area"`
+	UserID        int     `schema:"-"`
+	Alias         *string `schema:"-"`
+	Price         float64 `schema:"price"`
+	Description   string  `schema:"description"`
+	CategoryAlias string  `schema:"category_alias"`
+	Area          float64 `schema:"area"`
 
 	GeoLat         float64 `schema:"geo_lat"`
 	GeoLon         float64 `schema:"geo_lon"`
@@ -171,8 +178,8 @@ func PosterInputFlatDTOtoPosterInput(poster *PosterInputFlatDTO) *entity.PosterI
 		Price:       poster.Price,
 		Description: poster.Description,
 
-		CategoryID: poster.CategoryID,
-		Area:       poster.Area,
+		CategoryAlias: poster.CategoryAlias,
+		Area:          poster.Area,
 
 		Address:    poster.Address,
 		Geo:        GeographyInputDTOtoGeographyPoint(GeographyInputDTO{Lat: poster.GeoLat, Lon: poster.GeoLon}),

@@ -48,10 +48,10 @@ INSERT INTO metro_stations (station_name, geo) VALUES
 -- ============================================================
 -- 5. Категории недвижимости
 -- ============================================================
-INSERT INTO property_categories (name) VALUES
-    ('Квартира'),
-    ('Дом'),
-    ('Апартаменты');
+INSERT INTO property_categories (name, alias) VALUES
+    ('Квартира', 'flat'),
+    ('Дом', 'house'),
+    ('Апартаменты', 'apartments');
 
 -- ============================================================
 -- Застройщики (developers)
@@ -124,13 +124,19 @@ INSERT INTO utility_companies_photos (img_url, sequence_order, utility_company_i
 INSERT INTO buildings (address, geo, city_id, metro_station_id, district, floor_count, company_id) VALUES
     -- Москва
     ('ул. Тверская, д. 25', ST_GeogFromText('SRID=4326;POINT(37.6155 55.7520)'), 1, 2, 'Центральный', 12, (SELECT id FROM utility_companies WHERE alias = 'stroigroup')),
+    ('ул. Тверская, д. 30', ST_GeogFromText('SRID=4326;POINT(37.6155 55.7520)'), 1, 2, 'Центральный', 12, (SELECT id FROM utility_companies WHERE alias = 'stroigroup')),
     ('ул. Арбат, д. 36', ST_GeogFromText('SRID=4326;POINT(37.5870 55.7490)'), 1, 1, 'Арбат', 15, (SELECT id FROM utility_companies WHERE alias = 'premiumdom')),
     ('Смоленская пл., д. 3', ST_GeogFromText('SRID=4326;POINT(37.5990 55.7510)'), 1, 4, 'Арбат', 8, (SELECT id FROM utility_companies WHERE alias = 'premiumdom')),
     -- Санкт-Петербург
     ('Невский пр., д. 88', ST_GeogFromText('SRID=4326;POINT(30.3200 59.9340)'), 2, 7, 'Центральный', 18, (SELECT id FROM utility_companies WHERE alias = 'nordstroy')),
     ('ул. Садовая, д. 14', ST_GeogFromText('SRID=4326;POINT(30.2980 59.9280)'), 2, 8, 'Адмиралтейский', 10, (SELECT id FROM utility_companies WHERE alias = 'nordstroy')),
+    ('Невский пр., д. 90', ST_GeogFromText('SRID=4326;POINT(30.3200 59.9340)'), 2, 7, 'Центральный', 18, (SELECT id FROM utility_companies WHERE alias = 'nordstroy')),
+    ('ул. Галошина, д. 15', ST_GeogFromText('SRID=4326;POINT(30.2980 59.9280)'), 2, 8, 'Адмиралтейский', 10, (SELECT id FROM utility_companies WHERE alias = 'nordstroy')),
     -- Казань
+    ('ул. Белый, д. 42', ST_GeogFromText('SRID=4326;POINT(49.1260 55.7910)'), 3, 9, 'Вахитовский', 14, (SELECT id FROM utility_companies WHERE alias = 'kazaninvest')),
+    ('ул. Тукая, д. 42', ST_GeogFromText('SRID=4326;POINT(49.1270 55.7910)'), 3, 9, 'Тукая', 14, NULL),
     ('ул. Баумана, д. 42', ST_GeogFromText('SRID=4326;POINT(49.1250 55.7910)'), 3, 9, 'Вахитовский', 14, (SELECT id FROM utility_companies WHERE alias = 'kazaninvest'));
+
 
 -- ============================================================
 -- 8. Категории квартир (flat_categories)
@@ -150,15 +156,15 @@ INSERT INTO flat_categories (name, room_count) VALUES
 -- ============================================================
 INSERT INTO property (category_id, building_id, area) VALUES
     (1, 1, 20),  -- Тверская 25, студия
-    (1, 1, 43),  -- Тверская 25, 2-к
-    (1, 2, 93),  -- Арбат 36, пентхаус
-    (1, 2, 34),  -- Арбат 36, 1-к
-    (1, 3, 12),  -- Смоленская, студия
-    (1, 3, 110), -- Смоленская, 2-к
-    (1, 4, 223), -- Невский 88, 1-к
-    (1, 4, 123), -- Невский 88, апартаменты
-    (1, 5, 222), -- Садовая, 2-к
-    (1, 6, 12);  -- Баумана, 3-к
+    (1, 2, 43),  -- Тверская 25, 2-к
+    (1, 3, 93),  -- Арбат 36, пентхаус
+    (1, 4, 34),  -- Арбат 36, 1-к
+    (1, 5, 12),  -- Смоленская, студия
+    (1, 6, 110), -- Смоленская, 2-к
+    (1, 7, 223), -- Невский 88, 1-к
+    (1, 8, 123), -- Невский 88, апартаменты
+    (1, 9, 222), -- Садовая, 2-к
+    (1, 10, 222); 
 
 -- ============================================================
 -- 10. Квартиры (flat)
@@ -172,8 +178,7 @@ INSERT INTO flat (property_id, floor, number, category_id) VALUES
     (6, 6, 45, (SELECT id FROM flat_categories WHERE room_count = 3)),
     (7, 2, 8, (SELECT id FROM flat_categories WHERE room_count = 4)),
     (8, 9, 77, (SELECT id FROM flat_categories WHERE room_count = 5)),
-    (9, 3, 22, (SELECT id FROM flat_categories WHERE room_count = 1)),
-    (10, 4, 35, (SELECT id FROM flat_categories WHERE room_count = 1));
+    (9, 3, 22, (SELECT id FROM flat_categories WHERE room_count = 1));
 
 -- ============================================================
 -- 11. Объявления (posters)

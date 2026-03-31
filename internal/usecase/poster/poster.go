@@ -16,7 +16,7 @@ import (
 
 const (
 	MaxPostersLimit = 12
-	PropertyFlat    = "Квартиры" // TODO: делать по id а не по имени а то оно меняется либо поменять в
+	PropertyFlat    = "flat" // TODO: делать по id а не по имени а то оно меняется либо поменять в
 	PropertyHouse   = "house"
 	MetroRadius     = 2500
 )
@@ -71,7 +71,7 @@ func (uc *PosterUseCase) GetPosterByAliasUseCase(ctx context.Context, posterAlia
 	posterDTO = dto.PosterToPosterDTO(poster)
 	log.Println(poster, posterDTO)
 
-	switch poster.Category {
+	switch poster.CategoryAlias {
 	case PropertyFlat:
 		flat, err := uc.uow.Posters().GetFlatByPropetyID(ctx, poster.PropertyID)
 		if err != nil {
@@ -125,6 +125,7 @@ func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.Poste
 	if err != nil {
 		return nil, fmt.Errorf("validator.ValidatePhotos: %w", err)
 	}
+	log.Printf("dto: %s", poster.CategoryAlias)
 
 	post := dto.PosterInputFlatDTOtoPosterInput(poster)
 	post.Alias = alias.GenerateAlias(post)

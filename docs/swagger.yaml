@@ -7,6 +7,13 @@ definitions:
       expire_at:
         type: integer
     type: object
+  dto.CategoryDTO:
+    properties:
+      alias:
+        type: string
+      name:
+        type: string
+    type: object
   dto.CreatedPoster:
     properties:
       alias:
@@ -49,13 +56,6 @@ definitions:
         type: number
     type: object
   dto.HouseDTO:
-    type: object
-  dto.MetroStationDTO:
-    properties:
-      station_geo:
-        $ref: '#/definitions/dto.GeographyDTO'
-      station_name:
-        type: string
     type: object
   dto.OAuthCodeFlow:
     properties:
@@ -105,7 +105,7 @@ definitions:
       building_geo:
         $ref: '#/definitions/dto.GeographyDTO'
       category:
-        type: string
+        $ref: '#/definitions/dto.CategoryDTO'
       city:
         type: string
       company:
@@ -149,6 +149,15 @@ definitions:
         type: string
       phone:
         type: string
+    type: object
+  dto.PostersResponse:
+    properties:
+      len:
+        type: integer
+      posters:
+        items:
+          $ref: '#/definitions/dto.PosterCardDTO'
+        type: array
     type: object
   dto.UserDTO:
     properties:
@@ -244,28 +253,10 @@ definitions:
       error:
         type: string
     type: object
-  response.MetroResponse:
-    properties:
-      len:
-        type: integer
-      metro_stations:
-        items:
-          $ref: '#/definitions/dto.MetroStationDTO'
-        type: array
-    type: object
   response.PosterResponse:
     properties:
       poster:
         $ref: '#/definitions/dto.PosterDTO'
-    type: object
-  response.PostersResponse:
-    properties:
-      len:
-        type: integer
-      posters:
-        items:
-          $ref: '#/definitions/dto.PosterCardDTO'
-        type: array
     type: object
   response.ValidationErrorResponse:
     properties:
@@ -637,11 +628,11 @@ paths:
         name: description
         required: true
         type: string
-      - description: Property category ID
+      - description: Property category alias
         in: formData
-        name: category_id
+        name: category_alias
         required: true
-        type: integer
+        type: string
       - description: Property area
         in: formData
         name: area
@@ -768,7 +759,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.PostersResponse'
+            $ref: '#/definitions/dto.PostersResponse'
         "400":
           description: Bad Request
           schema:
@@ -817,48 +808,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Get list of user`s posters
-      tags:
-      - posters
-  /posters/metro-stations:
-    get:
-      description: Returns the metro stations
-      parameters:
-      - description: lat
-        format: float32
-        in: query
-        name: lat
-        required: true
-        type: number
-      - description: lon
-        format: float32
-        in: query
-        name: lon
-        required: true
-        type: number
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.MetroResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: Get metro stations by geo
       tags:
       - posters
   /user/me:

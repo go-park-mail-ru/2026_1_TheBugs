@@ -69,8 +69,10 @@ COMMENT ON TABLE metro_stations IS 'Станции метро';
 CREATE TABLE IF NOT EXISTS property_categories ( 
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
     name TEXT NOT NULL, 
+    alias TEXT UNIQUE NOT NULL,
  
-    CONSTRAINT name_length_check CHECK ( LENGTH(name) < 30 ) 
+    CONSTRAINT name_length_check CHECK ( LENGTH(name) < 30 ),
+    CONSTRAINT alias_length_check CHECK ( LENGTH(alias) < 50 )
 ); 
 COMMENT ON TABLE property_categories IS 'Тип помещения';
 

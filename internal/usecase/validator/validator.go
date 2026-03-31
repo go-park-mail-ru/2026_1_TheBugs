@@ -113,6 +113,12 @@ func ValidatePhotos(photos []dto.PhotoInputDTO) error {
 		if !ValidatePhoto(photo.FileHeader) {
 			return entity.NewValidationError(fmt.Sprintf("photos[%d]", i))
 		}
+		if photo.Order <= 0 {
+			return entity.NewValidationError(fmt.Sprintf("photos[%d].order", i))
+		}
+		if photo.Order > MaxPhotosLength {
+			return entity.NewValidationError(fmt.Sprintf("photos[%d].order", i))
+		}
 	}
 	return nil
 }

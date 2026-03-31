@@ -14,17 +14,19 @@ type PosterFlat struct {
 	Metro        *string `db:"station_name"`
 	Area         float64 `db:"area"`
 	Alias        string  `db:"alias"`
-	Floor        int     `db:"floor"`
+	Floor        *int    `db:"floor"`
 	FlatCategory *string `db:"flat_category"`
 }
 
 type Poster struct {
-	ID        int     `db:"id"`
-	Alias     string  `db:"alias"`
-	Address   string  `db:"address"`
-	Area      float64 `db:"area"`
-	Price     float64 `db:"price"`
-	AvatarURl *string `db:"avatar_url"`
+	ID            int     `db:"id"`
+	Alias         string  `db:"alias"`
+	Address       string  `db:"address"`
+	Area          float64 `db:"area"`
+	Price         float64 `db:"price"`
+	AvatarURl     *string `db:"avatar_url"`
+	CategoryName  string  `db:"category_name"`
+	CategoryAlias string  `db:"category_alias"`
 }
 
 type PosterImage struct {
@@ -33,11 +35,12 @@ type PosterImage struct {
 }
 
 type PosterById struct {
-	ID          int     `db:"id"`
-	Alias       string  `db:"alias"`
-	Price       float64 `db:"price"`
-	Category    string  `db:"category"`
-	Description string  `db:"description"`
+	ID            int     `db:"id"`
+	Alias         string  `db:"alias"`
+	Price         float64 `db:"price"`
+	Category      string  `db:"category_name"`
+	CategoryAlias string  `db:"category_alias"`
+	Description   string  `db:"description"`
 
 	Area       float64 `db:"area"`
 	PropertyID int     `db:"property_id"`
@@ -91,8 +94,8 @@ type PosterInput struct {
 	Price       float64
 	Description string
 
-	CategoryID int
-	Area       float64
+	CategoryAlias string
+	Area          float64
 
 	Address        string
 	Geo            geo.GeographyPoint

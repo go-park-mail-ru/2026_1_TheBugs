@@ -286,6 +286,20 @@ func (mr *MockPosterRepoMockRecorder) GetMetroStationByRadius(ctx, buidingGeo, r
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMetroStationByRadius", reflect.TypeOf((*MockPosterRepo)(nil).GetMetroStationByRadius), ctx, buidingGeo, radius)
 }
 
+// InsertFacilities mocks base method.
+func (m *MockPosterRepo) InsertFacilities(ctx context.Context, propertyID int, features []string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertFacilities", ctx, propertyID, features)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// InsertFacilities indicates an expected call of InsertFacilities.
+func (mr *MockPosterRepoMockRecorder) InsertFacilities(ctx, propertyID, features interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertFacilities", reflect.TypeOf((*MockPosterRepo)(nil).InsertFacilities), ctx, propertyID, features)
+}
+
 // InsertFlat mocks base method.
 func (m *MockPosterRepo) InsertFlat(ctx context.Context, flat *entity.FlatInput) error {
 	m.ctrl.T.Helper()

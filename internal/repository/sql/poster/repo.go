@@ -68,7 +68,7 @@ func (r *PosterRepo) CountPosters(ctx context.Context) (int, error) {
 	log.Info("start db query")
 
 	var count int
-	row := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM posters")
+	row := r.pool.QueryRow(ctx, "SELECT get_explain_rows('SELECT * FROM posters')")
 	err := row.Scan(&count)
 	if err != nil {
 		return 0, err
@@ -81,7 +81,7 @@ func (r *PosterRepo) GetByAlias(ctx context.Context, posterAlias string) (*entit
 	log.Info("start db query")
 
 	query := `
-		SELECT p.id, p.alias, p.price, pc.name AS category,
+		SELECT p.id, p.alias, p.price, pc.name AS category_name, pc.alias AS category_alias,
 			   p.description, prop.area, prop.id AS property_id, 
 			   ST_AsText(b.geo) AS building_geo, b.address, b.district, 
 			   ms.station_name, ST_AsText(ms.geo) AS metro_geo, c.city_name, 
@@ -153,7 +153,7 @@ func (r *PosterRepo) GetFlatByPropetyID(ctx context.Context, propertyID int) (*e
 func (r *PosterRepo) GetByUserID(ctx context.Context, userID int) ([]entity.Poster, error) {
 	sql := `
 		SELECT p.id, p.price, p.avatar_url,
-               b.address, prop.area, p.alias
+               b.address, prop.area, p.alias, pc.name as category_name, pc.alias as category_alias
         FROM posters p
         JOIN property prop ON prop.id = p.property_id
         JOIN property_categories pc ON pc.id = prop.category_id
@@ -269,17 +269,19 @@ func (r *PosterRepo) CreateBuilding(ctx context.Context, poster *entity.PosterIn
 
 func (r *PosterRepo) CreateProperty(ctx context.Context, poster *entity.PosterInput, buildingID int) (int, error) {
 	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.CreateProperty")
-	log.Info("start db query")
+	log.Infof("alias: %s", poster.CategoryAlias)
 
 	propertyQuery := `
 		INSERT INTO property (category_id, building_id, area)
-		VALUES ($1, $2, $3)
-		RETURNING id
+		SELECT id, $2, $3
+		FROM property_categories
+		WHERE alias = $1
+		RETURNING id;
 	`
 
 	var propertyID int
 	err := r.pool.QueryRow(ctx, propertyQuery,
-		poster.CategoryID, buildingID, poster.Area,
+		poster.CategoryAlias, buildingID, poster.Area,
 	).Scan(&propertyID)
 
 	if err != nil {
