@@ -1,4 +1,4 @@
-package domains
+package entity
 
 type RecoverSession struct {
 	Email    string `json:"email"`

@@ -9,6 +9,7 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/complex"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
 	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
 
@@ -38,7 +39,7 @@ import (
 
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
-func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHandler, post *poster.PosterHandler, UtilityCompany *complex.UtilityCompanyHandler) {
+func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHandler, post *poster.PosterHandler, UtilityCompany *complex.UtilityCompanyHandler, user *user.UserHandler) {
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   config.Config.CORS.AllowedHosts,
@@ -51,16 +52,24 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 	app.Use(middleware.LoggingMiddleware(logger))
 	app.Use(c.Handler)
 
-	// Routers
+	app.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
+	}).Methods(http.MethodGet)
+
+	// API Routers
 	apiGroup := app.PathPrefix("/api").Subrouter()
 	apiGroup.Use(mux.CORSMethodMiddleware(apiGroup))
 	{
+		AuthMiddlewary := auth.GetAuthMiddlewary()
 		apiGroup.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 			_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 		}).Methods(http.MethodGet)
+		apiGroup.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 
-		apiGroup.HandleFunc("/auth/reg", auth.RegisterUser).Methods(http.MethodPost)
+		apiGroup.Handle("/user/me", AuthMiddlewary(http.HandlerFunc(user.GetMe))).Methods(http.MethodGet, http.MethodOptions)
+
 		apiGroup.HandleFunc("/auth/login", auth.LoginUser).Methods(http.MethodPost)
+		apiGroup.HandleFunc("/auth/reg", auth.RegisterUser).Methods(http.MethodPost)
 		apiGroup.HandleFunc("/auth/logout", auth.Logout).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.HandleFunc("/auth/refresh", auth.RefreshToken).Methods(http.MethodPost)
 		apiGroup.HandleFunc("/auth/vkid", auth.VKLogin).Methods(http.MethodPost, http.MethodOptions)
@@ -70,10 +79,13 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		apiGroup.HandleFunc("/auth/recover/reset", auth.UpdatePassword).Methods(http.MethodPost, http.MethodOptions)
 
 		apiGroup.HandleFunc("/utility-companies/by-alias/{alias}", UtilityCompany.GetUtilityCompany).Methods(http.MethodGet)
+		apiGroup.HandleFunc("/utility-companies/developers", UtilityCompany.GetAllDevelopers).Methods(http.MethodGet)
+		apiGroup.HandleFunc("/utility-companies/", UtilityCompany.GetUtilityCompaniesByDeveloper).Methods(http.MethodGet)
 
-		apiGroup.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
-
-		apiGroup.HandleFunc("/posters", post.GetAll).Methods(http.MethodGet)
+		apiGroup.HandleFunc("/posters/flats", post.GetFlatsAll).Methods(http.MethodGet)
 		apiGroup.HandleFunc("/posters/by-alias/{alias}", post.GetPoster).Methods(http.MethodGet)
+
+		apiGroup.Handle("/posters/me", AuthMiddlewary(http.HandlerFunc(post.GetPostersByUser))).Methods(http.MethodGet, http.MethodOptions)
+		apiGroup.Handle("/posters/flat", AuthMiddlewary(http.HandlerFunc(post.CreateFlatPoster))).Methods(http.MethodPost, http.MethodOptions)
 	}
 }

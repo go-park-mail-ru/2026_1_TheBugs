@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 )
 
 const oAuthVKURI = "https://id.vk.ru/oauth2/auth"

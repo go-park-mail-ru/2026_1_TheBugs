@@ -49,8 +49,8 @@ INSERT INTO metro_stations (station_name, geo) VALUES
 -- 5. Категории недвижимости
 -- ============================================================
 INSERT INTO property_categories (name) VALUES
-    ('Квартиры'),
-    ('Дома'),
+    ('Квартира'),
+    ('Дом'),
     ('Апартаменты');
 
 -- ============================================================
@@ -135,13 +135,15 @@ INSERT INTO buildings (address, geo, city_id, metro_station_id, district, floor_
 -- ============================================================
 -- 8. Категории квартир (flat_categories)
 -- ============================================================
-INSERT INTO flat_categories (name) VALUES
-    ('Студия'),
-    ('1 комнатная'),
-    ('2 комнатная'),
-    ('3 комнатная'),
-    ('Апартаменты'),
-    ('Пентхаус');
+INSERT INTO flat_categories (name, room_count) VALUES 
+    ('Студия', 0),
+    ('1-комн.', 1),
+    ('2-комн.', 2),
+    ('3-комн.', 3),
+    ('4-комн.', 4),
+    ('5-комн.', 5),
+    ('6+ комн.', 6);
+
 
 -- ============================================================
 -- 9. Объекты недвижимости (property)
@@ -162,16 +164,16 @@ INSERT INTO property (category_id, building_id, area) VALUES
 -- 10. Квартиры (flat)
 -- ============================================================
 INSERT INTO flat (property_id, floor, number, category_id) VALUES
-    (1, 3, 12, (SELECT id FROM flat_categories WHERE name = 'Студия')),
-    (2, 7, 54, (SELECT id FROM flat_categories WHERE name = '2 комнатная')),
-    (3, 10, 99, (SELECT id FROM flat_categories WHERE name = 'Пентхаус')),
-    (4, 2, 5, (SELECT id FROM flat_categories WHERE name = '1 комнатная')),
-    (5, 1, 2, (SELECT id FROM flat_categories WHERE name = 'Студия')),
-    (6, 6, 45, (SELECT id FROM flat_categories WHERE name = '2 комнатная')),
-    (7, 2, 8, (SELECT id FROM flat_categories WHERE name = '1 комнатная')),
-    (8, 9, 77, (SELECT id FROM flat_categories WHERE name = 'Апартаменты')),
-    (9, 3, 22, (SELECT id FROM flat_categories WHERE name = '2 комнатная')),
-    (10, 4, 35, (SELECT id FROM flat_categories WHERE name = '3 комнатная'));
+    (1, 3, 12, (SELECT id FROM flat_categories WHERE room_count = 0)),
+    (2, 7, 54, (SELECT id FROM flat_categories WHERE room_count = 1)),
+    (3, 10, 99, (SELECT id FROM flat_categories WHERE room_count = 2)),
+    (4, 2, 5, (SELECT id FROM flat_categories WHERE room_count = 2)),
+    (5, 1, 2, (SELECT id FROM flat_categories WHERE room_count = 0)),
+    (6, 6, 45, (SELECT id FROM flat_categories WHERE room_count = 3)),
+    (7, 2, 8, (SELECT id FROM flat_categories WHERE room_count = 4)),
+    (8, 9, 77, (SELECT id FROM flat_categories WHERE room_count = 5)),
+    (9, 3, 22, (SELECT id FROM flat_categories WHERE room_count = 1)),
+    (10, 4, 35, (SELECT id FROM flat_categories WHERE room_count = 1));
 
 -- ============================================================
 -- 11. Объявления (posters)
@@ -222,3 +224,100 @@ INSERT INTO likes (user_id, poster_id) VALUES
     (4, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
     (1, (SELECT id FROM posters WHERE alias = 'apartments-neva-view')),
     (2, (SELECT id FROM posters WHERE alias = 'apartments-neva-view'));
+
+
+-- ============================================================
+-- 14. Удобства (facilities)
+-- ============================================================
+INSERT INTO facilities (name, alias) VALUES
+    ('Wi-Fi', 'wifi'),
+    ('Кондиционер', 'conditioner'),
+    ('Стиральная машина', 'washing-machine'),
+    ('Сушилка', 'dryer'),
+    ('Гладильная доска', 'ironing-board'),
+    ('Утюг', 'iron'),
+    ('Телевизор', 'tv'),
+    ('Холодильник', 'fridge'),
+    ('Микроволновка', 'microwave'),
+    ('Электроплита', 'stove'),
+    ('Посудомойка', 'dishwasher'),
+    ('Лифт', 'elevator'),
+    ('Парковка', 'parking'),
+    ('Консьерж', 'concierge'),
+    ('Детская площадка', 'playground');
+
+
+-- ============================================================
+-- 15. Связь удобства → property (для каждого постера)
+-- ============================================================
+-- studio-tverskaya (property_id=1) - базовые удобства
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (1, (SELECT id FROM facilities WHERE alias='wifi')),
+    (1, (SELECT id FROM facilities WHERE alias='conditioner')),
+    (1, (SELECT id FROM facilities WHERE alias='washing-machine')),
+    (1, (SELECT id FROM facilities WHERE alias='fridge')),
+    (1, (SELECT id FROM facilities WHERE alias='microwave'));
+
+-- 2room-tverskaya (property_id=2) - расширенный набор
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (2, (SELECT id FROM facilities WHERE alias='wifi')),
+    (2, (SELECT id FROM facilities WHERE alias='conditioner')),
+    (2, (SELECT id FROM facilities WHERE alias='washing-machine')),
+    (2, (SELECT id FROM facilities WHERE alias='dryer')),
+    (2, (SELECT id FROM facilities WHERE alias='dishwasher')),
+    (2, (SELECT id FROM facilities WHERE alias='elevator')),
+    (2, (SELECT id FROM facilities WHERE alias='parking'));
+
+-- penthouse-arbatskaya (property_id=3) - премиум
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (3, (SELECT id FROM facilities WHERE alias='wifi')),
+    (3, (SELECT id FROM facilities WHERE alias='conditioner')),
+    (3, (SELECT id FROM facilities WHERE alias='dishwasher')),
+    (3, (SELECT id FROM facilities WHERE alias='concierge')),
+    (3, (SELECT id FROM facilities WHERE alias='parking')),
+    (3, (SELECT id FROM facilities WHERE alias='elevator'));
+
+-- 1room-arbatskaya (property_id=4) - стандарт
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (4, (SELECT id FROM facilities WHERE alias='wifi')),
+    (4, (SELECT id FROM facilities WHERE alias='washing-machine')),
+    (4, (SELECT id FROM facilities WHERE alias='fridge')),
+    (4, (SELECT id FROM facilities WHERE alias='tv')),
+    (4, (SELECT id FROM facilities WHERE alias='iron'));
+
+-- studio-smolenskaya (property_id=5) - минимальный набор
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (5, (SELECT id FROM facilities WHERE alias='wifi')),
+    (5, (SELECT id FROM facilities WHERE alias='fridge')),
+    (5, (SELECT id FROM facilities WHERE alias='microwave'));
+
+-- 1room-nevskiy (property_id=7) - питерский стандарт
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (7, (SELECT id FROM facilities WHERE alias='wifi')),
+    (7, (SELECT id FROM facilities WHERE alias='conditioner')),
+    (7, (SELECT id FROM facilities WHERE alias='washing-machine')),
+    (7, (SELECT id FROM facilities WHERE alias='elevator'));
+
+-- apartments-neva-view (property_id=8) - люкс
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (8, (SELECT id FROM facilities WHERE alias='wifi')),
+    (8, (SELECT id FROM facilities WHERE alias='dishwasher')),
+    (8, (SELECT id FROM facilities WHERE alias='concierge')),
+    (8, (SELECT id FROM facilities WHERE alias='playground')),
+    (8, (SELECT id FROM facilities WHERE alias='parking'));
+
+-- 2room-sadovaya (property_id=9) - семейный
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (9, (SELECT id FROM facilities WHERE alias='wifi')),
+    (9, (SELECT id FROM facilities WHERE alias='washing-machine')),
+    (9, (SELECT id FROM facilities WHERE alias='dryer')),
+    (9, (SELECT id FROM facilities WHERE alias='playground')),
+    (9, (SELECT id FROM facilities WHERE alias='elevator'));
+
+-- 3room-kazan (property_id=10) - просторная
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (10, (SELECT id FROM facilities WHERE alias='wifi')),
+    (10, (SELECT id FROM facilities WHERE alias='conditioner')),
+    (10, (SELECT id FROM facilities WHERE alias='dishwasher')),
+    (10, (SELECT id FROM facilities WHERE alias='stove')),
+    (10, (SELECT id FROM facilities WHERE alias='parking'));

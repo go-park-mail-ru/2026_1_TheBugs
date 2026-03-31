@@ -465,7 +465,235 @@ const docTemplate = `{
                 }
             }
         },
-        "/posters": {
+        "/posters/by-alias/{alias}": {
+            "get": {
+                "description": "Returns the poster with all information about it",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posters"
+                ],
+                "summary": "Get poster by alias",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Alias of poster",
+                        "name": "alias",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.PosterResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/posters/flat": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a flat poster with photos",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posters"
+                ],
+                "summary": "Create flat poster",
+                "parameters": [
+                    {
+                        "type": "number",
+                        "description": "Poster price",
+                        "name": "price",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Poster description",
+                        "name": "description",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Property category ID",
+                        "name": "category_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Property area",
+                        "name": "area",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Building address",
+                        "name": "address",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "City ID",
+                        "name": "city_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Metro station ID",
+                        "name": "metro_station_id",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "District",
+                        "name": "district",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Building floor count",
+                        "name": "floor_count",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Company ID",
+                        "name": "company_id",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Latitude",
+                        "name": "geo_lat",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Longitude",
+                        "name": "geo_lon",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Flat category ID",
+                        "name": "flat_category_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Flat number",
+                        "name": "flat_number",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Flat floor",
+                        "name": "flat_floor",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Facilities aliases",
+                        "name": "features",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "First photo file",
+                        "name": "photos.0.file",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "First photo order",
+                        "name": "photos.0.order",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/response.CreatedPosterResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/posters/flats": {
             "get": {
                 "description": "Returns the number of retrieved posters and their list",
                 "produces": [
@@ -533,22 +761,80 @@ const docTemplate = `{
                 }
             }
         },
-        "/posters/by-alias/{alias}": {
+        "/posters/me": {
             "get": {
-                "description": "Returns the poster with all information about it",
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the number of retrieved posters and their list",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "posters"
                 ],
-                "summary": "Get poster by alias",
+                "summary": "Get list of user` + "`" + `s posters",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.PosterResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/posters/metro-stations": {
+            "get": {
+                "description": "Returns the metro stations",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posters"
+                ],
+                "summary": "Get metro stations by geo",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Alias of poster",
-                        "name": "alias",
-                        "in": "path",
+                        "type": "number",
+                        "format": "float32",
+                        "description": "lat",
+                        "name": "lat",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "format": "float32",
+                        "description": "lon",
+                        "name": "lon",
+                        "in": "query",
                         "required": true
                     }
                 ],
@@ -556,7 +842,109 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/response.PosterResponse"
+                            "$ref": "#/definitions/response.MetroResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns user details",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get user details",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/utility-companies/": {
+            "get": {
+                "description": "Returns utility complexies by developers",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "utility_complexes"
+                ],
+                "summary": "Get utility complexies by developers",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Developer id",
+                        "name": "developer_id",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.CompaniesResponse"
                         }
                     },
                     "400": {
@@ -638,6 +1026,50 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/utility-companies/developers": {
+            "get": {
+                "description": "Returns developers",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "utility_complexes"
+                ],
+                "summary": "Get developers",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.DevelopersResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -652,13 +1084,38 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.CreatedPoster": {
+            "type": "object",
+            "properties": {
+                "alias": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.DeveloperDTO": {
             "type": "object",
             "properties": {
                 "avatar_url": {
                     "type": "string"
                 },
+                "developer_id": {
+                    "type": "integer"
+                },
                 "developer_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.FacilityDTO": {
+            "type": "object",
+            "properties": {
+                "alias": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }
@@ -673,6 +1130,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "floor": {
+                    "type": "integer"
+                },
+                "room_count": {
                     "type": "integer"
                 }
             }
@@ -690,6 +1150,17 @@ const docTemplate = `{
         },
         "dto.HouseDTO": {
             "type": "object"
+        },
+        "dto.MetroStationDTO": {
+            "type": "object",
+            "properties": {
+                "station_geo": {
+                    "$ref": "#/definitions/dto.GeographyDTO"
+                },
+                "station_name": {
+                    "type": "string"
+                }
+            }
         },
         "dto.OAuthCodeFlow": {
             "type": "object",
@@ -731,8 +1202,8 @@ const docTemplate = `{
                 "area": {
                     "type": "number"
                 },
-                "beds": {
-                    "type": "integer"
+                "flat_category": {
+                    "type": "string"
                 },
                 "id": {
                     "type": "integer"
@@ -744,9 +1215,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "price": {
-                    "type": "number"
-                },
-                "rating": {
                     "type": "number"
                 }
             }
@@ -780,6 +1248,12 @@ const docTemplate = `{
                 },
                 "district": {
                     "type": "string"
+                },
+                "facilities": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.FacilityDTO"
+                    }
                 },
                 "flat": {
                     "$ref": "#/definitions/dto.FlatDTO"
@@ -826,6 +1300,26 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UserDTO": {
+            "type": "object",
+            "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "last_name": {
                     "type": "string"
                 }
             }
@@ -909,6 +1403,42 @@ const docTemplate = `{
                 }
             }
         },
+        "response.CompaniesResponse": {
+            "type": "object",
+            "properties": {
+                "len": {
+                    "type": "integer"
+                },
+                "utility_companies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.UtilityCompanyCardDTO"
+                    }
+                }
+            }
+        },
+        "response.CreatedPosterResponse": {
+            "type": "object",
+            "properties": {
+                "poster": {
+                    "$ref": "#/definitions/dto.CreatedPoster"
+                }
+            }
+        },
+        "response.DevelopersResponse": {
+            "type": "object",
+            "properties": {
+                "developers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.DeveloperDTO"
+                    }
+                },
+                "len": {
+                    "type": "integer"
+                }
+            }
+        },
         "response.ErrorResponse": {
             "type": "object",
             "properties": {
@@ -917,6 +1447,20 @@ const docTemplate = `{
                 },
                 "error": {
                     "type": "string"
+                }
+            }
+        },
+        "response.MetroResponse": {
+            "type": "object",
+            "properties": {
+                "len": {
+                    "type": "integer"
+                },
+                "metro_stations": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.MetroStationDTO"
+                    }
                 }
             }
         },

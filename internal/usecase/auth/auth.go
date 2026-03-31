@@ -10,15 +10,14 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/domains"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
+	tokens "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/jwt"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/oauth"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/validator"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/pwd"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/tokens"
 	"github.com/google/uuid"
 )
 
@@ -232,10 +231,9 @@ func (uc AuthUseCase) LogoutUseCase(ctx context.Context, logoutCred dto.LogoutDT
 		return fmt.Errorf("uc.authRepo.DeleteToken: %w", entity.JWTError)
 	}
 	ttl := config.Config.JWT.AccessExp
-	if ttl > 0 {
-		if err := uc.cache.SetBlacklist(ctx, accessData.ID, ttl); err != nil {
-			return fmt.Errorf("uc.authRepo.BlacklistToken: %w", entity.JWTError)
-		}
+
+	if err := uc.cache.SetBlacklist(ctx, accessData.ID, ttl); err != nil {
+		return fmt.Errorf("uc.authRepo.BlacklistToken: %w", entity.JWTError)
 	}
 	return nil
 }
@@ -334,7 +332,7 @@ const MaxAttemptsRecovery = 5
 
 func (uc AuthUseCase) SendVerificationCode(ctx context.Context, email string) (string, error) {
 	op := "AuthUseCase.SendVerificationCode"
-	log := middleware.GetLogger(ctx).WithField("op", op)
+	log := ctxLogger.GetLogger(ctx).WithField("op", op)
 
 	_, err := uc.uow.Users().GetByEmail(ctx, email)
 	if err != nil {
@@ -354,17 +352,14 @@ func (uc AuthUseCase) SendVerificationCode(ctx context.Context, email string) (s
 	seed := rand.New(rand.NewSource(time.Now().UnixNano()))
 	code := fmt.Sprintf("%05d", seed.Intn(100000))
 	sessionId := fmt.Sprintf("%010x", seed.Int())[:10]
-	err = uc.cache.CreateRecoverSession(ctx, sessionId, domains.RecoverSession{Email: email, Code: code, Attempts: 0, Verified: false}, config.Config.JWT.RecoverExp)
+	err = uc.cache.CreateRecoverSession(ctx, sessionId, entity.RecoverSession{Email: email, Code: code, Attempts: 0, Verified: false}, config.Config.JWT.RecoverExp)
 	if err != nil {
 		return "", fmt.Errorf("uc.cache.CreateRecoverSession: %w", err)
 	}
-	go func(ctx context.Context) error {
-		log.Info("send code")
-		if err := uc.sender.SendCode(context.Background(), email, code); err != nil {
-			log.Errorf("send code: %v", err)
-		}
-		return nil
-	}(ctx)
+	log.Info("send code")
+	if err := uc.sender.SendCode(ctx, email, code); err != nil {
+		log.Errorf("send code: %v", err)
+	}
 
 	return sessionId, nil
 }

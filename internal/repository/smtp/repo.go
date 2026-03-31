@@ -1,4 +1,4 @@
-package email
+package smtp
 
 import (
 	"context"
@@ -41,10 +41,12 @@ func (e *SMTPSender) SendCode(ctx context.Context, email, code string) error {
 
 	dialer := gomail.NewDialer(e.host, e.port, e.username, e.password)
 
-	if err := dialer.DialAndSend(m); err != nil {
-		return fmt.Errorf("gomail send: %w", err)
-	}
+	go func(ctx context.Context) {
+		if err := dialer.DialAndSend(m); err != nil {
+			log.Printf("gomail send: %s", err)
+		}
+		log.Printf("✅ Code sent to %s", email)
+	}(ctx)
 
-	log.Printf("✅ Code sent to %s", email)
 	return nil
 }

@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/mocks"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
 	"github.com/golang/mock/gomock"
 	"github.com/samber/lo"
@@ -15,7 +15,7 @@ import (
 
 func TestGetPostersUseCase(t *testing.T) {
 	ctx := context.Background()
-	existingListPoster := []entity.Poster{
+	existingListPoster := []entity.PosterFlat{
 		{ID: 1, Price: 11111, Address: "street_1"},
 		{ID: 2, Price: 22222, Address: "street_2"},
 		{ID: 3, Price: 33333, Address: "street_3"},
@@ -45,7 +45,7 @@ func TestGetPostersUseCase(t *testing.T) {
 				Offset: 0,
 			},
 			setupMock: func(m *mocks.MockPosterRepo) {
-				m.EXPECT().GetAll(ctx, dto.PostersFiltersDTO{
+				m.EXPECT().GetFlatsAll(ctx, dto.PostersFiltersDTO{
 					Limit:  12,
 					Offset: 0,
 				}).Return(existingListPoster, nil).Times(1)
@@ -70,7 +70,7 @@ func TestGetPostersUseCase(t *testing.T) {
 				Offset: 0,
 			},
 			setupMock: func(m *mocks.MockPosterRepo) {
-				m.EXPECT().GetAll(ctx, dto.PostersFiltersDTO{
+				m.EXPECT().GetFlatsAll(ctx, dto.PostersFiltersDTO{
 					Limit:  MaxPostersLimit,
 					Offset: 0,
 				}).Return(existingListPoster, nil).Times(1)
@@ -95,7 +95,7 @@ func TestGetPostersUseCase(t *testing.T) {
 				Offset: 0,
 			},
 			setupMock: func(m *mocks.MockPosterRepo) {
-				m.EXPECT().GetAll(ctx, dto.PostersFiltersDTO{
+				m.EXPECT().GetFlatsAll(ctx, dto.PostersFiltersDTO{
 					Limit:  12,
 					Offset: 0,
 				}).Return(nil, entity.NotFoundError).Times(1)
@@ -110,21 +110,29 @@ func TestGetPostersUseCase(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockRepo := mocks.NewMockPosterRepo(ctrl)
+			mockUOW := mocks.NewMockUnitOfWork(ctrl)
+			mockFile := mocks.NewMockFileRepo(ctrl)
+
+			mockUOW.EXPECT().
+				Posters().
+				Return(mockRepo).
+				AnyTimes()
+
 			if test.setupMock != nil {
 				test.setupMock(mockRepo)
 			}
 
-			uc := NewPosterUseCase(mockRepo)
+			uc := NewPosterUseCase(mockUOW, mockFile)
 
 			got, err := uc.GetPostersUseCase(ctx, test.params)
 			if test.wantErr != nil {
 				require.ErrorIs(t, err, test.wantErr)
 				return
 			}
-			require.Equal(t, len(test.want), len(got))
+			require.Equal(t, len(test.want), len(got.Posters))
 			for i, p := range test.want {
-				require.Equal(t, p.ID, got[i].ID)
-				require.Equal(t, p.Address, got[i].Address)
+				require.Equal(t, p.ID, got.Posters[i].ID)
+				require.Equal(t, p.Address, got.Posters[i].Address)
 			}
 
 		})
@@ -257,11 +265,19 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 			defer ctrl.Finish()
 
 			mockRepo := mocks.NewMockPosterRepo(ctrl)
+			mockUOW := mocks.NewMockUnitOfWork(ctrl)
+			mockFile := mocks.NewMockFileRepo(ctrl)
+
+			mockUOW.EXPECT().
+				Posters().
+				Return(mockRepo).
+				AnyTimes()
+
 			if test.setupMock != nil {
 				test.setupMock(mockRepo)
 			}
 
-			uc := NewPosterUseCase(mockRepo)
+			uc := NewPosterUseCase(mockUOW, mockFile)
 
 			res, err := uc.GetPosterByAliasUseCase(ctx, alias)
 

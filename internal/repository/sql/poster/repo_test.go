@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
 	"github.com/pashagolub/pgxmock/v3"
 	"github.com/samber/lo"
@@ -14,7 +14,7 @@ import (
 )
 
 func TestGetPostersRepo(t *testing.T) {
-	expectedListPoster := []entity.Poster{
+	expectedListPoster := []entity.PosterFlat{
 		{ID: 1, Price: 11111, ImgURL: nil, Address: "street_1", Metro: nil, Area: 35.5, Floor: 2},
 		{ID: 2, Price: 22222, ImgURL: nil, Address: "street_2", Metro: nil, Area: 40.0, Floor: 3},
 		{ID: 3, Price: 33333, ImgURL: nil, Address: "street_3", Metro: nil, Area: 45.2, Floor: 4},
@@ -41,7 +41,7 @@ func TestGetPostersRepo(t *testing.T) {
 		name      string
 		params    dto.PostersFiltersDTO
 		setupMock func(m pgxmock.PgxPoolIface)
-		want      []entity.Poster
+		want      []entity.PosterFlat
 		wantErr   error
 	}{
 		{
@@ -71,7 +71,7 @@ func TestGetPostersRepo(t *testing.T) {
 
 				m.ExpectQuery(query).WithArgs(12, 0).WillReturnRows(rows)
 			},
-			want:    []entity.Poster{},
+			want:    []entity.PosterFlat{},
 			wantErr: nil,
 		},
 		{
@@ -99,7 +99,7 @@ func TestGetPostersRepo(t *testing.T) {
 
 			repo := NewPosterRepo(mock)
 
-			got, err := repo.GetAll(context.Background(), test.params)
+			got, err := repo.GetFlatsAll(context.Background(), test.params)
 			if test.wantErr != nil {
 				require.ErrorIs(t, err, test.wantErr)
 				return

@@ -3,8 +3,21 @@ package dto
 import "github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 
 type DeveloperDTO struct {
+	DeveloperID   int     `json:"developer_id"`
 	DeveloperName string  `json:"developer_name"`
 	AvatarURL     *string `json:"avatar_url"`
+}
+
+func DevelopersToDevelopersDTO(developer []entity.Developer) []DeveloperDTO {
+	developerDTOs := make([]DeveloperDTO, len(developer))
+	for i := range developer {
+		developerDTOs[i] = DeveloperDTO{
+			DeveloperID:   developer[i].ID,
+			DeveloperName: developer[i].DeveloperName,
+			AvatarURL:     developer[i].AvatarURL,
+		}
+	}
+	return developerDTOs
 }
 
 type UtilityCompanyDTO struct {
@@ -29,6 +42,7 @@ func ToUtilityCompanyDTO(complex *entity.UtilityCompany, photos []entity.Utility
 		}
 	}
 	developerDTO := DeveloperDTO{
+		DeveloperID:   developer.ID,
 		DeveloperName: developer.DeveloperName,
 		AvatarURL:     developer.AvatarURL,
 	}
@@ -63,4 +77,17 @@ func posterToUtilityCompanyCardDTO(poster *entity.PosterById) *UtilityCompanyCar
 		AvatarURL:   poster.CompanyAvatarURL,
 		Alias:       *poster.CompanyAlias,
 	}
+}
+
+func UtilityCompaniesToUtilityCompaniesDTO(companies []entity.UtilityCompanyCard) []UtilityCompanyCardDTO {
+	dtos := make([]UtilityCompanyCardDTO, len(companies))
+	for i, c := range companies {
+		dtos[i] = UtilityCompanyCardDTO{
+			ID:          c.ID,
+			CompanyName: c.CompanyName,
+			Alias:       c.Alias,
+			AvatarURL:   c.AvatarURL,
+		}
+	}
+	return dtos
 }

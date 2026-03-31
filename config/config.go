@@ -3,11 +3,11 @@ package config
 import (
 	"crypto/rsa"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/joho/godotenv"
+	"github.com/sirupsen/logrus"
 )
 
 var Config ProjectConfig
@@ -32,6 +32,7 @@ type (
 		JWT      `yaml:"jwt"`
 		OAuth    `yaml:"oauth"`
 		SMTP     `yaml:"smtp"`
+		Minio    `yaml:"minio"`
 	}
 	Redis struct {
 		Host     string `yaml:"host" env:"REDIS_HOST" env-default:"localhost"`
@@ -86,13 +87,21 @@ type (
 		PublicKey  *rsa.PublicKey
 		PrivateKey *rsa.PrivateKey
 	}
+
+	Minio struct {
+		Endpoint   string `yaml:"endpoint" env:"MINIO_ENDPOINT" env-default:"localhost:9000"`
+		AccessKey  string `yaml:"access_key" env:"MINIO_ACCESS_KEY" env-default:"admin123"`
+		SecretKey  string `yaml:"secret_key" env:"MINIO_SECRET_KEY" env-default:"admin123"`
+		Bucket     string `yaml:"bucket" env:"MINIO_BUCKET" env-default:"media"`
+		PublicHost string `yaml:"public_host" env:"MINIO_PUBLIC_HOST" env-default:"http://localhost:9000"`
+	}
 )
 
-func Read() error {
+func Read(log *logrus.Logger) error {
 	var err error
 	// c:/Users/Артемий/OneDrive/Desktop/code/2026_1_TheBugs/ этот оставил для дебага у вас будет свой
 	if err := godotenv.Load(".env"); err != nil {
-		log.Printf("No .env file found: %v", err)
+		log.Warnf("No .env file found: %v", err)
 	}
 	if err = cleanenv.ReadConfig("config/config.yaml", &Config); err != nil {
 		return fmt.Errorf("error while reading application configuration: %w", err)

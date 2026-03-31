@@ -12,3 +12,11 @@ type User struct {
 	HashedPassword *string `db:"hashed_password"`
 	Provider       *string `db:"provider"`
 }
+
+type UserDetails struct {
+	ID        int     `db:"id"`
+	Email     string  `db:"email"`
+	FirstName string  `db:"first_name"`
+	LastName  string  `db:"last_name"`
+	AvatarURL *string `db:"avatar_url,omitempty"`
+}

@@ -7,11 +7,27 @@ definitions:
       expire_at:
         type: integer
     type: object
+  dto.CreatedPoster:
+    properties:
+      alias:
+        type: string
+      id:
+        type: integer
+    type: object
   dto.DeveloperDTO:
     properties:
       avatar_url:
         type: string
+      developer_id:
+        type: integer
       developer_name:
+        type: string
+    type: object
+  dto.FacilityDTO:
+    properties:
+      alias:
+        type: string
+      name:
         type: string
     type: object
   dto.FlatDTO:
@@ -22,6 +38,8 @@ definitions:
         type: integer
       floor:
         type: integer
+      room_count:
+        type: integer
     type: object
   dto.GeographyDTO:
     properties:
@@ -31,6 +49,13 @@ definitions:
         type: number
     type: object
   dto.HouseDTO:
+    type: object
+  dto.MetroStationDTO:
+    properties:
+      station_geo:
+        $ref: '#/definitions/dto.GeographyDTO'
+      station_name:
+        type: string
     type: object
   dto.OAuthCodeFlow:
     properties:
@@ -58,8 +83,8 @@ definitions:
         type: string
       area:
         type: number
-      beds:
-        type: integer
+      flat_category:
+        type: string
       id:
         type: integer
       imageUrl:
@@ -67,8 +92,6 @@ definitions:
       metro:
         type: string
       price:
-        type: number
-      rating:
         type: number
     type: object
   dto.PosterDTO:
@@ -91,6 +114,10 @@ definitions:
         type: string
       district:
         type: string
+      facilities:
+        items:
+          $ref: '#/definitions/dto.FacilityDTO'
+        type: array
       flat:
         $ref: '#/definitions/dto.FlatDTO'
       floor_count:
@@ -121,6 +148,19 @@ definitions:
       last_name:
         type: string
       phone:
+        type: string
+    type: object
+  dto.UserDTO:
+    properties:
+      avatar_url:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      last_name:
         type: string
     type: object
   dto.UtilityCompanyCardDTO:
@@ -174,12 +214,44 @@ definitions:
       code:
         type: string
     type: object
+  response.CompaniesResponse:
+    properties:
+      len:
+        type: integer
+      utility_companies:
+        items:
+          $ref: '#/definitions/dto.UtilityCompanyCardDTO'
+        type: array
+    type: object
+  response.CreatedPosterResponse:
+    properties:
+      poster:
+        $ref: '#/definitions/dto.CreatedPoster'
+    type: object
+  response.DevelopersResponse:
+    properties:
+      developers:
+        items:
+          $ref: '#/definitions/dto.DeveloperDTO'
+        type: array
+      len:
+        type: integer
+    type: object
   response.ErrorResponse:
     properties:
       details:
         type: string
       error:
         type: string
+    type: object
+  response.MetroResponse:
+    properties:
+      len:
+        type: integer
+      metro_stations:
+        items:
+          $ref: '#/definitions/dto.MetroStationDTO'
+        type: array
     type: object
   response.PosterResponse:
     properties:
@@ -516,7 +588,161 @@ paths:
       summary: Login user from Yandex
       tags:
       - Auth
-  /posters:
+  /posters/by-alias/{alias}:
+    get:
+      description: Returns the poster with all information about it
+      parameters:
+      - description: Alias of poster
+        in: path
+        name: alias
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PosterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get poster by alias
+      tags:
+      - posters
+  /posters/flat:
+    post:
+      description: Creates a flat poster with photos
+      parameters:
+      - description: Poster price
+        in: formData
+        name: price
+        required: true
+        type: number
+      - description: Poster description
+        in: formData
+        name: description
+        required: true
+        type: string
+      - description: Property category ID
+        in: formData
+        name: category_id
+        required: true
+        type: integer
+      - description: Property area
+        in: formData
+        name: area
+        required: true
+        type: number
+      - description: Building address
+        in: formData
+        name: address
+        required: true
+        type: string
+      - description: City ID
+        in: formData
+        name: city_id
+        required: true
+        type: integer
+      - description: Metro station ID
+        in: formData
+        name: metro_station_id
+        type: integer
+      - description: District
+        in: formData
+        name: district
+        type: string
+      - description: Building floor count
+        in: formData
+        name: floor_count
+        required: true
+        type: integer
+      - description: Company ID
+        in: formData
+        name: company_id
+        type: integer
+      - description: Latitude
+        in: formData
+        name: geo_lat
+        required: true
+        type: number
+      - description: Longitude
+        in: formData
+        name: geo_lon
+        required: true
+        type: number
+      - description: Flat category ID
+        in: formData
+        name: flat_category_id
+        required: true
+        type: integer
+      - description: Flat number
+        in: formData
+        name: flat_number
+        required: true
+        type: integer
+      - description: Flat floor
+        in: formData
+        name: flat_floor
+        required: true
+        type: integer
+      - collectionFormat: csv
+        description: Facilities aliases
+        in: formData
+        items:
+          type: string
+        name: features
+        type: array
+      - description: First photo file
+        in: formData
+        name: photos.0.file
+        type: file
+      - description: First photo order
+        in: formData
+        name: photos.0.order
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.CreatedPosterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create flat poster
+      tags:
+      - posters
+  /posters/flats:
     get:
       description: Returns the number of retrieved posters and their list
       parameters:
@@ -562,15 +788,9 @@ paths:
       summary: Get list of posters
       tags:
       - posters
-  /posters/by-alias/{alias}:
+  /posters/me:
     get:
-      description: Returns the poster with all information about it
-      parameters:
-      - description: Alias of poster
-        in: path
-        name: alias
-        required: true
-        type: string
+      description: Returns the number of retrieved posters and their list
       produces:
       - application/json
       responses:
@@ -594,9 +814,119 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
-      summary: Get poster by alias
+      security:
+      - BearerAuth: []
+      summary: Get list of user`s posters
       tags:
       - posters
+  /posters/metro-stations:
+    get:
+      description: Returns the metro stations
+      parameters:
+      - description: lat
+        format: float32
+        in: query
+        name: lat
+        required: true
+        type: number
+      - description: lon
+        format: float32
+        in: query
+        name: lon
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.MetroResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get metro stations by geo
+      tags:
+      - posters
+  /user/me:
+    get:
+      description: Returns user details
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user details
+      tags:
+      - users
+  /utility-companies/:
+    get:
+      description: Returns utility complexies by developers
+      parameters:
+      - description: Developer id
+        in: query
+        name: developer_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CompaniesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get utility complexies by developers
+      tags:
+      - utility_complexes
   /utility-companies/by-alias/{alias}:
     get:
       description: Returns utility complex details along with its photos by the given
@@ -631,6 +961,35 @@ paths:
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: Get utility complex by alias
+      tags:
+      - utility_complexes
+  /utility-companies/developers:
+    get:
+      description: Returns developers
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.DevelopersResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get developers
       tags:
       - utility_complexes
 securityDefinitions:

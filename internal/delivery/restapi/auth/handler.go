@@ -10,8 +10,9 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/request"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
+	ctxLogger "github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 )
 
 type AuthHandler struct {
@@ -40,6 +41,10 @@ func NewAuthHandler(uc *auth.AuthUseCase) *AuthHandler {
 	return &AuthHandler{uc: uc}
 }
 
+func (h *AuthHandler) GetAuthMiddlewary() func(http.Handler) http.Handler {
+	return middleware.AuthMiddleware(h.uc)
+}
+
 // RegisterUser
 // @Summary       Register new user
 // @Description   Register new user with email and password
@@ -57,14 +62,14 @@ func NewAuthHandler(uc *auth.AuthUseCase) *AuthHandler {
 // @Router        /auth/reg [post]
 func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.RegisterUser"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	var cred FormDataCreateUser
 	err := utils.ParseFormData(r, &cred)
 	log.Println(cred)
 	if err != nil {
 		log.Errorf("parse.ParseFormData: %s", err)
-		utils.HandelError(w, err)
+		utils.WriteError(w, "invalid form data", http.StatusBadRequest)
 		return
 	}
 	err = h.uc.RegisterUseCase(r.Context(), dto.CreateUserDTO{
@@ -97,7 +102,7 @@ func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 // @Router        /auth/login [post]
 func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.LoginUser"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	var cred FormDataCredential
 
@@ -105,7 +110,7 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	log.Println(cred)
 	if err != nil {
 		log.Errorf("parse.ParseFormData: %s", err)
-		utils.HandelError(w, err)
+		utils.WriteError(w, "invalid form data", http.StatusBadRequest)
 		return
 	}
 	accessCred, err := h.uc.LoginUseCase(r.Context(), cred.Email, cred.Password)
@@ -139,12 +144,12 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 // @Router        /auth/refresh [post]
 func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.RefreshToken"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	cookie, err := r.Cookie("refresh_token")
 	if err != nil {
 		log.Errorf("r.Cookie: %s", err)
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "invalid cookie", http.StatusBadRequest)
 		return
 	}
 	refreshToken := cookie.Value
@@ -178,12 +183,12 @@ func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 // @Router       /auth/logout [post]
 func (h AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.Logout"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	accessToken, err := utils.GetAccessToken(r)
 	if err != nil {
 		log.Errorf("utils.GetAccessToken: %s", err)
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "invalid access token", http.StatusUnauthorized)
 		return
 	}
 	cookie, err := r.Cookie("refresh_token")
@@ -218,18 +223,18 @@ func (h AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 // POST /api/auth/vk/login
 func (h AuthHandler) VKLogin(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.VKLogin"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	var flow dto.OAuthCodeFlow
 	if err := json.NewDecoder(r.Body).Decode(&flow); err != nil {
 		log.Errorf("json.NewDecoder(r.Body).Decode(&flow): %s", err)
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
 	if flow.Code == "" || flow.DeviceID == nil || flow.State == nil {
 		log.Errorf("flow.Code || flow.DeviceID || flow.State empty ")
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
@@ -263,18 +268,18 @@ func (h AuthHandler) VKLogin(w http.ResponseWriter, r *http.Request) {
 // @Router        /auth/yandex [post]
 func (h AuthHandler) YandexLogin(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.YandexLogin"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	var flow dto.OAuthCodeFlow
 	if err := json.NewDecoder(r.Body).Decode(&flow); err != nil {
 		log.Errorf("json.NewDecoder(r.Body).Decode(&flow): %s", err)
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
 	if flow.Code == "" {
 		log.Errorf("flow.Code empty ")
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
@@ -308,12 +313,12 @@ func (h AuthHandler) YandexLogin(w http.ResponseWriter, r *http.Request) {
 // @Router        /auth/recover [post]
 func (h AuthHandler) SendCodeOnEmail(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.SendCodeOnEmail"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	var data request.UserEmail
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		log.Errorf("decode: %v", err)
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
@@ -356,25 +361,25 @@ func (h AuthHandler) SendCodeOnEmail(w http.ResponseWriter, r *http.Request) {
 // @Router        /auth/recover/verify [post]
 func (h AuthHandler) VerifyRecoveryCode(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.VerifyRecoveryCode"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	cookie, err := r.Cookie("session_id")
 	if err != nil {
 		log.Errorf("r.Cookie: %s", err)
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "invalid cookie", http.StatusBadRequest)
 		return
 	}
 	sessionId := cookie.Value
 	if sessionId == "" {
 		log.Errorf("sessionId is empty")
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "session_id is empty", http.StatusBadRequest)
 		return
 	}
 
 	var data request.VerifyCodeDTO
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		log.Errorf("decode: %v", err)
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
@@ -404,24 +409,24 @@ func (h AuthHandler) VerifyRecoveryCode(w http.ResponseWriter, r *http.Request) 
 // @Router        /auth/recover/reset [post]
 func (h AuthHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.UpdatePassword"
-	log := middleware.GetLogger(r.Context()).WithField("op", op)
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 	cookie, err := r.Cookie("session_id")
 	if err != nil {
 		log.Errorf("r.Cookie: %s", err)
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "invalid cookie", http.StatusBadRequest)
 		return
 	}
 	sessionId := cookie.Value
 	if sessionId == "" {
 		log.Errorf("sessionId is empty")
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "session_id is empty", http.StatusBadRequest)
 		return
 	}
 
 	var data request.UpdatePwdDTO
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		log.Errorf("decode: %v", err)
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 

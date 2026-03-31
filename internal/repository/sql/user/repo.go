@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	repository "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/jackc/pgx/v5"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
@@ -37,6 +37,28 @@ func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*entity.User, 
 	}
 
 	return &user, nil
+
+}
+
+func (r *UserRepo) GetByID(ctx context.Context, id int) (*dto.UserDTO, error) {
+	sql := `SELECT u.id, u.email, p.first_name, p.last_name, p.avatar_url 
+			FROM users u
+			JOIN profiles p ON u.profile_id = p.id
+			WHERE u.id=$1`
+	row, err := r.pool.Query(ctx, sql, id)
+
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	defer row.Close()
+
+	user, err := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[entity.UserDetails])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return dto.UserToDTO(&user), nil
 
 }
 

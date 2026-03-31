@@ -2,7 +2,7 @@ package complex
 
 import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 )
 
 type UtilityCompanyDTO struct {
@@ -43,7 +43,7 @@ type UtilityCompanyCardDTO struct {
 	Alias       string  `json:"alias"`
 }
 
-func posterToUtilityCompanyCardDTO(poster *entity.PosterById) *UtilityCompanyCardDTO {
+func PosterToUtilityCompanyCardDTO(poster *entity.PosterById) *UtilityCompanyCardDTO {
 	if poster.CompanyID == nil {
 		return nil
 	}

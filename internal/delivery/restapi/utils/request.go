@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sort"
 	"strconv"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 )
@@ -36,7 +38,6 @@ func ParseAliasFromRequest(r *http.Request) (string, error) {
 
 	return alias, nil
 }
-
 func ParseFormData(r *http.Request, form interface{}) error {
 	var decoder = schema.NewDecoder()
 	err := r.ParseForm()
@@ -47,4 +48,58 @@ func ParseFormData(r *http.Request, form interface{}) error {
 	decoder.IgnoreUnknownKeys(true)
 	err = decoder.Decode(form, r.PostForm)
 	return err
+}
+
+func ParseMultipartFormData(r *http.Request, form interface{}) error {
+	var decoder = schema.NewDecoder()
+	err := r.ParseMultipartForm(100 << 20)
+	if err != nil {
+		return fmt.Errorf("r.ParseMultipartForm, %w", err)
+	}
+	decoder.IgnoreUnknownKeys(true)
+	err = decoder.Decode(form, r.PostForm)
+	return err
+}
+
+func ParsePhotos(r *http.Request) ([]dto.PhotoInputDTO, error) {
+	var photos []dto.PhotoInputDTO
+	if r.MultipartForm == nil {
+		err := r.ParseMultipartForm(100 << 20)
+		if err != nil {
+			return nil, fmt.Errorf("r.ParseMultipartForm, %w", err)
+		}
+	}
+
+	for i := 0; ; i++ {
+		fileKey := fmt.Sprintf("photos.%d.file", i)
+		orderKey := fmt.Sprintf("photos.%d.order", i)
+
+		files := r.MultipartForm.File[fileKey]
+		orders := r.MultipartForm.Value[orderKey]
+
+		if len(files) == 0 && len(orders) == 0 {
+			break
+		}
+
+		if len(files) == 0 {
+			return nil, fmt.Errorf("photo %d: file is required", i)
+		}
+		if len(orders) == 0 {
+			return nil, fmt.Errorf("photo %d: order is required", i)
+		}
+
+		order, err := strconv.Atoi(orders[0])
+		if err != nil {
+			return nil, fmt.Errorf("photo %d: invalid order", i)
+		}
+
+		photo := dto.PhotoInputDTO{FileHeader: files[0], Order: order}
+		photos = append(photos, photo)
+	}
+
+	sort.Slice(photos, func(i, j int) bool {
+		return photos[i].Order < photos[j].Order
+	})
+
+	return photos, nil
 }
