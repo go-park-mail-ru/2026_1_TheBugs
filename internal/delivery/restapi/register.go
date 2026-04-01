@@ -67,6 +67,7 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		apiGroup.PathPrefix("/docs/").Handler(httpSwagger.WrapHandler)
 
 		apiGroup.Handle("/user/me", AuthMiddlewary(http.HandlerFunc(user.GetMe))).Methods(http.MethodGet, http.MethodOptions)
+		apiGroup.Handle("/user/me/profile", AuthMiddlewary(http.HandlerFunc(user.UpdateProfile))).Methods(http.MethodPut, http.MethodOptions)
 
 		apiGroup.HandleFunc("/auth/login", auth.LoginUser).Methods(http.MethodPost)
 		apiGroup.HandleFunc("/auth/reg", auth.RegisterUser).Methods(http.MethodPost)

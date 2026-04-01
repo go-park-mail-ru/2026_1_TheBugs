@@ -16,6 +16,21 @@ type CreateUserDTO struct {
 	LastName       string
 }
 
+type UpdateProfileDTO struct {
+	ID        int     `json:"-"`
+	Phone     *string `json:"phone,omitempty"`
+	FirstName *string `json:"first_name,omitempty"`
+	LastName  *string `json:"last_name,omitempty"`
+	AvatarURL *string `json:"avatar_url,omitempty"`
+}
+
+type UpdateUserDTO struct {
+	ID             int
+	Email          *string
+	HashedPassword *string
+	Salt           *string
+}
+
 type CreateUserByProviderDTO struct {
 	Email      string
 	Provider   entity.ProviderType
@@ -49,6 +64,7 @@ type UserDTO struct {
 	FirstName string  `json:"first_name"`
 	LastName  string  `json:"last_name"`
 	AvatarURL *string `json:"avatar_url,omitempty"`
+	Phone     string  `json:"phone"`
 }
 
 func UserToDTO(user *entity.UserDetails) *UserDTO {
@@ -58,5 +74,6 @@ func UserToDTO(user *entity.UserDetails) *UserDTO {
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
 		AvatarURL: user.AvatarURL,
+		Phone:     user.Phone,
 	}
 }

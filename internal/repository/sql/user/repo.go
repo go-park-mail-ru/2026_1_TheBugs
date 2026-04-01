@@ -41,11 +41,37 @@ func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*entity.User, 
 }
 
 func (r *UserRepo) GetByID(ctx context.Context, id int) (*dto.UserDTO, error) {
-	sql := `SELECT u.id, u.email, p.first_name, p.last_name, p.avatar_url 
+	sql := `SELECT u.id, u.email, p.first_name, p.last_name, p.avatar_url , p.phone
 			FROM users u
 			JOIN profiles p ON u.profile_id = p.id
 			WHERE u.id=$1`
 	row, err := r.pool.Query(ctx, sql, id)
+
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	defer row.Close()
+
+	user, err := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[entity.UserDetails])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return dto.UserToDTO(&user), nil
+
+}
+
+func (r *UserRepo) UpdateProfile(ctx context.Context, data dto.UpdateProfileDTO) (*dto.UserDTO, error) {
+	sql := `UPDATE profiles p
+			SET phone = COALESCE($1, p.phone),
+				first_name = COALESCE($2, p.first_name),
+				last_name = COALESCE($3, p.last_name),
+				avatar_url = COALESCE($4, p.avatar_url)
+			FROM users u
+			WHERE p.id = u.profile_id AND u.id = $5  -- Join users here
+			RETURNING p.id, u.email, p.first_name, p.last_name, p.avatar_url, p.phone;`
+	row, err := r.pool.Query(ctx, sql, data.Phone, data.FirstName, data.LastName, data.AvatarURL, data.ID)
 
 	if err != nil {
 		return nil, repository.HandelPgErrors(err)

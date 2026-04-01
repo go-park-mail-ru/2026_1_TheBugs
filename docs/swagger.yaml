@@ -159,6 +159,17 @@ definitions:
           $ref: '#/definitions/dto.PosterCardDTO'
         type: array
     type: object
+  dto.UpdateProfileDTO:
+    properties:
+      avatar_url:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      phone:
+        type: string
+    type: object
   dto.UserDTO:
     properties:
       avatar_url:
@@ -170,6 +181,8 @@ definitions:
       id:
         type: integer
       last_name:
+        type: string
+      phone:
         type: string
     type: object
   dto.UtilityCompanyCardDTO:
@@ -839,6 +852,44 @@ paths:
       security:
       - BearerAuth: []
       summary: Get user details
+      tags:
+      - users
+  /user/me/profile:
+    put:
+      description: Returns user details
+      parameters:
+      - description: Update profile data
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateProfileDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user details
       tags:
       - users
   /utility-companies/:

@@ -859,6 +859,66 @@ const docTemplate = `{
                 }
             }
         },
+        "/user/me/profile": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns user details",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Update user details",
+                "parameters": [
+                    {
+                        "description": "Update profile data",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdateProfileDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/utility-companies/": {
             "get": {
                 "description": "Returns utility complexies by developers",
@@ -1256,6 +1316,23 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.UpdateProfileDTO": {
+            "type": "object",
+            "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.UserDTO": {
             "type": "object",
             "properties": {
@@ -1272,6 +1349,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "last_name": {
+                    "type": "string"
+                },
+                "phone": {
                     "type": "string"
                 }
             }
