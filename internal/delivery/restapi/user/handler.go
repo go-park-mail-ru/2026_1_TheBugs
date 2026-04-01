@@ -1,7 +1,6 @@
 package user
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
@@ -56,7 +55,10 @@ func (h *UserHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 // @Description Returns user details
 // @Tags users
 // @Produce json
-// @Param data body dto.UpdateProfileDTO true "Update profile data"
+// @Param first_name formData string false "New Firstname"
+// @Param last_name formData string false "New Lastname"
+// @Param phone formData string false "New Phone"
+// @Param avatar formData file false "Avatar file"
 // @Security     BearerAuth
 // @Success 200 {object} dto.UserDTO
 // @Failure 400 {object} response.ErrorResponse
@@ -68,13 +70,17 @@ func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	op := "UserHandler.UpdateProfile"
 	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
-	var data dto.UpdateProfileDTO
+	var data dto.UpdateProfileRequest
 
-	err := json.NewDecoder(r.Body).Decode(&data)
+	err := utils.ParseMultipartFormData(r, &data)
 	if err != nil {
 		log.WithError(err).Error("failed to decode update profile data")
 		utils.WriteError(w, "invalid body", http.StatusBadRequest)
 		return
+	}
+	files, ok := r.MultipartForm.File["avatar"]
+	if ok && len(files) > 0 {
+		data.Avatar = files[0]
 	}
 	userID, err := utils.GetUserID(r.Context())
 	if err != nil {

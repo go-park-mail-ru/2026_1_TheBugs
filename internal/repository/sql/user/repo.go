@@ -71,7 +71,7 @@ func (r *UserRepo) UpdateProfile(ctx context.Context, data dto.UpdateProfileDTO)
 			FROM users u
 			WHERE p.id = u.profile_id AND u.id = $5  -- Join users here
 			RETURNING p.id, u.email, p.first_name, p.last_name, p.avatar_url, p.phone;`
-	row, err := r.pool.Query(ctx, sql, data.Phone, data.FirstName, data.LastName, data.AvatarURL, data.ID)
+	row, err := r.pool.Query(ctx, sql, data.Phone, data.FirstName, data.LastName, data.AvatarPath, data.ID)
 
 	if err != nil {
 		return nil, repository.HandelPgErrors(err)

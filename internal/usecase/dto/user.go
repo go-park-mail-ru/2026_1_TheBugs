@@ -1,9 +1,13 @@
 package dto
 
 import (
+	"fmt"
+	"mime/multipart"
 	"time"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/photo"
 )
 
 type CreateUserDTO struct {
@@ -17,11 +21,19 @@ type CreateUserDTO struct {
 }
 
 type UpdateProfileDTO struct {
-	ID        int     `json:"-"`
-	Phone     *string `json:"phone,omitempty"`
-	FirstName *string `json:"first_name,omitempty"`
-	LastName  *string `json:"last_name,omitempty"`
-	AvatarURL *string `json:"avatar_url,omitempty"`
+	ID         int
+	Phone      *string
+	FirstName  *string
+	LastName   *string
+	AvatarPath *string
+}
+
+type UpdateProfileRequest struct {
+	ID        int                   `schema:"-"`
+	Phone     *string               `schema:"phone"`
+	FirstName *string               `schema:"first_name"`
+	LastName  *string               `schema:"last_name"`
+	Avatar    *multipart.FileHeader `schema:"-"`
 }
 
 type UpdateUserDTO struct {
@@ -68,12 +80,22 @@ type UserDTO struct {
 }
 
 func UserToDTO(user *entity.UserDetails) *UserDTO {
+	var url *string
+	if user.AvatarURL != nil {
+		avatar := photo.MakeUrlFromPath(*user.AvatarURL, config.Config.PublicHost, config.Config.Bucket)
+		url = &avatar
+	}
+
 	return &UserDTO{
 		ID:        user.ID,
 		Email:     user.Email,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
-		AvatarURL: user.AvatarURL,
+		AvatarURL: url,
 		Phone:     user.Phone,
 	}
+}
+
+func GenerateAvatarPathForUser(id int) string {
+	return fmt.Sprintf("/user/%d/avatar.jpg", id)
 }

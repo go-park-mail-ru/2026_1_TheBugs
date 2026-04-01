@@ -64,7 +64,7 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	UtilityCompanyUC := complexUC.NewUtilityCompanyUseCase(uow.UtilityCompany())
 	utilityCompanyHandler := complexHandler.NewUtilityCompanyHandler(UtilityCompanyUC)
 
-	userUC := userUC.NewUserUseCase(uow)
+	userUC := userUC.NewUserUseCase(uow, fileRepo)
 	userHandler := userHandler.NewUserHandler(userUC)
 
 	r := mux.NewRouter()

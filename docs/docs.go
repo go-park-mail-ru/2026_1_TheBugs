@@ -876,13 +876,28 @@ const docTemplate = `{
                 "summary": "Update user details",
                 "parameters": [
                     {
-                        "description": "Update profile data",
-                        "name": "data",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.UpdateProfileDTO"
-                        }
+                        "type": "string",
+                        "description": "New Firstname",
+                        "name": "first_name",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "New Lastname",
+                        "name": "last_name",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "New Phone",
+                        "name": "phone",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Avatar file",
+                        "name": "avatar",
+                        "in": "formData"
                     }
                 ],
                 "responses": {
@@ -1313,23 +1328,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/dto.PosterCardDTO"
                     }
-                }
-            }
-        },
-        "dto.UpdateProfileDTO": {
-            "type": "object",
-            "properties": {
-                "avatar_url": {
-                    "type": "string"
-                },
-                "first_name": {
-                    "type": "string"
-                },
-                "last_name": {
-                    "type": "string"
-                },
-                "phone": {
-                    "type": "string"
                 }
             }
         },

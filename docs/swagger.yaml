@@ -159,17 +159,6 @@ definitions:
           $ref: '#/definitions/dto.PosterCardDTO'
         type: array
     type: object
-  dto.UpdateProfileDTO:
-    properties:
-      avatar_url:
-        type: string
-      first_name:
-        type: string
-      last_name:
-        type: string
-      phone:
-        type: string
-    type: object
   dto.UserDTO:
     properties:
       avatar_url:
@@ -858,12 +847,22 @@ paths:
     put:
       description: Returns user details
       parameters:
-      - description: Update profile data
-        in: body
-        name: data
-        required: true
-        schema:
-          $ref: '#/definitions/dto.UpdateProfileDTO'
+      - description: New Firstname
+        in: formData
+        name: first_name
+        type: string
+      - description: New Lastname
+        in: formData
+        name: last_name
+        type: string
+      - description: New Phone
+        in: formData
+        name: phone
+        type: string
+      - description: Avatar file
+        in: formData
+        name: avatar
+        type: file
       produces:
       - application/json
       responses:
