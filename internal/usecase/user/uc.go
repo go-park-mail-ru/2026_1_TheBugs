@@ -28,6 +28,7 @@ func (uc *UserUseCase) UpdateProfile(ctx context.Context, data dto.UpdateProfile
 		if ok := validator.ValidatePhone(*data.Phone); !ok {
 			return nil, entity.NewValidationError("phone")
 		}
+		*data.Phone = validator.NormolizePhoneNumber(*data.Phone)
 	}
 	if data.FirstName != nil {
 		if ok := validator.ValidateName(*data.FirstName); !ok {
