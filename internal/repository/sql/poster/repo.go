@@ -68,7 +68,7 @@ func (r *PosterRepo) CountPosters(ctx context.Context) (int, error) {
 	log.Info("start db query")
 
 	var count int
-	row := r.pool.QueryRow(ctx, "SELECT get_explain_rows('SELECT * FROM posters')")
+	row := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM posters")
 	err := row.Scan(&count)
 	if err != nil {
 		return 0, err
@@ -417,4 +417,38 @@ func (r *PosterRepo) InsertMainPhoto(ctx context.Context, posterID int, avatarUR
 	}
 
 	return nil
+}
+
+func (r *PosterRepo) GetCityByName(ctx context.Context, name string) (*entity.City, error) {
+	query := `SELECT c.id, c.city_name FROM cities c WHERE lower(c.city_name) = lower($1)`
+	rows, err := r.pool.Query(ctx, query, name)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	defer rows.Close()
+
+	city, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[entity.City])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+	return &city, nil
+
+}
+
+func (r *PosterRepo) CreateCity(ctx context.Context, name string) (*entity.City, error) {
+	query := `INSERT INTO cities (city_name) VALUES ($1) RETURNING id, city_name`
+	rows, err := r.pool.Query(ctx, query, name)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	defer rows.Close()
+
+	city, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[entity.City])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+	return &city, nil
+
 }

@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS utility_companies(
     developer_id BIGINT,
 
     CONSTRAINT phone_check CHECK (phone ~ '^(\+7|8)\s\d{3}\s\d{3}\s\d{2}\s\d{2}$'), 
-    CONSTRAINT address_check CHECK ( address ~ '^[а-яА-ЯёЁ\s\-\,\.\d\/]+$' AND LENGTH(address) >= 5 AND LENGTH(address) < 150 ),
+    CONSTRAINT address_check CHECK ( LENGTH(address) >= 5 AND LENGTH(address) < 500 ),
     CONSTRAINT fk_developer FOREIGN KEY (developer_id) REFERENCES developers(id),
     CONSTRAINT description_length_check CHECK ( LENGTH(description) < 1000 )
 );
@@ -125,6 +125,7 @@ CREATE TABLE IF NOT EXISTS buildings (
     address TEXT NOT NULL, 
     geo GEOGRAPHY(POINT, 4326) NOT NULL, 
     city_id BIGINT NOT NULL, 
+    --city TEXT,
     metro_station_id BIGINT, 
     district TEXT, 
     floor_count SMALLINT NOT NULL,  
@@ -132,9 +133,10 @@ CREATE TABLE IF NOT EXISTS buildings (
  
     CONSTRAINT fk_city FOREIGN KEY (city_id) REFERENCES cities(id), 
     CONSTRAINT fk_metro_station FOREIGN KEY (metro_station_id) REFERENCES metro_stations(id), 
+    --CONSTRAINT city_check LENGTH(city) < 30 , 
     CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES utility_companies(id), 
-    CONSTRAINT address_check CHECK ( address ~ '^[а-яА-ЯёЁ\s\-\,\.\d\/]+$' AND LENGTH(address) >= 5 AND LENGTH(address) < 150 ), 
-    CONSTRAINT district_length_check CHECK ( LENGTH(district) < 30 ), 
+    CONSTRAINT address_check CHECK ( LENGTH(address) >= 5 AND LENGTH(address) < 500 ), 
+    CONSTRAINT district_length_check CHECK ( LENGTH(district) < 100 ), 
     CONSTRAINT floor_count_length_check CHECK ( floor_count < 100 ) 
 ); 
  

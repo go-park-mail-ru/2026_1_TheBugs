@@ -2,6 +2,7 @@ package poster
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -116,6 +117,8 @@ func (uc *PosterUseCase) GetMetroStationsByRadius(ctx context.Context, coords dt
 func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.PosterInputFlatDTO) (*dto.CreatedPoster, error) {
 	var createdPoster *dto.CreatedPoster
 
+	log.Printf("dto: %v", poster)
+
 	err := validator.ValidatePosterInputFlat(poster)
 	if err != nil {
 		return nil, fmt.Errorf("validator.ValidatePosterInputFlat: %w", err)
@@ -125,18 +128,34 @@ func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.Poste
 	if err != nil {
 		return nil, fmt.Errorf("validator.ValidatePhotos: %w", err)
 	}
-	log.Printf("dto: %s", poster.CategoryAlias)
+	log.Printf("dto: %v", poster)
 
 	post := dto.PosterInputFlatDTOtoPosterInput(poster)
-	post.Alias = alias.GenerateAlias(post)
 
+	city, err := uc.uow.Posters().GetCityByName(ctx, poster.City)
+	if err != nil {
+		if errors.Is(err, entity.NotFoundError) {
+			city, err = uc.uow.Posters().CreateCity(ctx, poster.City)
+			if err != nil {
+				return nil, fmt.Errorf("uc.PosterRepo.CreateCity: %w", err)
+			}
+		} else {
+			return nil, fmt.Errorf("uc.PosterRepo.GetCityByName: %w", err)
+		}
+	}
+
+	log.Printf("city: %s", city.Name)
+
+	post.CityID = city.ID
 	createFlat := dto.PosterInputFlatDTOtoFlatInput(poster)
 
+	post.Alias = alias.GenerateAlias(post)
 	dto.MakePhotoPathsForPoster(post)
 
 	keys := make([]string, 0, len(post.Images))
 
 	err = uc.uow.Do(ctx, func(r usecase.UnitOfWork) error {
+
 		buildingID, err := r.Posters().CreateBuilding(ctx, post)
 		if err != nil {
 			return fmt.Errorf("uc.PosterRepo.CreateBuilding: %w", err)

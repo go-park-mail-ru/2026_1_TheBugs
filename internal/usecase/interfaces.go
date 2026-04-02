@@ -37,6 +37,8 @@ type PosterRepo interface {
 	InsertFacilities(ctx context.Context, propertyID int, features []string) error
 	InsertPhotos(ctx context.Context, posterID int, photos []entity.PhotoInput) error
 	InsertMainPhoto(ctx context.Context, posterID int, avatarURL string) error
+	GetCityByName(ctx context.Context, name string) (*entity.City, error)
+	CreateCity(ctx context.Context, name string) (*entity.City, error)
 }
 
 type AuthRepo interface {
