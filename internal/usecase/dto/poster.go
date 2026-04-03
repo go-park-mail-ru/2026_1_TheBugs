@@ -3,6 +3,7 @@ package dto
 import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/photo"
 )
 
@@ -172,8 +173,8 @@ type PosterInputFlatDTO struct {
 	Images   []PhotoInputDTO `schema:"-"`
 }
 
-func PosterInputFlatDTOtoPosterInput(poster *PosterInputFlatDTO) *entity.PosterInput {
-	return &entity.PosterInput{
+func PosterInputFlatDTOtoPosterInput(poster *PosterInputFlatDTO) *PosterInput {
+	return &PosterInput{
 		UserID:      poster.UserID,
 		Price:       poster.Price,
 		Description: poster.Description,
@@ -197,4 +198,34 @@ func PosterInputFlatDTOtoPosterInput(poster *PosterInputFlatDTO) *entity.PosterI
 type CreatedPoster struct {
 	ID    int    `json:"id"`
 	Alias string `json:"alias"`
+}
+
+type PosterInput struct {
+	UserID int
+
+	Alias       string
+	Price       float64
+	Description string
+
+	CategoryAlias string
+	Area          float64
+
+	Address        string
+	Geo            geo.GeographyPoint
+	CityID         int
+	MetroStationID *int
+	District       *string
+	FloorCount     int
+
+	CompanyID *int
+
+	Features []string
+	Images   []PhotoInput
+}
+
+type PosterUpdateIDs struct {
+	UserID     int
+	PosterID   int
+	PropertyID int
+	BuildingID int
 }

@@ -130,7 +130,7 @@ func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.Poste
 	post := dto.PosterInputFlatDTOtoPosterInput(poster)
 	post.Alias = alias.GenerateAlias(post)
 
-	createFlat := dto.PosterInputFlatDTOtoFlatInput(poster)
+	flat := dto.PosterInputFlatDTOtoFlatInput(poster)
 
 	dto.MakePhotoPathsForPoster(post)
 
@@ -157,8 +157,8 @@ func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.Poste
 			return fmt.Errorf("uc.PosterRepo.Create: %w", err)
 		}
 
-		createFlat.PropertyID = propertyID
-		err = r.Posters().InsertFlat(ctx, createFlat)
+		flat.PropertyID = propertyID
+		err = r.Posters().InsertFlat(ctx, flat)
 		if err != nil {
 			return fmt.Errorf("uc.PosterRepo.InsertFlat: %w", err)
 		}
@@ -215,11 +215,8 @@ func (uc *PosterUseCase) cleanUploadedFiles(ctx context.Context, keys []string) 
 	return resultErr
 }
 
-func (uc *PosterUseCase) uploadPhoto(ctx context.Context, photoPoster entity.PhotoInput) (string, error) {
-	file, err := photoPoster.FileHeader.Open()
-	if err != nil {
-		return "", fmt.Errorf("photoPoster.FileHeader.Open: %w", err)
-	}
+func (uc *PosterUseCase) uploadPhoto(ctx context.Context, photoPoster dto.PhotoInput) (string, error) {
+	file := photoPoster.FileHeader.File
 	defer file.Close()
 
 	if !validator.ValidatePhoto(photoPoster.FileHeader) {
@@ -228,11 +225,131 @@ func (uc *PosterUseCase) uploadPhoto(ctx context.Context, photoPoster entity.Pho
 
 	key := photo.GetKeyFromPath(photoPoster.Path)
 	size := photoPoster.FileHeader.Size
-	contentType := photoPoster.FileHeader.Header.Get("Content-Type")
+	contentType := photoPoster.FileHeader.ContentType
 
 	if err := uc.file.Upload(ctx, key, file, size, contentType); err != nil {
 		return "", fmt.Errorf("uc.file.Upload: %w", err)
 	}
 
 	return key, nil
+}
+
+func (uc *PosterUseCase) UpdateFlatPoster(ctx context.Context, alias string, poster *dto.PosterInputFlatDTO) (*dto.CreatedPoster, error) {
+	err := validator.ValidatePosterInputFlat(poster)
+	if err != nil {
+		return nil, fmt.Errorf("validator.ValidatePosterInputFlat: %w", err)
+	}
+
+	err = validator.ValidatePhotos(poster.Images)
+	if err != nil {
+		return nil, fmt.Errorf("validator.ValidatePhotos: %w", err)
+	}
+
+	post := dto.PosterInputFlatDTOtoPosterInput(poster)
+	flat := dto.PosterInputFlatDTOtoFlatInput(poster)
+
+	dto.MakePhotoPathsForPoster(post)
+
+	ids, err := uc.uow.Posters().GetUpdateIDsByAlias(ctx, alias)
+	if err != nil {
+		return nil, fmt.Errorf("uc.PosterRepo.GetUpdateIDsByPosterID: %w", err)
+	}
+
+	flat.PropertyID = ids.PropertyID
+
+	var oldPaths []string
+	var oldKeys []string
+	var newKeys []string
+
+	if len(post.Images) > 0 {
+		oldPaths, err = uc.uow.Posters().GetPhotoPathsByPosterID(ctx, ids.PosterID)
+		if err != nil {
+			return nil, fmt.Errorf("uc.PosterRepo.GetPhotoPathsByPosterID: %w", err)
+		}
+
+		oldKeys = make([]string, 0, len(oldPaths))
+		for _, path := range oldPaths {
+			oldKeys = append(oldKeys, photo.GetKeyFromPath(path))
+		}
+
+		newKeys = make([]string, 0, len(post.Images))
+		for _, photoPoster := range post.Images {
+			key, err := uc.uploadPhoto(ctx, photoPoster)
+			if err != nil {
+				_ = uc.cleanUploadedFiles(ctx, newKeys)
+				return nil, fmt.Errorf("uc.uploadPhoto: %w", err)
+			}
+			newKeys = append(newKeys, key)
+		}
+	}
+
+	var createdPoster *dto.CreatedPoster
+
+	err = uc.uow.Do(ctx, func(r usecase.UnitOfWork) error {
+		err = r.Posters().Update(ctx, ids.PosterID, post)
+		if err != nil {
+			return fmt.Errorf("uc.PosterRepo.Update: %w", err)
+		}
+
+		err = r.Posters().UpdateProperty(ctx, ids.PropertyID, post)
+		if err != nil {
+			return fmt.Errorf("uc.PosterRepo.UpdateProperty: %w", err)
+		}
+
+		err = r.Posters().UpdateBuilding(ctx, ids.BuildingID, post)
+		if err != nil {
+			return fmt.Errorf("uc.PosterRepo.UpdateBuilding: %w", err)
+		}
+
+		err = r.Posters().DeleteFacilitiesByPropertyID(ctx, ids.PropertyID)
+		if err != nil {
+			return fmt.Errorf("uc.PosterRepo.DeleteFacilitiesByPropertyID: %w", err)
+		}
+
+		if len(post.Features) > 0 {
+			err = r.Posters().InsertFacilities(ctx, ids.PropertyID, post.Features)
+			if err != nil {
+				return fmt.Errorf("uc.PosterRepo.InsertFacilities: %w", err)
+			}
+		}
+
+		err = r.Posters().UpdateFlat(ctx, flat)
+		if err != nil {
+			return fmt.Errorf("uc.PosterRepo.UpdateFlat: %w", err)
+		}
+
+		if len(post.Images) > 0 {
+			err = r.Posters().DeletePhotosByPosterID(ctx, ids.PosterID)
+			if err != nil {
+				return fmt.Errorf("uc.PosterRepo.DeletePhotosByPosterID: %w", err)
+			}
+
+			err = r.Posters().InsertPhotos(ctx, ids.PosterID, post.Images)
+			if err != nil {
+				return fmt.Errorf("uc.PosterRepo.InsertPhotos: %w", err)
+			}
+		}
+
+		createdPoster = &dto.CreatedPoster{
+			ID:    ids.PosterID,
+			Alias: alias,
+		}
+
+		return nil
+	})
+	if err != nil {
+		if len(newKeys) > 0 {
+			_ = uc.cleanUploadedFiles(ctx, newKeys)
+		}
+		return nil, fmt.Errorf("uc.uow.Do: %w", err)
+	}
+
+	if len(oldKeys) > 0 {
+		err = uc.cleanUploadedFiles(ctx, oldKeys)
+		if err != nil {
+			return nil, fmt.Errorf("uc.cleanUploadedFiles: %w", err)
+		}
+	}
+
+	return createdPoster, nil
 }

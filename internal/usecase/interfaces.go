@@ -30,13 +30,24 @@ type PosterRepo interface {
 	GetByUserID(ctx context.Context, userID int) ([]entity.Poster, error)
 	GetMetroStationByRadius(ctx context.Context, buidingGeo dto.GeographyDTO, radius entity.Metre) ([]entity.MetroStation, error)
 
-	CreateBuilding(ctx context.Context, poster *entity.PosterInput) (int, error)
-	CreateProperty(ctx context.Context, poster *entity.PosterInput, buildingID int) (int, error)
-	Create(ctx context.Context, poster *entity.PosterInput, propertyID int) (int, error)
-	InsertFlat(ctx context.Context, flat *entity.FlatInput) error
-	InsertFacilities(ctx context.Context, propertyID int, features []string) error
-	InsertPhotos(ctx context.Context, posterID int, photos []entity.PhotoInput) error
+	CreateBuilding(ctx context.Context, poster *dto.PosterInput) (int, error)
+	CreateProperty(ctx context.Context, poster *dto.PosterInput, buildingID int) (int, error)
+	Create(ctx context.Context, poster *dto.PosterInput, propertyID int) (int, error)
+	InsertFlat(ctx context.Context, flat *dto.FlatInput) error
+	InsertFacilities(ctx context.Context, propertyID int, facilities []string) error
+	InsertPhotos(ctx context.Context, posterID int, photos []dto.PhotoInput) error
 	InsertMainPhoto(ctx context.Context, posterID int, avatarURL string) error
+
+	GetUpdateIDsByAlias(ctx context.Context, alias string) (*dto.PosterUpdateIDs, error)
+	Update(ctx context.Context, posterID int, poster *dto.PosterInput) error
+	UpdateProperty(ctx context.Context, propertyID int, poster *dto.PosterInput) error
+	UpdateBuilding(ctx context.Context, buildingID int, poster *dto.PosterInput) error
+	UpdateFlat(ctx context.Context, flat *dto.FlatInput) error
+
+	GetPhotoPathsByPosterID(ctx context.Context, posterID int) ([]string, error)
+
+	DeleteFacilitiesByPropertyID(ctx context.Context, propertyID int) error
+	DeletePhotosByPosterID(ctx context.Context, posterID int) error
 }
 
 type AuthRepo interface {
