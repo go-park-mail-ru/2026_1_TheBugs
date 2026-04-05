@@ -433,8 +433,8 @@ func (r *PosterRepo) GetUpdateIDsByAlias(ctx context.Context, alias string) (*dt
 	var ids dto.PosterUpdateIDs
 
 	err := r.pool.QueryRow(ctx, query, alias).Scan(
-		&ids.UserID,
 		&ids.PosterID,
+		&ids.UserID,
 		&ids.PropertyID,
 		&ids.BuildingID,
 	)

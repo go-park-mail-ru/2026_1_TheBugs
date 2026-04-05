@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"slices"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
@@ -227,6 +228,8 @@ func (uc *PosterUseCase) uploadPhoto(ctx context.Context, photoPoster dto.PhotoI
 	size := photoPoster.FileHeader.Size
 	contentType := photoPoster.FileHeader.ContentType
 
+	log.Println("key ", key)
+
 	if err := uc.file.Upload(ctx, key, file, size, contentType); err != nil {
 		return "", fmt.Errorf("uc.file.Upload: %w", err)
 	}
@@ -248,6 +251,8 @@ func (uc *PosterUseCase) UpdateFlatPoster(ctx context.Context, alias string, pos
 	post := dto.PosterInputFlatDTOtoPosterInput(poster)
 	flat := dto.PosterInputFlatDTOtoFlatInput(poster)
 
+	post.Alias = alias
+
 	dto.MakePhotoPathsForPoster(post)
 
 	ids, err := uc.uow.Posters().GetUpdateIDsByAlias(ctx, alias)
@@ -257,12 +262,11 @@ func (uc *PosterUseCase) UpdateFlatPoster(ctx context.Context, alias string, pos
 
 	flat.PropertyID = ids.PropertyID
 
-	var oldPaths []string
 	var oldKeys []string
 	var newKeys []string
 
 	if len(post.Images) > 0 {
-		oldPaths, err = uc.uow.Posters().GetPhotoPathsByPosterID(ctx, ids.PosterID)
+		oldPaths, err := uc.uow.Posters().GetPhotoPathsByPosterID(ctx, ids.PosterID)
 		if err != nil {
 			return nil, fmt.Errorf("uc.PosterRepo.GetPhotoPathsByPosterID: %w", err)
 		}
@@ -271,12 +275,13 @@ func (uc *PosterUseCase) UpdateFlatPoster(ctx context.Context, alias string, pos
 		for _, path := range oldPaths {
 			oldKeys = append(oldKeys, photo.GetKeyFromPath(path))
 		}
+		log.Printf("oldKeys: %v", oldKeys)
 
 		newKeys = make([]string, 0, len(post.Images))
 		for _, photoPoster := range post.Images {
 			key, err := uc.uploadPhoto(ctx, photoPoster)
 			if err != nil {
-				_ = uc.cleanUploadedFiles(ctx, newKeys)
+				_ = uc.cleanUploadedFiles(ctx, newKeys) // FIXME: а если старый путь и новый совпадают?
 				return nil, fmt.Errorf("uc.uploadPhoto: %w", err)
 			}
 			newKeys = append(newKeys, key)
@@ -328,6 +333,10 @@ func (uc *PosterUseCase) UpdateFlatPoster(ctx context.Context, alias string, pos
 			if err != nil {
 				return fmt.Errorf("uc.PosterRepo.InsertPhotos: %w", err)
 			}
+			err = r.Posters().InsertMainPhoto(ctx, ids.PosterID, post.Images[0].Path)
+			if err != nil {
+				return fmt.Errorf("r.Posters().InsertMainPhoto: %w", err)
+			}
 		}
 
 		createdPoster = &dto.CreatedPoster{
@@ -339,16 +348,19 @@ func (uc *PosterUseCase) UpdateFlatPoster(ctx context.Context, alias string, pos
 	})
 	if err != nil {
 		if len(newKeys) > 0 {
-			_ = uc.cleanUploadedFiles(ctx, newKeys)
+			_ = uc.cleanUploadedFiles(ctx, newKeys) // FIXME: а если старый путь и новый совпадают?
 		}
 		return nil, fmt.Errorf("uc.uow.Do: %w", err)
 	}
 
-	if len(oldKeys) > 0 {
-		err = uc.cleanUploadedFiles(ctx, oldKeys)
-		if err != nil {
-			return nil, fmt.Errorf("uc.cleanUploadedFiles: %w", err)
+	for _, key := range oldKeys {
+		if !slices.Contains(newKeys, key) {
+			err = uc.file.Delete(ctx, key)
+			if err != nil {
+				return nil, fmt.Errorf("uc.file.Delete: %w", err)
+			}
 		}
+
 	}
 
 	return createdPoster, nil
