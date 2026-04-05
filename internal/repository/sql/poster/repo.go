@@ -243,7 +243,7 @@ func (r *PosterRepo) GetMetroStationByRadius(ctx context.Context, buildingGeo dt
 	return stations, rows.Err()
 }
 
-func (r *PosterRepo) CreateBuilding(ctx context.Context, poster *entity.PosterInput) (int, error) {
+func (r *PosterRepo) CreateBuilding(ctx context.Context, poster *dto.PosterInput) (int, error) {
 	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.CreateBuilding")
 	log.Info("start db query")
 
@@ -267,7 +267,7 @@ func (r *PosterRepo) CreateBuilding(ctx context.Context, poster *entity.PosterIn
 	return buildingID, nil
 }
 
-func (r *PosterRepo) CreateProperty(ctx context.Context, poster *entity.PosterInput, buildingID int) (int, error) {
+func (r *PosterRepo) CreateProperty(ctx context.Context, poster *dto.PosterInput, buildingID int) (int, error) {
 	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.CreateProperty")
 	log.Infof("alias: %s", poster.CategoryAlias)
 
@@ -327,7 +327,7 @@ func (r *PosterRepo) InsertFacilities(ctx context.Context, propertyID int, alias
 	return nil
 }
 
-func (r *PosterRepo) Create(ctx context.Context, poster *entity.PosterInput, propertyID int) (int, error) {
+func (r *PosterRepo) Create(ctx context.Context, poster *dto.PosterInput, propertyID int) (int, error) {
 	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.Create")
 	log.Info("start db query")
 
@@ -351,7 +351,7 @@ func (r *PosterRepo) Create(ctx context.Context, poster *entity.PosterInput, pro
 	return posterID, nil
 }
 
-func (r *PosterRepo) InsertFlat(ctx context.Context, flat *entity.FlatInput) error {
+func (r *PosterRepo) InsertFlat(ctx context.Context, flat *dto.FlatInput) error {
 	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.InsertFlat")
 	log.Info("start db query")
 
@@ -372,7 +372,7 @@ func (r *PosterRepo) InsertFlat(ctx context.Context, flat *entity.FlatInput) err
 	return nil
 }
 
-func (r *PosterRepo) InsertPhotos(ctx context.Context, posterID int, photos []entity.PhotoInput) error {
+func (r *PosterRepo) InsertPhotos(ctx context.Context, posterID int, photos []dto.PhotoInput) error {
 	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.InsertPhotos")
 	log.Info("start db query")
 
@@ -419,21 +419,207 @@ func (r *PosterRepo) InsertMainPhoto(ctx context.Context, posterID int, avatarUR
 	return nil
 }
 
+func (r *PosterRepo) GetUpdateIDsByAlias(ctx context.Context, alias string) (*dto.PosterUpdateIDs, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetUpdateIDsByAlias")
+	log.Info("start db query")
+
+	query := `
+		SELECT p.id, p.user_id, p.property_id, pr.building_id
+		FROM posters p
+		JOIN property pr ON pr.id = p.property_id
+		WHERE p.alias = $1
+	`
+
+	var ids dto.PosterUpdateIDs
+
+	err := r.pool.QueryRow(ctx, query, alias).Scan(
+		&ids.PosterID,
+		&ids.UserID,
+		&ids.PropertyID,
+		&ids.BuildingID,
+	)
+  if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+  return &ids, nil
+}
+
 func (r *PosterRepo) GetCityByName(ctx context.Context, name string) (*entity.City, error) {
 	query := `SELECT c.id, c.city_name FROM cities c WHERE lower(c.city_name) = lower($1)`
 	rows, err := r.pool.Query(ctx, query, name)
 	if err != nil {
 		return nil, repository.HandelPgErrors(err)
 	}
-
-	defer rows.Close()
+  defer rows.Close()
 
 	city, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[entity.City])
 	if err != nil {
 		return nil, repository.HandelPgErrors(err)
 	}
 	return &city, nil
+}
 
+func (r *PosterRepo) Update(ctx context.Context, posterID int, poster *dto.PosterInput) error {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.Update")
+	log.Info("start db query")
+
+	query := `
+		UPDATE posters
+		SET price = $1, description = $2
+		WHERE id = $3
+	`
+
+	_, err := r.pool.Exec(ctx, query, poster.Price,
+		poster.Description, posterID,
+	)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+
+	return nil
+}
+
+func (r *PosterRepo) UpdateProperty(ctx context.Context, propertyID int, poster *dto.PosterInput) error {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.UpdateProperty")
+	log.Info("start db query")
+
+	query := `
+		UPDATE property
+		SET category_id = (
+				SELECT id
+				FROM property_categories
+				WHERE alias = $1
+			),
+			area = $2
+		WHERE id = $3
+	`
+
+	_, err := r.pool.Exec(ctx, query,
+		poster.CategoryAlias,
+		poster.Area,
+		propertyID,
+	)
+
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+
+	return nil
+}
+
+func (r *PosterRepo) UpdateBuilding(ctx context.Context, buildingID int, poster *dto.PosterInput) error {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.UpdateBuilding")
+	log.Info("start db query")
+
+	query := `
+		UPDATE buildings
+		SET address = $1, geo = $2,
+			city_id = $3, metro_station_id = $4,
+			district = $5, floor_count = $6,
+			company_id = $7
+		WHERE id = $8
+	`
+
+	_, err := r.pool.Exec(ctx, query,
+		poster.Address, poster.Geo,
+		poster.CityID, poster.MetroStationID,
+		poster.District, poster.FloorCount,
+		poster.CompanyID, buildingID,
+	)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+
+	return nil
+}
+
+func (r *PosterRepo) UpdateFlat(ctx context.Context, flat *dto.FlatInput) error {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.UpdateFlat")
+	log.Info("start db query")
+
+	query := `
+		UPDATE flat
+		SET floor = $1, number = $2, category_id = $3
+		WHERE property_id = $4
+	`
+
+	_, err := r.pool.Exec(ctx, query, flat.Floor,
+		flat.Number, flat.CategoryID, flat.PropertyID,
+	)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+
+	return nil
+}
+
+func (r *PosterRepo) GetPhotoPathsByPosterID(ctx context.Context, posterID int) ([]string, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetPhotoPathsByPosterID")
+	log.Info("start db query")
+
+	query := `
+		SELECT img_url
+		FROM poster_photos
+		WHERE poster_id = $1
+	`
+
+	rows, err := r.pool.Query(ctx, query, posterID)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+	defer rows.Close()
+
+	photoPaths, err := pgx.CollectRows(rows, pgx.RowTo[string])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return photoPaths, nil
+}
+
+func (r *PosterRepo) DeleteFacilitiesByPropertyID(ctx context.Context, propertyID int) error {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.DeleteFacilitiesByPropertyID")
+	log.Info("start db query")
+
+	query := `
+		DELETE FROM facility_property
+		WHERE property_id = $1
+	`
+
+	_, err := r.pool.Exec(ctx, query, propertyID)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+
+	return nil
+}
+
+func (r *PosterRepo) DeletePhotosByPosterID(ctx context.Context, posterID int) error {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.DeletePhotosByPosterID")
+	log.Info("start db query")
+
+	deletePhotosQuery := `
+		DELETE FROM poster_photos
+		WHERE poster_id = $1
+	`
+
+	_, err := r.pool.Exec(ctx, deletePhotosQuery, posterID)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+
+	clearAvatarQuery := `
+		UPDATE posters
+		SET avatar_url = NULL
+		WHERE id = $1
+	`
+
+	_, err = r.pool.Exec(ctx, clearAvatarQuery, posterID)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+
+	return nil
 }
 
 func (r *PosterRepo) CreateCity(ctx context.Context, name string) (*entity.City, error) {

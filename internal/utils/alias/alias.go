@@ -8,10 +8,10 @@ import (
 	"strings"
 
 	"github.com/andoma-go/translit"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 )
 
-func GenerateAlias(poster *entity.PosterInput) string {
+func GenerateAlias(poster *dto.PosterInput) string {
 	parts := make([]string, 0, 2)
 
 	if s := slugify(translit.Ru(poster.Address)); s != "" {

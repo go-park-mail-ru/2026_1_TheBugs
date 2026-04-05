@@ -28,10 +28,17 @@ type FlatInputDTO struct {
 	Floor          int
 }
 
-func PosterInputFlatDTOtoFlatInput(poster *PosterInputFlatDTO) *entity.FlatInput {
-	return &entity.FlatInput{
+func PosterInputFlatDTOtoFlatInput(poster *PosterInputFlatDTO) *FlatInput {
+	return &FlatInput{
 		CategoryID: poster.FlatCategoryID,
 		Floor:      poster.FlatFloor,
 		Number:     poster.FlatNumber,
 	}
+}
+
+type FlatInput struct {
+	PropertyID int
+	CategoryID int
+	Floor      int
+	Number     *int
 }

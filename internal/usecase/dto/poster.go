@@ -3,6 +3,7 @@ package dto
 import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/photo"
 )
 
@@ -172,8 +173,8 @@ type PosterInputFlatDTO struct {
 	Images   []PhotoInputDTO `schema:"-"`
 }
 
-func PosterInputFlatDTOtoPosterInput(poster *PosterInputFlatDTO) *entity.PosterInput {
-	return &entity.PosterInput{
+func PosterInputFlatDTOtoPosterInput(poster *PosterInputFlatDTO) *PosterInput {
+	return &PosterInput{
 		UserID:      poster.UserID,
 		Price:       poster.Price,
 		Description: poster.Description,

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/andoma-go/translit"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
 	"github.com/stretchr/testify/require"
 )
@@ -14,7 +14,7 @@ import (
 func strPtr(v string) *string { return &v }
 func intRef(v int) *int       { return &v }
 
-func expectedBase(p *entity.PosterInput) string {
+func expectedBase(p *dto.PosterInput) string {
 	parts := make([]string, 0, 2)
 	if s := slugify(translit.Ru(p.Address)); s != "" {
 		parts = append(parts, s)
@@ -34,11 +34,11 @@ func expectedBase(p *entity.PosterInput) string {
 func TestGenerateAliasSignature(t *testing.T) {
 	tests := []struct {
 		name   string
-		poster *entity.PosterInput
+		poster *dto.PosterInput
 	}{
 		{
 			name: "address only",
-			poster: &entity.PosterInput{
+			poster: &dto.PosterInput{
 				UserID:        1,
 				CategoryAlias: "flat",
 				CityID:        3,
@@ -49,7 +49,7 @@ func TestGenerateAliasSignature(t *testing.T) {
 		},
 		{
 			name: "address and district",
-			poster: &entity.PosterInput{
+			poster: &dto.PosterInput{
 				UserID:        10,
 				CategoryAlias: "flat",
 				CityID:        30,
@@ -61,7 +61,7 @@ func TestGenerateAliasSignature(t *testing.T) {
 		},
 		{
 			name: "address and district slugify to empty",
-			poster: &entity.PosterInput{
+			poster: &dto.PosterInput{
 				UserID:        7,
 				CategoryAlias: "flat",
 				CityID:        9,
@@ -73,7 +73,7 @@ func TestGenerateAliasSignature(t *testing.T) {
 		},
 		{
 			name: "company id affects hash",
-			poster: &entity.PosterInput{
+			poster: &dto.PosterInput{
 				UserID:        11,
 				CategoryAlias: "flat",
 				CityID:        13,
@@ -85,7 +85,7 @@ func TestGenerateAliasSignature(t *testing.T) {
 		},
 		{
 			name: "trim and normalize dashes",
-			poster: &entity.PosterInput{
+			poster: &dto.PosterInput{
 				UserID:        21,
 				CategoryAlias: "flat",
 				CityID:        23,
@@ -96,7 +96,7 @@ func TestGenerateAliasSignature(t *testing.T) {
 		},
 		{
 			name: "same base different hash source 1",
-			poster: &entity.PosterInput{
+			poster: &dto.PosterInput{
 				UserID:        1,
 				CategoryAlias: "flat",
 				CityID:        1,
@@ -107,7 +107,7 @@ func TestGenerateAliasSignature(t *testing.T) {
 		},
 		{
 			name: "same base different hash source 2",
-			poster: &entity.PosterInput{
+			poster: &dto.PosterInput{
 				UserID:        1,
 				CategoryAlias: "flat",
 				CityID:        1,
@@ -143,7 +143,7 @@ func TestGenerateAliasSignature(t *testing.T) {
 }
 
 func TestGenerateAliasSameInput(t *testing.T) {
-	poster := &entity.PosterInput{
+	poster := &dto.PosterInput{
 		UserID:        123,
 		CategoryAlias: "flat",
 		CityID:        789,
@@ -157,7 +157,7 @@ func TestGenerateAliasSameInput(t *testing.T) {
 }
 
 func TestGenerateAliasDifferentInput(t *testing.T) {
-	poster := &entity.PosterInput{
+	poster := &dto.PosterInput{
 		UserID:        123,
 		CategoryAlias: "flat",
 		CityID:        789,

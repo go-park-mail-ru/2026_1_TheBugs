@@ -181,6 +181,8 @@ func (h *PosterHandler) GetPostersByUser(w http.ResponseWriter, r *http.Request)
 // @Param features formData []string false "Facilities aliases"
 // @Param photos.0.file formData file false "First photo file"
 // @Param photos.0.order formData integer false "First photo order"
+// @Param photos.1.file formData file false "Second photo file"
+// @Param photos.1.order formData integer false "Second photo order"
 // @Success 201 {object} response.CreatedPosterResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 401 {object} response.ErrorResponse
@@ -218,6 +220,86 @@ func (h *PosterHandler) CreateFlatPoster(w http.ResponseWriter, r *http.Request)
 	poster, err := h.uc.CreateFlatPoster(r.Context(), &req)
 	if err != nil {
 		log.Errorf("h.uc.CreateFlatPoster: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	var response response.CreatedPosterResponse
+	response.Poster = poster
+
+	utils.JSONResponse(w, http.StatusCreated, response)
+}
+
+// @Summary Update flat poster
+// @Description Updates a flat poster with photos
+// @Tags posters
+// @Produce json
+// @Security BearerAuth
+// @Param alias path string true "Poster alias"
+// @Param price formData number false "Poster price"
+// @Param description formData string false "Poster description"
+// @Param category_alias formData string false "Property category alias"
+// @Param area formData number false "Property area"
+// @Param address formData string false "Building address"
+// @Param city_id formData integer false "City ID"
+// @Param metro_station_id formData integer false "Metro station ID"
+// @Param district formData string false "District"
+// @Param floor_count formData integer false "Building floor count"
+// @Param company_id formData integer false "Company ID"
+// @Param geo_lat formData number false "Latitude"
+// @Param geo_lon formData number false "Longitude"
+// @Param flat_category_id formData integer false "Flat category ID"
+// @Param flat_number formData integer false "Flat number"
+// @Param flat_floor formData integer false "Flat floor"
+// @Param features formData []string false "Facilities aliases"
+// @Param photos.0.file formData file false "First photo file"
+// @Param photos.0.order formData integer false "First photo order"
+// @Param photos.1.file formData file false "Second photo file"
+// @Param photos.1.order formData integer false "Second photo order"
+// @Success 200 {object} response.CreatedPosterResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/flat/{alias} [put]
+func (h *PosterHandler) UpdateFlatPoster(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.UpdateFlatPoster"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	userID, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.Errorf("utils.GetUserID: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	alias, err := utils.ParseAliasFromRequest(r)
+	if err != nil {
+		log.Errorf("utils.ParseIDFromRequest: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	var req dto.PosterInputFlatDTO
+	req.UserID = userID
+
+	err = utils.ParseMultipartFormData(r, &req)
+	if err != nil {
+		log.Errorf("utils.ParseMultipartFormData: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	req.Images, err = utils.ParsePhotos(r)
+	if err != nil {
+		log.Errorf("utils.ParsePhotos: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	poster, err := h.uc.UpdateFlatPoster(r.Context(), alias, &req)
+	if err != nil {
+		log.Errorf("h.uc.UpdateFlatPoster: %s", err)
 		utils.HandelError(w, err)
 		return
 	}

@@ -651,11 +651,205 @@
                         "description": "First photo order",
                         "name": "photos.0.order",
                         "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Second photo file",
+                        "name": "photos.1.file",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Second photo order",
+                        "name": "photos.1.order",
+                        "in": "formData"
                     }
                 ],
                 "responses": {
                     "201": {
                         "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/response.CreatedPosterResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/posters/flat/{alias}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates a flat poster with photos",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posters"
+                ],
+                "summary": "Update flat poster",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Poster alias",
+                        "name": "alias",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Poster price",
+                        "name": "price",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Poster description",
+                        "name": "description",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Property category alias",
+                        "name": "category_alias",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Property area",
+                        "name": "area",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Building address",
+                        "name": "address",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "City ID",
+                        "name": "city_id",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Metro station ID",
+                        "name": "metro_station_id",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "District",
+                        "name": "district",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Building floor count",
+                        "name": "floor_count",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Company ID",
+                        "name": "company_id",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Latitude",
+                        "name": "geo_lat",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Longitude",
+                        "name": "geo_lon",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Flat category ID",
+                        "name": "flat_category_id",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Flat number",
+                        "name": "flat_number",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Flat floor",
+                        "name": "flat_floor",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Facilities aliases",
+                        "name": "features",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "First photo file",
+                        "name": "photos.0.file",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "First photo order",
+                        "name": "photos.0.order",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Second photo file",
+                        "name": "photos.1.file",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Second photo order",
+                        "name": "photos.1.order",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/response.CreatedPosterResponse"
                         }

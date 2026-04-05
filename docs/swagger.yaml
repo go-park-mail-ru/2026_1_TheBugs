@@ -705,6 +705,14 @@ paths:
         in: formData
         name: photos.0.order
         type: integer
+      - description: Second photo file
+        in: formData
+        name: photos.1.file
+        type: file
+      - description: Second photo order
+        in: formData
+        name: photos.1.order
+        type: integer
       produces:
       - application/json
       responses:
@@ -731,6 +739,126 @@ paths:
       security:
       - BearerAuth: []
       summary: Create flat poster
+      tags:
+      - posters
+  /posters/flat/{alias}:
+    put:
+      description: Updates a flat poster with photos
+      parameters:
+      - description: Poster alias
+        in: path
+        name: alias
+        required: true
+        type: string
+      - description: Poster price
+        in: formData
+        name: price
+        type: number
+      - description: Poster description
+        in: formData
+        name: description
+        type: string
+      - description: Property category alias
+        in: formData
+        name: category_alias
+        type: string
+      - description: Property area
+        in: formData
+        name: area
+        type: number
+      - description: Building address
+        in: formData
+        name: address
+        type: string
+      - description: City ID
+        in: formData
+        name: city_id
+        type: integer
+      - description: Metro station ID
+        in: formData
+        name: metro_station_id
+        type: integer
+      - description: District
+        in: formData
+        name: district
+        type: string
+      - description: Building floor count
+        in: formData
+        name: floor_count
+        type: integer
+      - description: Company ID
+        in: formData
+        name: company_id
+        type: integer
+      - description: Latitude
+        in: formData
+        name: geo_lat
+        type: number
+      - description: Longitude
+        in: formData
+        name: geo_lon
+        type: number
+      - description: Flat category ID
+        in: formData
+        name: flat_category_id
+        type: integer
+      - description: Flat number
+        in: formData
+        name: flat_number
+        type: integer
+      - description: Flat floor
+        in: formData
+        name: flat_floor
+        type: integer
+      - collectionFormat: csv
+        description: Facilities aliases
+        in: formData
+        items:
+          type: string
+        name: features
+        type: array
+      - description: First photo file
+        in: formData
+        name: photos.0.file
+        type: file
+      - description: First photo order
+        in: formData
+        name: photos.0.order
+        type: integer
+      - description: Second photo file
+        in: formData
+        name: photos.1.file
+        type: file
+      - description: Second photo order
+        in: formData
+        name: photos.1.order
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CreatedPosterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update flat poster
       tags:
       - posters
   /posters/flats:

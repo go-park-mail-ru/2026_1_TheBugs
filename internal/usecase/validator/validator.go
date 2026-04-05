@@ -2,7 +2,6 @@ package validator
 
 import (
 	"fmt"
-	"mime/multipart"
 	"path/filepath"
 	"regexp"
 
@@ -80,21 +79,21 @@ func ValidateProfile(phone string, firstname string, lastname string) error {
 	return nil
 }
 
-func ValidatePhoto(fileHeader *multipart.FileHeader) bool {
-	if fileHeader == nil {
+func ValidatePhoto(fileInput *dto.FileInput) bool {
+	if fileInput == nil {
 		return false
 	}
 
-	if fileHeader.Size <= 0 || fileHeader.Size > maxPhotoSize {
+	if fileInput.Size <= 0 || fileInput.Size > maxPhotoSize {
 		return false
 	}
 
-	ext := filepath.Ext(fileHeader.Filename)
+	ext := filepath.Ext(fileInput.Filename)
 	if ext != ".png" && ext != ".jpg" && ext != ".jpeg" && ext != ".svg" {
 		return false
 	}
 
-	contentType := fileHeader.Header.Get("Content-Type")
+	contentType := fileInput.ContentType
 	if contentType != "image/png" && contentType != "image/jpeg" && contentType != "image/svg+xml" {
 		return false
 	}

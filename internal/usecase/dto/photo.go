@@ -2,7 +2,6 @@ package dto
 
 import (
 	"fmt"
-	"mime/multipart"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/photo"
@@ -25,15 +24,22 @@ func posterImagesToPosterImagesDTO(imgs []entity.PosterImage) []PhotoDTO {
 	return images
 }
 
+/*
 type PhotoInputDTO struct {
 	FileHeader *multipart.FileHeader
 	Order      int
 }
+*/
 
-func posterPhotosInputFlatDTOtoPhotosInput(poster *PosterInputFlatDTO) []entity.PhotoInput {
-	photos := make([]entity.PhotoInput, 0, len(poster.Images))
+type PhotoInputDTO struct {
+	FileHeader *FileInput
+	Order      int
+}
+
+func posterPhotosInputFlatDTOtoPhotosInput(poster *PosterInputFlatDTO) []PhotoInput {
+	photos := make([]PhotoInput, 0, len(poster.Images))
 	for _, photo := range poster.Images {
-		var photoInput entity.PhotoInput
+		var photoInput PhotoInput
 		photoInput.FileHeader = photo.FileHeader
 		photoInput.Order = photo.Order
 		photos = append(photos, photoInput)
@@ -42,11 +48,23 @@ func posterPhotosInputFlatDTOtoPhotosInput(poster *PosterInputFlatDTO) []entity.
 	return photos
 }
 
+/* type PhotoInput struct {
+	FileHeader *multipart.FileHeader
+	Path       string
+	Order      int
+} */
+
+type PhotoInput struct {
+	FileHeader *FileInput
+	Path       string
+	Order      int
+}
+
 func GeneratePhotoPathForPoster(alias string, order int) string {
 	return fmt.Sprintf("/poster/img/%s/%d.jpg", alias, order)
 }
 
-func MakePhotoPathsForPoster(poster *entity.PosterInput) {
+func MakePhotoPathsForPoster(poster *PosterInput) {
 	for i, image := range poster.Images {
 		path := GeneratePhotoPathForPoster(poster.Alias, image.Order)
 		poster.Images[i].Path = path

@@ -38,6 +38,7 @@ func ParseAliasFromRequest(r *http.Request) (string, error) {
 
 	return alias, nil
 }
+
 func ParseFormData(r *http.Request, form interface{}) error {
 	var decoder = schema.NewDecoder()
 	err := r.ParseForm()
@@ -66,7 +67,7 @@ func ParsePhotos(r *http.Request) ([]dto.PhotoInputDTO, error) {
 	if r.MultipartForm == nil {
 		err := r.ParseMultipartForm(100 << 20)
 		if err != nil {
-			return nil, fmt.Errorf("r.ParseMultipartForm, %w", err)
+			return nil, fmt.Errorf("r.ParseMultipartForm: %w", err)
 		}
 	}
 
@@ -90,10 +91,26 @@ func ParsePhotos(r *http.Request) ([]dto.PhotoInputDTO, error) {
 
 		order, err := strconv.Atoi(orders[0])
 		if err != nil {
-			return nil, fmt.Errorf("photo %d: invalid order", i)
+			return nil, fmt.Errorf("photo %d: invalid order: %w", i, err)
 		}
 
-		photo := dto.PhotoInputDTO{FileHeader: files[0], Order: order}
+		fileHeader := files[0]
+
+		file, err := fileHeader.Open()
+		if err != nil {
+			return nil, fmt.Errorf("open file: %w", err)
+		}
+
+		photo := dto.PhotoInputDTO{
+			FileHeader: &dto.FileInput{
+				Filename:    fileHeader.Filename,
+				Size:        fileHeader.Size,
+				ContentType: fileHeader.Header.Get("Content-Type"),
+				File:        file,
+			},
+			Order: order,
+		}
+
 		photos = append(photos, photo)
 	}
 
