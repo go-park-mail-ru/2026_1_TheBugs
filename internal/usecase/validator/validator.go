@@ -109,7 +109,10 @@ func ValidatePhotos(photos []dto.PhotoInputDTO) error {
 		return entity.NewValidationError("max photos len")
 	}
 	for i, photo := range photos {
-		if !ValidatePhoto(photo.FileHeader) {
+		if photo.FileHeader == nil && photo.URL == nil {
+			return entity.NewValidationError(fmt.Sprintf("photos[%d]", i))
+		}
+		if photo.FileHeader != nil && !ValidatePhoto(photo.FileHeader) {
 			return entity.NewValidationError(fmt.Sprintf("photos[%d]", i))
 		}
 		if photo.Order <= 0 {

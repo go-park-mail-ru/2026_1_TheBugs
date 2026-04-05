@@ -74,16 +74,20 @@ func ParsePhotos(r *http.Request) ([]dto.PhotoInputDTO, error) {
 	for i := 0; ; i++ {
 		fileKey := fmt.Sprintf("photos.%d.file", i)
 		orderKey := fmt.Sprintf("photos.%d.order", i)
+		urlKey := fmt.Sprintf("photos.%d.url", i)
 
 		files := r.MultipartForm.File[fileKey]
 		orders := r.MultipartForm.Value[orderKey]
+		urls := r.MultipartForm.Value[urlKey]
+
+		log.Printf("len(fiels): %d, order: %v, urls: %v", len(files), orders, urls)
 
 		if len(files) == 0 && len(orders) == 0 {
 			break
 		}
 
-		if len(files) == 0 {
-			return nil, fmt.Errorf("photo %d: file is required", i)
+		if len(files) == 0 && len(urls) == 0 {
+			return nil, fmt.Errorf("photo %d: file or url is required", i)
 		}
 		if len(orders) == 0 {
 			return nil, fmt.Errorf("photo %d: order is required", i)
@@ -92,6 +96,15 @@ func ParsePhotos(r *http.Request) ([]dto.PhotoInputDTO, error) {
 		order, err := strconv.Atoi(orders[0])
 		if err != nil {
 			return nil, fmt.Errorf("photo %d: invalid order: %w", i, err)
+		}
+		if len(files) == 0 {
+			photo := dto.PhotoInputDTO{
+				Order: order,
+				URL:   &urls[0],
+			}
+
+			photos = append(photos, photo)
+			continue
 		}
 
 		fileHeader := files[0]

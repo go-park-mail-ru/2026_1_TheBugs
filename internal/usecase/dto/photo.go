@@ -2,7 +2,11 @@ package dto
 
 import (
 	"fmt"
+	"math/rand"
+	"strings"
+	"time"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/photo"
 )
@@ -27,6 +31,7 @@ func posterImagesToPosterImagesDTO(imgs []entity.PosterImage) []PhotoDTO {
 type PhotoInputDTO struct {
 	FileHeader *FileInput
 	Order      int
+	URL        *string
 }
 
 func posterPhotosInputFlatDTOtoPhotosInput(poster *PosterInputFlatDTO) []PhotoInput {
@@ -35,6 +40,7 @@ func posterPhotosInputFlatDTOtoPhotosInput(poster *PosterInputFlatDTO) []PhotoIn
 		var photoInput PhotoInput
 		photoInput.FileHeader = photo.FileHeader
 		photoInput.Order = photo.Order
+		photoInput.URL = photo.URL
 		photos = append(photos, photoInput)
 	}
 
@@ -45,16 +51,26 @@ type PhotoInput struct {
 	FileHeader *FileInput
 	Path       string
 	Order      int
+	URL        *string
 }
 
 func GeneratePhotoPathForPoster(alias string, order int) string {
-	return fmt.Sprintf("/poster/img/%s/%d.jpg", alias, order)
+	seed := rand.New(rand.NewSource(time.Now().UnixNano()))
+	reqId := fmt.Sprintf("%016x", seed.Int())[:10]
+	reqId += fmt.Sprintf("_ord_%d", order)
+	return fmt.Sprintf("/poster/img/%s/%s.jpg", alias, reqId)
 }
 
 func MakePhotoPathsForPoster(poster *PosterInput) {
 	for i, image := range poster.Images {
-		path := GeneratePhotoPathForPoster(poster.Alias, image.Order)
-		poster.Images[i].Path = path
+		if image.FileHeader != nil {
+			path := GeneratePhotoPathForPoster(poster.Alias, image.Order)
+			poster.Images[i].Path = path
+			continue
+		}
+		url := *image.URL
+		poster.Images[i].Path = strings.TrimPrefix(url, fmt.Sprintf("%s/%s", config.Config.PublicHost, config.Config.Bucket))
+
 	}
 }
 

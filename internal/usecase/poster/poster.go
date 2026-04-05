@@ -129,7 +129,6 @@ func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.Poste
 	if err != nil {
 		return nil, fmt.Errorf("validator.ValidatePhotos: %w", err)
 	}
-	log.Printf("dto: %v", poster)
 
 	post := dto.PosterInputFlatDTOtoPosterInput(poster)
 
@@ -161,6 +160,7 @@ func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.Poste
 	flat := dto.PosterInputFlatDTOtoFlatInput(poster)
 
 	post.Alias = alias.GenerateAlias(post)
+
 	dto.MakePhotoPathsForPoster(post)
 
 	keys := make([]string, 0, len(post.Images))
@@ -246,6 +246,9 @@ func (uc *PosterUseCase) cleanUploadedFiles(ctx context.Context, keys []string) 
 }
 
 func (uc *PosterUseCase) uploadPhoto(ctx context.Context, photoPoster dto.PhotoInput) (string, error) {
+	if photoPoster.FileHeader == nil {
+		return photo.GetKeyFromPath(photoPoster.Path), nil
+	}
 	file := photoPoster.FileHeader.File
 	defer file.Close()
 
@@ -283,6 +286,8 @@ func (uc *PosterUseCase) UpdateFlatPoster(ctx context.Context, alias string, pos
 	post.Alias = alias
 
 	dto.MakePhotoPathsForPoster(post)
+
+	log.Print(post.Images)
 
 	city, err := uc.uow.Posters().GetCityByName(ctx, poster.City)
 	if err != nil {

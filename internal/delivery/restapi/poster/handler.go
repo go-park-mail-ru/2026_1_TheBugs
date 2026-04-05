@@ -294,6 +294,7 @@ func (h *PosterHandler) UpdateFlatPoster(w http.ResponseWriter, r *http.Request)
 		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
+	log.Info(req.Images)
 
 	poster, err := h.uc.UpdateFlatPoster(r.Context(), alias, &req)
 	if err != nil {
