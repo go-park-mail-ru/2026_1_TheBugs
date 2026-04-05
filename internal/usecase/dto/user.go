@@ -3,7 +3,9 @@ package dto
 import (
 	"time"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/photo"
 )
 
 type CreateUserDTO struct {
@@ -52,11 +54,16 @@ type UserDTO struct {
 }
 
 func UserToDTO(user *entity.UserDetails) *UserDTO {
+	var avatar *string
+	if user.AvatarURL != nil {
+		url := photo.MakeUrlFromPath(*user.AvatarURL, config.Config.PublicHost, config.Config.Bucket)
+		avatar = &url
+	}
 	return &UserDTO{
 		ID:        user.ID,
 		Email:     user.Email,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
-		AvatarURL: user.AvatarURL,
+		AvatarURL: avatar,
 	}
 }

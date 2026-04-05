@@ -79,4 +79,9 @@ func MakeUrlsFromPaths(poster *PosterDTO, publicHost string, bucket string) {
 		url := photo.MakeUrlFromPath(image.ImgURL, publicHost, bucket)
 		poster.Images[i].ImgURL = url
 	}
+	if poster.Seller.SellerAvatarURL != nil {
+		avatar := photo.MakeUrlFromPath(*poster.Seller.SellerAvatarURL, publicHost, bucket)
+		poster.Seller.SellerAvatarURL = &avatar
+	}
+
 }
