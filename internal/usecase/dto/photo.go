@@ -24,13 +24,6 @@ func posterImagesToPosterImagesDTO(imgs []entity.PosterImage) []PhotoDTO {
 	return images
 }
 
-/*
-type PhotoInputDTO struct {
-	FileHeader *multipart.FileHeader
-	Order      int
-}
-*/
-
 type PhotoInputDTO struct {
 	FileHeader *FileInput
 	Order      int
@@ -47,12 +40,6 @@ func posterPhotosInputFlatDTOtoPhotosInput(poster *PosterInputFlatDTO) []PhotoIn
 
 	return photos
 }
-
-/* type PhotoInput struct {
-	FileHeader *multipart.FileHeader
-	Path       string
-	Order      int
-} */
 
 type PhotoInput struct {
 	FileHeader *FileInput

@@ -643,11 +643,11 @@ paths:
         name: address
         required: true
         type: string
-      - description: City ID
+      - description: City Name
         in: formData
-        name: city_id
+        name: city
         required: true
-        type: integer
+        type: string
       - description: Metro station ID
         in: formData
         name: metro_station_id
@@ -770,10 +770,10 @@ paths:
         in: formData
         name: address
         type: string
-      - description: City ID
+      - description: City
         in: formData
-        name: city_id
-        type: integer
+        name: city
+        type: string
       - description: Metro station ID
         in: formData
         name: metro_station_id

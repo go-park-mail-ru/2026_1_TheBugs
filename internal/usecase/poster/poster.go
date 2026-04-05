@@ -148,7 +148,17 @@ func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.Poste
 	log.Printf("city: %s", city.Name)
 
 	post.CityID = city.ID
-	createFlat := dto.PosterInputFlatDTOtoFlatInput(poster)
+
+	stations, err := uc.uow.Posters().GetMetroStationByRadius(ctx, dto.GeographyDTO(post.Geo), MetroRadius)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Posters().GetMetroStationByRadius: %s", err)
+	}
+	if len(stations) > 0 {
+		station := stations[0].ID
+		post.MetroStationID = &station
+	}
+
+	flat := dto.PosterInputFlatDTOtoFlatInput(poster)
 
 	post.Alias = alias.GenerateAlias(post)
 	dto.MakePhotoPathsForPoster(post)
@@ -273,6 +283,28 @@ func (uc *PosterUseCase) UpdateFlatPoster(ctx context.Context, alias string, pos
 	post.Alias = alias
 
 	dto.MakePhotoPathsForPoster(post)
+
+	city, err := uc.uow.Posters().GetCityByName(ctx, poster.City)
+	if err != nil {
+		if errors.Is(err, entity.NotFoundError) {
+			city, err = uc.uow.Posters().CreateCity(ctx, poster.City)
+			if err != nil {
+				return nil, fmt.Errorf("uc.PosterRepo.CreateCity: %w", err)
+			}
+		} else {
+			return nil, fmt.Errorf("uc.PosterRepo.GetCityByName: %w", err)
+		}
+	}
+	post.CityID = city.ID
+
+	stations, err := uc.uow.Posters().GetMetroStationByRadius(ctx, dto.GeographyDTO(post.Geo), MetroRadius)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Posters().GetMetroStationByRadius: %s", err)
+	}
+	if len(stations) > 0 {
+		station := stations[0].ID
+		post.MetroStationID = &station
+	}
 
 	ids, err := uc.uow.Posters().GetUpdateIDsByAlias(ctx, alias)
 	if err != nil {

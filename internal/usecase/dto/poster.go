@@ -199,12 +199,32 @@ type CreatedPoster struct {
 	Alias string `json:"alias"`
 }
 
-// type CreateBuildingDTO struct {
-// 	Address        string
-// 	Geo            geo.GeographyPoint
-// 	CityID         int
-// 	MetroStationID *int
-// 	District       *string
-// 	FloorCount     int
-// 	CompanyID      int
-// }
+type PosterInput struct {
+	UserID int
+
+	Alias       string
+	Price       float64
+	Description string
+
+	CategoryAlias string
+	Area          float64
+
+	Address        string
+	Geo            geo.GeographyPoint
+	CityID         int
+	MetroStationID *int
+	District       *string
+	FloorCount     int
+
+	CompanyID *int
+
+	Features []string
+	Images   []PhotoInput
+}
+
+type PosterUpdateIDs struct {
+	UserID     int
+	PosterID   int
+	PropertyID int
+	BuildingID int
+}

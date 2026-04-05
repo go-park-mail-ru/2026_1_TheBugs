@@ -570,9 +570,9 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "integer",
-                        "description": "City ID",
-                        "name": "city_id",
+                        "type": "string",
+                        "description": "City Name",
+                        "name": "city",
                         "in": "formData",
                         "required": true
                     },
@@ -759,9 +759,9 @@ const docTemplate = `{
                         "in": "formData"
                     },
                     {
-                        "type": "integer",
-                        "description": "City ID",
-                        "name": "city_id",
+                        "type": "string",
+                        "description": "City",
+                        "name": "city",
                         "in": "formData"
                     },
                     {
