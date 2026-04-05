@@ -285,7 +285,7 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 
 			uc := NewPosterUseCase(mockUOW, mockFile)
 
-			res, err := uc.GetPosterByAliasUseCase(ctx, alias)
+			res, err := uc.GetPosterByAliasUseCase(ctx, alias, nil)
 
 			if test.wantErr != nil {
 				require.ErrorIs(t, err, test.wantErr)

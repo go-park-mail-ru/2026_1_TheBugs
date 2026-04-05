@@ -109,7 +109,7 @@ func (h *PosterHandler) GetPoster(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	poster, err := h.uc.GetPosterByAliasUseCase(r.Context(), alias)
+	poster, err := h.uc.GetPosterByAliasUseCase(r.Context(), alias, nil)
 	if err != nil {
 		log.Errorf("h.uc.GetPosterByAliasUseCase: %s", err)
 		utils.HandelError(w, err)
@@ -154,6 +154,48 @@ func (h *PosterHandler) GetPostersByUser(w http.ResponseWriter, r *http.Request)
 		Posters: posters,
 		Len:     len(posters),
 	}
+	utils.JSONResponse(w, http.StatusOK, response)
+
+}
+
+// @Summary Get list of user`s posters
+// @Description Returns the number of retrieved posters and their list
+// @Tags posters
+// @Produce json
+// @Security     BearerAuth
+// @Success 200 {object} response.PosterResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/me/{alias} [get]
+func (h *PosterHandler) GetPostersByUserByAlias(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GetPostersByUserByAlias"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	alias, err := utils.ParseAliasFromRequest(r)
+	if err != nil {
+		utils.JSONResponse(w, http.StatusBadRequest, response.ErrorResponse{Error: "invalid alias"})
+		return
+	}
+
+	userID, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.Errorf("h.uc.GetPosterByAliasUseCase: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	poster, err := h.uc.GetPosterByAliasUseCase(r.Context(), alias, &userID)
+	if err != nil {
+		log.Errorf("h.uc.GetPosterByAliasUseCase: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	var response response.PosterResponse
+	response.Poster = poster
+
 	utils.JSONResponse(w, http.StatusOK, response)
 
 }

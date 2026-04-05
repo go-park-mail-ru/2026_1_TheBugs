@@ -62,10 +62,10 @@ func (uc *PosterUseCase) GetPostersUseCase(ctx context.Context, filters dto.Post
 	return &response, nil
 }
 
-func (uc *PosterUseCase) GetPosterByAliasUseCase(ctx context.Context, posterAlias string) (*dto.PosterDTO, error) {
+func (uc *PosterUseCase) GetPosterByAliasUseCase(ctx context.Context, posterAlias string, userID *int) (*dto.PosterDTO, error) {
 	var posterDTO *dto.PosterDTO
 
-	poster, err := uc.uow.Posters().GetByAlias(ctx, posterAlias)
+	poster, err := uc.uow.Posters().GetByAlias(ctx, posterAlias, userID)
 	if err != nil {
 		return nil, fmt.Errorf("uc.PosterRepo.GetByAlias: %w", err)
 	}
@@ -246,9 +246,6 @@ func (uc *PosterUseCase) cleanUploadedFiles(ctx context.Context, keys []string) 
 }
 
 func (uc *PosterUseCase) uploadPhoto(ctx context.Context, photoPoster dto.PhotoInput) (string, error) {
-	if photoPoster.FileHeader == nil {
-		return photo.GetKeyFromPath(photoPoster.Path), nil
-	}
 	file := photoPoster.FileHeader.File
 	defer file.Close()
 
@@ -335,11 +332,17 @@ func (uc *PosterUseCase) UpdateFlatPoster(ctx context.Context, alias string, pos
 
 		newKeys = make([]string, 0, len(post.Images))
 		for _, photoPoster := range post.Images {
-			key, err := uc.uploadPhoto(ctx, photoPoster)
-			if err != nil {
-				_ = uc.cleanUploadedFiles(ctx, newKeys) // FIXME: а если старый путь и новый совпадают?
-				return nil, fmt.Errorf("uc.uploadPhoto: %w", err)
+			var key string
+			if photoPoster.FileHeader == nil {
+				key = photo.GetKeyFromPath(photoPoster.Path)
+			} else {
+				key, err = uc.uploadPhoto(ctx, photoPoster)
+				if err != nil {
+					_ = uc.cleanUploadedFiles(ctx, newKeys) // FIXME: а если старый путь и новый совпадают?
+					return nil, fmt.Errorf("uc.uploadPhoto: %w", err)
+				}
 			}
+
 			newKeys = append(newKeys, key)
 		}
 	}

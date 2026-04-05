@@ -76,7 +76,7 @@ func (r *PosterRepo) CountPosters(ctx context.Context) (int, error) {
 	return count, nil
 }
 
-func (r *PosterRepo) GetByAlias(ctx context.Context, posterAlias string) (*entity.PosterById, error) {
+func (r *PosterRepo) GetByAlias(ctx context.Context, posterAlias string, userID *int) (*entity.PosterById, error) {
 	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetByAlias")
 	log.Info("start db query")
 
@@ -96,10 +96,15 @@ func (r *PosterRepo) GetByAlias(ctx context.Context, posterAlias string) (*entit
 		LEFT JOIN utility_companies uc ON uc.id = b.company_id
 		JOIN users u ON u.id = p.user_id
 		JOIN profiles pr ON pr.id = u.profile_id
-		WHERE p.alias = $1;
+		WHERE p.alias = $1
 	`
+	args := []any{posterAlias}
+	if userID != nil {
+		query += ` AND p.user_id = $2`
+		args = append(args, *userID)
+	}
 
-	rows, err := r.pool.Query(ctx, query, posterAlias)
+	rows, err := r.pool.Query(ctx, query, args...)
 	if err != nil {
 		return &entity.PosterById{}, repository.HandelPgErrors(err)
 	}
@@ -438,10 +443,10 @@ func (r *PosterRepo) GetUpdateIDsByAlias(ctx context.Context, alias string) (*dt
 		&ids.PropertyID,
 		&ids.BuildingID,
 	)
-  if err != nil {
+	if err != nil {
 		return nil, repository.HandelPgErrors(err)
 	}
-  return &ids, nil
+	return &ids, nil
 }
 
 func (r *PosterRepo) GetCityByName(ctx context.Context, name string) (*entity.City, error) {
@@ -450,7 +455,7 @@ func (r *PosterRepo) GetCityByName(ctx context.Context, name string) (*entity.Ci
 	if err != nil {
 		return nil, repository.HandelPgErrors(err)
 	}
-  defer rows.Close()
+	defer rows.Close()
 
 	city, err := pgx.CollectOneRow(rows, pgx.RowToStructByName[entity.City])
 	if err != nil {

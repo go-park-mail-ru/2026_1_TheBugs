@@ -308,7 +308,7 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 
 			repo := NewPosterRepo(mock)
 
-			got, err := repo.GetByAlias(context.Background(), test.param)
+			got, err := repo.GetByAlias(context.Background(), test.param, nil)
 			if test.wantErr != nil {
 				require.ErrorIs(t, err, test.wantErr)
 				return
