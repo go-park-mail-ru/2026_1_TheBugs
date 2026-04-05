@@ -130,12 +130,21 @@ func ValidatePosterInputFlat(poster *dto.PosterInputFlatDTO) error {
 		return entity.NewValidationError("flat_floor")
 	}
 
-	if poster.FloorCount <= 0 {
+	if poster.FloorCount <= 0 || poster.FloorCount > 100 {
 		return entity.NewValidationError("floor_count")
 	}
 
 	if poster.FlatFloor > poster.FloorCount {
 		return entity.NewValidationError("flat_floor")
+	}
+	if len(poster.Description) > 3000 {
+		return entity.NewValidationError("descriprion")
+	}
+	if len(poster.Address) < 5 || len(poster.Address) > 500 {
+		return entity.NewValidationError("address")
+	}
+	if poster.District != nil && len(*poster.District) > 100 {
+		return entity.NewValidationError("district")
 	}
 
 	return nil

@@ -183,7 +183,7 @@ CREATE TABLE IF NOT EXISTS posters (
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id), 
     CONSTRAINT fk_property FOREIGN KEY (property_id) REFERENCES property(id), 
     CONSTRAINT price_check CHECK ( price > 0 ), 
-    CONSTRAINT description_length_check CHECK ( LENGTH(description) < 500 ) 
+    CONSTRAINT description_length_check CHECK ( LENGTH(description) < 3000 ) 
 ); 
 COMMENT ON TABLE posters IS 'Объявления';
  
