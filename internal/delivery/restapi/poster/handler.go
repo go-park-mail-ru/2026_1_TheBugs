@@ -168,7 +168,7 @@ func (h *PosterHandler) GetPostersByUser(w http.ResponseWriter, r *http.Request)
 // @Param category_alias formData string true "Property category alias"
 // @Param area formData number true "Property area"
 // @Param address formData string true "Building address"
-// @Param city_id formData integer true "City ID"
+// @Param city formData string true "City Name"
 // @Param metro_station_id formData integer false "Metro station ID"
 // @Param district formData string false "District"
 // @Param floor_count formData integer true "Building floor count"

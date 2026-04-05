@@ -164,7 +164,7 @@ type PosterInputFlatDTO struct {
 	FlatFloor      int     `schema:"flat_floor"`
 
 	Address    string  `schema:"address"`
-	CityID     int     `schema:"city_id"`
+	City       string  `schema:"city"`
 	District   *string `schema:"district"`
 	FloorCount int     `schema:"floor_count"`
 	CompanyID  *int    `schema:"company_id"`
@@ -184,7 +184,6 @@ func PosterInputFlatDTOtoPosterInput(poster *PosterInputFlatDTO) *PosterInput {
 
 		Address:    poster.Address,
 		Geo:        GeographyInputDTOtoGeographyPoint(GeographyInputDTO{Lat: poster.GeoLat, Lon: poster.GeoLon}),
-		CityID:     poster.CityID,
 		District:   poster.District,
 		FloorCount: poster.FloorCount,
 
@@ -200,32 +199,12 @@ type CreatedPoster struct {
 	Alias string `json:"alias"`
 }
 
-type PosterInput struct {
-	UserID int
-
-	Alias       string
-	Price       float64
-	Description string
-
-	CategoryAlias string
-	Area          float64
-
-	Address        string
-	Geo            geo.GeographyPoint
-	CityID         int
-	MetroStationID *int
-	District       *string
-	FloorCount     int
-
-	CompanyID *int
-
-	Features []string
-	Images   []PhotoInput
-}
-
-type PosterUpdateIDs struct {
-	UserID     int
-	PosterID   int
-	PropertyID int
-	BuildingID int
-}
+// type CreateBuildingDTO struct {
+// 	Address        string
+// 	Geo            geo.GeographyPoint
+// 	CityID         int
+// 	MetroStationID *int
+// 	District       *string
+// 	FloorCount     int
+// 	CompanyID      int
+// }

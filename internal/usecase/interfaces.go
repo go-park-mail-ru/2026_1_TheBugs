@@ -48,6 +48,8 @@ type PosterRepo interface {
 
 	DeleteFacilitiesByPropertyID(ctx context.Context, propertyID int) error
 	DeletePhotosByPosterID(ctx context.Context, posterID int) error
+	GetCityByName(ctx context.Context, name string) (*entity.City, error)
+	CreateCity(ctx context.Context, name string) (*entity.City, error)
 }
 
 type AuthRepo interface {
