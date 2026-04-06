@@ -648,10 +648,6 @@ paths:
         name: city
         required: true
         type: string
-      - description: Metro station ID
-        in: formData
-        name: metro_station_id
-        type: integer
       - description: District
         in: formData
         name: district
@@ -742,6 +738,43 @@ paths:
       tags:
       - posters
   /posters/flat/{alias}:
+    delete:
+      description: Deletes a flat poster with all related data (photos, property,
+        building)
+      parameters:
+      - description: Poster alias
+        in: path
+        name: alias
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CreatedPosterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete flat poster
+      tags:
+      - posters
     put:
       description: Updates a flat poster with photos
       parameters:
@@ -774,10 +807,6 @@ paths:
         in: formData
         name: city
         type: string
-      - description: Metro station ID
-        in: formData
-        name: metro_station_id
-        type: integer
       - description: District
         in: formData
         name: district
@@ -908,6 +937,37 @@ paths:
       tags:
       - posters
   /posters/me:
+    get:
+      description: Returns the number of retrieved posters and their list
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PosterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get list of user`s posters
+      tags:
+      - posters
+  /posters/me/{alias}:
     get:
       description: Returns the number of retrieved posters and their list
       produces:

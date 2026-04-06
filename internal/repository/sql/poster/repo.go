@@ -68,7 +68,7 @@ func (r *PosterRepo) CountPosters(ctx context.Context) (int, error) {
 	log.Info("start db query")
 
 	var count int
-	row := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM posters")
+	row := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM posters WHERE deleted_at IS NULL")
 	err := row.Scan(&count)
 	if err != nil {
 		return 0, err
@@ -434,7 +434,6 @@ func (r *PosterRepo) GetUpdateIDsByAlias(ctx context.Context, alias string) (*dt
 		JOIN property pr ON pr.id = p.property_id
 		WHERE p.alias = $1
 	`
-
 	var ids dto.PosterUpdateIDs
 
 	err := r.pool.QueryRow(ctx, query, alias).Scan(
@@ -642,4 +641,64 @@ func (r *PosterRepo) CreateCity(ctx context.Context, name string) (*entity.City,
 	}
 	return &city, nil
 
+}
+
+func (r *PosterRepo) Delete(ctx context.Context, posterID int) error {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.Delete")
+	log.Info("start db delete poster")
+
+	query := `
+        UPDATE posters SET deleted_at = NOW()
+        WHERE id = $1
+    `
+	_, err := r.pool.Exec(ctx, query, posterID)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+	return nil
+}
+
+func (r *PosterRepo) DeleteFlat(ctx context.Context, propertyID int) error {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.DeleteFlat")
+	log.Info("start db delete flat")
+
+	query := `
+        DELETE FROM flat 
+        WHERE property_id = $1
+    `
+	_, err := r.pool.Exec(ctx, query, propertyID)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+	return nil
+}
+
+func (r *PosterRepo) DeleteProperty(ctx context.Context, propertyID int) error {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.DeleteProperty")
+	log.Info("start db delete property")
+
+	query := `
+        DELETE FROM property 
+        WHERE id = $1
+    `
+	_, err := r.pool.Exec(ctx, query, propertyID)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+	return nil
+}
+
+func (r *PosterRepo) DeleteBuilding(ctx context.Context, buildingID int) error {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.DeleteBuilding")
+	log.Info("start db delete building")
+
+	query := `
+        DELETE FROM buildings 
+        WHERE id = $1
+    `
+	_, err := r.pool.Exec(ctx, query, buildingID)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+	return nil
 }
