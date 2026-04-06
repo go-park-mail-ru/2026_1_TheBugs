@@ -33,6 +33,7 @@ type PostersResponse struct {
 type PostersFiltersDTO struct {
 	Limit          int
 	Offset         int
+	SearchQuery    *string
 	UtilityCompany *string
 }
 

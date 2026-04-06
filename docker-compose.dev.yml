@@ -66,3 +66,21 @@ services:
       options:
         max-size: "1m"
         max-file: "3"
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+    ports:
+      - "9200:9200"
+
+  logstash:
+    build: 
+      context: ./deploy/logstash
+      dockerfile: Dockerfile
+    volumes:
+      - ./deploy/logstash/pipeline:/usr/share/logstash/pipeline
+    depends_on:
+      - postgres
+      - elasticsearch

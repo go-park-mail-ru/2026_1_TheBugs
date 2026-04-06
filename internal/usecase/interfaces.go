@@ -91,3 +91,7 @@ type FileRepo interface {
 	Delete(ctx context.Context, key string) error
 	Get(ctx context.Context, key string) (io.ReadCloser, error)
 }
+
+type SearchRepo interface {
+	SearchPosters(ctx context.Context, filters dto.PostersFiltersDTO) (*dto.PostersResponse, error)
+}

@@ -2,19 +2,23 @@ package app
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
+	es "github.com/elastic/go-elasticsearch/v9"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi"
 	authHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/auth"
 	complexHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/complex"
 	posterHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
 	userHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/elasticsearch"
 	minioRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/minio"
 	tokensRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/redis/tokens"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/smtp"
@@ -41,6 +45,26 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 		Creds:  credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
 		Secure: false,
 	})
+	escfg := es.Config{
+		Addresses: []string{
+			"http://localhost:9200",
+		},
+		Username: "foo",
+		Password: "bar",
+		Transport: &http.Transport{
+			MaxIdleConnsPerHost:   10,
+			ResponseHeaderTimeout: time.Second,
+			DialContext:           (&net.Dialer{Timeout: time.Second}).DialContext,
+			TLSClientConfig: &tls.Config{
+				MinVersion: tls.VersionTLS12,
+			},
+		},
+	}
+	esClient, err := es.NewClient(escfg)
+	if err != nil {
+		log.Fatalf("es.NewClient: %v", err)
+	}
+	esRepo := elasticsearch.NewESRepo(esClient)
 
 	pool, err := pgxpool.New(context.Background(), dsn)
 	if err != nil {
@@ -55,7 +79,7 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 		log.Fatalf("cannot create file repo: %v", err)
 	}
 
-	posterUC := posterUC.NewPosterUseCase(uow, fileRepo)
+	posterUC := posterUC.NewPosterUseCase(uow, fileRepo, esRepo)
 	posterHandler := posterHandler.NewPosterHandler(posterUC)
 
 	authUC := authUC.NewAuthUseCase(uow, tokenRepo, senderRepo)

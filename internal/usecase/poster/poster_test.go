@@ -124,7 +124,7 @@ func TestGetPostersUseCase(t *testing.T) {
 				test.setupMock(mockRepo)
 			}
 
-			uc := NewPosterUseCase(mockUOW, mockFile)
+			uc := NewPosterUseCase(mockUOW, mockFile, nil)
 
 			got, err := uc.GetPostersUseCase(ctx, test.params)
 			if test.wantErr != nil {
@@ -222,7 +222,7 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 			param: alias,
 			setupMock: func(m *mocks.MockPosterRepo) {
 				m.EXPECT().
-					GetByAlias(ctx, alias).
+					GetByAlias(ctx, alias, nil).
 					Return(existingPoster, nil).
 					Times(1)
 
@@ -239,7 +239,7 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 			param: alias,
 			setupMock: func(m *mocks.MockPosterRepo) {
 				m.EXPECT().
-					GetByAlias(ctx, alias).
+					GetByAlias(ctx, alias, nil).
 					Return(&entity.PosterById{}, entity.NotFoundError).
 					Times(1)
 			},
@@ -251,7 +251,7 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 			param: alias,
 			setupMock: func(m *mocks.MockPosterRepo) {
 				m.EXPECT().
-					GetByAlias(ctx, alias).
+					GetByAlias(ctx, alias, nil).
 					Return(existingPoster, nil).
 					Times(1)
 
@@ -283,7 +283,7 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 				test.setupMock(mockRepo)
 			}
 
-			uc := NewPosterUseCase(mockUOW, mockFile)
+			uc := NewPosterUseCase(mockUOW, mockFile, nil)
 
 			res, err := uc.GetPosterByAliasUseCase(ctx, alias, nil)
 
@@ -383,7 +383,7 @@ func TestGetPosterByUserID(t *testing.T) {
 
 			tt.setup(posterRepo)
 
-			uc := NewPosterUseCase(uow, fileRepo)
+			uc := NewPosterUseCase(uow, fileRepo, nil)
 			res, err := uc.GetPosterByUserID(ctx, userID)
 
 			require.NoError(t, err)

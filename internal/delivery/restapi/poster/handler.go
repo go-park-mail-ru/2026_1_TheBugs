@@ -32,6 +32,7 @@ func NewPosterHandler(uc *poster.PosterUseCase) *PosterHandler {
 // @Param limit query int false "Number of posters" default(12) minimum(1)
 // @Param offset query int false "Pagination offset" default(0) minimum(0)
 // @Param utility_company query string false "Utility company"
+// @Param search_query query string false "Search query"
 // @Success 200 {object} dto.PostersResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 401 {object} response.ErrorResponse
@@ -46,6 +47,7 @@ func (h *PosterHandler) GetFlatsAll(w http.ResponseWriter, r *http.Request) {
 
 	limit := r.URL.Query().Get("limit")
 	offset := r.URL.Query().Get("offset")
+	search := r.URL.Query().Get("search_query")
 	utilityCompany := r.URL.Query().Get("utility_company")
 
 	if limit == "" {
@@ -63,8 +65,6 @@ func (h *PosterHandler) GetFlatsAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	params.Limit = reqLimit
-
 	reqOffset, err := strconv.Atoi(offset)
 	if err != nil {
 		log.Errorf("Atoi: %s", err)
@@ -73,11 +73,16 @@ func (h *PosterHandler) GetFlatsAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	params.Offset = reqOffset
+	params.Limit = reqLimit
 	if utilityCompany != "" {
 		params.UtilityCompany = &utilityCompany
 	}
+	if search != "" {
+		params.SearchQuery = &search
+		log.Debugf("search query: %s", *params.SearchQuery)
+	}
 
-	posters, err := h.uc.GetPostersUseCase(r.Context(), params)
+	posters, err := h.uc.SearchPostersUseCase(r.Context(), params)
 	if err != nil {
 		log.Errorf("h.uc.GetPostersUseCase: %s", err)
 		utils.HandelError(w, err)
