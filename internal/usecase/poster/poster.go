@@ -276,6 +276,14 @@ func (uc *PosterUseCase) UpdateFlatPoster(ctx context.Context, alias string, pos
 	if err != nil {
 		return nil, fmt.Errorf("validator.ValidatePhotos: %w", err)
 	}
+	ids, err := uc.uow.Posters().GetUpdateIDsByAlias(ctx, alias)
+	if err != nil {
+		return nil, fmt.Errorf("uc.PosterRepo.GetUpdateIDsByPosterID: %w", err)
+	}
+
+	if ids.UserID != poster.UserID {
+		return nil, entity.NotFoundError
+	}
 
 	post := dto.PosterInputFlatDTOtoPosterInput(poster)
 	flat := dto.PosterInputFlatDTOtoFlatInput(poster)
@@ -306,11 +314,6 @@ func (uc *PosterUseCase) UpdateFlatPoster(ctx context.Context, alias string, pos
 	if len(stations) > 0 {
 		station := stations[0].ID
 		post.MetroStationID = &station
-	}
-
-	ids, err := uc.uow.Posters().GetUpdateIDsByAlias(ctx, alias)
-	if err != nil {
-		return nil, fmt.Errorf("uc.PosterRepo.GetUpdateIDsByPosterID: %w", err)
 	}
 
 	flat.PropertyID = ids.PropertyID
@@ -423,4 +426,71 @@ func (uc *PosterUseCase) UpdateFlatPoster(ctx context.Context, alias string, pos
 	}
 
 	return createdPoster, nil
+}
+
+func (uc *PosterUseCase) DeleteFlatPoster(ctx context.Context, alias string, userID int) (*dto.CreatedPoster, error) {
+	ids, err := uc.uow.Posters().GetUpdateIDsByAlias(ctx, alias)
+	if err != nil {
+		return nil, fmt.Errorf("get ids by alias: %w", err)
+	}
+	if ids.UserID != userID {
+		return nil, entity.NotFoundError
+	}
+
+	oldPaths, err := uc.uow.Posters().GetPhotoPathsByPosterID(ctx, ids.PosterID)
+	if err != nil {
+		return nil, fmt.Errorf("get photo paths: %w", err)
+	}
+
+	oldKeys := make([]string, 0, len(oldPaths))
+	for _, path := range oldPaths {
+		oldKeys = append(oldKeys, photo.GetKeyFromPath(path))
+	}
+
+	var deletedPoster *dto.CreatedPoster
+
+	err = uc.uow.Do(ctx, func(r usecase.UnitOfWork) error {
+		if len(oldPaths) > 0 {
+			err := r.Posters().DeletePhotosByPosterID(ctx, ids.PosterID)
+			if err != nil {
+				return fmt.Errorf("delete photos: %w", err)
+			}
+		}
+		err = r.Posters().DeleteFacilitiesByPropertyID(ctx, ids.PropertyID)
+		if err != nil {
+			return fmt.Errorf("uc.PosterRepo.DeleteFacilitiesByPropertyID: %w", err)
+		}
+
+		err := r.Posters().Delete(ctx, ids.PosterID)
+		if err != nil {
+			return fmt.Errorf("delete poster: %w", err)
+		}
+		err = r.Posters().DeleteFlat(ctx, ids.PropertyID)
+		if err != nil {
+			return fmt.Errorf("delete property: %w", err)
+		}
+		err = r.Posters().DeleteProperty(ctx, ids.PropertyID)
+		if err != nil {
+			return fmt.Errorf("delete property: %w", err)
+		}
+		err = r.Posters().DeleteBuilding(ctx, ids.BuildingID)
+		if err != nil {
+			return fmt.Errorf("delete building: %w", err)
+		}
+
+		deletedPoster = &dto.CreatedPoster{
+			ID:    ids.PosterID,
+			Alias: alias,
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("uow transaction: %w", err)
+	}
+
+	if len(oldKeys) > 0 {
+		_ = uc.cleanUploadedFiles(ctx, oldKeys)
+	}
+
+	return deletedPoster, nil
 }

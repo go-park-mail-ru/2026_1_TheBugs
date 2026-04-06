@@ -350,3 +350,45 @@ func (h *PosterHandler) UpdateFlatPoster(w http.ResponseWriter, r *http.Request)
 
 	utils.JSONResponse(w, http.StatusCreated, response)
 }
+
+// @Summary Delete flat poster
+// @Description Deletes a flat poster with all related data (photos, property, building)
+// @Tags posters
+// @Produce json
+// @Security BearerAuth
+// @Param alias path string true "Poster alias"
+// @Success 200 {object} response.CreatedPosterResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/flat/{alias} [delete]
+func (h *PosterHandler) DeleteFlatPoster(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.DeleteFlatPoster"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	userID, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.Errorf("utils.GetUserID: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+	alias, err := utils.ParseAliasFromRequest(r)
+	if err != nil {
+		log.Errorf("utils.ParseAliasFromRequest: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	deletedPoster, err := h.uc.DeleteFlatPoster(r.Context(), alias, userID)
+	if err != nil {
+		log.Errorf("h.uc.DeleteFlatPoster: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	var response response.CreatedPosterResponse
+	response.Poster = deletedPoster
+
+	utils.JSONResponse(w, http.StatusOK, response)
+}

@@ -174,6 +174,7 @@ CREATE TABLE IF NOT EXISTS posters (
     description TEXT, 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), 
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), 
+    deleted_at TIMESTAMPTZ, 
     user_id BIGINT NOT NULL, 
     property_id BIGINT NOT NULL, 
     alias TEXT UNIQUE NOT NULL, 
@@ -293,6 +294,8 @@ CREATE INDEX idx_property_area ON property(area);
 CREATE INDEX idx_posters_alias ON posters(alias);
 CREATE INDEX idx_posters_created_at ON posters(created_at);
 
+CREATE INDEX IF NOT EXISTS idx_posters_deleted_at ON posters(deleted_at) WHERE deleted_at IS NOT NULL;
+
 -- Гео-индексы (GiST для GEOGRAPHY)
 CREATE INDEX idx_metro_stations_geo ON metro_stations USING GIST(geo);
 CREATE INDEX idx_buildings_geo ON buildings USING GIST(geo);
@@ -309,11 +312,11 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+
 -- Триггеры для таблиц с updated_at
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_posters_updated_at BEFORE UPDATE ON posters FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
 
 CREATE OR REPLACE FUNCTION get_explain_rows(p_sql text)
  RETURNS bigint AS $BODY$
