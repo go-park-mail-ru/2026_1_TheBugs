@@ -2,7 +2,6 @@ package dto
 
 import (
 	"fmt"
-	"mime/multipart"
 	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
@@ -29,11 +28,11 @@ type UpdateProfileDTO struct {
 }
 
 type UpdateProfileRequest struct {
-	ID        int                   `schema:"-"`
-	Phone     *string               `schema:"phone"`
-	FirstName *string               `schema:"first_name"`
-	LastName  *string               `schema:"last_name"`
-	Avatar    *multipart.FileHeader `schema:"-"`
+	ID        int        `schema:"-"`
+	Phone     *string    `schema:"phone"`
+	FirstName *string    `schema:"first_name"`
+	LastName  *string    `schema:"last_name"`
+	Avatar    *FileInput `schema:"-"`
 }
 
 type UpdateUserDTO struct {

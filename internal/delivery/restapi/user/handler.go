@@ -80,7 +80,14 @@ func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	}
 	files, ok := r.MultipartForm.File["avatar"]
 	if ok && len(files) > 0 {
-		data.Avatar = files[0]
+		fileInput, err := utils.ParseFileInput(files[0])
+		if err != nil {
+			log.WithError(err).Error("failed to parse avatar file")
+			utils.WriteError(w, "failed to read avatar", http.StatusBadRequest)
+			return
+		}
+
+		data.Avatar = fileInput
 	}
 	userID, err := utils.GetUserID(r.Context())
 	if err != nil {

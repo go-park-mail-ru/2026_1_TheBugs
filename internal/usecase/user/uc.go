@@ -46,11 +46,7 @@ func (uc *UserUseCase) UpdateProfile(ctx context.Context, data dto.UpdateProfile
 	}
 	updateDTO := dto.UpdateProfileDTO{ID: data.ID, FirstName: data.FirstName, LastName: data.LastName, Phone: data.Phone}
 	if data.Avatar != nil {
-		file, err := data.Avatar.Open()
-		if err != nil {
-			return nil, fmt.Errorf("data.Avatar.Open(): %w", err)
-		}
-		defer file.Close()
+		defer data.Avatar.File.Close()
 
 		if !validator.ValidatePhoto(data.Avatar) {
 			return nil, entity.NewValidationError("photo")
@@ -58,9 +54,9 @@ func (uc *UserUseCase) UpdateProfile(ctx context.Context, data dto.UpdateProfile
 		path := dto.GenerateAvatarPathForUser(data.ID)
 		key := photo.GetKeyFromPath(path)
 		size := data.Avatar.Size
-		contentType := data.Avatar.Header.Get("Content-Type")
+		contentType := data.Avatar.ContentType
 
-		if err := uc.file.Upload(ctx, key, file, size, contentType); err != nil {
+		if err := uc.file.Upload(ctx, key, data.Avatar.File, size, contentType); err != nil {
 			return nil, fmt.Errorf("uc.file.Upload: %w", err)
 		}
 		updateDTO.AvatarPath = &path
