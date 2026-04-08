@@ -19,4 +19,5 @@ type UserDetails struct {
 	FirstName string  `db:"first_name"`
 	LastName  string  `db:"last_name"`
 	AvatarURL *string `db:"avatar_url,omitempty"`
+	Phone     string  `db:"phone"`
 }

@@ -18,6 +18,7 @@ type UserRepo interface {
 	GetByProvider(ctx context.Context, provider string, email string) (*entity.User, error)
 	UpdatePwd(ctx context.Context, email string, pwd string, salt string) error
 	GetByID(ctx context.Context, id int) (*dto.UserDTO, error)
+	UpdateProfile(ctx context.Context, data dto.UpdateProfileDTO) (*dto.UserDTO, error)
 }
 
 type PosterRepo interface {

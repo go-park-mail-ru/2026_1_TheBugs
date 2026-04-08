@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"sort"
 	"strconv"
@@ -132,4 +133,22 @@ func ParsePhotos(r *http.Request) ([]dto.PhotoInputDTO, error) {
 	})
 
 	return photos, nil
+}
+
+func ParseFileInput(fileHeader *multipart.FileHeader) (*dto.FileInput, error) {
+	if fileHeader == nil {
+		return nil, nil
+	}
+
+	file, err := fileHeader.Open()
+	if err != nil {
+		return nil, fmt.Errorf("fileHeader.Open: %w", err)
+	}
+
+	return &dto.FileInput{
+		Filename:    fileHeader.Filename,
+		Size:        fileHeader.Size,
+		ContentType: fileHeader.Header.Get("Content-Type"),
+		File:        file,
+	}, nil
 }

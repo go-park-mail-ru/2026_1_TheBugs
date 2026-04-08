@@ -171,6 +171,8 @@ definitions:
         type: integer
       last_name:
         type: string
+      phone:
+        type: string
     type: object
   dto.UtilityCompanyCardDTO:
     properties:
@@ -1027,6 +1029,54 @@ paths:
       security:
       - BearerAuth: []
       summary: Get user details
+      tags:
+      - users
+  /user/me/profile:
+    put:
+      description: Returns user details
+      parameters:
+      - description: New Firstname
+        in: formData
+        name: first_name
+        type: string
+      - description: New Lastname
+        in: formData
+        name: last_name
+        type: string
+      - description: New Phone
+        in: formData
+        name: phone
+        type: string
+      - description: Avatar file
+        in: formData
+        name: avatar
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user details
       tags:
       - users
   /utility-companies/:

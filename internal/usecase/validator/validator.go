@@ -126,11 +126,11 @@ func ValidatePhotos(photos []dto.PhotoInputDTO) error {
 }
 
 func ValidatePosterInputFlat(poster *dto.PosterInputFlatDTO) error {
-	if poster.FlatFloor <= 0 {
+	if poster.FlatFloor <= 0 || poster.FlatFloor > 500 {
 		return entity.NewValidationError("flat_floor")
 	}
 
-	if poster.FloorCount <= 0 || poster.FloorCount > 100 {
+	if poster.FloorCount <= 0 || poster.FloorCount > 500 {
 		return entity.NewValidationError("floor_count")
 	}
 

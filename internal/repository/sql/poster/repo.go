@@ -278,10 +278,10 @@ func (r *PosterRepo) CreateProperty(ctx context.Context, poster *dto.PosterInput
 
 	propertyQuery := `
 		INSERT INTO property (category_id, building_id, area)
-		SELECT id, $2, $3
-		FROM property_categories
-		WHERE alias = $1
-		RETURNING id;
+		SELECT pc.id, $2, $3
+		FROM property_categories AS pc
+		WHERE pc.alias = $1
+		RETURNING property.id;
 	`
 
 	var propertyID int
