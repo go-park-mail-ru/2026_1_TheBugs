@@ -41,7 +41,7 @@ func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*entity.User, 
 }
 
 func (r *UserRepo) GetByID(ctx context.Context, id int) (*dto.UserDTO, error) {
-	sql := `SELECT u.id, u.email, p.first_name, p.last_name, p.avatar_url , p.phone
+	sql := `SELECT u.id, u.email, p.first_name, p.last_name, p.avatar_url, p.phone
 			FROM users u
 			JOIN profiles p ON u.profile_id = p.id
 			WHERE u.id=$1`

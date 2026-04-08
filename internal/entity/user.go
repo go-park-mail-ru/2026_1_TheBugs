@@ -18,6 +18,6 @@ type UserDetails struct {
 	Email     string  `db:"email"`
 	FirstName string  `db:"first_name"`
 	LastName  string  `db:"last_name"`
-	AvatarURL *string `db:"avatar_url,omitempty"`
+	AvatarURL *string `db:"avatar_url"`
 	Phone     string  `db:"phone"`
 }
