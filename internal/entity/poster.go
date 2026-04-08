@@ -64,23 +64,3 @@ type PosterById struct {
 	CompanyAlias     *string `db:"company_alias"`
 	CompanyID        *int    `db:"company_id"`
 }
-
-type Flat struct {
-	PropertyID   int    `db:"property_id"`
-	FlatCategory string `db:"flat_category"`
-	Number       int    `db:"number"`
-	Floor        int    `db:"floor"`
-	RoomCount    int    `db:"room_count"`
-}
-
-type MetroStation struct {
-	ID          int                `db:"id"`
-	StationName string             `db:"station_name"`
-	StationGEO  geo.GeographyPoint `db:"metro_geo"`
-}
-
-type Facility struct {
-	ID    int    `db:"id"`
-	Name  string `db:"name"`
-	Alias string `db:"alias"`
-}
