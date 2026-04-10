@@ -53,3 +53,6 @@ minio:
   bucket: media
   public_host: http://localhost:9000
 
+es:
+  host: localhost
+  port: 9200

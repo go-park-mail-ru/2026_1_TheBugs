@@ -47,7 +47,7 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	})
 	escfg := es.Config{
 		Addresses: []string{
-			"http://localhost:9200",
+			fmt.Sprintf("http://%s:%d", cfg.ES.Host, cfg.ES.Port),
 		},
 		Username: "foo",
 		Password: "bar",
