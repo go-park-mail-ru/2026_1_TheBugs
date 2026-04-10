@@ -22,7 +22,6 @@ services:
       - "6379:6379"
     restart: unless-stopped
 
-  
   minio: 
     image:
       quay.io/minio/minio:latest

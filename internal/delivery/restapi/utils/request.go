@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/gorilla/mux"
@@ -156,6 +157,9 @@ func ParsePostersFilters(r *http.Request) (dto.PostersFiltersDTO, error) {
 	params := dto.PostersFiltersDTO{
 		Offset: offset,
 		Limit:  limit,
+	}
+	if v := q.Get("facilities"); v != "" {
+		params.Facilities = strings.Split(v, ",")
 	}
 
 	if v := q.Get("search_query"); v != "" {

@@ -107,9 +107,14 @@ func (r *ESRepo) SearchPosters(ctx context.Context, filters dto.PostersFiltersDT
 		filter = append(filter, termQuery)
 	}
 
-	// if filters.Facilities != nil {
-	// 	// TODO: подумать как это фильтровать
-	// }
+	if len(filters.Facilities) > 0 {
+		termQuery := TermsQuery{
+			Terms: map[string]any{
+				"facilities.alias": filters.Facilities,
+			},
+		}
+		filter = append(filter, termQuery)
+	}
 
 	if filters.IsNotFirstFloor {
 		notMust = append(notMust, map[string]any{
@@ -119,7 +124,7 @@ func (r *ESRepo) SearchPosters(ctx context.Context, filters dto.PostersFiltersDT
 	if filters.IsNotLastFloor {
 		notMust = append(notMust, map[string]any{
 			"script": map[string]any{
-				"source": "doc['floor'].value == doc['building_floor'].value",
+				"script": "doc['floor'].size() > 0 && doc['building_floor'].size() > 0 && doc['floor'].value == doc['building_floor'].value",
 			},
 		})
 	}

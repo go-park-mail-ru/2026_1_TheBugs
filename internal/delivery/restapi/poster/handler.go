@@ -36,6 +36,7 @@ func NewPosterHandler(uc *poster.PosterUseCase) *PosterHandler {
 // @Param room_count query int false "Exact room count"
 // @Param min_price query int false "Min price"
 // @Param max_price query int false "Max price"
+// @Param facilities query []string false "Facilities aliases"
 // @Param min_square query int false "Min area, sq.m"
 // @Param max_square query int false "Max area, sq.m"
 // @Param min_flat_floor query int false "Min floor"

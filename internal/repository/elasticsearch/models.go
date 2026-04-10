@@ -39,6 +39,10 @@ type TermQuery struct {
 	Term map[string]any `json:"term"`
 }
 
+type TermsQuery struct {
+	Terms map[string]any `json:"terms"`
+}
+
 type ScriptQuery struct {
 	Script map[string]string `json:"script"`
 }
