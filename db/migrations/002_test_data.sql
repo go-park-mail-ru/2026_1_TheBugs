@@ -178,7 +178,8 @@ INSERT INTO flat (property_id, floor, number, category_id) VALUES
     (6, 6, 45, (SELECT id FROM flat_categories WHERE room_count = 3)),
     (7, 2, 8, (SELECT id FROM flat_categories WHERE room_count = 4)),
     (8, 9, 77, (SELECT id FROM flat_categories WHERE room_count = 5)),
-    (9, 3, 22, (SELECT id FROM flat_categories WHERE room_count = 1));
+    (9, 3, 22, (SELECT id FROM flat_categories WHERE room_count = 1)),
+    (10, 3, 22, (SELECT id FROM flat_categories WHERE room_count = 1));
 
 -- ============================================================
 -- 11. Объявления (posters)
