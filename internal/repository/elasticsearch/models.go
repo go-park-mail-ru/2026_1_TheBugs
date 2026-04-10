@@ -24,6 +24,7 @@ type SearchQuery struct {
 
 type BoolQuery struct {
 	Must    []any `json:"must"`
+	Should  []any `json:"should,omitempty"`
 	Filter  []any `json:"filter,omitempty"`
 	MustNot []any `json:"must_not,omitempty"`
 }

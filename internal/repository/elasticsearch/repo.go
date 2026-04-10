@@ -57,7 +57,7 @@ func NewESRepo(client *es.Client) *ESRepo {
 }
 
 func (r *ESRepo) SearchPosters(ctx context.Context, filters dto.PostersFiltersDTO) (*dto.PostersResponse, error) {
-	var must []any
+	var should []any
 	var notMust []any
 
 	if filters.SearchQuery != nil {
@@ -75,9 +75,22 @@ func (r *ESRepo) SearchPosters(ctx context.Context, filters dto.PostersFiltersDT
 				"company_name^15",
 			},
 		}
-		must = append(must, map[string]any{"multi_match": matchQuery})
+		should = append(should, map[string]any{"multi_match": matchQuery})
+		should = append(should, map[string]interface{}{
+			"nested": map[string]interface{}{
+				"path": "facilities",
+				"query": map[string]interface{}{
+					"match": map[string]interface{}{
+						"facilities.name": map[string]interface{}{
+							"query": *filters.SearchQuery,
+							"boost": float64(10),
+						},
+					},
+				},
+			},
+		})
 	} else {
-		must = append(must, map[string]any{"match_all": map[string]any{}})
+		should = append(should, map[string]any{"match_all": map[string]any{}})
 	}
 
 	var filter []any
@@ -139,7 +152,7 @@ func (r *ESRepo) SearchPosters(ctx context.Context, filters dto.PostersFiltersDT
 		From:           filters.Offset,
 		TrackTotalHits: true,
 		Query: Query{Bool: BoolQuery{
-			Must:    must,
+			Should:  should,
 			Filter:  filter,
 			MustNot: notMust,
 		}},
