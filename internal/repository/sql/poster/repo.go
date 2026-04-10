@@ -63,6 +63,37 @@ func (r *PosterRepo) GetFlatsAll(ctx context.Context, filters dto.PostersFilters
 	return posters, nil
 }
 
+func (r *PosterRepo) GetFlatsByIDs(ctx context.Context, ids []int) ([]entity.PosterFlat, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetFlatsAll")
+	log.Info("start db query")
+	log.Info("ids", ids)
+	query := `
+        SELECT p.id, p.price, p.avatar_url,
+               b.address, m.station_name, prop.area, f.floor, p.alias, fc.name AS flat_category
+        FROM posters p
+        JOIN property prop ON prop.id = p.property_id
+        JOIN property_categories pc ON pc.id = prop.category_id
+        JOIN buildings b ON b.id = prop.building_id
+        LEFT JOIN metro_stations m ON b.metro_station_id = m.id
+		LEFT JOIN flat f ON f.property_id = prop.id
+		LEFT JOIN flat_categories fc ON fc.id = f.category_id
+		WHERE p.id = ANY($1) AND p.deleted_at IS NULL
+	`
+	rows, err := r.pool.Query(ctx, query, ids)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	defer rows.Close()
+
+	posters, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.PosterFlat])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return posters, nil
+}
+
 func (r *PosterRepo) CountPosters(ctx context.Context) (int, error) {
 	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.CountPosters")
 	log.Info("start db query")

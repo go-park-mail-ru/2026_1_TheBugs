@@ -73,22 +73,23 @@ func (r *ESRepo) SearchPosters(ctx context.Context, filters dto.PostersFiltersDT
 				"station_name^10",
 				"district^10",
 				"company_name^15",
+				"facilities.name^10",
 			},
 		}
 		should = append(should, map[string]any{"multi_match": matchQuery})
-		should = append(should, map[string]interface{}{
-			"nested": map[string]interface{}{
-				"path": "facilities",
-				"query": map[string]interface{}{
-					"match": map[string]interface{}{
-						"facilities.name": map[string]interface{}{
-							"query": *filters.SearchQuery,
-							"boost": float64(10),
-						},
-					},
-				},
-			},
-		})
+		// should = append(should, map[string]interface{}{
+		// 	"nested": map[string]interface{}{
+		// 		"path": "facilities",
+		// 		"query": map[string]interface{}{
+		// 			"match": map[string]interface{}{
+		// 				"facilities.name": map[string]interface{}{
+		// 					"query": *filters.SearchQuery,
+		// 					"boost": float64(10),
+		// 				},
+		// 			},
+		// 		},
+		// 	},
+		// })
 	} else {
 		should = append(should, map[string]any{"match_all": map[string]any{}})
 	}

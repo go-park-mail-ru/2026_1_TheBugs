@@ -22,6 +22,7 @@ type UserRepo interface {
 
 type PosterRepo interface {
 	GetFlatsAll(ctx context.Context, dto dto.PostersFiltersDTO) ([]entity.PosterFlat, error)
+	GetFlatsByIDs(ctx context.Context, ids []int) ([]entity.PosterFlat, error)
 	CountPosters(ctx context.Context) (int, error)
 
 	GetByAlias(ctx context.Context, posterAlias string, userID *int) (*entity.PosterById, error)

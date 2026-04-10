@@ -1,10 +1,16 @@
 #!/bin/bash
+set -e
+
 until curl -s http://localhost:9200/_cluster/health > /dev/null; do
   echo "Waiting for Elasticsearch..."
   sleep 2
 done
 
-curl -X PUT "localhost:9200/posters" -H 'Content-Type: application/json' -d '{
+curl -X DELETE "localhost:9200/posters" -s > /dev/null || true
+
+curl -X PUT "localhost:9200/posters" \
+  -H 'Content-Type: application/json' << 'EOF'
+{
   "settings": {
     "analysis": {
       "filter": {
@@ -32,5 +38,7 @@ curl -X PUT "localhost:9200/posters" -H 'Content-Type: application/json' -d '{
       }
     }
   }
-}'
+}
+EOF
+
 echo "✅ Индекс posters создан!"

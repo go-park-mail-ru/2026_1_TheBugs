@@ -74,12 +74,12 @@ services:
     ports:
       - "9200:9200"
     volumes:
-      - ./deploy/elasticsearch/init.sh:/usr/local/bin/init.sh
+      - ./deploy/elasticsearch/init.sh:/usr/local/bin/init-es.sh
     command: >
       bash -c "
         /usr/local/bin/docker-entrypoint.sh elasticsearch &
         sleep 30 && 
-        bash /usr/local/bin/init.sh &&
+        sh /usr/local/bin/init-es.sh &&
         wait
       "
     healthcheck:

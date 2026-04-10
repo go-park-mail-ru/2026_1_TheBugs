@@ -79,6 +79,16 @@ func (uc *PosterUseCase) SearchPostersUseCase(ctx context.Context, filters dto.P
 		log.Printf("uc.search.SearchPosters: %s", err)
 		return nil, err
 	}
+	ids := make([]int, 0, response.Len)
+	for _, p := range response.Posters {
+		ids = append(ids, p.ID)
+	}
+	posters, err := uc.uow.Posters().GetFlatsByIDs(ctx, ids)
+	if err != nil {
+		log.Printf("uc.uow.Posters().GetFlatsByIDs: %s", err)
+		return nil, err
+	}
+	response.Posters = dto.PostersToPostersDTO(posters)
 	return response, nil
 }
 
@@ -180,6 +190,11 @@ func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.Poste
 	flat := dto.PosterInputFlatDTOtoFlatInput(poster)
 
 	post.Alias = alias.GenerateAlias(post)
+
+	p, err := uc.uow.Posters().GetByAlias(ctx, post.Alias, nil)
+	if err == nil {
+		return &dto.CreatedPoster{ID: p.ID, Alias: p.Alias}, nil
+	}
 
 	dto.MakePhotoPathsForPoster(post)
 
