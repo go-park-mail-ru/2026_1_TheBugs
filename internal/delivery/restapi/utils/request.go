@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"sort"
 	"strconv"
 
@@ -132,4 +133,63 @@ func ParsePhotos(r *http.Request) ([]dto.PhotoInputDTO, error) {
 	})
 
 	return photos, nil
+}
+
+const (
+	defaultLimit  = "12"
+	defaultOffset = "0"
+)
+
+func ParsePostersFilters(r *http.Request) (dto.PostersFiltersDTO, error) {
+	q := r.URL.Query()
+
+	limit, _ := strconv.Atoi(q.Get("limit"))
+	if limit == 0 {
+		limit, _ = strconv.Atoi(defaultLimit)
+	}
+
+	offset, _ := strconv.Atoi(q.Get("offset"))
+	if offset == 0 {
+		offset, _ = strconv.Atoi(defaultOffset)
+	}
+
+	params := dto.PostersFiltersDTO{
+		Offset: offset,
+		Limit:  limit,
+	}
+
+	if v := q.Get("search_query"); v != "" {
+		params.SearchQuery = &v
+	}
+	if v := q.Get("utility_company"); v != "" {
+		params.UtilityCompany = &v
+	}
+	if v := q.Get("category"); v != "" {
+		params.Category = &v
+	}
+
+	if v := q.Get("room_count"); v != "" {
+		i, _ := strconv.Atoi(v)
+		params.RoomCount = &i
+	}
+	setIntIfNotEmpty(q, "min_price", &params.MinPrice)
+	setIntIfNotEmpty(q, "max_price", &params.MaxPrice)
+	setIntIfNotEmpty(q, "min_square", &params.MinSquare)
+	setIntIfNotEmpty(q, "max_square", &params.MaxSquare)
+	setIntIfNotEmpty(q, "min_flat_floor", &params.MinFlatFloor)
+	setIntIfNotEmpty(q, "max_flat_floor", &params.MaxFlatFloor)
+	setIntIfNotEmpty(q, "min_building_floor", &params.MinBuildingFloor)
+	setIntIfNotEmpty(q, "max_building_floor", &params.MaxBuildingFloor)
+
+	params.IsNotFirstFloor = q.Get("not_first_floor") == "true"
+	params.IsNotLastFloor = q.Get("not_last_floor") == "true"
+
+	return params, nil
+}
+
+func setIntIfNotEmpty(q url.Values, key string, ptr **int) {
+	if v := q.Get(key); v != "" {
+		i, _ := strconv.Atoi(v)
+		*ptr = &i
+	}
 }

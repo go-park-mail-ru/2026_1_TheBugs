@@ -16,15 +16,16 @@ type Query struct {
 	Bool BoolQuery `json:"bool"`
 }
 type SearchQuery struct {
-	Size           int         `json:"size"`
-	From           int         `json:"from"`
-	TrackTotalHits interface{} `json:"track_total_hits"`
-	Query          Query       `json:"query"`
+	Size           int   `json:"size"`
+	From           int   `json:"from"`
+	TrackTotalHits any   `json:"track_total_hits"`
+	Query          Query `json:"query"`
 }
 
 type BoolQuery struct {
-	Must   []interface{} `json:"must"`
-	Filter []interface{} `json:"filter,omitempty"`
+	Must    []any `json:"must"`
+	Filter  []any `json:"filter,omitempty"`
+	MustNot []any `json:"must_not,omitempty"`
 }
 
 type MultiMatchQuery struct {
@@ -35,5 +36,13 @@ type MultiMatchQuery struct {
 }
 
 type TermQuery struct {
-	Term map[string]string `json:"term"`
+	Term map[string]any `json:"term"`
+}
+
+type ScriptQuery struct {
+	Script map[string]string `json:"script"`
+}
+
+type RangeQuery struct {
+	Range map[string]map[string]int `json:"range"`
 }

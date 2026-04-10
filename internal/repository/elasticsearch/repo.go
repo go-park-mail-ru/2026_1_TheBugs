@@ -12,6 +12,23 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 )
 
+func ApplyRangeFilter[T []any](filters T, field string, max *int, min *int) T {
+	if max != nil || min != nil {
+		rangeFilter := make(map[string]int)
+		if max != nil {
+			rangeFilter["lte"] = *max
+		}
+		if min != nil {
+			rangeFilter["gte"] = *min
+		}
+
+		filters = append(filters, RangeQuery{Range: map[string]map[string]int{
+			field: rangeFilter,
+		}})
+	}
+	return filters
+}
+
 type ESRepo struct {
 	client *es.Client
 }
@@ -40,7 +57,8 @@ func NewESRepo(client *es.Client) *ESRepo {
 }
 
 func (r *ESRepo) SearchPosters(ctx context.Context, filters dto.PostersFiltersDTO) (*dto.PostersResponse, error) {
-	var must []interface{}
+	var must []any
+	var notMust []any
 
 	if filters.SearchQuery != nil {
 		matchQuery := MultiMatchQuery{
@@ -57,28 +75,68 @@ func (r *ESRepo) SearchPosters(ctx context.Context, filters dto.PostersFiltersDT
 				"company_name^15",
 			},
 		}
-		must = append(must, map[string]interface{}{"multi_match": matchQuery})
+		must = append(must, map[string]any{"multi_match": matchQuery})
 	} else {
-		must = append(must, map[string]interface{}{"match_all": map[string]interface{}{}})
+		must = append(must, map[string]any{"match_all": map[string]any{}})
 	}
 
-	var filter []interface{}
+	var filter []any
 	if filters.UtilityCompany != nil {
 		termQuery := TermQuery{
-			Term: map[string]string{
+			Term: map[string]any{
 				"company_alias": *filters.UtilityCompany,
 			},
 		}
 		filter = append(filter, termQuery)
 	}
 
+	if filters.Category != nil {
+		termQuery := TermQuery{
+			Term: map[string]any{
+				"category_alias": *filters.Category,
+			},
+		}
+		filter = append(filter, termQuery)
+	}
+	if filters.RoomCount != nil {
+		termQuery := TermQuery{
+			Term: map[string]any{
+				"room_count": *filters.RoomCount,
+			},
+		}
+		filter = append(filter, termQuery)
+	}
+
+	// if filters.Facilities != nil {
+	// 	// TODO: подумать как это фильтровать
+	// }
+
+	if filters.IsNotFirstFloor {
+		notMust = append(notMust, map[string]any{
+			"term": map[string]any{"floor": 1},
+		})
+	}
+	if filters.IsNotLastFloor {
+		notMust = append(notMust, map[string]any{
+			"script": map[string]any{
+				"source": "doc['floor'].value == doc['building_floor'].value",
+			},
+		})
+	}
+
+	filter = ApplyRangeFilter(filter, "price", filters.MaxPrice, filters.MinPrice)
+	filter = ApplyRangeFilter(filter, "area", filters.MaxSquare, filters.MinSquare)
+	filter = ApplyRangeFilter(filter, "floor", filters.MaxFlatFloor, filters.MinFlatFloor)
+	filter = ApplyRangeFilter(filter, "building_floor", filters.MaxBuildingFloor, filters.MinBuildingFloor)
+
 	searchQuery := SearchQuery{
 		Size:           filters.Limit,
 		From:           filters.Offset,
 		TrackTotalHits: true,
 		Query: Query{Bool: BoolQuery{
-			Must:   must,
-			Filter: filter,
+			Must:    must,
+			Filter:  filter,
+			MustNot: notMust,
 		}},
 	}
 
