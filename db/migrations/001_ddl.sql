@@ -12,8 +12,8 @@ CREATE TABLE IF NOT EXISTS profiles (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), 
  
     CONSTRAINT phone_check CHECK (phone ~ '^(\+7|8)\s\d{3}\s\d{3}\s\d{2}\s\d{2}$'), 
-    CONSTRAINT first_name_length_check CHECK ( LENGTH(first_name) < 40 ),
-    CONSTRAINT last_name_length_check CHECK ( LENGTH(last_name) < 40 ) 
+    CONSTRAINT first_name_length_check CHECK ( LENGTH(first_name) <= 40 ),
+    CONSTRAINT last_name_length_check CHECK ( LENGTH(last_name) <= 40 ) 
 ); 
 COMMENT ON TABLE profiles IS 'Профиль';
 
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS users (
     profile_id BIGINT NOT NULL, 
 
     CONSTRAINT fk_profile FOREIGN KEY (profile_id) REFERENCES profiles(id), 
-    CONSTRAINT email_check CHECK ( email ~ '^[^@]+@[^@]+\.[^@]+$' AND LENGTH(email)<150 ), 
+    CONSTRAINT email_check CHECK ( email ~ '^[^@]+@[^@]+\.[^@]+$' AND LENGTH(email)<= 150 ), 
     CONSTRAINT auth_check CHECK ( hashed_password IS NOT NULL OR provider IS NOT NULL) 
 ); 
 
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS cities (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY, 
     city_name TEXT NOT NULL UNIQUE, 
  
-    CONSTRAINT city_name_length_check CHECK ( LENGTH(city_name) < 40 ) 
+    CONSTRAINT city_name_length_check CHECK ( LENGTH(city_name) <= 40 ) 
 ); 
 COMMENT ON TABLE cities IS 'Города';
  
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS metro_stations (
     station_name TEXT NOT NULL, 
     geo GEOGRAPHY(POINT, 4326) NOT NULL, 
 
-    CONSTRAINT station_name_length_check CHECK ( LENGTH(station_name) < 40 ) 
+    CONSTRAINT station_name_length_check CHECK ( LENGTH(station_name) <= 40 ) 
 ); 
 
 COMMENT ON TABLE metro_stations IS 'Станции метро';
@@ -71,8 +71,8 @@ CREATE TABLE IF NOT EXISTS property_categories (
     name TEXT NOT NULL, 
     alias TEXT UNIQUE NOT NULL,
  
-    CONSTRAINT name_length_check CHECK ( LENGTH(name) < 30 ),
-    CONSTRAINT alias_length_check CHECK ( LENGTH(alias) < 50 )
+    CONSTRAINT name_length_check CHECK ( LENGTH(name) <= 30 ),
+    CONSTRAINT alias_length_check CHECK ( LENGTH(alias) <= 50 )
 ); 
 COMMENT ON TABLE property_categories IS 'Тип помещения';
 
@@ -81,8 +81,8 @@ CREATE TABLE IF NOT EXISTS facilities(
     name TEXT NOT NULL, 
     alias TEXT UNIQUE NOT NULL,
 
-    CONSTRAINT name_length_check CHECK ( LENGTH(name) < 30 ),
-    CONSTRAINT alias_length_check CHECK ( LENGTH(alias) < 50 ) 
+    CONSTRAINT name_length_check CHECK ( LENGTH(name) <= 30 ),
+    CONSTRAINT alias_length_check CHECK ( LENGTH(alias) <= 50 ) 
 );
 
 COMMENT ON TABLE facilities IS 'Удобства';
@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS developers (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
-    CONSTRAINT developer_name_length_check CHECK (LENGTH(developer_name) < 100)
+    CONSTRAINT developer_name_length_check CHECK (LENGTH(developer_name) <= 100)
 );
 
 COMMENT ON TABLE developers IS 'Застройщики';
@@ -114,9 +114,9 @@ CREATE TABLE IF NOT EXISTS utility_companies(
     developer_id BIGINT,
 
     CONSTRAINT phone_check CHECK (phone ~ '^(\+7|8)\s\d{3}\s\d{3}\s\d{2}\s\d{2}$'), 
-    CONSTRAINT address_check CHECK ( LENGTH(address) >= 5 AND LENGTH(address) < 500 ),
+    CONSTRAINT address_check CHECK ( LENGTH(address) >= 5 AND LENGTH(address) <= 500 ),
     CONSTRAINT fk_developer FOREIGN KEY (developer_id) REFERENCES developers(id),
-    CONSTRAINT description_length_check CHECK ( LENGTH(description) < 1000 )
+    CONSTRAINT description_length_check CHECK ( LENGTH(description) <= 3000 )
 );
 COMMENT ON TABLE utility_companies IS 'Компании услуг/ЖК';
 
@@ -135,9 +135,9 @@ CREATE TABLE IF NOT EXISTS buildings (
     CONSTRAINT fk_metro_station FOREIGN KEY (metro_station_id) REFERENCES metro_stations(id), 
     --CONSTRAINT city_check LENGTH(city) < 30 , 
     CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES utility_companies(id), 
-    CONSTRAINT address_check CHECK ( address ~ '^[а-яА-ЯёЁ\s\-\,\.\d\/]+$' AND LENGTH(address) >= 5 AND LENGTH(address) < 150 ), 
-    CONSTRAINT district_length_check CHECK ( LENGTH(district) < 30 ), 
-    CONSTRAINT floor_count_length_check CHECK ( floor_count < 500 ) 
+    CONSTRAINT address_check CHECK ( LENGTH(address) >= 5 AND LENGTH(address) <= 500 ), 
+    CONSTRAINT district_length_check CHECK ( LENGTH(district) < 100 ), 
+    CONSTRAINT floor_count_length_check CHECK (floor_count > 0 AND floor_count <= 500 ) 
 ); 
  
 COMMENT ON TABLE buildings IS 'Дома';
@@ -176,7 +176,7 @@ CREATE TABLE IF NOT EXISTS posters (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), 
     deleted_at TIMESTAMPTZ, 
     user_id BIGINT NOT NULL, 
-    property_id BIGINT NOT NULL, 
+    property_id BIGINT, 
     alias TEXT UNIQUE NOT NULL, 
     
  
@@ -184,7 +184,7 @@ CREATE TABLE IF NOT EXISTS posters (
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id), 
     CONSTRAINT fk_property FOREIGN KEY (property_id) REFERENCES property(id), 
     CONSTRAINT price_check CHECK ( price > 0 ), 
-    CONSTRAINT description_length_check CHECK ( LENGTH(description) < 3000 ) 
+    CONSTRAINT description_length_check CHECK ( LENGTH(description) <= 3000 ) 
 ); 
 COMMENT ON TABLE posters IS 'Объявления';
  
@@ -196,7 +196,7 @@ CREATE TABLE IF NOT EXISTS poster_photos (
     poster_id BIGINT NOT NULL, 
  
     CONSTRAINT fk_poster FOREIGN KEY (poster_id) REFERENCES posters(id), 
-    CONSTRAINT sequence_order_check CHECK (sequence_order > 0 AND sequence_order < 16) 
+    CONSTRAINT sequence_order_check CHECK (sequence_order >= 0 AND sequence_order <= 12) 
 ); 
 
 COMMENT ON TABLE poster_photos IS 'Фото объявления';

@@ -63,6 +63,37 @@ func (r *PosterRepo) GetFlatsAll(ctx context.Context, filters dto.PostersFilters
 	return posters, nil
 }
 
+func (r *PosterRepo) GetFlatsByIDs(ctx context.Context, ids []int) ([]entity.PosterFlat, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetFlatsAll")
+	log.Info("start db query")
+	log.Info("ids", ids)
+	query := `
+        SELECT p.id, p.price, p.avatar_url,
+               b.address, m.station_name, prop.area, f.floor, p.alias, fc.name AS flat_category
+        FROM posters p
+        JOIN property prop ON prop.id = p.property_id
+        JOIN property_categories pc ON pc.id = prop.category_id
+        JOIN buildings b ON b.id = prop.building_id
+        LEFT JOIN metro_stations m ON b.metro_station_id = m.id
+		LEFT JOIN flat f ON f.property_id = prop.id
+		LEFT JOIN flat_categories fc ON fc.id = f.category_id
+		WHERE p.id = ANY($1) AND p.deleted_at IS NULL
+	`
+	rows, err := r.pool.Query(ctx, query, ids)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	defer rows.Close()
+
+	posters, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.PosterFlat])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return posters, nil
+}
+
 func (r *PosterRepo) CountPosters(ctx context.Context) (int, error) {
 	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.CountPosters")
 	log.Info("start db query")
@@ -80,8 +111,7 @@ func (r *PosterRepo) GetByAlias(ctx context.Context, posterAlias string, userID 
 	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetByAlias")
 	log.Info("start db query")
 
-	query := `
-		SELECT p.id, p.alias, p.price, pc.name AS category_name, pc.alias AS category_alias,
+	query := `SELECT p.id, p.alias, p.price, pc.name AS category_name, pc.alias AS category_alias,
 			   p.description, prop.area, prop.id AS property_id, 
 			   ST_AsText(b.geo) AS building_geo, b.address, b.district, 
 			   ms.station_name, ST_AsText(ms.geo) AS metro_geo, c.city_name, 
@@ -96,13 +126,15 @@ func (r *PosterRepo) GetByAlias(ctx context.Context, posterAlias string, userID 
 		LEFT JOIN utility_companies uc ON uc.id = b.company_id
 		JOIN users u ON u.id = p.user_id
 		JOIN profiles pr ON pr.id = u.profile_id
-		WHERE p.alias = $1
-	`
+		WHERE p.alias = $1 AND p.deleted_at IS NULL`
+
 	args := []any{posterAlias}
 	if userID != nil {
-		query += ` AND p.user_id = $2`
+		query += " AND p.user_id = $2"
 		args = append(args, *userID)
 	}
+	log.Info(query)
+	log.Info(args)
 
 	rows, err := r.pool.Query(ctx, query, args...)
 	if err != nil {
@@ -163,7 +195,7 @@ func (r *PosterRepo) GetByUserID(ctx context.Context, userID int) ([]entity.Post
         JOIN property prop ON prop.id = p.property_id
         JOIN property_categories pc ON pc.id = prop.category_id
         JOIN buildings b ON b.id = prop.building_id
-		WHERE p.user_id = $1;
+		WHERE p.user_id = $1 AND p.deleted_at IS NULL;
 	`
 	rows, err := r.pool.Query(ctx, sql, userID)
 	if err != nil {
@@ -207,7 +239,7 @@ func getPosterFacilities(r *PosterRepo, ctx context.Context, id int) ([]entity.F
 		JOIN facility_property fp ON fp.facility_id = f.id
 		JOIN property pr ON pr.id = fp.property_id
 		JOIN posters pt ON pt.property_id = pr.id
-		WHERE pt.id = $1
+		WHERE pt.id = $1 AND pt.deleted_at IS NULL
 		ORDER BY f.name
 	`
 
@@ -413,7 +445,7 @@ func (r *PosterRepo) InsertMainPhoto(ctx context.Context, posterID int, avatarUR
 	query := `
 		UPDATE posters
 		SET avatar_url = $1
-		WHERE id = $2
+		WHERE id = $2 AND deleted_at IS NULL
 	`
 
 	_, err := r.pool.Exec(ctx, query, avatarURL, posterID)
@@ -432,7 +464,7 @@ func (r *PosterRepo) GetUpdateIDsByAlias(ctx context.Context, alias string) (*dt
 		SELECT p.id, p.user_id, p.property_id, pr.building_id
 		FROM posters p
 		JOIN property pr ON pr.id = p.property_id
-		WHERE p.alias = $1
+		WHERE p.alias = $1 AND p.deleted_at IS NULL
 	`
 	var ids dto.PosterUpdateIDs
 
@@ -470,7 +502,7 @@ func (r *PosterRepo) Update(ctx context.Context, posterID int, poster *dto.Poste
 	query := `
 		UPDATE posters
 		SET price = $1, description = $2
-		WHERE id = $3
+		WHERE id = $3 AND deleted_at IS NULL
 	`
 
 	_, err := r.pool.Exec(ctx, query, poster.Price,
@@ -615,7 +647,7 @@ func (r *PosterRepo) DeletePhotosByPosterID(ctx context.Context, posterID int) e
 	clearAvatarQuery := `
 		UPDATE posters
 		SET avatar_url = NULL
-		WHERE id = $1
+		WHERE id = $1 AND deleted_at IS NULL
 	`
 
 	_, err = r.pool.Exec(ctx, clearAvatarQuery, posterID)
@@ -648,8 +680,8 @@ func (r *PosterRepo) Delete(ctx context.Context, posterID int) error {
 	log.Info("start db delete poster")
 
 	query := `
-        UPDATE posters SET deleted_at = NOW()
-        WHERE id = $1
+        UPDATE posters SET deleted_at = NOW(), property_id = NULL
+        WHERE id = $1 AND deleted_at IS NULL
     `
 	_, err := r.pool.Exec(ctx, query, posterID)
 	if err != nil {

@@ -971,7 +971,7 @@ const docTemplate = `{
         },
         "/posters/flats": {
             "get": {
-                "description": "Returns the number of retrieved posters and their list",
+                "description": "Returns filtered list of apartment posters",
                 "produces": [
                     "application/json"
                 ],
@@ -981,10 +981,11 @@ const docTemplate = `{
                 "summary": "Get list of posters",
                 "parameters": [
                     {
+                        "maximum": 100,
                         "minimum": 1,
                         "type": "integer",
                         "default": 12,
-                        "description": "Number of posters",
+                        "description": "Posters per page",
                         "name": "limit",
                         "in": "query"
                     },
@@ -998,8 +999,98 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Utility company",
+                        "description": "Full-text search",
+                        "name": "search_query",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Utility company alias",
                         "name": "utility_company",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Category alias",
+                        "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Exact room count",
+                        "name": "room_count",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Min price",
+                        "name": "min_price",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Max price",
+                        "name": "max_price",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Facilities aliases",
+                        "name": "facilities",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Min area, sq.m",
+                        "name": "min_square",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Max area, sq.m",
+                        "name": "max_square",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Min floor",
+                        "name": "min_flat_floor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Max floor",
+                        "name": "max_flat_floor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Min building floors",
+                        "name": "min_building_floor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Max building floors",
+                        "name": "max_building_floor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Exclude 1st floor",
+                        "name": "not_first_floor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Exclude last floor",
+                        "name": "not_last_floor",
                         "in": "query"
                     }
                 ],
@@ -1012,18 +1103,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }

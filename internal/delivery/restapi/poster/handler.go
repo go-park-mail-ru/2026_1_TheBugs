@@ -2,7 +2,6 @@ package poster
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/response"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
@@ -26,58 +25,42 @@ func NewPosterHandler(uc *poster.PosterUseCase) *PosterHandler {
 }
 
 // @Summary Get list of posters
-// @Description Returns the number of retrieved posters and their list
+// @Description Returns filtered list of apartment posters
 // @Tags posters
 // @Produce json
-// @Param limit query int false "Number of posters" default(12) minimum(1)
+// @Param limit query int false "Posters per page" default(12) minimum(1) maximum(100)
 // @Param offset query int false "Pagination offset" default(0) minimum(0)
-// @Param utility_company query string false "Utility company"
+// @Param search_query query string false "Full-text search"
+// @Param utility_company query string false "Utility company alias"
+// @Param category query string false "Category alias"
+// @Param room_count query int false "Exact room count"
+// @Param min_price query int false "Min price"
+// @Param max_price query int false "Max price"
+// @Param facilities query []string false "Facilities aliases"
+// @Param min_square query int false "Min area, sq.m"
+// @Param max_square query int false "Max area, sq.m"
+// @Param min_flat_floor query int false "Min floor"
+// @Param max_flat_floor query int false "Max floor"
+// @Param min_building_floor query int false "Min building floors"
+// @Param max_building_floor query int false "Max building floors"
+// @Param not_first_floor query boolean false "Exclude 1st floor" default(false)
+// @Param not_last_floor query boolean false "Exclude last floor" default(false)
 // @Success 200 {object} dto.PostersResponse
 // @Failure 400 {object} response.ErrorResponse
-// @Failure 401 {object} response.ErrorResponse
-// @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
 // @Router /posters/flats [get]
 func (h *PosterHandler) GetFlatsAll(w http.ResponseWriter, r *http.Request) {
 	op := "PosterHandler.GetFlatsAll"
 	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
-	var params dto.PostersFiltersDTO
-
-	limit := r.URL.Query().Get("limit")
-	offset := r.URL.Query().Get("offset")
-	utilityCompany := r.URL.Query().Get("utility_company")
-
-	if limit == "" {
-		limit = defaultLimit
-	}
-
-	if offset == "" {
-		offset = defaultOffset
-	}
-
-	reqLimit, err := strconv.Atoi(limit)
+	params, err := utils.ParsePostersFilters(r)
 	if err != nil {
-		log.Errorf("Atoi: %s", err)
-		utils.WriteError(w, "bad limit query param", http.StatusBadRequest)
+		log.Errorf("utils.ParsePostersFilters: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
 
-	params.Limit = reqLimit
-
-	reqOffset, err := strconv.Atoi(offset)
-	if err != nil {
-		log.Errorf("Atoi: %s", err)
-		utils.WriteError(w, "bad offset query param", http.StatusBadRequest)
-		return
-	}
-
-	params.Offset = reqOffset
-	if utilityCompany != "" {
-		params.UtilityCompany = &utilityCompany
-	}
-
-	posters, err := h.uc.GetPostersUseCase(r.Context(), params)
+	posters, err := h.uc.SearchPostersUseCase(r.Context(), params)
 	if err != nil {
 		log.Errorf("h.uc.GetPostersUseCase: %s", err)
 		utils.HandelError(w, err)

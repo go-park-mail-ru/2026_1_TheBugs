@@ -23,6 +23,7 @@ type UserRepo interface {
 
 type PosterRepo interface {
 	GetFlatsAll(ctx context.Context, dto dto.PostersFiltersDTO) ([]entity.PosterFlat, error)
+	GetFlatsByIDs(ctx context.Context, ids []int) ([]entity.PosterFlat, error)
 	CountPosters(ctx context.Context) (int, error)
 
 	GetByAlias(ctx context.Context, posterAlias string, userID *int) (*entity.PosterById, error)
@@ -96,4 +97,8 @@ type FileRepo interface {
 	Upload(ctx context.Context, key string, reader io.Reader, size int64, contentType string) error
 	Delete(ctx context.Context, key string) error
 	Get(ctx context.Context, key string) (io.ReadCloser, error)
+}
+
+type SearchRepo interface {
+	SearchPosters(ctx context.Context, filters dto.PostersFiltersDTO) (*dto.PostersResponse, error)
 }

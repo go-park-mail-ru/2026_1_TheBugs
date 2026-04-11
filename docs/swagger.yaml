@@ -919,11 +919,12 @@ paths:
       - posters
   /posters/flats:
     get:
-      description: Returns the number of retrieved posters and their list
+      description: Returns filtered list of apartment posters
       parameters:
       - default: 12
-        description: Number of posters
+        description: Posters per page
         in: query
+        maximum: 100
         minimum: 1
         name: limit
         type: integer
@@ -933,10 +934,71 @@ paths:
         minimum: 0
         name: offset
         type: integer
-      - description: Utility company
+      - description: Full-text search
+        in: query
+        name: search_query
+        type: string
+      - description: Utility company alias
         in: query
         name: utility_company
         type: string
+      - description: Category alias
+        in: query
+        name: category
+        type: string
+      - description: Exact room count
+        in: query
+        name: room_count
+        type: integer
+      - description: Min price
+        in: query
+        name: min_price
+        type: integer
+      - description: Max price
+        in: query
+        name: max_price
+        type: integer
+      - collectionFormat: csv
+        description: Facilities aliases
+        in: query
+        items:
+          type: string
+        name: facilities
+        type: array
+      - description: Min area, sq.m
+        in: query
+        name: min_square
+        type: integer
+      - description: Max area, sq.m
+        in: query
+        name: max_square
+        type: integer
+      - description: Min floor
+        in: query
+        name: min_flat_floor
+        type: integer
+      - description: Max floor
+        in: query
+        name: max_flat_floor
+        type: integer
+      - description: Min building floors
+        in: query
+        name: min_building_floor
+        type: integer
+      - description: Max building floors
+        in: query
+        name: max_building_floor
+        type: integer
+      - default: false
+        description: Exclude 1st floor
+        in: query
+        name: not_first_floor
+        type: boolean
+      - default: false
+        description: Exclude last floor
+        in: query
+        name: not_last_floor
+        type: boolean
       produces:
       - application/json
       responses:
@@ -946,14 +1008,6 @@ paths:
             $ref: '#/definitions/dto.PostersResponse'
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "404":
-          description: Not Found
           schema:
             $ref: '#/definitions/response.ErrorResponse'
         "500":

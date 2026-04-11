@@ -21,6 +21,8 @@ const maxPwdLenght = 64
 const maxPhoneLenght = 20
 const maxNameLenght = 40
 
+const maxPriceSize = 10000000
+
 const maxPhotoSize = 10 << 20
 const MaxPhotosLength = 12
 
@@ -115,7 +117,7 @@ func ValidatePhotos(photos []dto.PhotoInputDTO) error {
 		if photo.FileHeader != nil && !ValidatePhoto(photo.FileHeader) {
 			return entity.NewValidationError(fmt.Sprintf("photos[%d]", i))
 		}
-		if photo.Order <= 0 {
+		if photo.Order < 0 {
 			return entity.NewValidationError(fmt.Sprintf("photos[%d].order", i))
 		}
 		if photo.Order > MaxPhotosLength {
@@ -145,6 +147,9 @@ func ValidatePosterInputFlat(poster *dto.PosterInputFlatDTO) error {
 	}
 	if poster.District != nil && len(*poster.District) > 100 {
 		return entity.NewValidationError("district")
+	}
+	if poster.Price <= 0 || poster.Price > maxPriceSize {
+		return entity.NewValidationError("price")
 	}
 
 	return nil

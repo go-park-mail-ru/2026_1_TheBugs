@@ -31,9 +31,23 @@ type PostersResponse struct {
 }
 
 type PostersFiltersDTO struct {
-	Limit          int
-	Offset         int
-	UtilityCompany *string
+	Limit            int
+	Offset           int
+	SearchQuery      *string
+	UtilityCompany   *string
+	Category         *string
+	MaxPrice         *int
+	MinPrice         *int
+	RoomCount        *int
+	MaxSquare        *int
+	MinSquare        *int
+	Facilities       []string
+	MaxFlatFloor     *int
+	MinFlatFloor     *int
+	IsNotFirstFloor  bool
+	IsNotLastFloor   bool
+	MaxBuildingFloor *int
+	MinBuildingFloor *int
 }
 
 func PostersToPostersDTO(posters []entity.PosterFlat) []PosterCardDTO {
