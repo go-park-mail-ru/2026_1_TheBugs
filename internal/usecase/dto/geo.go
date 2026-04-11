@@ -5,8 +5,8 @@ import (
 )
 
 type GeographyDTO struct {
-	Lat float64 `json:"lat"`
-	Lon float64 `json:"lon"`
+	Lat float64 `json:"lat" schema:"lat"`
+	Lon float64 `json:"lon" schema:"lon"`
 }
 
 func GeographyPointToGeographyDTO(point geo.GeographyPoint) GeographyDTO {
@@ -26,13 +26,7 @@ func GeographyPointPtrToGeographyDTO(point *geo.GeographyPoint) *GeographyDTO {
 		Lon: point.Lon,
 	}
 }
-
-type GeographyInputDTO struct {
-	Lat float64 `schema:"lat"`
-	Lon float64 `schema:"lon"`
-}
-
-func GeographyInputDTOtoGeographyPoint(point GeographyInputDTO) geo.GeographyPoint {
+func GeographyInputDTOtoGeographyPoint(point GeographyDTO) geo.GeographyPoint {
 	return geo.GeographyPoint{
 		Lat: point.Lat,
 		Lon: point.Lon,

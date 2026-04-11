@@ -123,13 +123,6 @@ func PosterToPosterDTO(poster *entity.PosterById) *PosterDTO {
 	}
 }
 
-// id: number;
-//   alias: string;
-//   address: string;
-//   area: number;
-//   price: number;
-//   avatar_url: string;
-
 type MyPosterDTO struct {
 	ID        int         `json:"id"`
 	Alias     string      `json:"alias"`
@@ -197,7 +190,7 @@ func PosterInputFlatDTOtoPosterInput(poster *PosterInputFlatDTO) *PosterInput {
 		Area:          poster.Area,
 
 		Address:    poster.Address,
-		Geo:        GeographyInputDTOtoGeographyPoint(GeographyInputDTO{Lat: poster.GeoLat, Lon: poster.GeoLon}),
+		Geo:        GeographyInputDTOtoGeographyPoint(GeographyDTO{Lat: poster.GeoLat, Lon: poster.GeoLon}),
 		District:   poster.District,
 		FloorCount: poster.FloorCount,
 
