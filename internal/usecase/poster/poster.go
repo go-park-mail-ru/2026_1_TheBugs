@@ -153,11 +153,6 @@ func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.Poste
 		return nil, fmt.Errorf("validator.ValidatePosterBase: %w", err)
 	}
 
-	err = validator.ValidatePosterInputFlat(poster)
-	if err != nil {
-		return nil, fmt.Errorf("validator.ValidatePosterInputFlat: %w", err)
-	}
-
 	err = validator.ValidatePhotos(poster.Images)
 	if err != nil {
 		return nil, fmt.Errorf("validator.ValidatePhotos: %w", err)
@@ -305,7 +300,7 @@ func (uc *PosterUseCase) uploadPhoto(ctx context.Context, photoPoster dto.PhotoI
 }
 
 func (uc *PosterUseCase) UpdateFlatPoster(ctx context.Context, alias string, poster *dto.PosterInputFlatDTO) (*dto.CreatedPoster, error) {
-	err := validator.ValidatePosterInputFlat(poster)
+	err := validator.ValidatePosterBase(poster)
 	if err != nil {
 		return nil, fmt.Errorf("validator.ValidatePosterInputFlat: %w", err)
 	}

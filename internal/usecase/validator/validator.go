@@ -28,10 +28,10 @@ const maxPriceSize = 10000000
 const maxPhotoSize = 10 << 20
 const MaxPhotosLength = 12
 
-const maxPosterDescriptionLength = 500
+const maxPosterDescriptionLength = 3000
 const minAddressLength = 5
 const maxAddressLength = 500
-const maxDistrictLength = 39
+const maxDistrictLength = 100
 const maxFloorCount = 100
 const maxFacilityAliasLength = 50
 
@@ -136,38 +136,6 @@ func ValidatePhotos(photos []dto.PhotoInputDTO) error {
 	return nil
 }
 
-func ValidatePosterInputFlat(poster *dto.PosterInputFlatDTO) error {
-	if poster.FlatNumber != nil && *poster.FlatNumber <= 0 {
-		return entity.NewValidationError("flat_number")
-	}
-
-	if poster.FlatFloor <= 0 || poster.FlatFloor > 500 {
-		return entity.NewValidationError("flat_floor")
-	}
-
-	if poster.FloorCount <= 0 || poster.FloorCount > 500 {
-		return entity.NewValidationError("floor_count")
-	}
-
-	if poster.FlatFloor > poster.FloorCount {
-		return entity.NewValidationError("flat_floor")
-	}
-	if len(poster.Description) > 3000 {
-		return entity.NewValidationError("descriprion")
-	}
-	if len(poster.Address) < 5 || len(poster.Address) > 500 {
-		return entity.NewValidationError("address")
-	}
-	if poster.District != nil && len(*poster.District) > 100 {
-		return entity.NewValidationError("district")
-	}
-	if poster.Price <= 0 || poster.Price > maxPriceSize {
-		return entity.NewValidationError("price")
-	}
-
-	return nil
-}
-
 func ValidateAddress(address string) bool {
 	address = strings.TrimSpace(address)
 
@@ -201,7 +169,7 @@ func ValidateFeatures(features []string) bool {
 }
 
 func ValidatePosterBase(poster *dto.PosterInputFlatDTO) error {
-	if poster.Price <= 0 {
+	if poster.Price <= 0 || poster.Price > maxPriceSize {
 		return entity.NewValidationError("price")
 	}
 

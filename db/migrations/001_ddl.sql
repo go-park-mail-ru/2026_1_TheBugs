@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS users (
     profile_id BIGINT NOT NULL, 
 
     CONSTRAINT fk_profile FOREIGN KEY (profile_id) REFERENCES profiles(id), 
-    CONSTRAINT email_check CHECK ( email ~ '^[^@]+@[^@]+\.[^@]+$' AND LENGTH(email)<= 150 ), 
+    CONSTRAINT email_check CHECK ( email ~ '^[^@]+@[^@]+\.[^@]+$' AND LENGTH(email)<= 255 ), 
     CONSTRAINT auth_check CHECK ( hashed_password IS NOT NULL OR provider IS NOT NULL) 
 ); 
 
