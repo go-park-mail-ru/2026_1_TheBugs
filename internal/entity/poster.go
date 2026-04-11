@@ -1,30 +1,30 @@
 package entity
 
 import (
-	"mime/multipart"
-
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
 )
 
 type PosterFlat struct {
-	ID           int     `db:"id"`
-	Price        float64 `db:"price"`
-	ImgURL       *string `db:"avatar_url"`
-	Address      string  `db:"address"`
-	Metro        *string `db:"station_name"`
-	Area         float64 `db:"area"`
-	Alias        string  `db:"alias"`
-	Floor        int     `db:"floor"`
-	FlatCategory *string `db:"flat_category"`
+	ID           int     `db:"id" json:"id"`
+	Price        float64 `db:"price" json:"price"`
+	ImgURL       *string `db:"avatar_url" json:"avatar_url"`
+	Address      string  `db:"address" json:"address"`
+	Metro        *string `db:"station_name" json:"station_name"`
+	Area         float64 `db:"area" json:"area"`
+	Alias        string  `db:"alias" json:"alias"`
+	Floor        *int    `db:"floor" json:"floor"`
+	FlatCategory *string `db:"flat_category" json:"flat_category"`
 }
 
 type Poster struct {
-	ID        int     `db:"id"`
-	Alias     string  `db:"alias"`
-	Address   string  `db:"address"`
-	Area      float64 `db:"area"`
-	Price     float64 `db:"price"`
-	AvatarURl *string `db:"avatar_url"`
+	ID            int     `db:"id"`
+	Alias         string  `db:"alias"`
+	Address       string  `db:"address"`
+	Area          float64 `db:"area"`
+	Price         float64 `db:"price"`
+	AvatarURl     *string `db:"avatar_url"`
+	CategoryName  string  `db:"category_name"`
+	CategoryAlias string  `db:"category_alias"`
 }
 
 type PosterImage struct {
@@ -33,11 +33,12 @@ type PosterImage struct {
 }
 
 type PosterById struct {
-	ID          int     `db:"id"`
-	Alias       string  `db:"alias"`
-	Price       float64 `db:"price"`
-	Category    string  `db:"category"`
-	Description string  `db:"description"`
+	ID            int     `db:"id"`
+	Alias         string  `db:"alias"`
+	Price         float64 `db:"price"`
+	Category      string  `db:"category_name"`
+	CategoryAlias string  `db:"category_alias"`
+	Description   string  `db:"description"`
 
 	Area       float64 `db:"area"`
 	PropertyID int     `db:"property_id"`
@@ -62,65 +63,4 @@ type PosterById struct {
 	CompanyAvatarURL *string `db:"company_avatar_url"`
 	CompanyAlias     *string `db:"company_alias"`
 	CompanyID        *int    `db:"company_id"`
-}
-
-type Flat struct {
-	PropertyID   int    `db:"property_id"`
-	FlatCategory string `db:"flat_category"`
-	Number       int    `db:"number"`
-	Floor        int    `db:"floor"`
-	RoomCount    int    `db:"room_count"`
-}
-
-type MetroStation struct {
-	ID          int                `db:"id"`
-	StationName string             `db:"station_name"`
-	StationGEO  geo.GeographyPoint `db:"metro_geo"`
-}
-
-type Facility struct {
-	ID    int    `db:"id"`
-	Name  string `db:"name"`
-	Alias string `db:"alias"`
-}
-
-type PosterInput struct {
-	UserID int
-
-	Alias       string
-	Price       float64
-	Description string
-
-	CategoryID int
-	Area       float64
-
-	Address        string
-	Geo            geo.GeographyPoint
-	CityID         int
-	MetroStationID *int
-	District       *string
-	FloorCount     int
-
-	CompanyID *int
-
-	Features []string
-	Images   []PhotoInput
-}
-
-type FlatInput struct {
-	PropertyID int
-	CategoryID int
-	Floor      int
-	Number     *int
-}
-
-type PhotoInput struct {
-	FileHeader *multipart.FileHeader
-	Path       string
-	Order      int
-}
-
-type BaseListID struct {
-	PosterID   int
-	PropertyID int
 }

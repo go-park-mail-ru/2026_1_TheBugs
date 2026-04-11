@@ -7,6 +7,13 @@ definitions:
       expire_at:
         type: integer
     type: object
+  dto.CategoryDTO:
+    properties:
+      alias:
+        type: string
+      name:
+        type: string
+    type: object
   dto.CreatedPoster:
     properties:
       alias:
@@ -49,13 +56,6 @@ definitions:
         type: number
     type: object
   dto.HouseDTO:
-    type: object
-  dto.MetroStationDTO:
-    properties:
-      station_geo:
-        $ref: '#/definitions/dto.GeographyDTO'
-      station_name:
-        type: string
     type: object
   dto.OAuthCodeFlow:
     properties:
@@ -105,7 +105,7 @@ definitions:
       building_geo:
         $ref: '#/definitions/dto.GeographyDTO'
       category:
-        type: string
+        $ref: '#/definitions/dto.CategoryDTO'
       city:
         type: string
       company:
@@ -150,6 +150,15 @@ definitions:
       phone:
         type: string
     type: object
+  dto.PostersResponse:
+    properties:
+      len:
+        type: integer
+      posters:
+        items:
+          $ref: '#/definitions/dto.PosterCardDTO'
+        type: array
+    type: object
   dto.UserDTO:
     properties:
       avatar_url:
@@ -161,6 +170,8 @@ definitions:
       id:
         type: integer
       last_name:
+        type: string
+      phone:
         type: string
     type: object
   dto.UtilityCompanyCardDTO:
@@ -244,28 +255,10 @@ definitions:
       error:
         type: string
     type: object
-  response.MetroResponse:
-    properties:
-      len:
-        type: integer
-      metro_stations:
-        items:
-          $ref: '#/definitions/dto.MetroStationDTO'
-        type: array
-    type: object
   response.PosterResponse:
     properties:
       poster:
         $ref: '#/definitions/dto.PosterDTO'
-    type: object
-  response.PostersResponse:
-    properties:
-      len:
-        type: integer
-      posters:
-        items:
-          $ref: '#/definitions/dto.PosterCardDTO'
-        type: array
     type: object
   response.ValidationErrorResponse:
     properties:
@@ -588,6 +581,31 @@ paths:
       summary: Login user from Yandex
       tags:
       - Auth
+  /csrf-token:
+    get:
+      consumes:
+      - application/json
+      description: Create and get csrf token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: CSRF token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get CSRF token
+      tags:
+      - Auth
   /posters/by-alias/{alias}:
     get:
       description: Returns the poster with all information about it
@@ -637,11 +655,11 @@ paths:
         name: description
         required: true
         type: string
-      - description: Property category ID
+      - description: Property category alias
         in: formData
-        name: category_id
+        name: category_alias
         required: true
-        type: integer
+        type: string
       - description: Property area
         in: formData
         name: area
@@ -652,15 +670,11 @@ paths:
         name: address
         required: true
         type: string
-      - description: City ID
+      - description: City Name
         in: formData
-        name: city_id
+        name: city
         required: true
-        type: integer
-      - description: Metro station ID
-        in: formData
-        name: metro_station_id
-        type: integer
+        type: string
       - description: District
         in: formData
         name: district
@@ -714,6 +728,14 @@ paths:
         in: formData
         name: photos.0.order
         type: integer
+      - description: Second photo file
+        in: formData
+        name: photos.1.file
+        type: file
+      - description: Second photo order
+        in: formData
+        name: photos.1.order
+        type: integer
       produces:
       - application/json
       responses:
@@ -742,25 +764,15 @@ paths:
       summary: Create flat poster
       tags:
       - posters
-  /posters/flats:
-    get:
-      description: Returns the number of retrieved posters and their list
+  /posters/flat/{alias}:
+    delete:
+      description: Deletes a flat poster with all related data (photos, property,
+        building)
       parameters:
-      - default: 12
-        description: Number of posters
-        in: query
-        minimum: 1
-        name: limit
-        type: integer
-      - default: 0
-        description: Pagination offset
-        in: query
-        minimum: 0
-        name: offset
-        type: integer
-      - description: Utility company
-        in: query
-        name: utility_company
+      - description: Poster alias
+        in: path
+        name: alias
+        required: true
         type: string
       produces:
       - application/json
@@ -768,7 +780,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.PostersResponse'
+            $ref: '#/definitions/response.CreatedPosterResponse'
         "400":
           description: Bad Request
           schema:
@@ -779,6 +791,223 @@ paths:
             $ref: '#/definitions/response.ErrorResponse'
         "404":
           description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete flat poster
+      tags:
+      - posters
+    put:
+      description: Updates a flat poster with photos
+      parameters:
+      - description: Poster alias
+        in: path
+        name: alias
+        required: true
+        type: string
+      - description: Poster price
+        in: formData
+        name: price
+        type: number
+      - description: Poster description
+        in: formData
+        name: description
+        type: string
+      - description: Property category alias
+        in: formData
+        name: category_alias
+        type: string
+      - description: Property area
+        in: formData
+        name: area
+        type: number
+      - description: Building address
+        in: formData
+        name: address
+        type: string
+      - description: City
+        in: formData
+        name: city
+        type: string
+      - description: District
+        in: formData
+        name: district
+        type: string
+      - description: Building floor count
+        in: formData
+        name: floor_count
+        type: integer
+      - description: Company ID
+        in: formData
+        name: company_id
+        type: integer
+      - description: Latitude
+        in: formData
+        name: geo_lat
+        type: number
+      - description: Longitude
+        in: formData
+        name: geo_lon
+        type: number
+      - description: Flat category ID
+        in: formData
+        name: flat_category_id
+        type: integer
+      - description: Flat number
+        in: formData
+        name: flat_number
+        type: integer
+      - description: Flat floor
+        in: formData
+        name: flat_floor
+        type: integer
+      - collectionFormat: csv
+        description: Facilities aliases
+        in: formData
+        items:
+          type: string
+        name: features
+        type: array
+      - description: First photo file
+        in: formData
+        name: photos.0.file
+        type: file
+      - description: First photo order
+        in: formData
+        name: photos.0.order
+        type: integer
+      - description: Second photo file
+        in: formData
+        name: photos.1.file
+        type: file
+      - description: Second photo order
+        in: formData
+        name: photos.1.order
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CreatedPosterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update flat poster
+      tags:
+      - posters
+  /posters/flats:
+    get:
+      description: Returns filtered list of apartment posters
+      parameters:
+      - default: 12
+        description: Posters per page
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      - default: 0
+        description: Pagination offset
+        in: query
+        minimum: 0
+        name: offset
+        type: integer
+      - description: Full-text search
+        in: query
+        name: search_query
+        type: string
+      - description: Utility company alias
+        in: query
+        name: utility_company
+        type: string
+      - description: Category alias
+        in: query
+        name: category
+        type: string
+      - description: Exact room count
+        in: query
+        name: room_count
+        type: integer
+      - description: Min price
+        in: query
+        name: min_price
+        type: integer
+      - description: Max price
+        in: query
+        name: max_price
+        type: integer
+      - collectionFormat: csv
+        description: Facilities aliases
+        in: query
+        items:
+          type: string
+        name: facilities
+        type: array
+      - description: Min area, sq.m
+        in: query
+        name: min_square
+        type: integer
+      - description: Max area, sq.m
+        in: query
+        name: max_square
+        type: integer
+      - description: Min floor
+        in: query
+        name: min_flat_floor
+        type: integer
+      - description: Max floor
+        in: query
+        name: max_flat_floor
+        type: integer
+      - description: Min building floors
+        in: query
+        name: min_building_floor
+        type: integer
+      - description: Max building floors
+        in: query
+        name: max_building_floor
+        type: integer
+      - default: false
+        description: Exclude 1st floor
+        in: query
+        name: not_first_floor
+        type: boolean
+      - default: false
+        description: Exclude last floor
+        in: query
+        name: not_last_floor
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PostersResponse'
+        "400":
+          description: Bad Request
           schema:
             $ref: '#/definitions/response.ErrorResponse'
         "500":
@@ -819,29 +1048,16 @@ paths:
       summary: Get list of user`s posters
       tags:
       - posters
-  /posters/metro-stations:
+  /posters/me/{alias}:
     get:
-      description: Returns the metro stations
-      parameters:
-      - description: lat
-        format: float32
-        in: query
-        name: lat
-        required: true
-        type: number
-      - description: lon
-        format: float32
-        in: query
-        name: lon
-        required: true
-        type: number
+      description: Returns the number of retrieved posters and their list
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/response.MetroResponse'
+            $ref: '#/definitions/response.PosterResponse'
         "400":
           description: Bad Request
           schema:
@@ -858,7 +1074,9 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
-      summary: Get metro stations by geo
+      security:
+      - BearerAuth: []
+      summary: Get list of user`s posters
       tags:
       - posters
   /user/me:
@@ -890,6 +1108,54 @@ paths:
       security:
       - BearerAuth: []
       summary: Get user details
+      tags:
+      - users
+  /user/me/profile:
+    put:
+      description: Returns user details
+      parameters:
+      - description: New Firstname
+        in: formData
+        name: first_name
+        type: string
+      - description: New Lastname
+        in: formData
+        name: last_name
+        type: string
+      - description: New Phone
+        in: formData
+        name: phone
+        type: string
+      - description: Avatar file
+        in: formData
+        name: avatar
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user details
       tags:
       - users
   /utility-companies/:

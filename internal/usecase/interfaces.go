@@ -18,25 +18,45 @@ type UserRepo interface {
 	GetByProvider(ctx context.Context, provider string, email string) (*entity.User, error)
 	UpdatePwd(ctx context.Context, email string, pwd string, salt string) error
 	GetByID(ctx context.Context, id int) (*dto.UserDTO, error)
+	UpdateProfile(ctx context.Context, data dto.UpdateProfileDTO) (*dto.UserDTO, error)
 }
 
 type PosterRepo interface {
 	GetFlatsAll(ctx context.Context, dto dto.PostersFiltersDTO) ([]entity.PosterFlat, error)
+	GetFlatsByIDs(ctx context.Context, ids []int) ([]entity.PosterFlat, error)
 	CountPosters(ctx context.Context) (int, error)
 
-	GetByAlias(ctx context.Context, posterAlias string) (*entity.PosterById, error)
+	GetByAlias(ctx context.Context, posterAlias string, userID *int) (*entity.PosterById, error)
 	GetFlatByPropetyID(ctx context.Context, propertyID int) (*entity.Flat, error)
 
 	GetByUserID(ctx context.Context, userID int) ([]entity.Poster, error)
 	GetMetroStationByRadius(ctx context.Context, buidingGeo dto.GeographyDTO, radius entity.Metre) ([]entity.MetroStation, error)
 
-	CreateBuilding(ctx context.Context, poster *entity.PosterInput) (int, error)
-	CreateProperty(ctx context.Context, poster *entity.PosterInput, buildingID int) (int, error)
-	Create(ctx context.Context, poster *entity.PosterInput, propertyID int) (int, error)
-	InsertFlat(ctx context.Context, flat *entity.FlatInput) error
-	InsertFacilities(ctx context.Context, propertyID int, features []string) error
-	InsertPhotos(ctx context.Context, posterID int, photos []entity.PhotoInput) error
+	CreateBuilding(ctx context.Context, poster *dto.PosterInput) (int, error)
+	CreateProperty(ctx context.Context, poster *dto.PosterInput, buildingID int) (int, error)
+	Create(ctx context.Context, poster *dto.PosterInput, propertyID int) (int, error)
+	InsertFlat(ctx context.Context, flat *dto.FlatInput) error
+	InsertFacilities(ctx context.Context, propertyID int, facilities []string) error
+	InsertPhotos(ctx context.Context, posterID int, photos []dto.PhotoInput) error
 	InsertMainPhoto(ctx context.Context, posterID int, avatarURL string) error
+
+	GetUpdateIDsByAlias(ctx context.Context, alias string) (*dto.PosterUpdateIDs, error)
+	Update(ctx context.Context, posterID int, poster *dto.PosterInput) error
+	UpdateProperty(ctx context.Context, propertyID int, poster *dto.PosterInput) error
+	UpdateBuilding(ctx context.Context, buildingID int, poster *dto.PosterInput) error
+	UpdateFlat(ctx context.Context, flat *dto.FlatInput) error
+
+	GetPhotoPathsByPosterID(ctx context.Context, posterID int) ([]string, error)
+
+	DeleteFacilitiesByPropertyID(ctx context.Context, propertyID int) error
+	DeletePhotosByPosterID(ctx context.Context, posterID int) error
+	GetCityByName(ctx context.Context, name string) (*entity.City, error)
+	CreateCity(ctx context.Context, name string) (*entity.City, error)
+
+	Delete(ctx context.Context, posterID int) error
+	DeleteFlat(ctx context.Context, propertyID int) error
+	DeleteProperty(ctx context.Context, propertyID int) error
+	DeleteBuilding(ctx context.Context, buildingID int) error
 }
 
 type AuthRepo interface {
@@ -77,4 +97,8 @@ type FileRepo interface {
 	Upload(ctx context.Context, key string, reader io.Reader, size int64, contentType string) error
 	Delete(ctx context.Context, key string) error
 	Get(ctx context.Context, key string) (io.ReadCloser, error)
+}
+
+type SearchRepo interface {
+	SearchPosters(ctx context.Context, filters dto.PostersFiltersDTO) (*dto.PostersResponse, error)
 }

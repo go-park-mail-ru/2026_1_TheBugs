@@ -33,6 +33,7 @@ type (
 		OAuth    `yaml:"oauth"`
 		SMTP     `yaml:"smtp"`
 		Minio    `yaml:"minio"`
+		ES       `yaml:"es"`
 	}
 	Redis struct {
 		Host     string `yaml:"host" env:"REDIS_HOST" env-default:"localhost"`
@@ -94,6 +95,11 @@ type (
 		SecretKey  string `yaml:"secret_key" env:"MINIO_SECRET_KEY" env-default:"admin123"`
 		Bucket     string `yaml:"bucket" env:"MINIO_BUCKET" env-default:"media"`
 		PublicHost string `yaml:"public_host" env:"MINIO_PUBLIC_HOST" env-default:"http://localhost:9000"`
+	}
+
+	ES struct {
+		Host string `yaml:"host" env:"ES_HOST" env-default:"localhost"`
+		Port int    `yaml:"port" env:"ES_PORT" env-default:"9200"`
 	}
 )
 

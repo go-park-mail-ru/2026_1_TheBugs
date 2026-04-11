@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/andoma-go/translit"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
 	"github.com/stretchr/testify/require"
 )
@@ -14,7 +14,7 @@ import (
 func strPtr(v string) *string { return &v }
 func intRef(v int) *int       { return &v }
 
-func expectedBase(p *entity.PosterInput) string {
+func expectedBase(p *dto.PosterInput) string {
 	parts := make([]string, 0, 2)
 	if s := slugify(translit.Ru(p.Address)); s != "" {
 		parts = append(parts, s)
@@ -34,86 +34,86 @@ func expectedBase(p *entity.PosterInput) string {
 func TestGenerateAliasSignature(t *testing.T) {
 	tests := []struct {
 		name   string
-		poster *entity.PosterInput
+		poster *dto.PosterInput
 	}{
 		{
 			name: "address only",
-			poster: &entity.PosterInput{
-				UserID:     1,
-				CategoryID: 2,
-				CityID:     3,
-				Address:    "ул. Ленина, 10",
-				Geo:        geo.GeographyPoint{Lat: 55.75158, Lon: 12.6173},
-				Area:       122,
+			poster: &dto.PosterInput{
+				UserID:        1,
+				CategoryAlias: "flat",
+				CityID:        3,
+				Address:       "ул. Ленина, 10",
+				Geo:           geo.GeographyPoint{Lat: 55.75158, Lon: 12.6173},
+				Area:          122,
 			},
 		},
 		{
 			name: "address and district",
-			poster: &entity.PosterInput{
-				UserID:     10,
-				CategoryID: 20,
-				CityID:     30,
-				Address:    "пр-т Мира 5",
-				District:   strPtr("Центральный"),
-				Geo:        geo.GeographyPoint{Lat: 25.7558, Lon: 37.6173},
-				Area:       23,
+			poster: &dto.PosterInput{
+				UserID:        10,
+				CategoryAlias: "flat",
+				CityID:        30,
+				Address:       "пр-т Мира 5",
+				District:      strPtr("Центральный"),
+				Geo:           geo.GeographyPoint{Lat: 25.7558, Lon: 37.6173},
+				Area:          23,
 			},
 		},
 		{
 			name: "address and district slugify to empty",
-			poster: &entity.PosterInput{
-				UserID:     7,
-				CategoryID: 8,
-				CityID:     9,
-				Address:    "!!!",
-				District:   strPtr("   "),
-				Geo:        geo.GeographyPoint{Lat: 55.7558, Lon: 37.6173},
-				Area:       112,
+			poster: &dto.PosterInput{
+				UserID:        7,
+				CategoryAlias: "flat",
+				CityID:        9,
+				Address:       "!!!",
+				District:      strPtr("   "),
+				Geo:           geo.GeographyPoint{Lat: 55.7558, Lon: 37.6173},
+				Area:          112,
 			},
 		},
 		{
 			name: "company id affects hash",
-			poster: &entity.PosterInput{
-				UserID:     11,
-				CategoryID: 12,
-				CityID:     13,
-				Address:    "Тверская 1",
-				CompanyID:  intRef(999),
-				Geo:        geo.GeographyPoint{Lat: 55.7558, Lon: 37.6173},
-				Area:       212,
+			poster: &dto.PosterInput{
+				UserID:        11,
+				CategoryAlias: "flat",
+				CityID:        13,
+				Address:       "Тверская 1",
+				CompanyID:     intRef(999),
+				Geo:           geo.GeographyPoint{Lat: 55.7558, Lon: 37.6173},
+				Area:          212,
 			},
 		},
 		{
 			name: "trim and normalize dashes",
-			poster: &entity.PosterInput{
-				UserID:     21,
-				CategoryID: 22,
-				CityID:     23,
-				Address:    "  ул___Пушкина   15  ",
-				Geo:        geo.GeographyPoint{Lat: 55.7558, Lon: 37.6173},
-				Area:       122,
+			poster: &dto.PosterInput{
+				UserID:        21,
+				CategoryAlias: "flat",
+				CityID:        23,
+				Address:       "  ул___Пушкина   15  ",
+				Geo:           geo.GeographyPoint{Lat: 55.7558, Lon: 37.6173},
+				Area:          122,
 			},
 		},
 		{
 			name: "same base different hash source 1",
-			poster: &entity.PosterInput{
-				UserID:     1,
-				CategoryID: 1,
-				CityID:     1,
-				Geo:        geo.GeographyPoint{Lat: 55.7558, Lon: 37.6173},
-				Address:    "Ленина 1",
-				Area:       122,
+			poster: &dto.PosterInput{
+				UserID:        1,
+				CategoryAlias: "flat",
+				CityID:        1,
+				Geo:           geo.GeographyPoint{Lat: 55.7558, Lon: 37.6173},
+				Address:       "Ленина 1",
+				Area:          122,
 			},
 		},
 		{
 			name: "same base different hash source 2",
-			poster: &entity.PosterInput{
-				UserID:     1,
-				CategoryID: 1,
-				CityID:     1,
-				Geo:        geo.GeographyPoint{Lat: 55.7558, Lon: 37.6173},
-				Address:    "Ленина-1",
-				Area:       12,
+			poster: &dto.PosterInput{
+				UserID:        1,
+				CategoryAlias: "flat",
+				CityID:        1,
+				Geo:           geo.GeographyPoint{Lat: 55.7558, Lon: 37.6173},
+				Address:       "Ленина-1",
+				Area:          12,
 			},
 		},
 	}
@@ -143,13 +143,13 @@ func TestGenerateAliasSignature(t *testing.T) {
 }
 
 func TestGenerateAliasSameInput(t *testing.T) {
-	poster := &entity.PosterInput{
-		UserID:     123,
-		CategoryID: 456,
-		CityID:     789,
-		Address:    "ул. Ленина, 10",
-		Geo:        geo.GeographyPoint{Lat: 55.75158, Lon: 12.6173},
-		Area:       122,
+	poster := &dto.PosterInput{
+		UserID:        123,
+		CategoryAlias: "flat",
+		CityID:        789,
+		Address:       "ул. Ленина, 10",
+		Geo:           geo.GeographyPoint{Lat: 55.75158, Lon: 12.6173},
+		Area:          122,
 	}
 	res1 := GenerateAlias(poster)
 	res2 := GenerateAlias(poster)
@@ -157,13 +157,13 @@ func TestGenerateAliasSameInput(t *testing.T) {
 }
 
 func TestGenerateAliasDifferentInput(t *testing.T) {
-	poster := &entity.PosterInput{
-		UserID:     123,
-		CategoryID: 456,
-		CityID:     789,
-		Address:    "ул. Ленина, 10",
-		Geo:        geo.GeographyPoint{Lat: 55.75158, Lon: 12.6173},
-		Area:       122,
+	poster := &dto.PosterInput{
+		UserID:        123,
+		CategoryAlias: "flat",
+		CityID:        789,
+		Address:       "ул. Ленина, 10",
+		Geo:           geo.GeographyPoint{Lat: 55.75158, Lon: 12.6173},
+		Area:          122,
 	}
 	res1 := GenerateAlias(poster)
 	poster.Geo.Lat = 12

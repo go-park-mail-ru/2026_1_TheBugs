@@ -167,7 +167,7 @@ func (mr *MockPosterRepoMockRecorder) CountPosters(ctx interface{}) *gomock.Call
 }
 
 // Create mocks base method.
-func (m *MockPosterRepo) Create(ctx context.Context, poster *entity.PosterInput, propertyID int) (int, error) {
+func (m *MockPosterRepo) Create(ctx context.Context, poster *dto.PosterInput, propertyID int) (int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", ctx, poster, propertyID)
 	ret0, _ := ret[0].(int)
@@ -182,7 +182,7 @@ func (mr *MockPosterRepoMockRecorder) Create(ctx, poster, propertyID interface{}
 }
 
 // CreateBuilding mocks base method.
-func (m *MockPosterRepo) CreateBuilding(ctx context.Context, poster *entity.PosterInput) (int, error) {
+func (m *MockPosterRepo) CreateBuilding(ctx context.Context, poster *dto.PosterInput) (int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateBuilding", ctx, poster)
 	ret0, _ := ret[0].(int)
@@ -196,8 +196,23 @@ func (mr *MockPosterRepoMockRecorder) CreateBuilding(ctx, poster interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBuilding", reflect.TypeOf((*MockPosterRepo)(nil).CreateBuilding), ctx, poster)
 }
 
+// CreateCity mocks base method.
+func (m *MockPosterRepo) CreateCity(ctx context.Context, name string) (*entity.City, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateCity", ctx, name)
+	ret0, _ := ret[0].(*entity.City)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateCity indicates an expected call of CreateCity.
+func (mr *MockPosterRepoMockRecorder) CreateCity(ctx, name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateCity", reflect.TypeOf((*MockPosterRepo)(nil).CreateCity), ctx, name)
+}
+
 // CreateProperty mocks base method.
-func (m *MockPosterRepo) CreateProperty(ctx context.Context, poster *entity.PosterInput, buildingID int) (int, error) {
+func (m *MockPosterRepo) CreateProperty(ctx context.Context, poster *dto.PosterInput, buildingID int) (int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateProperty", ctx, poster, buildingID)
 	ret0, _ := ret[0].(int)
@@ -211,19 +226,47 @@ func (mr *MockPosterRepoMockRecorder) CreateProperty(ctx, poster, buildingID int
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateProperty", reflect.TypeOf((*MockPosterRepo)(nil).CreateProperty), ctx, poster, buildingID)
 }
 
-// GetByAlias mocks base method.
-func (m *MockPosterRepo) GetByAlias(ctx context.Context, posterAlias string) (*entity.PosterById, error) {
+// DeleteFacilitiesByPropertyID mocks base method.
+func (m *MockPosterRepo) DeleteFacilitiesByPropertyID(ctx context.Context, propertyID int) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByAlias", ctx, posterAlias)
+	ret := m.ctrl.Call(m, "DeleteFacilitiesByPropertyID", ctx, propertyID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteFacilitiesByPropertyID indicates an expected call of DeleteFacilitiesByPropertyID.
+func (mr *MockPosterRepoMockRecorder) DeleteFacilitiesByPropertyID(ctx, propertyID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFacilitiesByPropertyID", reflect.TypeOf((*MockPosterRepo)(nil).DeleteFacilitiesByPropertyID), ctx, propertyID)
+}
+
+// DeletePhotosByPosterID mocks base method.
+func (m *MockPosterRepo) DeletePhotosByPosterID(ctx context.Context, posterID int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeletePhotosByPosterID", ctx, posterID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeletePhotosByPosterID indicates an expected call of DeletePhotosByPosterID.
+func (mr *MockPosterRepoMockRecorder) DeletePhotosByPosterID(ctx, posterID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePhotosByPosterID", reflect.TypeOf((*MockPosterRepo)(nil).DeletePhotosByPosterID), ctx, posterID)
+}
+
+// GetByAlias mocks base method.
+func (m *MockPosterRepo) GetByAlias(ctx context.Context, posterAlias string, userID *int) (*entity.PosterById, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByAlias", ctx, posterAlias, userID)
 	ret0, _ := ret[0].(*entity.PosterById)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByAlias indicates an expected call of GetByAlias.
-func (mr *MockPosterRepoMockRecorder) GetByAlias(ctx, posterAlias interface{}) *gomock.Call {
+func (mr *MockPosterRepoMockRecorder) GetByAlias(ctx, posterAlias, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByAlias", reflect.TypeOf((*MockPosterRepo)(nil).GetByAlias), ctx, posterAlias)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByAlias", reflect.TypeOf((*MockPosterRepo)(nil).GetByAlias), ctx, posterAlias, userID)
 }
 
 // GetByUserID mocks base method.
@@ -239,6 +282,21 @@ func (m *MockPosterRepo) GetByUserID(ctx context.Context, userID int) ([]entity.
 func (mr *MockPosterRepoMockRecorder) GetByUserID(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUserID", reflect.TypeOf((*MockPosterRepo)(nil).GetByUserID), ctx, userID)
+}
+
+// GetCityByName mocks base method.
+func (m *MockPosterRepo) GetCityByName(ctx context.Context, name string) (*entity.City, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetCityByName", ctx, name)
+	ret0, _ := ret[0].(*entity.City)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetCityByName indicates an expected call of GetCityByName.
+func (mr *MockPosterRepoMockRecorder) GetCityByName(ctx, name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCityByName", reflect.TypeOf((*MockPosterRepo)(nil).GetCityByName), ctx, name)
 }
 
 // GetFlatByPropetyID mocks base method.
@@ -286,8 +344,52 @@ func (mr *MockPosterRepoMockRecorder) GetMetroStationByRadius(ctx, buidingGeo, r
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMetroStationByRadius", reflect.TypeOf((*MockPosterRepo)(nil).GetMetroStationByRadius), ctx, buidingGeo, radius)
 }
 
+// GetPhotoPathsByPosterID mocks base method.
+func (m *MockPosterRepo) GetPhotoPathsByPosterID(ctx context.Context, posterID int) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPhotoPathsByPosterID", ctx, posterID)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPhotoPathsByPosterID indicates an expected call of GetPhotoPathsByPosterID.
+func (mr *MockPosterRepoMockRecorder) GetPhotoPathsByPosterID(ctx, posterID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPhotoPathsByPosterID", reflect.TypeOf((*MockPosterRepo)(nil).GetPhotoPathsByPosterID), ctx, posterID)
+}
+
+// GetUpdateIDsByAlias mocks base method.
+func (m *MockPosterRepo) GetUpdateIDsByAlias(ctx context.Context, alias string) (*dto.PosterUpdateIDs, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUpdateIDsByAlias", ctx, alias)
+	ret0, _ := ret[0].(*dto.PosterUpdateIDs)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUpdateIDsByAlias indicates an expected call of GetUpdateIDsByAlias.
+func (mr *MockPosterRepoMockRecorder) GetUpdateIDsByAlias(ctx, alias interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUpdateIDsByAlias", reflect.TypeOf((*MockPosterRepo)(nil).GetUpdateIDsByAlias), ctx, alias)
+}
+
+// InsertFacilities mocks base method.
+func (m *MockPosterRepo) InsertFacilities(ctx context.Context, propertyID int, facilities []string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertFacilities", ctx, propertyID, facilities)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// InsertFacilities indicates an expected call of InsertFacilities.
+func (mr *MockPosterRepoMockRecorder) InsertFacilities(ctx, propertyID, facilities interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertFacilities", reflect.TypeOf((*MockPosterRepo)(nil).InsertFacilities), ctx, propertyID, facilities)
+}
+
 // InsertFlat mocks base method.
-func (m *MockPosterRepo) InsertFlat(ctx context.Context, flat *entity.FlatInput) error {
+func (m *MockPosterRepo) InsertFlat(ctx context.Context, flat *dto.FlatInput) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertFlat", ctx, flat)
 	ret0, _ := ret[0].(error)
@@ -315,7 +417,7 @@ func (mr *MockPosterRepoMockRecorder) InsertMainPhoto(ctx, posterID, avatarURL i
 }
 
 // InsertPhotos mocks base method.
-func (m *MockPosterRepo) InsertPhotos(ctx context.Context, posterID int, photos []entity.PhotoInput) error {
+func (m *MockPosterRepo) InsertPhotos(ctx context.Context, posterID int, photos []dto.PhotoInput) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "InsertPhotos", ctx, posterID, photos)
 	ret0, _ := ret[0].(error)
@@ -326,6 +428,62 @@ func (m *MockPosterRepo) InsertPhotos(ctx context.Context, posterID int, photos 
 func (mr *MockPosterRepoMockRecorder) InsertPhotos(ctx, posterID, photos interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertPhotos", reflect.TypeOf((*MockPosterRepo)(nil).InsertPhotos), ctx, posterID, photos)
+}
+
+// Update mocks base method.
+func (m *MockPosterRepo) Update(ctx context.Context, posterID int, poster *dto.PosterInput) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", ctx, posterID, poster)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockPosterRepoMockRecorder) Update(ctx, posterID, poster interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockPosterRepo)(nil).Update), ctx, posterID, poster)
+}
+
+// UpdateBuilding mocks base method.
+func (m *MockPosterRepo) UpdateBuilding(ctx context.Context, buildingID int, poster *dto.PosterInput) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateBuilding", ctx, buildingID, poster)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateBuilding indicates an expected call of UpdateBuilding.
+func (mr *MockPosterRepoMockRecorder) UpdateBuilding(ctx, buildingID, poster interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateBuilding", reflect.TypeOf((*MockPosterRepo)(nil).UpdateBuilding), ctx, buildingID, poster)
+}
+
+// UpdateFlat mocks base method.
+func (m *MockPosterRepo) UpdateFlat(ctx context.Context, flat *dto.FlatInput) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateFlat", ctx, flat)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateFlat indicates an expected call of UpdateFlat.
+func (mr *MockPosterRepoMockRecorder) UpdateFlat(ctx, flat interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFlat", reflect.TypeOf((*MockPosterRepo)(nil).UpdateFlat), ctx, flat)
+}
+
+// UpdateProperty mocks base method.
+func (m *MockPosterRepo) UpdateProperty(ctx context.Context, propertyID int, poster *dto.PosterInput) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateProperty", ctx, propertyID, poster)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateProperty indicates an expected call of UpdateProperty.
+func (mr *MockPosterRepoMockRecorder) UpdateProperty(ctx, propertyID, poster interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateProperty", reflect.TypeOf((*MockPosterRepo)(nil).UpdateProperty), ctx, propertyID, poster)
 }
 
 // MockAuthRepo is a mock of AuthRepo interface.
@@ -780,4 +938,42 @@ func (m *MockFileRepo) Upload(ctx context.Context, key string, reader io.Reader,
 func (mr *MockFileRepoMockRecorder) Upload(ctx, key, reader, size, contentType interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Upload", reflect.TypeOf((*MockFileRepo)(nil).Upload), ctx, key, reader, size, contentType)
+}
+
+// MockSearchRepo is a mock of SearchRepo interface.
+type MockSearchRepo struct {
+	ctrl     *gomock.Controller
+	recorder *MockSearchRepoMockRecorder
+}
+
+// MockSearchRepoMockRecorder is the mock recorder for MockSearchRepo.
+type MockSearchRepoMockRecorder struct {
+	mock *MockSearchRepo
+}
+
+// NewMockSearchRepo creates a new mock instance.
+func NewMockSearchRepo(ctrl *gomock.Controller) *MockSearchRepo {
+	mock := &MockSearchRepo{ctrl: ctrl}
+	mock.recorder = &MockSearchRepoMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockSearchRepo) EXPECT() *MockSearchRepoMockRecorder {
+	return m.recorder
+}
+
+// SearchPosters mocks base method.
+func (m *MockSearchRepo) SearchPosters(ctx context.Context, filters dto.PostersFiltersDTO) (*dto.PostersResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchPosters", ctx, filters)
+	ret0, _ := ret[0].(*dto.PostersResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchPosters indicates an expected call of SearchPosters.
+func (mr *MockSearchRepoMockRecorder) SearchPosters(ctx, filters interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchPosters", reflect.TypeOf((*MockSearchRepo)(nil).SearchPosters), ctx, filters)
 }

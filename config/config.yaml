@@ -10,7 +10,7 @@ server:
 
 postgres:
   host: localhost
-  port: 5432
+  port: 5435
   user: thebugs
   password: thebugs
   database: main
@@ -53,3 +53,6 @@ minio:
   bucket: media
   public_host: http://localhost:9000
 
+es:
+  host: localhost
+  port: 9200

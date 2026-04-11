@@ -2,7 +2,6 @@ package validator
 
 import (
 	"fmt"
-	"mime/multipart"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -17,22 +16,24 @@ const pwdRegexPattern = `^[a-zA-Z\d!@#$%^&*\-]{8,}$`
 const phoneRegexp = `^(\+7|8)\s?[\s(]?\d{3}[\s)\-]?\s?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}$`
 const addressRegexp = `^[а-яА-ЯёЁ\s\-\,\.\d\/]+$`
 
-const maxEmailLength = 254
+const maxEmailLength = 255
 
 const minPwdLenght = 8
 const maxPwdLenght = 64
 const maxPhoneLenght = 20
 const maxNameLenght = 40
 
+const maxPriceSize = 10000000
+
 const maxPhotoSize = 10 << 20
 const MaxPhotosLength = 12
 
-const maxPosterDescriptionLength = 499
+const maxPosterDescriptionLength = 500
 const minAddressLength = 5
-const maxAddressLength = 149
-const maxDistrictLength = 29
-const maxFloorCount = 99
-const maxFacilityAliasLength = 49
+const maxAddressLength = 500
+const maxDistrictLength = 39
+const maxFloorCount = 100
+const maxFacilityAliasLength = 50
 
 func ValidateEmail(email string) bool {
 	if len(email) > maxEmailLength {
@@ -89,21 +90,21 @@ func ValidateProfile(phone string, firstname string, lastname string) error {
 	return nil
 }
 
-func ValidatePhoto(fileHeader *multipart.FileHeader) bool {
-	if fileHeader == nil {
+func ValidatePhoto(fileInput *dto.FileInput) bool {
+	if fileInput == nil {
 		return false
 	}
 
-	if fileHeader.Size <= 0 || fileHeader.Size > maxPhotoSize {
+	if fileInput.Size <= 0 || fileInput.Size > maxPhotoSize {
 		return false
 	}
 
-	ext := filepath.Ext(fileHeader.Filename)
+	ext := filepath.Ext(fileInput.Filename)
 	if ext != ".png" && ext != ".jpg" && ext != ".jpeg" && ext != ".svg" {
 		return false
 	}
 
-	contentType := fileHeader.Header.Get("Content-Type")
+	contentType := fileInput.ContentType
 	if contentType != "image/png" && contentType != "image/jpeg" && contentType != "image/svg+xml" {
 		return false
 	}
@@ -119,8 +120,17 @@ func ValidatePhotos(photos []dto.PhotoInputDTO) error {
 		return entity.NewValidationError("max photos len")
 	}
 	for i, photo := range photos {
-		if !ValidatePhoto(photo.FileHeader) {
+		if photo.FileHeader == nil && photo.URL == nil {
 			return entity.NewValidationError(fmt.Sprintf("photos[%d]", i))
+		}
+		if photo.FileHeader != nil && !ValidatePhoto(photo.FileHeader) {
+			return entity.NewValidationError(fmt.Sprintf("photos[%d]", i))
+		}
+		if photo.Order < 0 {
+			return entity.NewValidationError(fmt.Sprintf("photos[%d].order", i))
+		}
+		if photo.Order > MaxPhotosLength {
+			return entity.NewValidationError(fmt.Sprintf("photos[%d].order", i))
 		}
 	}
 	return nil
@@ -131,16 +141,28 @@ func ValidatePosterInputFlat(poster *dto.PosterInputFlatDTO) error {
 		return entity.NewValidationError("flat_number")
 	}
 
-	if poster.FlatFloor <= 0 {
+	if poster.FlatFloor <= 0 || poster.FlatFloor > 500 {
 		return entity.NewValidationError("flat_floor")
 	}
 
-	if poster.FloorCount <= 0 {
+	if poster.FloorCount <= 0 || poster.FloorCount > 500 {
 		return entity.NewValidationError("floor_count")
 	}
 
 	if poster.FlatFloor > poster.FloorCount {
 		return entity.NewValidationError("flat_floor")
+	}
+	if len(poster.Description) > 3000 {
+		return entity.NewValidationError("descriprion")
+	}
+	if len(poster.Address) < 5 || len(poster.Address) > 500 {
+		return entity.NewValidationError("address")
+	}
+	if poster.District != nil && len(*poster.District) > 100 {
+		return entity.NewValidationError("district")
+	}
+	if poster.Price <= 0 || poster.Price > maxPriceSize {
+		return entity.NewValidationError("price")
 	}
 
 	return nil

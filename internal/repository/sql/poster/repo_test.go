@@ -15,11 +15,11 @@ import (
 
 func TestGetPostersRepo(t *testing.T) {
 	expectedListPoster := []entity.PosterFlat{
-		{ID: 1, Price: 11111, ImgURL: nil, Address: "street_1", Metro: nil, Area: 35.5, Floor: 2},
-		{ID: 2, Price: 22222, ImgURL: nil, Address: "street_2", Metro: nil, Area: 40.0, Floor: 3},
-		{ID: 3, Price: 33333, ImgURL: nil, Address: "street_3", Metro: nil, Area: 45.2, Floor: 4},
-		{ID: 4, Price: 44444, ImgURL: nil, Address: "street_4", Metro: nil, Area: 50.7, Floor: 5},
-		{ID: 5, Price: 55555, ImgURL: nil, Address: "street_5", Metro: nil, Area: 60.1, Floor: 6},
+		{ID: 1, Price: 11111, ImgURL: nil, Address: "street_1", Metro: nil, Area: 35.5, Floor: lo.ToPtr(2)},
+		{ID: 2, Price: 22222, ImgURL: nil, Address: "street_2", Metro: nil, Area: 40.0, Floor: lo.ToPtr(3)},
+		{ID: 3, Price: 33333, ImgURL: nil, Address: "street_3", Metro: nil, Area: 45.2, Floor: lo.ToPtr(4)},
+		{ID: 4, Price: 44444, ImgURL: nil, Address: "street_4", Metro: nil, Area: 50.7, Floor: lo.ToPtr(5)},
+		{ID: 5, Price: 55555, ImgURL: nil, Address: "street_5", Metro: nil, Area: 60.1, Floor: lo.ToPtr(6)},
 	}
 
 	inputParams := dto.PostersFiltersDTO{
@@ -308,7 +308,7 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 
 			repo := NewPosterRepo(mock)
 
-			got, err := repo.GetByAlias(context.Background(), test.param)
+			got, err := repo.GetByAlias(context.Background(), test.param, nil)
 			if test.wantErr != nil {
 				require.ErrorIs(t, err, test.wantErr)
 				return

@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: thebugs
       POSTGRES_DB: main
     ports:
-      - "5432:5432"
+      - "5435:5432"
     volumes:
       - ./db/migrations:/docker-entrypoint-initdb.d
     healthcheck:
@@ -22,7 +22,6 @@ services:
       - "6379:6379"
     restart: unless-stopped
 
-  
   minio: 
     image:
       quay.io/minio/minio:latest
@@ -66,3 +65,35 @@ services:
       options:
         max-size: "1m"
         max-file: "3"
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+    ports:
+      - "9200:9200"
+    volumes:
+      - ./deploy/elasticsearch/init.sh:/usr/local/bin/init-es.sh
+    command: >
+      bash -c "
+        /usr/local/bin/docker-entrypoint.sh elasticsearch &
+        sleep 30 && 
+        sh /usr/local/bin/init-es.sh &&
+        wait
+      "
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  logstash:
+    build: 
+      context: ./deploy/logstash
+      dockerfile: Dockerfile
+    volumes:
+      - ./deploy/logstash/pipeline:/usr/share/logstash/pipeline
+    depends_on:
+      - postgres
+      - elasticsearch
