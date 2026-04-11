@@ -25,6 +25,11 @@ const docTemplate = `{
     "paths": {
         "/auth/login": {
             "post": {
+                "security": [
+                    {
+                        "CSRFToken": []
+                    }
+                ],
                 "description": "Authenticate user and return access token + set refresh token cookie",
                 "consumes": [
                     "application/x-www-form-urlencoded"
@@ -88,6 +93,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CSRFToken": []
                     }
                 ],
                 "description": "Blacklist access/refresh tokens and delete refresh cookie",
@@ -128,6 +136,11 @@ const docTemplate = `{
         },
         "/auth/recover": {
             "post": {
+                "security": [
+                    {
+                        "CSRFToken": []
+                    }
+                ],
                 "description": "Generates recovery session, sends verification code to user's email and sets session_id cookie",
                 "consumes": [
                     "application/json"
@@ -183,6 +196,11 @@ const docTemplate = `{
         },
         "/auth/recover/reset": {
             "post": {
+                "security": [
+                    {
+                        "CSRFToken": []
+                    }
+                ],
                 "description": "Updates password using verified recovery session (session_id cookie required)",
                 "consumes": [
                     "application/json"
@@ -238,6 +256,11 @@ const docTemplate = `{
         },
         "/auth/recover/verify": {
             "post": {
+                "security": [
+                    {
+                        "CSRFToken": []
+                    }
+                ],
                 "description": "Verifies code from email using session_id cookie and marks session as verified",
                 "consumes": [
                     "application/json"
@@ -293,6 +316,11 @@ const docTemplate = `{
         },
         "/auth/refresh": {
             "post": {
+                "security": [
+                    {
+                        "CSRFToken": []
+                    }
+                ],
                 "description": "Obtain new access token using refresh token stored in cookie (refresh_token cookie required)",
                 "consumes": [
                     "application/json"
@@ -412,6 +440,11 @@ const docTemplate = `{
         },
         "/auth/yandex": {
             "post": {
+                "security": [
+                    {
+                        "CSRFToken": []
+                    }
+                ],
                 "description": "Authenticate user and return access token + set refresh token cookie",
                 "consumes": [
                     "application/json"
@@ -561,6 +594,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CSRFToken": []
                     }
                 ],
                 "description": "Creates a flat poster with photos",
@@ -742,6 +778,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CSRFToken": []
                     }
                 ],
                 "description": "Updates a flat poster with photos",
@@ -916,6 +955,9 @@ const docTemplate = `{
                 "security": [
                     {
                         "BearerAuth": []
+                    },
+                    {
+                        "CSRFToken": []
                     }
                 ],
                 "description": "Deletes a flat poster with all related data (photos, property, building)",
@@ -1908,6 +1950,12 @@ const docTemplate = `{
         "BearerAuth": {
             "type": "apiKey",
             "name": "Authorization",
+            "in": "header"
+        },
+        "CSRFToken": {
+            "description": "CSRF токен в заголовке X-CSRF-Token для защищённых",
+            "type": "apiKey",
+            "name": "X-CSRF-Token",
             "in": "header"
         }
     },

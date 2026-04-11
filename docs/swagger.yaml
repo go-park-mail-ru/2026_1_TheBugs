@@ -321,6 +321,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - CSRFToken: []
       summary: Login user
       tags:
       - Auth
@@ -348,6 +350,7 @@ paths:
             $ref: '#/definitions/response.ErrorResponse'
       security:
       - BearerAuth: []
+      - CSRFToken: []
       summary: User logout
       tags:
       - Auth
@@ -385,6 +388,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - CSRFToken: []
       summary: Send recovery code to email
       tags:
       - Auth
@@ -422,6 +427,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - CSRFToken: []
       summary: Update user password
       tags:
       - Auth
@@ -459,6 +466,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - CSRFToken: []
       summary: Verify recovery code
       tags:
       - Auth
@@ -492,6 +501,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - CSRFToken: []
       summary: Refresh access token
       tags:
       - Auth
@@ -578,6 +589,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - CSRFToken: []
       summary: Login user from Yandex
       tags:
       - Auth
@@ -761,6 +774,7 @@ paths:
             $ref: '#/definitions/response.ErrorResponse'
       security:
       - BearerAuth: []
+      - CSRFToken: []
       summary: Create flat poster
       tags:
       - posters
@@ -799,6 +813,7 @@ paths:
             $ref: '#/definitions/response.ErrorResponse'
       security:
       - BearerAuth: []
+      - CSRFToken: []
       summary: Delete flat poster
       tags:
       - posters
@@ -914,6 +929,7 @@ paths:
             $ref: '#/definitions/response.ErrorResponse'
       security:
       - BearerAuth: []
+      - CSRFToken: []
       summary: Update flat poster
       tags:
       - posters
@@ -1262,5 +1278,10 @@ securityDefinitions:
   BearerAuth:
     in: header
     name: Authorization
+    type: apiKey
+  CSRFToken:
+    description: CSRF токен в заголовке X-CSRF-Token для защищённых
+    in: header
+    name: X-CSRF-Token
     type: apiKey
 swagger: "2.0"

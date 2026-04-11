@@ -188,6 +188,7 @@ func (h *PosterHandler) GetPostersByUserByAlias(w http.ResponseWriter, r *http.R
 // @Tags posters
 // @Produce json
 // @Security     BearerAuth
+// @Security     CSRFToken
 // @Param price formData number true "Poster price"
 // @Param description formData string true "Poster description"
 // @Param category_alias formData string true "Property category alias"
@@ -258,7 +259,8 @@ func (h *PosterHandler) CreateFlatPoster(w http.ResponseWriter, r *http.Request)
 // @Description Updates a flat poster with photos
 // @Tags posters
 // @Produce json
-// @Security BearerAuth
+// @Security     BearerAuth
+// @Security     CSRFToken
 // @Param alias path string true "Poster alias"
 // @Param price formData number false "Poster price"
 // @Param description formData string false "Poster description"
@@ -338,7 +340,8 @@ func (h *PosterHandler) UpdateFlatPoster(w http.ResponseWriter, r *http.Request)
 // @Description Deletes a flat poster with all related data (photos, property, building)
 // @Tags posters
 // @Produce json
-// @Security BearerAuth
+// @Security     BearerAuth
+// @Security     CSRFToken
 // @Param alias path string true "Poster alias"
 // @Success 200 {object} response.CreatedPosterResponse
 // @Failure 400 {object} response.ErrorResponse

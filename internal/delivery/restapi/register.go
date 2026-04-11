@@ -37,6 +37,11 @@ import (
 // @in header
 // @name Authorization
 
+// @securityDefinitions.apikey   CSRFToken
+// @in                           header
+// @name                         X-CSRF-Token
+// @description                  CSRF токен в заголовке X-CSRF-Token для защищённых
+
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
 func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHandler, post *poster.PosterHandler, UtilityCompany *complex.UtilityCompanyHandler, user *user.UserHandler) {
@@ -59,6 +64,7 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 	// API Routers
 	apiGroup := app.PathPrefix("/api").Subrouter()
 	apiGroup.Use(middleware.CSRFMiddleware)
+	apiGroup.Use(middleware.SecurityMiddleware)
 	apiGroup.Use(mux.CORSMethodMiddleware(apiGroup))
 
 	{

@@ -102,6 +102,7 @@ func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 // @Failure       400 {object} response.ValidationErrorResponse
 // @Failure       404 {object} response.ErrorResponse
 // @Failure       500 {object} response.ErrorResponse
+// @Security     CSRFToken
 // @Router        /auth/login [post]
 func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.LoginUser"
@@ -144,6 +145,7 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 // @Failure       400 {object} response.ValidationErrorResponse
 // @Failure       401 {object} response.ErrorResponse
 // @Failure       500 {object} response.ErrorResponse
+// @Security     CSRFToken
 // @Router        /auth/refresh [post]
 func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.RefreshToken"
@@ -179,6 +181,7 @@ func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
+// @Security     CSRFToken
 // @Success      204 "Successfully logged out (no content)"
 // @Failure      400 {object} response.ValidationErrorResponse "Missing tokens"
 // @Failure      401 {object} response.ErrorResponse "Invalid tokens"
@@ -268,6 +271,7 @@ func (h AuthHandler) VKLogin(w http.ResponseWriter, r *http.Request) {
 // @Failure       400 {object} response.ValidationErrorResponse
 // @Failure       404 {object} response.ErrorResponse
 // @Failure       500 {object} response.ErrorResponse
+// @Security CSRFToken
 // @Router        /auth/yandex [post]
 func (h AuthHandler) YandexLogin(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.YandexLogin"
@@ -313,6 +317,7 @@ func (h AuthHandler) YandexLogin(w http.ResponseWriter, r *http.Request) {
 // @Header        200 {string} Set-Cookie "session_id=<SESSION_ID>; HttpOnly; Path=/api/auth; Max-Age=600"
 // @Failure       400 {object} response.ValidationErrorResponse
 // @Failure       500 {object} response.ErrorResponse
+// @Security	  CSRFToken
 // @Router        /auth/recover [post]
 func (h AuthHandler) SendCodeOnEmail(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.SendCodeOnEmail"
@@ -361,6 +366,7 @@ func (h AuthHandler) SendCodeOnEmail(w http.ResponseWriter, r *http.Request) {
 // @Failure       400 {object} response.ValidationErrorResponse
 // @Failure       401 {object} response.ErrorResponse "Invalid code or session"
 // @Failure       500 {object} response.ErrorResponse
+// @Security      CSRFToken
 // @Router        /auth/recover/verify [post]
 func (h AuthHandler) VerifyRecoveryCode(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.VerifyRecoveryCode"
@@ -409,6 +415,7 @@ func (h AuthHandler) VerifyRecoveryCode(w http.ResponseWriter, r *http.Request) 
 // @Failure       400 {object} response.ValidationErrorResponse
 // @Failure       401 {object} response.ErrorResponse "Session not verified or invalid"
 // @Failure       500 {object} response.ErrorResponse
+// @Security      CSRFToken
 // @Router        /auth/recover/reset [post]
 func (h AuthHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.UpdatePassword"
