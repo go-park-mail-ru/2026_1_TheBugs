@@ -148,9 +148,12 @@ func (uc *PosterUseCase) GetMetroStationsByRadius(ctx context.Context, coords dt
 func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.PosterInputFlatDTO) (*dto.CreatedPoster, error) {
 	var createdPoster *dto.CreatedPoster
 
-	log.Printf("dto: %v", poster)
+	err := validator.ValidatePosterBase(poster)
+	if err != nil {
+		return nil, fmt.Errorf("validator.ValidatePosterBase: %w", err)
+	}
 
-	err := validator.ValidatePosterInputFlat(poster)
+	err = validator.ValidatePosterInputFlat(poster)
 	if err != nil {
 		return nil, fmt.Errorf("validator.ValidatePosterInputFlat: %w", err)
 	}
