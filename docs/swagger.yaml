@@ -581,6 +581,31 @@ paths:
       summary: Login user from Yandex
       tags:
       - Auth
+  /csrf-token:
+    get:
+      consumes:
+      - application/json
+      description: Create and get csrf token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: CSRF token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get CSRF token
+      tags:
+      - Auth
   /posters/by-alias/{alias}:
     get:
       description: Returns the poster with all information about it

@@ -1,7 +1,10 @@
 package auth
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -440,4 +443,33 @@ func (h AuthHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	utils.JSONResponse(w, http.StatusOK, map[string]string{
 		"status": "password_updated",
 	})
+}
+
+// @Summary       Get CSRF token
+// @Description   Create and get csrf token
+// @Tags          Auth
+// @Accept        json
+// @Produce       json
+// @Success       200 {object} map[string]string "CSRF token"
+// @Failure       403 {object} response.ErrorResponse
+// @Failure       500 {object} response.ErrorResponse
+// @Router        /csrf-token [get]
+func (h AuthHandler) GetCSRFToken(w http.ResponseWriter, r *http.Request) {
+	token := generateCSRFToken()
+	http.SetCookie(w, &http.Cookie{
+		Name:     "csrf_token",
+		Value:    token,
+		HttpOnly: true,
+		Path:     "/",
+		MaxAge:   3600,
+	})
+	log.Println(token)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"csrf_token": token})
+}
+
+func generateCSRFToken() string {
+	b := make([]byte, 32)
+	rand.Read(b)
+	return base64.URLEncoding.EncodeToString(b)
 }

@@ -62,7 +62,7 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 	apiGroup.Use(mux.CORSMethodMiddleware(apiGroup))
 
 	{
-		apiGroup.HandleFunc("/csrf-token", middleware.GetCSRFToken).Methods(http.MethodGet)
+		apiGroup.HandleFunc("/csrf-token", auth.GetCSRFToken).Methods(http.MethodGet)
 
 		AuthMiddlewary := auth.GetAuthMiddlewary()
 		apiGroup.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
