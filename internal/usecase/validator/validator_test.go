@@ -1,8 +1,11 @@
 package validator
 
 import (
+	"strings"
 	"testing"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 )
 
@@ -369,6 +372,320 @@ func TestValidatePhone(t *testing.T) {
 			t.Parallel()
 			result := ValidatePhone(tt.inp)
 			require.Equal(t, tt.out, result)
+		})
+	}
+}
+
+func TestValidateProfile(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name      string
+		phone     string
+		firstname string
+		lastname  string
+		out       bool
+	}{
+		{
+			name:      "valid all",
+			phone:     "+7 (893) 121-12-12",
+			firstname: "John",
+			lastname:  "Doe",
+			out:       false,
+		},
+		{
+			name:      "invalid phone",
+			phone:     "invalid",
+			firstname: "John",
+			lastname:  "Doe",
+			out:       true,
+		},
+		{
+			name:      "invalid firstname",
+			phone:     "+7 (893) 121-12-12",
+			firstname: strings.Repeat("a", MaxNameLenght+1),
+			lastname:  "Doe",
+			out:       true,
+		},
+		{
+			name:      "invalid lastname",
+			phone:     "+7 (893) 121-12-12",
+			firstname: "John",
+			lastname:  strings.Repeat("a", MaxNameLenght+1),
+			out:       true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := ValidateProfile(tt.phone, tt.firstname, tt.lastname)
+			if !tt.out {
+				require.NoError(t, result)
+			} else {
+				require.Error(t, result)
+			}
+		})
+	}
+}
+
+func TestValidatePhoto(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name      string
+		fileInput *dto.FileInput
+		out       bool
+	}{
+		{
+			name: "valid jpg small",
+			fileInput: &dto.FileInput{
+				Filename:    "test.jpg",
+				Size:        1024,
+				ContentType: "image/jpeg",
+			},
+			out: true,
+		},
+		{
+			name: "valid png",
+			fileInput: &dto.FileInput{
+				Filename:    "test.png",
+				Size:        50000,
+				ContentType: "image/png",
+			},
+			out: true,
+		},
+		{
+			name: "valid svg",
+			fileInput: &dto.FileInput{
+				Filename:    "test.svg",
+				Size:        1000,
+				ContentType: "image/svg+xml",
+			},
+			out: true,
+		},
+		{
+			name:      "invalid nil",
+			fileInput: nil,
+			out:       false,
+		},
+		{
+			name: "invalid size too small",
+			fileInput: &dto.FileInput{
+				Filename:    "test.jpg",
+				Size:        0,
+				ContentType: "image/jpeg",
+			},
+			out: false,
+		},
+		{
+			name: "invalid size too big",
+			fileInput: &dto.FileInput{
+				Filename:    "test.jpg",
+				Size:        maxPhotoSize + 1,
+				ContentType: "image/jpeg",
+			},
+			out: false,
+		},
+		{
+			name: "invalid wrong ext",
+			fileInput: &dto.FileInput{
+				Filename:    "test.gif",
+				Size:        1024,
+				ContentType: "image/jpeg",
+			},
+			out: false,
+		},
+		{
+			name: "invalid wrong content-type",
+			fileInput: &dto.FileInput{
+				Filename:    "test.jpg",
+				Size:        1024,
+				ContentType: "text/plain",
+			},
+			out: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := ValidatePhoto(tt.fileInput)
+			require.Equal(t, tt.out, result)
+		})
+	}
+}
+
+func TestValidateAddress(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		in   string
+		out  bool
+	}{
+		{
+			name: "valid short",
+			in:   "ул. Ленина 1",
+			out:  true,
+		},
+		{
+			name: "valid long",
+			in:   "пр-т Мира, дом 123, корпус 2, квартира 45",
+			out:  true,
+		},
+		{
+			name: "invalid too short",
+			in:   strings.Repeat("a", minAddressLength-1),
+			out:  false,
+		},
+		{
+			name: "invalid too long",
+			in:   strings.Repeat("a", maxAddressLength+1),
+			out:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := ValidateAddress(tt.in)
+			require.Equal(t, tt.out, result)
+		})
+	}
+}
+
+func TestValidateDistrict(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		district *string
+		out      bool
+	}{
+		{
+			name:     "valid nil",
+			district: nil,
+			out:      true,
+		},
+		{
+			name:     "valid short",
+			district: lo.ToPtr("Центр"),
+			out:      true,
+		},
+		{
+			name:     "valid max length",
+			district: lo.ToPtr(strings.Repeat("a", maxDistrictLength)),
+			out:      true,
+		},
+		{
+			name:     "invalid too long",
+			district: lo.ToPtr(strings.Repeat("a", maxDistrictLength+1)),
+			out:      false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := ValidateDistrict(tt.district)
+			require.Equal(t, tt.out, result)
+		})
+	}
+}
+
+func TestValidateFeatures(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name     string
+		features []string
+		out      bool
+	}{
+		{
+			name:     "valid empty",
+			features: []string{},
+			out:      true,
+		},
+		{
+			name:     "valid normal",
+			features: []string{"wifi", "parking"},
+			out:      true,
+		},
+		{
+			name:     "invalid empty string",
+			features: []string{"wifi", ""},
+			out:      false,
+		},
+		{
+			name:     "invalid too long",
+			features: []string{strings.Repeat("a", 51)},
+			out:      false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := ValidateFeatures(tt.features)
+			require.Equal(t, tt.out, result)
+		})
+	}
+}
+
+func TestValidatePosterBase(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name   string
+		poster *dto.PosterInputFlatDTO
+		out    bool
+	}{
+		{
+			name: "valid",
+			poster: &dto.PosterInputFlatDTO{
+				Price:       100000,
+				Description: "test",
+				Area:        50,
+				GeoLat:      55.75,
+				GeoLon:      37.61,
+				Address:     "ул. Ленина 1",
+				FloorCount:  5,
+				Features:    []string{"wifi"},
+			},
+			out: false,
+		},
+		{
+			name: "invalid price zero",
+			poster: &dto.PosterInputFlatDTO{
+				Price:       0,
+				Description: "test",
+				Area:        50,
+				GeoLat:      55.75,
+				GeoLon:      37.61,
+				Address:     "ул. Ленина 1",
+				FloorCount:  5,
+			},
+			out: true,
+		},
+		{
+			name: "invalid geo lat",
+			poster: &dto.PosterInputFlatDTO{
+				Price:       100000,
+				Description: "test",
+				Area:        50,
+				GeoLat:      -190,
+				GeoLon:      90.61,
+				Address:     "ул. Ленина 1",
+				FloorCount:  5,
+			},
+			out: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			result := ValidatePosterBase(tt.poster)
+			if !tt.out {
+				require.NoError(t, result)
+			} else {
+				require.Error(t, result)
+			}
 		})
 	}
 }

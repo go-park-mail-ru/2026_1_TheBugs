@@ -21,7 +21,7 @@ const maxEmailLength = 255
 const minPwdLenght = 8
 const maxPwdLenght = 64
 const maxPhoneLenght = 20
-const maxNameLenght = 40
+const MaxNameLenght = 40
 
 const maxPriceSize = 10000000
 
@@ -53,7 +53,7 @@ func ValidatePhone(phone string) bool {
 }
 
 func ValidateName(name string) bool {
-	return len(name) <= maxNameLenght
+	return len(name) <= MaxNameLenght
 }
 
 func ValidatePwd(pwd string) bool {
@@ -181,11 +181,11 @@ func ValidatePosterBase(poster *dto.PosterInputFlatDTO) error {
 		return entity.NewValidationError("area")
 	}
 
-	if poster.GeoLat < -90 && poster.GeoLat > 90 {
+	if poster.GeoLat < -90 || poster.GeoLat > 90 {
 		return entity.NewValidationError("geo_lat")
 	}
 
-	if poster.GeoLon < -180 && poster.GeoLon > 180 {
+	if poster.GeoLon < -180 || poster.GeoLon > 180 {
 		return entity.NewValidationError("geo_lon")
 	}
 
