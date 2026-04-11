@@ -46,7 +46,7 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions},
 		AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,
-		ExposedHeaders:   []string{"Set-Cookie"},
+		ExposedHeaders:   []string{"Set-Cookie", "X-CSRF-TOKEN"},
 	})
 
 	app.Use(middleware.LoggingMiddleware(logger))
@@ -58,8 +58,12 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 
 	// API Routers
 	apiGroup := app.PathPrefix("/api").Subrouter()
+	apiGroup.Use(middleware.CSRFMiddleware)
 	apiGroup.Use(mux.CORSMethodMiddleware(apiGroup))
+
 	{
+		apiGroup.HandleFunc("/csrf-token", middleware.GetCSRFToken).Methods(http.MethodGet)
+
 		AuthMiddlewary := auth.GetAuthMiddlewary()
 		apiGroup.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 			_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
@@ -69,10 +73,10 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		apiGroup.Handle("/user/me", AuthMiddlewary(http.HandlerFunc(user.GetMe))).Methods(http.MethodGet, http.MethodOptions)
 		apiGroup.Handle("/user/me/profile", AuthMiddlewary(http.HandlerFunc(user.UpdateProfile))).Methods(http.MethodPut, http.MethodOptions)
 
-		apiGroup.HandleFunc("/auth/login", auth.LoginUser).Methods(http.MethodPost)
-		apiGroup.HandleFunc("/auth/reg", auth.RegisterUser).Methods(http.MethodPost)
+		apiGroup.HandleFunc("/auth/login", auth.LoginUser).Methods(http.MethodPost, http.MethodOptions)
+		apiGroup.HandleFunc("/auth/reg", auth.RegisterUser).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.HandleFunc("/auth/logout", auth.Logout).Methods(http.MethodPost, http.MethodOptions)
-		apiGroup.HandleFunc("/auth/refresh", auth.RefreshToken).Methods(http.MethodPost)
+		apiGroup.HandleFunc("/auth/refresh", auth.RefreshToken).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.HandleFunc("/auth/vkid", auth.VKLogin).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.HandleFunc("/auth/yandex", auth.YandexLogin).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.HandleFunc("/auth/recover", auth.SendCodeOnEmail).Methods(http.MethodPost, http.MethodOptions)
