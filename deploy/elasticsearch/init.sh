@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 
 until curl -s http://localhost:9200/_cluster/health > /dev/null; do
   echo "Waiting for Elasticsearch..."

@@ -53,8 +53,8 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 		Password: "bar",
 		Transport: &http.Transport{
 			MaxIdleConnsPerHost:   10,
-			ResponseHeaderTimeout: time.Second,
-			DialContext:           (&net.Dialer{Timeout: time.Second}).DialContext,
+			ResponseHeaderTimeout: time.Second * 5,
+			DialContext:           (&net.Dialer{Timeout: time.Second * 5}).DialContext,
 			TLSClientConfig: &tls.Config{
 				MinVersion: tls.VersionTLS12,
 			},
