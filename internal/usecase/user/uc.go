@@ -24,7 +24,12 @@ func NewUserUseCase(uow usecase.UnitOfWork, file usecase.FileRepo) *UserUseCase 
 }
 
 func (uc *UserUseCase) GetByID(ctx context.Context, userID int) (*dto.UserDTO, error) {
-	return uc.uow.Users().GetByID(ctx, userID)
+	user, err := uc.uow.Users().GetByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Users().GetByID: %w", err)
+	}
+	user.MakeAvatarPath()
+	return user, nil
 }
 
 func (uc *UserUseCase) UpdateProfile(ctx context.Context, data dto.UpdateProfileRequest) (*dto.UserDTO, error) {
@@ -51,15 +56,29 @@ func (uc *UserUseCase) UpdateProfile(ctx context.Context, data dto.UpdateProfile
 		if !validator.ValidatePhoto(data.Avatar) {
 			return nil, entity.NewValidationError("photo")
 		}
+		user, err := uc.uow.Users().GetByID(ctx, data.ID)
+		if err != nil {
+			return nil, fmt.Errorf("uc.uow.Users().GetByID: %w", err)
+		}
 		path := dto.GenerateAvatarPathForUser(data.ID)
 		key := photo.GetKeyFromPath(path)
 		size := data.Avatar.Size
 		contentType := data.Avatar.ContentType
 
 		if err := uc.file.Upload(ctx, key, data.Avatar.File, size, contentType); err != nil {
-			return nil, fmt.Errorf("uc.file.Upload: %w", err)
+			return nil, fmt.Errorf(" uc.file.Upload: %w", err)
+		}
+		if user.AvatarURL != nil {
+			if err := uc.file.Delete(ctx, photo.GetKeyFromPath(*user.AvatarURL)); err != nil {
+				return nil, fmt.Errorf(" uc.file.Upload: %w", err)
+			}
 		}
 		updateDTO.AvatarPath = &path
 	}
-	return uc.uow.Users().UpdateProfile(ctx, updateDTO)
+	user, err := uc.uow.Users().UpdateProfile(ctx, updateDTO)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Users().UpdateProfile: %w", err)
+	}
+	user.MakeAvatarPath()
+	return user, nil
 }

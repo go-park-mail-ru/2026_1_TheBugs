@@ -1,7 +1,9 @@
 package dto
 
 import (
+	"encoding/base64"
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
@@ -79,22 +81,28 @@ type UserDTO struct {
 }
 
 func UserToDTO(user *entity.UserDetails) *UserDTO {
-	var url *string
-	if user.AvatarURL != nil {
-		avatar := photo.MakeUrlFromPath(*user.AvatarURL, config.Config.PublicHost, config.Config.Bucket)
-		url = &avatar
-	}
-
 	return &UserDTO{
 		ID:        user.ID,
 		Email:     user.Email,
 		FirstName: user.FirstName,
 		LastName:  user.LastName,
-		AvatarURL: url,
+		AvatarURL: user.AvatarURL,
 		Phone:     user.Phone,
 	}
 }
 
+func (user *UserDTO) MakeAvatarPath() {
+	if user == nil {
+		return
+	}
+	if user.AvatarURL != nil {
+		avatar := photo.MakeUrlFromPath(*user.AvatarURL, config.Config.PublicHost, config.Config.Bucket)
+		user.AvatarURL = &avatar
+	}
+}
+
 func GenerateAvatarPathForUser(id int) string {
-	return fmt.Sprintf("/user/%d/avatar.jpg", id)
+	saltBytes := make([]byte, 10)
+	rand.Read(saltBytes)
+	return fmt.Sprintf("/user/%d/avatar-%s.jpg", id, base64.RawStdEncoding.EncodeToString(saltBytes))
 }

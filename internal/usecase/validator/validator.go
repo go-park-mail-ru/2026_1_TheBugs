@@ -14,7 +14,6 @@ const emailRegexPattern = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 const pwdRegexPattern = `^[a-zA-Z\d!@#$%^&*\-]{8,}$`
 
 const phoneRegexp = `^(\+7|8)\s?[\s(]?\d{3}[\s)\-]?\s?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}$`
-const addressRegexp = `^[а-яА-ЯёЁ\s\-\,\.\d\/]+$`
 
 const maxEmailLength = 255
 
@@ -143,8 +142,7 @@ func ValidateAddress(address string) bool {
 		return false
 	}
 
-	re := regexp.MustCompile(addressRegexp)
-	return re.MatchString(address)
+	return true
 }
 
 func ValidateDistrict(district *string) bool {
