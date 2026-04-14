@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"fmt"
+	"html"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
@@ -43,11 +44,13 @@ func (uc *UserUseCase) UpdateProfile(ctx context.Context, data dto.UpdateProfile
 		if ok := validator.ValidateName(*data.FirstName); !ok {
 			return nil, entity.NewValidationError("first_name")
 		}
+		*data.FirstName = html.EscapeString(*data.FirstName)
 	}
 	if data.LastName != nil {
 		if ok := validator.ValidateName(*data.LastName); !ok {
 			return nil, entity.NewValidationError("last_name")
 		}
+		*data.LastName = html.EscapeString(*data.LastName)
 	}
 	updateDTO := dto.UpdateProfileDTO{ID: data.ID, FirstName: data.FirstName, LastName: data.LastName, Phone: data.Phone}
 	if data.Avatar != nil {

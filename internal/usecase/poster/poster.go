@@ -157,6 +157,7 @@ func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.Poste
 	if err != nil {
 		return nil, fmt.Errorf("validator.ValidatePhotos: %w", err)
 	}
+	validator.SanitizePosterInput(poster)
 
 	post := dto.PosterInputFlatDTOtoPosterInput(poster)
 
@@ -309,6 +310,7 @@ func (uc *PosterUseCase) UpdateFlatPoster(ctx context.Context, alias string, pos
 	if err != nil {
 		return nil, fmt.Errorf("validator.ValidatePhotos: %w", err)
 	}
+	validator.SanitizePosterInput(poster)
 	ids, err := uc.uow.Posters().GetUpdateIDsByAlias(ctx, alias)
 	if err != nil {
 		return nil, fmt.Errorf("uc.PosterRepo.GetUpdateIDsByPosterID: %w", err)

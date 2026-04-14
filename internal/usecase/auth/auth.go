@@ -41,6 +41,8 @@ func (uc AuthUseCase) RegisterUseCase(ctx context.Context, data dto.CreateUserDT
 	if err := validator.ValidateProfile(data.Phone, data.FirstName, data.LastName); err != nil {
 		return err
 	}
+	validator.SanitizeUserProfile(&data)
+
 	existing, err := uc.uow.Users().GetByEmail(ctx, data.Email)
 	if existing != nil {
 		return entity.AlredyExitError

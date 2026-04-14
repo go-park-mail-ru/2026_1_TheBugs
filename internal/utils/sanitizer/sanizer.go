@@ -1,0 +1,30 @@
+package sanitizer
+
+import (
+	"html"
+
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
+)
+
+func SanitizePosterInput(dto *dto.PosterInputFlatDTO) {
+	if dto == nil {
+		return
+	}
+
+	dto.Description = html.EscapeString(dto.Description)
+	dto.CategoryAlias = html.EscapeString(dto.CategoryAlias)
+	dto.Address = html.EscapeString(dto.Address)
+	dto.City = html.EscapeString(dto.City)
+	if dto.District != nil {
+		escaped := html.EscapeString(*dto.District)
+		dto.District = &escaped
+	}
+
+	if dto.Alias != nil {
+		escaped := html.EscapeString(*dto.Alias)
+		dto.Alias = &escaped
+	}
+	for i, feature := range dto.Features {
+		dto.Features[i] = html.EscapeString(feature)
+	}
+}
