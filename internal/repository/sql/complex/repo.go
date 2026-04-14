@@ -17,26 +17,6 @@ func NewUtilityCompanyRepo(pool repository.DB) *UtilityCompanyPgRepo {
 	return &UtilityCompanyPgRepo{pool: pool}
 }
 
-func (r UtilityCompanyPgRepo) GetUtilityCompanyByID(ctx context.Context, id int) (*entity.UtilityCompany, error) {
-
-	sql := `SELECT id, phone, ST_AsText(geo), address, avatar_url FROM utility_complex WHERE id=$1`
-
-	row, err := r.pool.Query(ctx, sql, id)
-
-	if err != nil {
-		return nil, repository.HandelPgErrors(err)
-	}
-
-	defer row.Close()
-
-	complex, err := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[entity.UtilityCompany])
-	if err != nil {
-		return nil, repository.HandelPgErrors(err)
-	}
-	return &complex, nil
-
-}
-
 func (r UtilityCompanyPgRepo) GetByAlias(ctx context.Context, alias string) (*dto.UtilityCompanyDTO, error) {
 	sql := `
 		SELECT uc.id, uc.phone, uc.company_name, uc.description, ST_AsText(uc.geo) AS geo, uc.address, uc.avatar_url, uc.alias,
