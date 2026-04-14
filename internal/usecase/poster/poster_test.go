@@ -2,11 +2,14 @@ package poster
 
 import (
 	"context"
+	"io"
+	"strings"
 	"testing"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/mocks"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/photo"
@@ -51,6 +54,9 @@ func TestGetPostersUseCase(t *testing.T) {
 					Limit:  12,
 					Offset: 0,
 				}).Return(existingListPoster, nil).Times(1)
+
+				m.EXPECT().CountPosters(ctx).
+					Return(len(existingListPoster), nil).Times(1)
 			},
 			want:    expectedDTO,
 			wantErr: nil,
@@ -76,6 +82,9 @@ func TestGetPostersUseCase(t *testing.T) {
 					Limit:  MaxPostersLimit,
 					Offset: 0,
 				}).Return(existingListPoster, nil).Times(1)
+
+				m.EXPECT().CountPosters(ctx).
+					Return(len(existingListPoster), nil).Times(1)
 			},
 			want:    expectedDTO,
 			wantErr: nil,
@@ -154,6 +163,7 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 		Alias:           alias,
 		Price:           135000,
 		Category:        PropertyFlat,
+		CategoryAlias:   PropertyFlat,
 		Description:     "krutoy remont",
 		PropertyID:      10,
 		Area:            96.4,
@@ -398,5 +408,1130 @@ func TestGetPosterByUserID(t *testing.T) {
 			}
 		})
 
+	}
+}
+
+func TestGetMetroStationsByRadius(t *testing.T) {
+	ctx := context.Background()
+
+	inputCoords := dto.GeographyDTO{
+		Lon: 37.6173,
+		Lat: 55.7558,
+	}
+
+	existingStations := []entity.MetroStation{
+		{
+			ID:          1,
+			StationName: "Арбатская",
+			StationGEO:  geo.GeographyPoint{Lon: 37.605, Lat: 55.752},
+		},
+		{
+			ID:          2,
+			StationName: "Смоленская",
+			StationGEO:  geo.GeographyPoint{Lon: 37.582, Lat: 55.748},
+		},
+	}
+
+	expectedDTO := []dto.MetroStationDTO{
+		{
+			StationName: "Арбатская",
+			StationGeo:  dto.GeographyDTO{Lon: 37.605, Lat: 55.752},
+		},
+		{
+			StationName: "Смоленская",
+			StationGeo:  dto.GeographyDTO{Lon: 37.582, Lat: 55.748},
+		},
+	}
+
+	tests := []struct {
+		name      string
+		param     dto.GeographyDTO
+		setupMock func(m *mocks.MockPosterRepo)
+		want      []dto.MetroStationDTO
+		wantErr   error
+	}{
+		{
+			name:  "OK",
+			param: inputCoords,
+			setupMock: func(m *mocks.MockPosterRepo) {
+				m.EXPECT().
+					GetMetroStationByRadius(ctx, inputCoords, entity.Metre(MetroRadius)).
+					Return(existingStations, nil).
+					Times(1)
+			},
+			want:    expectedDTO,
+			wantErr: nil,
+		},
+		{
+			name:  "EmptyResult",
+			param: inputCoords,
+			setupMock: func(m *mocks.MockPosterRepo) {
+				m.EXPECT().
+					GetMetroStationByRadius(ctx, inputCoords, entity.Metre(MetroRadius)).
+					Return([]entity.MetroStation{}, nil).
+					Times(1)
+			},
+			want:    []dto.MetroStationDTO{},
+			wantErr: nil,
+		},
+		{
+			name:  "RepoError",
+			param: inputCoords,
+			setupMock: func(m *mocks.MockPosterRepo) {
+				m.EXPECT().
+					GetMetroStationByRadius(ctx, inputCoords, entity.Metre(MetroRadius)).
+					Return(nil, entity.ServiceError).
+					Times(1)
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepo := mocks.NewMockPosterRepo(ctrl)
+			mockUOW := mocks.NewMockUnitOfWork(ctrl)
+			mockFile := mocks.NewMockFileRepo(ctrl)
+
+			mockUOW.EXPECT().
+				Posters().
+				Return(mockRepo).
+				AnyTimes()
+
+			if test.setupMock != nil {
+				test.setupMock(mockRepo)
+			}
+
+			uc := NewPosterUseCase(mockUOW, mockFile)
+
+			res, err := uc.GetMetroStationsByRadius(ctx, test.param)
+
+			if test.wantErr != nil {
+				require.Error(t, err)
+				require.ErrorContains(t, err, test.wantErr.Error())
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, len(test.want), len(res))
+
+			for i := range test.want {
+				require.Equal(t, test.want[i].StationName, res[i].StationName)
+				require.Equal(t, test.want[i].StationGeo.Lat, res[i].StationGeo.Lat)
+				require.Equal(t, test.want[i].StationGeo.Lon, res[i].StationGeo.Lon)
+			}
+		})
+	}
+}
+
+func TestCreateFlatPoster(t *testing.T) {
+	ctx := context.Background()
+
+	district := "Arbat"
+	flatNumber := 43
+	companyID := 12
+
+	validPoster := &dto.PosterInputFlatDTO{
+		UserID:         7,
+		Price:          135000,
+		Description:    "krutoy remont",
+		CategoryAlias:  PropertyFlat,
+		Area:           96.4,
+		GeoLat:         55.7558,
+		GeoLon:         37.6173,
+		FlatCategoryID: 1,
+		FlatNumber:     &flatNumber,
+		FlatFloor:      3,
+		Address:        "Arbatskaya 5k2",
+		City:           "Moscow",
+		District:       &district,
+		FloorCount:     7,
+		CompanyID:      &companyID,
+		Features:       []string{"balcony", "parking"},
+		Images: []dto.PhotoInputDTO{
+			{
+				FileHeader: &dto.FileInput{
+					Filename:    "img1.jpg",
+					Size:        10,
+					ContentType: "image/jpeg",
+					File:        io.NopCloser(strings.NewReader("img1")),
+				},
+				Order: 1,
+			},
+			{
+				FileHeader: &dto.FileInput{
+					Filename:    "img2.jpg",
+					Size:        10,
+					ContentType: "image/jpeg",
+					File:        io.NopCloser(strings.NewReader("img2")),
+				},
+				Order: 2,
+			},
+		},
+	}
+
+	tests := []struct {
+		name      string
+		poster    *dto.PosterInputFlatDTO
+		setupMock func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo)
+		want      *dto.CreatedPoster
+		wantErr   error
+	}{
+		{
+			name:   "OK",
+			poster: validPoster,
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+				repo.EXPECT().
+					GetCityByName(ctx, "Moscow").
+					Return(&entity.City{ID: 1, Name: "Moscow"}, nil).
+					Times(1)
+
+				repo.EXPECT().
+					GetMetroStationByRadius(ctx, dto.GeographyDTO{Lat: 55.7558, Lon: 37.6173}, entity.Metre(MetroRadius)).
+					Return([]entity.MetroStation{
+						{ID: 5, StationName: "Arbatskaya"},
+					}, nil).
+					Times(1)
+
+				uow.EXPECT().
+					Do(ctx, gomock.Any()).
+					DoAndReturn(func(_ context.Context, fn func(r usecase.UnitOfWork) error) error {
+						return fn(uow)
+					}).
+					Times(1)
+
+				repo.EXPECT().
+					CreateBuilding(ctx, gomock.Any()).
+					Return(11, nil).
+					Times(1)
+
+				repo.EXPECT().
+					CreateProperty(ctx, gomock.Any(), 11).
+					Return(22, nil).
+					Times(1)
+
+				repo.EXPECT().
+					InsertFacilities(ctx, 22, []string{"balcony", "parking"}).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					Create(ctx, gomock.Any(), 22).
+					Return(33, nil).
+					Times(1)
+
+				repo.EXPECT().
+					InsertFlat(ctx, gomock.Any()).
+					Return(nil).
+					Times(1)
+
+				file.EXPECT().
+					Upload(ctx, gomock.Any(), gomock.Any(), int64(10), "image/jpeg").
+					Return(nil).
+					Times(2)
+
+				repo.EXPECT().
+					InsertPhotos(ctx, 33, gomock.Any()).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					InsertMainPhoto(ctx, 33, gomock.Any()).
+					Return(nil).
+					Times(1)
+			},
+			want: &dto.CreatedPoster{
+				ID: 33,
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "CreateCityIfNotFound",
+			poster: validPoster,
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+				repo.EXPECT().
+					GetCityByName(ctx, "Moscow").
+					Return(nil, entity.NotFoundError).
+					Times(1)
+
+				repo.EXPECT().
+					CreateCity(ctx, "Moscow").
+					Return(&entity.City{ID: 2, Name: "Moscow"}, nil).
+					Times(1)
+
+				repo.EXPECT().
+					GetMetroStationByRadius(ctx, dto.GeographyDTO{Lat: 55.7558, Lon: 37.6173}, entity.Metre(MetroRadius)).
+					Return([]entity.MetroStation{}, nil).
+					Times(1)
+
+				uow.EXPECT().
+					Do(ctx, gomock.Any()).
+					DoAndReturn(func(_ context.Context, fn func(r usecase.UnitOfWork) error) error {
+						return fn(uow)
+					}).
+					Times(1)
+
+				repo.EXPECT().
+					CreateBuilding(ctx, gomock.Any()).
+					Return(11, nil).
+					Times(1)
+
+				repo.EXPECT().
+					CreateProperty(ctx, gomock.Any(), 11).
+					Return(22, nil).
+					Times(1)
+
+				repo.EXPECT().
+					InsertFacilities(ctx, 22, []string{"balcony", "parking"}).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					Create(ctx, gomock.Any(), 22).
+					Return(33, nil).
+					Times(1)
+
+				repo.EXPECT().
+					InsertFlat(ctx, gomock.Any()).
+					Return(nil).
+					Times(1)
+
+				file.EXPECT().
+					Upload(ctx, gomock.Any(), gomock.Any(), int64(10), "image/jpeg").
+					Return(nil).
+					Times(2)
+
+				repo.EXPECT().
+					InsertPhotos(ctx, 33, gomock.Any()).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					InsertMainPhoto(ctx, 33, gomock.Any()).
+					Return(nil).
+					Times(1)
+			},
+			want: &dto.CreatedPoster{
+				ID: 33,
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "GetCityError",
+			poster: validPoster,
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+				repo.EXPECT().
+					GetCityByName(ctx, "Moscow").
+					Return(nil, entity.ServiceError).
+					Times(1)
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+		{
+			name:   "MetroError",
+			poster: validPoster,
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+				repo.EXPECT().
+					GetCityByName(ctx, "Moscow").
+					Return(&entity.City{ID: 1, Name: "Moscow"}, nil).
+					Times(1)
+
+				repo.EXPECT().
+					GetMetroStationByRadius(ctx, dto.GeographyDTO{Lat: 55.7558, Lon: 37.6173}, entity.Metre(MetroRadius)).
+					Return(nil, entity.ServiceError).
+					Times(1)
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepo := mocks.NewMockPosterRepo(ctrl)
+			mockUOW := mocks.NewMockUnitOfWork(ctrl)
+			mockFile := mocks.NewMockFileRepo(ctrl)
+
+			mockUOW.EXPECT().
+				Posters().
+				Return(mockRepo).
+				AnyTimes()
+
+			if test.setupMock != nil {
+				test.setupMock(mockRepo, mockUOW, mockFile)
+			}
+
+			uc := NewPosterUseCase(mockUOW, mockFile)
+
+			res, err := uc.CreateFlatPoster(ctx, test.poster)
+
+			if test.wantErr != nil {
+				require.Error(t, err)
+				require.ErrorContains(t, err, test.wantErr.Error())
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, res)
+			require.Equal(t, test.want.ID, res.ID)
+			require.NotEmpty(t, res.Alias)
+		})
+	}
+}
+
+func TestUpdateFlatPoster(t *testing.T) {
+	ctx := context.Background()
+	alias := "kvartira-na-arbate"
+
+	host := "http://testhost:8000"
+	bucket := "test_bucket"
+	config.Config.PublicHost = host
+	config.Config.Bucket = bucket
+
+	district := "Arbat"
+	flatNumber := 43
+	companyID := 12
+
+	keepPath := "/poster/img/flat/keep.jpg"
+	keepURL := host + "/" + bucket + keepPath
+	oldPath := "/poster/img/flat/old.jpg"
+
+	validPosterWithPhotos := &dto.PosterInputFlatDTO{
+		UserID:         7,
+		Price:          135000,
+		Description:    "krutoy remont",
+		CategoryAlias:  PropertyFlat,
+		Area:           96.4,
+		GeoLat:         55.7558,
+		GeoLon:         37.6173,
+		FlatCategoryID: 1,
+		FlatNumber:     &flatNumber,
+		FlatFloor:      3,
+		Address:        "Arbatskaya 5k2",
+		City:           "Moscow",
+		District:       &district,
+		FloorCount:     7,
+		CompanyID:      &companyID,
+		Features:       []string{"balcony", "parking"},
+		Images: []dto.PhotoInputDTO{
+			{
+				URL:   &keepURL,
+				Order: 1,
+			},
+			{
+				FileHeader: &dto.FileInput{
+					Filename:    "img2.jpg",
+					Size:        10,
+					ContentType: "image/jpeg",
+					File:        io.NopCloser(strings.NewReader("img2")),
+				},
+				Order: 2,
+			},
+		},
+	}
+
+	validPosterWithoutNewFiles := &dto.PosterInputFlatDTO{
+		UserID:         7,
+		Price:          135000,
+		Description:    "krutoy remont",
+		CategoryAlias:  PropertyFlat,
+		Area:           96.4,
+		GeoLat:         55.7558,
+		GeoLon:         37.6173,
+		FlatCategoryID: 1,
+		FlatNumber:     &flatNumber,
+		FlatFloor:      3,
+		Address:        "Arbatskaya 5k2",
+		City:           "Moscow",
+		District:       &district,
+		FloorCount:     7,
+		CompanyID:      &companyID,
+		Features:       []string{"balcony", "parking"},
+		Images: []dto.PhotoInputDTO{
+			{
+				URL:   &keepURL,
+				Order: 1,
+			},
+			{
+				URL:   &keepURL,
+				Order: 2,
+			},
+		},
+	}
+
+	ids := &dto.PosterUpdateIDs{
+		UserID:     7,
+		PosterID:   33,
+		PropertyID: 22,
+		BuildingID: 11,
+	}
+
+	tests := []struct {
+		name      string
+		alias     string
+		poster    *dto.PosterInputFlatDTO
+		setupMock func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo)
+		want      *dto.CreatedPoster
+		wantErr   error
+	}{
+		{
+			name:   "OK",
+			alias:  alias,
+			poster: validPosterWithoutNewFiles,
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+				repo.EXPECT().
+					GetUpdateIDsByAlias(ctx, alias).
+					Return(ids, nil).
+					Times(1)
+
+				repo.EXPECT().
+					GetCityByName(ctx, "Moscow").
+					Return(&entity.City{ID: 1, Name: "Moscow"}, nil).
+					Times(1)
+
+				repo.EXPECT().
+					GetMetroStationByRadius(ctx, dto.GeographyDTO{Lat: 55.7558, Lon: 37.6173}, entity.Metre(MetroRadius)).
+					Return([]entity.MetroStation{
+						{ID: 5, StationName: "Arbatskaya"},
+					}, nil).
+					Times(1)
+
+				repo.EXPECT().
+					GetPhotoPathsByPosterID(ctx, 33).
+					Return([]string{keepPath, keepPath}, nil).
+					Times(1)
+
+				uow.EXPECT().
+					Do(ctx, gomock.Any()).
+					DoAndReturn(func(_ context.Context, fn func(r usecase.UnitOfWork) error) error {
+						return fn(uow)
+					}).
+					Times(1)
+
+				repo.EXPECT().
+					Update(ctx, 33, gomock.Any()).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					UpdateProperty(ctx, 22, gomock.Any()).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					UpdateBuilding(ctx, 11, gomock.Any()).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					DeleteFacilitiesByPropertyID(ctx, 22).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					InsertFacilities(ctx, 22, []string{"balcony", "parking"}).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					UpdateFlat(ctx, gomock.Any()).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					DeletePhotosByPosterID(ctx, 33).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					InsertPhotos(ctx, 33, gomock.Any()).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					InsertMainPhoto(ctx, 33, gomock.Any()).
+					Return(nil).
+					Times(1)
+			},
+			want: &dto.CreatedPoster{
+				ID: 33,
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "CreateCityIfNotFound",
+			alias:  alias,
+			poster: validPosterWithoutNewFiles,
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+				repo.EXPECT().
+					GetUpdateIDsByAlias(ctx, alias).
+					Return(ids, nil).
+					Times(1)
+
+				repo.EXPECT().
+					GetCityByName(ctx, "Moscow").
+					Return(nil, entity.NotFoundError).
+					Times(1)
+
+				repo.EXPECT().
+					CreateCity(ctx, "Moscow").
+					Return(&entity.City{ID: 2, Name: "Moscow"}, nil).
+					Times(1)
+
+				repo.EXPECT().
+					GetMetroStationByRadius(ctx, dto.GeographyDTO{Lat: 55.7558, Lon: 37.6173}, entity.Metre(MetroRadius)).
+					Return([]entity.MetroStation{}, nil).
+					Times(1)
+
+				repo.EXPECT().
+					GetPhotoPathsByPosterID(ctx, 33).
+					Return([]string{keepPath, keepPath}, nil).
+					Times(1)
+
+				uow.EXPECT().
+					Do(ctx, gomock.Any()).
+					DoAndReturn(func(_ context.Context, fn func(r usecase.UnitOfWork) error) error {
+						return fn(uow)
+					}).
+					Times(1)
+
+				repo.EXPECT().Update(ctx, 33, gomock.Any()).Return(nil).Times(1)
+				repo.EXPECT().UpdateProperty(ctx, 22, gomock.Any()).Return(nil).Times(1)
+				repo.EXPECT().UpdateBuilding(ctx, 11, gomock.Any()).Return(nil).Times(1)
+				repo.EXPECT().DeleteFacilitiesByPropertyID(ctx, 22).Return(nil).Times(1)
+				repo.EXPECT().InsertFacilities(ctx, 22, []string{"balcony", "parking"}).Return(nil).Times(1)
+				repo.EXPECT().UpdateFlat(ctx, gomock.Any()).Return(nil).Times(1)
+				repo.EXPECT().DeletePhotosByPosterID(ctx, 33).Return(nil).Times(1)
+				repo.EXPECT().InsertPhotos(ctx, 33, gomock.Any()).Return(nil).Times(1)
+				repo.EXPECT().InsertMainPhoto(ctx, 33, gomock.Any()).Return(nil).Times(1)
+			},
+			want: &dto.CreatedPoster{
+				ID: 33,
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "NotOwner",
+			alias:  alias,
+			poster: validPosterWithoutNewFiles,
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+				repo.EXPECT().
+					GetUpdateIDsByAlias(ctx, alias).
+					Return(&dto.PosterUpdateIDs{
+						UserID:     999,
+						PosterID:   33,
+						PropertyID: 22,
+						BuildingID: 11,
+					}, nil).
+					Times(1)
+			},
+			want:    nil,
+			wantErr: entity.NotFoundError,
+		},
+		{
+			name:   "GetUpdateIDsError",
+			alias:  alias,
+			poster: validPosterWithoutNewFiles,
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+				repo.EXPECT().
+					GetUpdateIDsByAlias(ctx, alias).
+					Return(nil, entity.ServiceError).
+					Times(1)
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+		{
+			name:   "MetroError",
+			alias:  alias,
+			poster: validPosterWithoutNewFiles,
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+				repo.EXPECT().
+					GetUpdateIDsByAlias(ctx, alias).
+					Return(ids, nil).
+					Times(1)
+
+				repo.EXPECT().
+					GetCityByName(ctx, "Moscow").
+					Return(&entity.City{ID: 1, Name: "Moscow"}, nil).
+					Times(1)
+
+				repo.EXPECT().
+					GetMetroStationByRadius(ctx, dto.GeographyDTO{Lat: 55.7558, Lon: 37.6173}, entity.Metre(MetroRadius)).
+					Return(nil, entity.ServiceError).
+					Times(1)
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+		{
+			name:   "GetPhotoPathsError",
+			alias:  alias,
+			poster: validPosterWithPhotos,
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+				repo.EXPECT().
+					GetUpdateIDsByAlias(ctx, alias).
+					Return(ids, nil).
+					Times(1)
+
+				repo.EXPECT().
+					GetCityByName(ctx, "Moscow").
+					Return(&entity.City{ID: 1, Name: "Moscow"}, nil).
+					Times(1)
+
+				repo.EXPECT().
+					GetMetroStationByRadius(ctx, dto.GeographyDTO{Lat: 55.7558, Lon: 37.6173}, entity.Metre(MetroRadius)).
+					Return([]entity.MetroStation{}, nil).
+					Times(1)
+
+				repo.EXPECT().
+					GetPhotoPathsByPosterID(ctx, 33).
+					Return(nil, entity.ServiceError).
+					Times(1)
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+		{
+			name:   "OKWithPhotos",
+			alias:  alias,
+			poster: validPosterWithPhotos,
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+				repo.EXPECT().
+					GetUpdateIDsByAlias(ctx, alias).
+					Return(ids, nil).
+					Times(1)
+
+				repo.EXPECT().
+					GetCityByName(ctx, "Moscow").
+					Return(&entity.City{ID: 1, Name: "Moscow"}, nil).
+					Times(1)
+
+				repo.EXPECT().
+					GetMetroStationByRadius(ctx, dto.GeographyDTO{Lat: 55.7558, Lon: 37.6173}, entity.Metre(MetroRadius)).
+					Return([]entity.MetroStation{}, nil).
+					Times(1)
+
+				repo.EXPECT().
+					GetPhotoPathsByPosterID(ctx, 33).
+					Return([]string{
+						keepPath,
+						oldPath,
+					}, nil).
+					Times(1)
+
+				file.EXPECT().
+					Upload(ctx, gomock.Any(), gomock.Any(), int64(10), "image/jpeg").
+					Return(nil).
+					Times(1)
+
+				uow.EXPECT().
+					Do(ctx, gomock.Any()).
+					DoAndReturn(func(_ context.Context, fn func(r usecase.UnitOfWork) error) error {
+						return fn(uow)
+					}).
+					Times(1)
+
+				repo.EXPECT().Update(ctx, 33, gomock.Any()).Return(nil).Times(1)
+				repo.EXPECT().UpdateProperty(ctx, 22, gomock.Any()).Return(nil).Times(1)
+				repo.EXPECT().UpdateBuilding(ctx, 11, gomock.Any()).Return(nil).Times(1)
+				repo.EXPECT().DeleteFacilitiesByPropertyID(ctx, 22).Return(nil).Times(1)
+				repo.EXPECT().InsertFacilities(ctx, 22, []string{"balcony", "parking"}).Return(nil).Times(1)
+				repo.EXPECT().UpdateFlat(ctx, gomock.Any()).Return(nil).Times(1)
+				repo.EXPECT().DeletePhotosByPosterID(ctx, 33).Return(nil).Times(1)
+				repo.EXPECT().InsertPhotos(ctx, 33, gomock.Any()).Return(nil).Times(1)
+				repo.EXPECT().InsertMainPhoto(ctx, 33, gomock.Any()).Return(nil).Times(1)
+
+				file.EXPECT().
+					Delete(ctx, "poster/img/flat/old.jpg").
+					Return(nil).
+					Times(1)
+			},
+			want: &dto.CreatedPoster{
+				ID: 33,
+			},
+			wantErr: nil,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepo := mocks.NewMockPosterRepo(ctrl)
+			mockUOW := mocks.NewMockUnitOfWork(ctrl)
+			mockFile := mocks.NewMockFileRepo(ctrl)
+
+			mockUOW.EXPECT().
+				Posters().
+				Return(mockRepo).
+				AnyTimes()
+
+			if test.setupMock != nil {
+				test.setupMock(mockRepo, mockUOW, mockFile)
+			}
+
+			uc := NewPosterUseCase(mockUOW, mockFile)
+
+			res, err := uc.UpdateFlatPoster(ctx, test.alias, test.poster)
+
+			if test.wantErr != nil {
+				require.Error(t, err)
+				require.ErrorContains(t, err, test.wantErr.Error())
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, res)
+			require.Equal(t, test.want.ID, res.ID)
+			require.Equal(t, test.alias, res.Alias)
+		})
+	}
+}
+
+func TestDeleteFlatPoster(t *testing.T) {
+	ctx := context.Background()
+	alias := "kvartira-na-arbate"
+	userID := 7
+
+	ids := &dto.PosterUpdateIDs{
+		UserID:     7,
+		PosterID:   33,
+		PropertyID: 22,
+		BuildingID: 11,
+	}
+
+	oldPaths := []string{
+		"/poster/img/flat/old1.jpg",
+		"/poster/img/flat/old2.jpg",
+	}
+
+	tests := []struct {
+		name      string
+		alias     string
+		userID    int
+		setupMock func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo)
+		want      *dto.CreatedPoster
+		wantErr   error
+	}{
+		{
+			name:   "OK",
+			alias:  alias,
+			userID: userID,
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+				repo.EXPECT().
+					GetUpdateIDsByAlias(ctx, alias).
+					Return(ids, nil).
+					Times(1)
+
+				repo.EXPECT().
+					GetPhotoPathsByPosterID(ctx, 33).
+					Return(oldPaths, nil).
+					Times(1)
+
+				uow.EXPECT().
+					Do(ctx, gomock.Any()).
+					DoAndReturn(func(_ context.Context, fn func(r usecase.UnitOfWork) error) error {
+						return fn(uow)
+					}).
+					Times(1)
+
+				repo.EXPECT().
+					DeletePhotosByPosterID(ctx, 33).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					DeleteFacilitiesByPropertyID(ctx, 22).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					Delete(ctx, 33).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					DeleteFlat(ctx, 22).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					DeleteProperty(ctx, 22).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					DeleteBuilding(ctx, 11).
+					Return(nil).
+					Times(1)
+
+				file.EXPECT().
+					Delete(ctx, "poster/img/flat/old1.jpg").
+					Return(nil).
+					Times(1)
+
+				file.EXPECT().
+					Delete(ctx, "poster/img/flat/old2.jpg").
+					Return(nil).
+					Times(1)
+			},
+			want: &dto.CreatedPoster{
+				ID:    33,
+				Alias: alias,
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "OKWithoutPhotos",
+			alias:  alias,
+			userID: userID,
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+				repo.EXPECT().
+					GetUpdateIDsByAlias(ctx, alias).
+					Return(ids, nil).
+					Times(1)
+
+				repo.EXPECT().
+					GetPhotoPathsByPosterID(ctx, 33).
+					Return([]string{}, nil).
+					Times(1)
+
+				uow.EXPECT().
+					Do(ctx, gomock.Any()).
+					DoAndReturn(func(_ context.Context, fn func(r usecase.UnitOfWork) error) error {
+						return fn(uow)
+					}).
+					Times(1)
+
+				repo.EXPECT().
+					DeleteFacilitiesByPropertyID(ctx, 22).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					Delete(ctx, 33).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					DeleteFlat(ctx, 22).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					DeleteProperty(ctx, 22).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					DeleteBuilding(ctx, 11).
+					Return(nil).
+					Times(1)
+			},
+			want: &dto.CreatedPoster{
+				ID:    33,
+				Alias: alias,
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "GetUpdateIDsError",
+			alias:  alias,
+			userID: userID,
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+				repo.EXPECT().
+					GetUpdateIDsByAlias(ctx, alias).
+					Return(nil, entity.ServiceError).
+					Times(1)
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+		{
+			name:   "NotOwner",
+			alias:  alias,
+			userID: userID,
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+				repo.EXPECT().
+					GetUpdateIDsByAlias(ctx, alias).
+					Return(&dto.PosterUpdateIDs{
+						UserID:     999,
+						PosterID:   33,
+						PropertyID: 22,
+						BuildingID: 11,
+					}, nil).
+					Times(1)
+			},
+			want:    nil,
+			wantErr: entity.NotFoundError,
+		},
+		{
+			name:   "GetPhotoPathsError",
+			alias:  alias,
+			userID: userID,
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+				repo.EXPECT().
+					GetUpdateIDsByAlias(ctx, alias).
+					Return(ids, nil).
+					Times(1)
+
+				repo.EXPECT().
+					GetPhotoPathsByPosterID(ctx, 33).
+					Return(nil, entity.ServiceError).
+					Times(1)
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+		{
+			name:   "DeletePhotosError",
+			alias:  alias,
+			userID: userID,
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+				repo.EXPECT().
+					GetUpdateIDsByAlias(ctx, alias).
+					Return(ids, nil).
+					Times(1)
+
+				repo.EXPECT().
+					GetPhotoPathsByPosterID(ctx, 33).
+					Return(oldPaths, nil).
+					Times(1)
+
+				uow.EXPECT().
+					Do(ctx, gomock.Any()).
+					DoAndReturn(func(_ context.Context, fn func(r usecase.UnitOfWork) error) error {
+						return fn(uow)
+					}).
+					Times(1)
+
+				repo.EXPECT().
+					DeletePhotosByPosterID(ctx, 33).
+					Return(entity.ServiceError).
+					Times(1)
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+		{
+			name:   "DeleteFacilitiesError",
+			alias:  alias,
+			userID: userID,
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+				repo.EXPECT().
+					GetUpdateIDsByAlias(ctx, alias).
+					Return(ids, nil).
+					Times(1)
+
+				repo.EXPECT().
+					GetPhotoPathsByPosterID(ctx, 33).
+					Return(oldPaths, nil).
+					Times(1)
+
+				uow.EXPECT().
+					Do(ctx, gomock.Any()).
+					DoAndReturn(func(_ context.Context, fn func(r usecase.UnitOfWork) error) error {
+						return fn(uow)
+					}).
+					Times(1)
+
+				repo.EXPECT().
+					DeletePhotosByPosterID(ctx, 33).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					DeleteFacilitiesByPropertyID(ctx, 22).
+					Return(entity.ServiceError).
+					Times(1)
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+		{
+			name:   "DeletePosterError",
+			alias:  alias,
+			userID: userID,
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+				repo.EXPECT().
+					GetUpdateIDsByAlias(ctx, alias).
+					Return(ids, nil).
+					Times(1)
+
+				repo.EXPECT().
+					GetPhotoPathsByPosterID(ctx, 33).
+					Return(oldPaths, nil).
+					Times(1)
+
+				uow.EXPECT().
+					Do(ctx, gomock.Any()).
+					DoAndReturn(func(_ context.Context, fn func(r usecase.UnitOfWork) error) error {
+						return fn(uow)
+					}).
+					Times(1)
+
+				repo.EXPECT().
+					DeletePhotosByPosterID(ctx, 33).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					DeleteFacilitiesByPropertyID(ctx, 22).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
+					Delete(ctx, 33).
+					Return(entity.ServiceError).
+					Times(1)
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepo := mocks.NewMockPosterRepo(ctrl)
+			mockUOW := mocks.NewMockUnitOfWork(ctrl)
+			mockFile := mocks.NewMockFileRepo(ctrl)
+
+			mockUOW.EXPECT().
+				Posters().
+				Return(mockRepo).
+				AnyTimes()
+
+			if test.setupMock != nil {
+				test.setupMock(mockRepo, mockUOW, mockFile)
+			}
+
+			uc := NewPosterUseCase(mockUOW, mockFile)
+
+			res, err := uc.DeleteFlatPoster(ctx, test.alias, test.userID)
+
+			if test.wantErr != nil {
+				require.Error(t, err)
+				require.ErrorContains(t, err, test.wantErr.Error())
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, res)
+			require.Equal(t, test.want.ID, res.ID)
+			require.Equal(t, test.want.Alias, res.Alias)
+		})
 	}
 }
