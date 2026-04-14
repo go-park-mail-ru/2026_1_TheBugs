@@ -11,7 +11,6 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/mocks"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/validator"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/photo"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )
@@ -90,7 +89,6 @@ func TestUserUseCase_UpdateProfile(t *testing.T) {
 			},
 			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, userRepoMock *mocks.MockUserRepo) {
 				expected := &dto.UserDTO{ID: 1, FirstName: "John"}
-				uowMock.EXPECT().Users().Return(userRepoMock).AnyTimes()
 				userRepoMock.EXPECT().UpdateProfile(ctx, gomock.Any()).Return(expected, nil)
 			},
 			wantErr: false,
@@ -108,11 +106,9 @@ func TestUserUseCase_UpdateProfile(t *testing.T) {
 			},
 			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, userRepoMock *mocks.MockUserRepo) {
 				expected := &dto.UserDTO{ID: 1}
-				path := dto.GenerateAvatarPathForUser(1)
-				key := photo.GetKeyFromPath(path)
 
-				uowMock.EXPECT().Users().Return(userRepoMock).AnyTimes()
-				fileMock.EXPECT().Upload(ctx, key, gomock.Any(), int64(1024), "image/jpeg").Return(nil)
+				fileMock.EXPECT().Upload(ctx, gomock.Any(), gomock.Any(), int64(1024), "image/jpeg").Return(nil)
+				userRepoMock.EXPECT().GetByID(ctx, gomock.Any()).Return(expected, nil)
 				userRepoMock.EXPECT().UpdateProfile(ctx, gomock.Any()).Return(expected, nil)
 			},
 			wantErr: false,
@@ -165,9 +161,9 @@ func TestUserUseCase_UpdateProfile(t *testing.T) {
 				},
 			},
 			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, userRepoMock *mocks.MockUserRepo) {
-				path := dto.GenerateAvatarPathForUser(1)
-				key := photo.GetKeyFromPath(path)
-				fileMock.EXPECT().Upload(ctx, key, gomock.Any(), int64(1024), "image/jpeg").Return(errors.New("upload failed"))
+				expected := &dto.UserDTO{ID: 1}
+				userRepoMock.EXPECT().GetByID(ctx, gomock.Any()).Return(expected, nil)
+				fileMock.EXPECT().Upload(ctx, gomock.Any(), gomock.Any(), int64(1024), "image/jpeg").Return(errors.New("upload failed"))
 			},
 			wantErr: true,
 		},
@@ -184,6 +180,8 @@ func TestUserUseCase_UpdateProfile(t *testing.T) {
 			uowMock := mocks.NewMockUnitOfWork(ctrl)
 			fileMock := mocks.NewMockFileRepo(ctrl)
 			userRepoMock := mocks.NewMockUserRepo(ctrl)
+
+			uowMock.EXPECT().Users().Return(userRepoMock).AnyTimes()
 
 			tc.setupMock(uowMock, fileMock, userRepoMock)
 
