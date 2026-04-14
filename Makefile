@@ -6,7 +6,12 @@ build:
 
 test:
 	go clean -testcache
-	go test -v ./... --cover
+	go test -v ./...
+
+coverage:
+	go clean -testcache
+	go test ./... -coverprofile cover.out -covermode=count
+	go tool cover -func cover.out
 
 swag:
 	go install github.com/swaggo/swag/cmd/swag@latest
