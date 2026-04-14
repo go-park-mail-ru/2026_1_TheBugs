@@ -136,8 +136,8 @@ CREATE TABLE IF NOT EXISTS buildings (
     --CONSTRAINT city_check LENGTH(city) < 30 , 
     CONSTRAINT fk_company FOREIGN KEY (company_id) REFERENCES utility_companies(id), 
     CONSTRAINT address_check CHECK ( LENGTH(address) >= 5 AND LENGTH(address) <= 500 ), 
-    CONSTRAINT district_length_check CHECK ( LENGTH(district) < 100 ), 
-    CONSTRAINT floor_count_length_check CHECK (floor_count > 0 AND floor_count <= 500 ) 
+    CONSTRAINT district_length_check CHECK ( LENGTH(district) <= 100 ), 
+    CONSTRAINT floor_count_length_check CHECK (floor_count > 0 AND floor_count <= 99999 ) 
 ); 
  
 COMMENT ON TABLE buildings IS 'Дома';

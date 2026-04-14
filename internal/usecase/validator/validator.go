@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
@@ -31,11 +32,11 @@ const maxPosterDescriptionLength = 3000
 const minAddressLength = 5
 const maxAddressLength = 500
 const maxDistrictLength = 100
-const maxFloorCount = 100
+const maxFloorCount = 99999
 const maxFacilityAliasLength = 50
 
 func ValidateEmail(email string) bool {
-	if len(email) > maxEmailLength {
+	if utf8.RuneCountInString(email) > maxEmailLength {
 		return false
 	}
 	re := regexp.MustCompile(emailRegexPattern)
@@ -49,11 +50,11 @@ func ValidatePhone(phone string) bool {
 }
 
 func ValidateName(name string) bool {
-	return len(name) <= MaxNameLenght
+	return utf8.RuneCountInString(name) <= MaxNameLenght
 }
 
 func ValidatePwd(pwd string) bool {
-	if len(pwd) > maxPwdLenght || len(pwd) < minPwdLenght {
+	if utf8.RuneCountInString(pwd) > maxPwdLenght || utf8.RuneCountInString(pwd) < minPwdLenght {
 		return false
 	}
 	hasUpper := regexp.MustCompile(`[A-Z]`).MatchString(pwd)
@@ -135,7 +136,7 @@ func ValidatePhotos(photos []dto.PhotoInputDTO) error {
 func ValidateAddress(address string) bool {
 	address = strings.TrimSpace(address)
 
-	if len(address) < minAddressLength || len(address) > maxAddressLength {
+	if utf8.RuneCountInString(address) < minAddressLength || utf8.RuneCountInString(address) > maxAddressLength {
 		return false
 	}
 
@@ -147,7 +148,7 @@ func ValidateDistrict(district *string) bool {
 		return true
 	}
 
-	return len(*district) <= maxDistrictLength
+	return utf8.RuneCountInString(*district) <= maxDistrictLength
 }
 
 func ValidateFeatures(features []string) bool {
@@ -155,7 +156,7 @@ func ValidateFeatures(features []string) bool {
 		if feature == "" {
 			return false
 		}
-		if len(feature) > maxFacilityAliasLength {
+		if utf8.RuneCountInString(feature) > maxFacilityAliasLength {
 			return false
 		}
 	}
@@ -168,7 +169,7 @@ func ValidatePosterBase(poster *dto.PosterInputFlatDTO) error {
 		return entity.NewValidationError("price")
 	}
 
-	if len(poster.Description) > maxPosterDescriptionLength {
+	if utf8.RuneCountInString(poster.Description) > maxPosterDescriptionLength {
 		return entity.NewValidationError("description")
 	}
 
