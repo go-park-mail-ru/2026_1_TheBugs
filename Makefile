@@ -10,7 +10,7 @@ test:
 
 coverage:
 	go clean -testcache
-	go test ./... -coverprofile cover.out -covermode=count
+	-go test ./... -coverprofile cover.out -covermode=count 
 	go tool cover -func cover.out
 
 swag:

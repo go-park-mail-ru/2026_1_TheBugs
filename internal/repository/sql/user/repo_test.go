@@ -93,7 +93,7 @@ func TestGetUserByEmail(t *testing.T) {
 }
 
 func TestGetUserByID(t *testing.T) {
-	query := regexp.QuoteMeta(`SELECT u.id, u.email, p.first_name, p.last_name, p.avatar_url , p.phone
+	query := regexp.QuoteMeta(`SELECT u.id, u.email, p.first_name, p.last_name, p.avatar_url, p.phone
 			FROM users u
 			JOIN profiles p ON u.profile_id = p.id
 			WHERE u.id=$1`)

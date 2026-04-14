@@ -7,7 +7,9 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/mocks"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
 	"github.com/golang/mock/gomock"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 )
 
@@ -150,4 +152,65 @@ func TestUtilityCompanyUseCase_GetAllByDeveloperID(t *testing.T) {
 			require.ErrorIs(t, err, tc.wantErr)
 		})
 	}
+}
+
+func TestToUtilityCompanyDTO(t *testing.T) {
+	in := entity.UtilityCompany{
+		ID:          1,
+		Phone:       "phone",
+		CompanyName: "company_name",
+		GEO:         geo.GeographyPoint{Lat: 10, Lon: 12},
+		Address:     "address",
+		Alias:       "alias",
+	}
+	photos := []entity.UtilityCompanyPhoto{{ID: lo.ToPtr(1), UtilityCompanyID: lo.ToPtr(1), ImgURL: lo.ToPtr("s"), Order: lo.ToPtr(1)}}
+
+	exp := UtilityCompanyDTO{
+		ID:          1,
+		Phone:       "phone",
+		CompanyName: "company_name",
+		GEO:         dto.GeographyDTO{Lat: 10, Lon: 12},
+		Address:     "address",
+		Alias:       "alias",
+		Photos: []dto.PhotoDTO{
+			{
+				ImgURL: "s",
+				Order:  1,
+			},
+		},
+	}
+	res := ToUtilityCompanyDTO(&in, photos)
+	require.Equal(t, *res, exp)
+}
+
+func TestPosterToUtilityCompanyCardDTO_OK(t *testing.T) {
+	companyID := 10
+	companyName := "Test Company"
+	companyAlias := "test-company"
+	avatar := "https://img.com/avatar.png"
+
+	poster := &entity.PosterById{
+		CompanyID:        &companyID,
+		CompanyName:      &companyName,
+		CompanyAlias:     &companyAlias,
+		CompanyAvatarURL: &avatar,
+	}
+
+	dto := PosterToUtilityCompanyCardDTO(poster)
+
+	require.NotNil(t, dto)
+	require.Equal(t, 10, dto.ID)
+	require.Equal(t, "Test Company", dto.CompanyName)
+	require.Equal(t, "test-company", dto.Alias)
+	require.Equal(t, &avatar, dto.AvatarURL)
+}
+
+func TestPosterToUtilityCompanyCardDTO_NilCompany(t *testing.T) {
+	poster := &entity.PosterById{
+		CompanyID: nil,
+	}
+
+	dto := PosterToUtilityCompanyCardDTO(poster)
+
+	require.Nil(t, dto)
 }
