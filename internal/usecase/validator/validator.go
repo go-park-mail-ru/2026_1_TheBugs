@@ -11,7 +11,7 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 )
 
-const emailRegexPattern = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+const emailRegexPattern = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9]+[a-zA-Z0-9.-]*\.[a-zA-Z]{2,}$`
 const pwdRegexPattern = `^[a-zA-Z\d!@#$%^&*\-]{8,}$`
 
 const phoneRegexp = `^(\+7|8)\s?[\s(]?\d{3}[\s)\-]?\s?\d{3}[\s\-]?\d{2}[\s\-]?\d{2}$`
