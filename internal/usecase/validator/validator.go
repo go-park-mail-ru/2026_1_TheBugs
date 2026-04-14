@@ -43,9 +43,6 @@ func ValidateEmail(email string) bool {
 }
 
 func ValidatePhone(phone string) bool {
-	if len(phone) > maxPhoneLenght {
-		return false
-	}
 	re := regexp.MustCompile(phoneRegexp)
 	return re.MatchString(phone)
 

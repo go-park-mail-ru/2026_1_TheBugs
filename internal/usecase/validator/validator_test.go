@@ -627,9 +627,23 @@ func TestValidateFeatures(t *testing.T) {
 		})
 	}
 }
+func validPosterBase() *dto.PosterInputFlatDTO {
+	return &dto.PosterInputFlatDTO{
+		Price:       100000,
+		Description: "test",
+		Area:        50,
+		GeoLat:      55.75,
+		GeoLon:      37.61,
+		Address:     "ул. Ленина 1",
+		District:    lo.ToPtr("Центр"),
+		FloorCount:  5,
+		Features:    []string{"wifi"},
+	}
+}
 
 func TestValidatePosterBase(t *testing.T) {
 	t.Parallel()
+
 	tests := []struct {
 		name   string
 		poster *dto.PosterInputFlatDTO
@@ -644,35 +658,117 @@ func TestValidatePosterBase(t *testing.T) {
 				GeoLat:      55.75,
 				GeoLon:      37.61,
 				Address:     "ул. Ленина 1",
+				District:    lo.ToPtr("Центр"),
 				FloorCount:  5,
 				Features:    []string{"wifi"},
 			},
 			out: false,
 		},
+
 		{
 			name: "invalid price zero",
-			poster: &dto.PosterInputFlatDTO{
-				Price:       0,
-				Description: "test",
-				Area:        50,
-				GeoLat:      55.75,
-				GeoLon:      37.61,
-				Address:     "ул. Ленина 1",
-				FloorCount:  5,
-			},
+			poster: func() *dto.PosterInputFlatDTO {
+				p := validPosterBase()
+				p.Price = 0
+				return p
+			}(),
 			out: true,
 		},
 		{
+			name: "invalid price too big",
+			poster: func() *dto.PosterInputFlatDTO {
+				p := validPosterBase()
+				p.Price = maxPriceSize + 1
+				return p
+			}(),
+			out: true,
+		},
+
+		{
+			name: "invalid description too long",
+			poster: func() *dto.PosterInputFlatDTO {
+				p := validPosterBase()
+				p.Description = strings.Repeat("a", maxPosterDescriptionLength+1)
+				return p
+			}(),
+			out: true,
+		},
+
+		{
+			name: "invalid area zero",
+			poster: func() *dto.PosterInputFlatDTO {
+				p := validPosterBase()
+				p.Area = -1
+				return p
+			}(),
+			out: true,
+		},
+
+		{
 			name: "invalid geo lat",
-			poster: &dto.PosterInputFlatDTO{
-				Price:       100000,
-				Description: "test",
-				Area:        50,
-				GeoLat:      -190,
-				GeoLon:      90.61,
-				Address:     "ул. Ленина 1",
-				FloorCount:  5,
-			},
+			poster: func() *dto.PosterInputFlatDTO {
+				p := validPosterBase()
+				p.GeoLat = -190
+				return p
+			}(),
+			out: true,
+		},
+		{
+			name: "invalid geo lon",
+			poster: func() *dto.PosterInputFlatDTO {
+				p := validPosterBase()
+				p.GeoLon = 190
+				return p
+			}(),
+			out: true,
+		},
+
+		{
+			name: "invalid address",
+			poster: func() *dto.PosterInputFlatDTO {
+				p := validPosterBase()
+				p.Address = "id"
+				return p
+			}(),
+			out: true,
+		},
+
+		{
+			name: "invalid district",
+			poster: func() *dto.PosterInputFlatDTO {
+				p := validPosterBase()
+				p.District = lo.ToPtr(strings.Repeat("a", maxDistrictLength+1))
+				return p
+			}(),
+			out: true,
+		},
+
+		{
+			name: "invalid floor count zero",
+			poster: func() *dto.PosterInputFlatDTO {
+				p := validPosterBase()
+				p.FloorCount = 0
+				return p
+			}(),
+			out: true,
+		},
+		{
+			name: "invalid floor count too big",
+			poster: func() *dto.PosterInputFlatDTO {
+				p := validPosterBase()
+				p.FloorCount = maxFloorCount + 1
+				return p
+			}(),
+			out: true,
+		},
+
+		{
+			name: "invalid features",
+			poster: func() *dto.PosterInputFlatDTO {
+				p := validPosterBase()
+				p.Features = []string{strings.Repeat("f", maxFacilityAliasLength+1)}
+				return p
+			}(),
 			out: true,
 		},
 	}
@@ -681,10 +777,134 @@ func TestValidatePosterBase(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			result := ValidatePosterBase(tt.poster)
-			if !tt.out {
-				require.NoError(t, result)
-			} else {
+			if tt.out {
 				require.Error(t, result)
+			} else {
+				require.NoError(t, result)
+			}
+		})
+	}
+}
+
+func TestValidatePhotos(t *testing.T) {
+	t.Parallel()
+
+	validFile := &dto.FileInput{
+		Size:        1024,
+		Filename:    "photo.jpg",
+		ContentType: "image/jpeg",
+	}
+
+	validPhoto := dto.PhotoInputDTO{
+		FileHeader: validFile,
+		Order:      1,
+		URL:        nil,
+	}
+
+	tests := []struct {
+		name    string
+		photos  []dto.PhotoInputDTO
+		wantErr bool
+	}{
+		{
+			name:    "valid single photo",
+			photos:  []dto.PhotoInputDTO{validPhoto},
+			wantErr: false,
+		},
+		{
+			name: "valid multiple photos",
+			photos: []dto.PhotoInputDTO{
+				{FileHeader: validFile, Order: 1},
+				{FileHeader: validFile, Order: 2},
+			},
+			wantErr: false,
+		},
+
+		{
+			name:    "empty photos",
+			photos:  []dto.PhotoInputDTO{},
+			wantErr: true,
+		},
+
+		{
+			name:    "too many photos",
+			photos:  make([]dto.PhotoInputDTO, MaxPhotosLength+1),
+			wantErr: true,
+		},
+
+		{
+			name: "photo without file or url index 0",
+			photos: []dto.PhotoInputDTO{
+				{FileHeader: nil, URL: nil, Order: 1},
+			},
+			wantErr: true,
+		},
+
+		{
+			name: "invalid photo file size index 0",
+			photos: []dto.PhotoInputDTO{
+				{
+					FileHeader: &dto.FileInput{Size: maxPhotoSize + 1, Filename: "photo.jpg", ContentType: "image/jpeg"},
+					Order:      1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid photo extension index 0",
+			photos: []dto.PhotoInputDTO{
+				{
+					FileHeader: &dto.FileInput{Size: 1024, Filename: "photo.gif", ContentType: "image/gif"},
+					Order:      1,
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid photo content type index 0",
+			photos: []dto.PhotoInputDTO{
+				{
+					FileHeader: &dto.FileInput{Size: 1024, Filename: "photo.jpg", ContentType: "text/plain"},
+					Order:      1,
+				},
+			},
+			wantErr: true,
+		},
+
+		{
+			name: "invalid order negative index 0",
+			photos: []dto.PhotoInputDTO{
+				{FileHeader: validFile, Order: -1},
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid order too big index 0",
+			photos: []dto.PhotoInputDTO{
+				{FileHeader: validFile, Order: MaxPhotosLength + 1},
+			},
+			wantErr: true,
+		},
+
+		{
+			name: "invalid photo in middle index 1",
+			photos: []dto.PhotoInputDTO{
+				{FileHeader: validFile, Order: 1},
+				{FileHeader: nil, URL: nil, Order: 2},
+				{FileHeader: validFile, Order: 3},
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			err := ValidatePhotos(tt.photos)
+			if tt.wantErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
 			}
 		})
 	}

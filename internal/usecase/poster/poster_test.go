@@ -150,6 +150,202 @@ func TestGetPostersUseCase(t *testing.T) {
 	}
 }
 
+func TestSearchPostersUseCase(t *testing.T) {
+	ctx := context.Background()
+
+	existingSearchResponse := &dto.PostersResponse{
+		Posters: []dto.PosterCardDTO{
+			{ID: 1},
+			{ID: 2},
+			{ID: 3},
+		},
+		Len: 3,
+	}
+
+	existingPosterFlats := []entity.PosterFlat{
+		{ID: 1, Price: 11111, Address: "street_1"},
+		{ID: 2, Price: 22222, Address: "street_2"},
+		{ID: 3, Price: 33333, Address: "street_3"},
+	}
+
+	expectedDTO := []dto.PosterCardDTO{
+		{ID: 1, Price: 11111, Address: "street_1"},
+		{ID: 2, Price: 22222, Address: "street_2"},
+		{ID: 3, Price: 33333, Address: "street_3"},
+	}
+
+	tests := []struct {
+		name      string
+		params    dto.PostersFiltersDTO
+		setupMock func(searchMock *mocks.MockSearchRepo, uowMock *mocks.MockUnitOfWork)
+		want      *dto.PostersResponse
+		wantErr   error
+	}{
+		{
+			name: "OK",
+			params: dto.PostersFiltersDTO{
+				Limit:  12,
+				Offset: 0,
+			},
+			setupMock: func(searchMock *mocks.MockSearchRepo, uowMock *mocks.MockUnitOfWork) {
+				searchMock.EXPECT().SearchPosters(ctx, dto.PostersFiltersDTO{
+					Limit:  12,
+					Offset: 0,
+				}).Return(existingSearchResponse, nil).Times(1)
+
+				mockPosterRepo := mocks.NewMockPosterRepo(gomock.NewController(t))
+				uowMock.EXPECT().Posters().Return(mockPosterRepo).Times(1)
+				mockPosterRepo.EXPECT().GetFlatsByIDs(ctx, []int{1, 2, 3}).Return(existingPosterFlats, nil).Times(1)
+			},
+			want: &dto.PostersResponse{
+				Posters: expectedDTO,
+				Len:     3,
+			},
+			wantErr: nil,
+		},
+		{
+			name: "InvalidLimit",
+			params: dto.PostersFiltersDTO{
+				Limit:  -2,
+				Offset: 0,
+			},
+			setupMock: nil,
+			want:      nil,
+			wantErr:   entity.InvalidInput,
+		},
+		{
+			name: "InvalidOffset",
+			params: dto.PostersFiltersDTO{
+				Limit:  12,
+				Offset: -3,
+			},
+			setupMock: nil,
+			want:      nil,
+			wantErr:   entity.InvalidInput,
+		},
+		{
+			name: "LimitTooLarge",
+			params: dto.PostersFiltersDTO{
+				Limit:  MaxPostersLimit + 1,
+				Offset: 0,
+			},
+			setupMock: func(searchMock *mocks.MockSearchRepo, uowMock *mocks.MockUnitOfWork) {
+				searchMock.EXPECT().SearchPosters(ctx, dto.PostersFiltersDTO{
+					Limit:  MaxPostersLimit,
+					Offset: 0,
+				}).Return(existingSearchResponse, nil).Times(1)
+
+				mockPosterRepo := mocks.NewMockPosterRepo(gomock.NewController(t))
+				uowMock.EXPECT().Posters().Return(mockPosterRepo).Times(1)
+				mockPosterRepo.EXPECT().GetFlatsByIDs(ctx, []int{1, 2, 3}).Return(existingPosterFlats, nil).Times(1)
+			},
+			want: &dto.PostersResponse{
+				Posters: expectedDTO,
+				Len:     3,
+			},
+			wantErr: nil,
+		},
+		{
+			name: "SearchError",
+			params: dto.PostersFiltersDTO{
+				Limit:  12,
+				Offset: 0,
+			},
+			setupMock: func(searchMock *mocks.MockSearchRepo, uowMock *mocks.MockUnitOfWork) {
+				searchMock.EXPECT().SearchPosters(ctx, dto.PostersFiltersDTO{
+					Limit:  12,
+					Offset: 0,
+				}).Return(nil, entity.NotFoundError).Times(1)
+			},
+			want:    nil,
+			wantErr: entity.NotFoundError,
+		},
+		{
+			name: "GetFlatsByIDs error",
+			params: dto.PostersFiltersDTO{
+				Limit:  12,
+				Offset: 0,
+			},
+			setupMock: func(searchMock *mocks.MockSearchRepo, uowMock *mocks.MockUnitOfWork) {
+				searchMock.EXPECT().SearchPosters(ctx, dto.PostersFiltersDTO{
+					Limit:  12,
+					Offset: 0,
+				}).Return(existingSearchResponse, nil).Times(1)
+
+				mockPosterRepo := mocks.NewMockPosterRepo(gomock.NewController(t))
+				uowMock.EXPECT().Posters().Return(mockPosterRepo).Times(1)
+				mockPosterRepo.EXPECT().GetFlatsByIDs(ctx, []int{1, 2, 3}).Return(nil, entity.NotFoundError).Times(1)
+			},
+			want:    nil,
+			wantErr: entity.NotFoundError,
+		},
+		{
+			name: "Empty search result",
+			params: dto.PostersFiltersDTO{
+				Limit:  12,
+				Offset: 0,
+			},
+			setupMock: func(searchMock *mocks.MockSearchRepo, uowMock *mocks.MockUnitOfWork) {
+				emptyResponse := &dto.PostersResponse{Posters: []dto.PosterCardDTO{}, Len: 0}
+				searchMock.EXPECT().SearchPosters(ctx, dto.PostersFiltersDTO{
+					Limit:  12,
+					Offset: 0,
+				}).Return(emptyResponse, nil).Times(1)
+
+				mockPosterRepo := mocks.NewMockPosterRepo(gomock.NewController(t))
+				uowMock.EXPECT().Posters().Return(mockPosterRepo).Times(1)
+				mockPosterRepo.EXPECT().GetFlatsByIDs(ctx, []int{}).Return([]entity.PosterFlat{}, nil).Times(1)
+			},
+			want: &dto.PostersResponse{
+				Posters: []dto.PosterCardDTO{},
+				Len:     0,
+			},
+			wantErr: nil,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockSearch := mocks.NewMockSearchRepo(ctrl)
+			mockUOW := mocks.NewMockUnitOfWork(ctrl)
+			mockFile := mocks.NewMockFileRepo(ctrl)
+
+			uc := &PosterUseCase{
+				search: mockSearch,
+				uow:    mockUOW,
+				file:   mockFile,
+			}
+
+			if test.setupMock != nil {
+				test.setupMock(mockSearch, mockUOW)
+			}
+
+			got, err := uc.SearchPostersUseCase(ctx, test.params)
+
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				require.Nil(t, got)
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, got)
+			require.Equal(t, test.want.Len, got.Len)
+			require.Equal(t, len(test.want.Posters), len(got.Posters))
+
+			for i, expectedPoster := range test.want.Posters {
+				poster := got.Posters[i]
+				require.Equal(t, expectedPoster.ID, poster.ID)
+				require.Equal(t, expectedPoster.Price, poster.Price)
+				require.Equal(t, expectedPoster.Address, poster.Address)
+			}
+		})
+	}
+}
+
 func TestGetPosterByAliasUseCase(t *testing.T) {
 	ctx := context.Background()
 	alias := "kvartira-na-arbate"
@@ -506,7 +702,7 @@ func TestGetMetroStationsByRadius(t *testing.T) {
 				test.setupMock(mockRepo)
 			}
 
-			uc := NewPosterUseCase(mockUOW, mockFile)
+			uc := NewPosterUseCase(mockUOW, mockFile, nil)
 
 			res, err := uc.GetMetroStationsByRadius(ctx, test.param)
 
@@ -597,6 +793,8 @@ func TestCreateFlatPoster(t *testing.T) {
 					}, nil).
 					Times(1)
 
+				repo.EXPECT().GetByAlias(ctx, gomock.Any(), gomock.Any()).Return(nil, entity.NotFoundError)
+
 				uow.EXPECT().
 					Do(ctx, gomock.Any()).
 					DoAndReturn(func(_ context.Context, fn func(r usecase.UnitOfWork) error) error {
@@ -667,6 +865,8 @@ func TestCreateFlatPoster(t *testing.T) {
 					GetMetroStationByRadius(ctx, dto.GeographyDTO{Lat: 55.7558, Lon: 37.6173}, entity.Metre(MetroRadius)).
 					Return([]entity.MetroStation{}, nil).
 					Times(1)
+
+				repo.EXPECT().GetByAlias(ctx, gomock.Any(), gomock.Any()).Return(nil, entity.NotFoundError)
 
 				uow.EXPECT().
 					Do(ctx, gomock.Any()).
@@ -769,7 +969,7 @@ func TestCreateFlatPoster(t *testing.T) {
 				test.setupMock(mockRepo, mockUOW, mockFile)
 			}
 
-			uc := NewPosterUseCase(mockUOW, mockFile)
+			uc := NewPosterUseCase(mockUOW, mockFile, nil)
 
 			res, err := uc.CreateFlatPoster(ctx, test.poster)
 
@@ -1180,7 +1380,7 @@ func TestUpdateFlatPoster(t *testing.T) {
 				test.setupMock(mockRepo, mockUOW, mockFile)
 			}
 
-			uc := NewPosterUseCase(mockUOW, mockFile)
+			uc := NewPosterUseCase(mockUOW, mockFile, nil)
 
 			res, err := uc.UpdateFlatPoster(ctx, test.alias, test.poster)
 
@@ -1518,7 +1718,7 @@ func TestDeleteFlatPoster(t *testing.T) {
 				test.setupMock(mockRepo, mockUOW, mockFile)
 			}
 
-			uc := NewPosterUseCase(mockUOW, mockFile)
+			uc := NewPosterUseCase(mockUOW, mockFile, nil)
 
 			res, err := uc.DeleteFlatPoster(ctx, test.alias, test.userID)
 

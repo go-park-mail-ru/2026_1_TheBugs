@@ -168,7 +168,7 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 		LEFT JOIN utility_companies uc ON uc.id = b.company_id
 		JOIN users u ON u.id = p.user_id
 		JOIN profiles pr ON pr.id = u.profile_id
-		WHERE p.alias = $1
+		WHERE p.alias = $1 AND p.deleted_at IS NULL
 	`)
 
 	imagesQuery := regexp.QuoteMeta(`
@@ -184,7 +184,7 @@ func TestGetPosterByAliasRepo(t *testing.T) {
 		JOIN facility_property fp ON fp.facility_id = f.id
 		JOIN property pr ON pr.id = fp.property_id
 		JOIN posters pt ON pt.property_id = pr.id
-		WHERE pt.id = $1
+		WHERE pt.id = $1 AND pt.deleted_at IS NULL
 		ORDER BY f.name
 	`)
 
@@ -488,7 +488,7 @@ func TestGetPosterByUserIDRepo(t *testing.T) {
         JOIN property prop ON prop.id = p.property_id
         JOIN property_categories pc ON pc.id = prop.category_id
         JOIN buildings b ON b.id = prop.building_id
-		WHERE p.user_id = $1;
+		WHERE p.user_id = $1 AND p.deleted_at IS NULL;
 	`)
 
 	tests := []struct {
@@ -2154,8 +2154,8 @@ func TestDeletePosterRepo(t *testing.T) {
 	inputPosterID := 33
 
 	query := regexp.QuoteMeta(`
-        UPDATE posters SET deleted_at = NOW()
-        WHERE id = $1
+        UPDATE posters SET deleted_at = NOW(), property_id = NULL
+        WHERE id = $1 AND deleted_at IS NULL
     `)
 
 	tests := []struct {
