@@ -10,10 +10,10 @@ import (
 )
 
 type TokenRepo struct {
-	redisClient *redis.Client
+	redisClient redis.Cmdable
 }
 
-func NewTokenRepo(rdb *redis.Client) *TokenRepo {
+func NewTokenRepo(rdb redis.Cmdable) *TokenRepo {
 	return &TokenRepo{
 		redisClient: rdb,
 	}
