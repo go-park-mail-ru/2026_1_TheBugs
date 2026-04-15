@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: thebugs
       POSTGRES_DB: main
     ports:
-      - "5432:5432"
+      - "5435:5432"
     volumes:
       - ./db/migrations:/docker-entrypoint-initdb.d
     healthcheck:
@@ -21,3 +21,79 @@ services:
     ports:
       - "6379:6379"
     restart: unless-stopped
+
+  minio: 
+    image:
+      quay.io/minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment: 
+      MINIO_ACCESS_KEY: admin123
+      MINIO_SECRET_KEY: admin123
+    command: server /data --console-address ":9001"
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    environment:
+      MINIO_ALIAS: minio
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: admin123
+      MINIO_SECRET_KEY: admin123
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set minio http://minio:9000 admin123 admin123 &&
+      mc mb minio/media --ignore-existing &&
+      mc anonymous set public minio/media &&
+      echo 'Bucket media created and public for download'
+      "
+    restart: "no"
+
+  maildev:
+    image: maildev/maildev
+    ports:
+      - "1080:1080"
+      - "1025:1025"
+    environment:
+    - TZ=Europe/Moscow
+    - MAILDEV_WEB_PORT=1080
+    - MAILDEV_SMTP_PORT=1025
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "3"
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+    ports:
+      - "9200:9200"
+    volumes:
+      - ./deploy/elasticsearch/init.sh:/usr/local/bin/init-es.sh
+    command: >
+      bash -c "
+        /usr/local/bin/docker-entrypoint.sh elasticsearch &
+        sleep 30 && 
+        sh /usr/local/bin/init-es.sh &&
+        wait
+      "
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  logstash:
+    build: 
+      context: ./deploy/logstash
+      dockerfile: Dockerfile
+    volumes:
+      - ./deploy/logstash/pipeline:/usr/share/logstash/pipeline
+    depends_on:
+      - postgres
+      - elasticsearch

@@ -11,8 +11,10 @@ import (
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/mocks"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
+	tokens "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/jwt"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/pwd"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/tokens"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
@@ -24,38 +26,52 @@ func TestRegisterUseCase(t *testing.T) {
 
 	cases := []struct {
 		name      string
-		email     string
-		password  string
+		data      dto.CreateUserDTO
 		setupMock func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo)
 		wantErr   error
 	}{
 		{
-			name:     "OK",
-			email:    "test@gmail.com",
-			password: "dpofdOPOOo12",
+			name: "OK",
+			data: dto.CreateUserDTO{
+				Email:     "test@gmail.com",
+				Password:  "dpofdOPOOo12",
+				FirstName: "Mark",
+				LastName:  "Mini",
+				Phone:     "8 800 955 12 12",
+			},
 			setupMock: func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo) {
 				gomock.InOrder(
-					userMock.EXPECT().GetUserByEmail(ctx, gomock.Any()).Return(nil, nil).Times(1),
-					userMock.EXPECT().CreateUser(ctx, gomock.Any()).Return(nil, nil).Times(1),
+					userMock.EXPECT().GetByEmail(ctx, gomock.Any()).Return(nil, nil).Times(1),
+					userMock.EXPECT().Create(ctx, gomock.Any()).Return(nil, nil).Times(1),
 				)
 			},
 			wantErr: nil,
 		},
 		{
-			name:     "Conflict",
-			email:    "test@gmail.com",
-			password: "dpofdOPOOo12",
+			name: "Conflict",
+			data: dto.CreateUserDTO{
+				Email:     "test@gmail.com",
+				Password:  "dpofdOPOOo12",
+				FirstName: "Mark",
+				LastName:  "Mini",
+				Phone:     "8 800 955 12 12",
+			},
 			setupMock: func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo) {
 				existingUser := &entity.User{Email: "test"}
-				userMock.EXPECT().GetUserByEmail(ctx, gomock.Any()).Return(existingUser, nil)
-				userMock.EXPECT().CreateUser(ctx, gomock.Any()).Times(0)
+				userMock.EXPECT().GetByEmail(ctx, gomock.Any()).Return(existingUser, nil)
+				userMock.EXPECT().Create(ctx, gomock.Any()).Times(0)
 			},
 			wantErr: entity.AlredyExitError,
 		},
 		{
-			name:     "InvalidInput",
-			email:    "wrong_email",
-			password: "dpofdOPOOo121",
+			name: "InvalidInput",
+			data: dto.CreateUserDTO{
+				Email:     "wrong_email",
+				Password:  "dpofdOPOOo121",
+				FirstName: "Mark",
+				LastName:  "Mini",
+				Phone:     "8 800 955 12 12",
+			},
 			setupMock: func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo) {
 			},
 			wantErr: entity.InvalidInput,
@@ -70,15 +86,19 @@ func TestRegisterUseCase(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
+			uowMock := mocks.NewMockUnitOfWork(ctrl)
 			userMock := mocks.NewMockUserRepo(ctrl)
 			authMock := mocks.NewMockAuthRepo(ctrl)
+
+			uowMock.EXPECT().Users().Return(userMock).AnyTimes()
+			uowMock.EXPECT().Autho().Return(authMock).AnyTimes()
 
 			if tc.setupMock != nil {
 				tc.setupMock(userMock, authMock)
 			}
 
-			uc := NewAuthUseCase(userMock, authMock)
-			err := uc.RegisterUseCase(ctx, tc.email, tc.password)
+			uc := NewAuthUseCase(uowMock, nil, nil)
+			err := uc.RegisterUseCase(ctx, tc.data)
 
 			require.ErrorIs(t, err, tc.wantErr)
 		})
@@ -106,12 +126,12 @@ func TestLoginUseCase(t *testing.T) {
 				existingUser := entity.User{
 					ID:             0,
 					Email:          "test@gmail.com",
-					HashedPassword: hashed,
-					Salt:           salt,
+					HashedPassword: &hashed,
+					Salt:           &salt,
 				}
 
 				gomock.InOrder(
-					userMock.EXPECT().GetUserByEmail(ctx, gomock.Any()).Return(&existingUser, nil),
+					userMock.EXPECT().GetByEmail(ctx, gomock.Any()).Return(&existingUser, nil),
 					authMock.EXPECT().CreateToken(ctx, gomock.Any()).Return(nil),
 				)
 			},
@@ -127,10 +147,10 @@ func TestLoginUseCase(t *testing.T) {
 				existingUser := entity.User{
 					ID:             0,
 					Email:          "test@gmail.com",
-					HashedPassword: hashed,
-					Salt:           salt,
+					HashedPassword: &hashed,
+					Salt:           &salt,
 				}
-				userMock.EXPECT().GetUserByEmail(ctx, gomock.Any()).Return(&existingUser, nil)
+				userMock.EXPECT().GetByEmail(ctx, gomock.Any()).Return(&existingUser, nil)
 			},
 			wantErr: entity.BadCredentials,
 		},
@@ -147,7 +167,7 @@ func TestLoginUseCase(t *testing.T) {
 			email:    "test@gmail.com",
 			password: "wrongPwd12323",
 			setupMock: func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo) {
-				userMock.EXPECT().GetUserByEmail(ctx, gomock.Any()).Return(nil, entity.NotFoundError)
+				userMock.EXPECT().GetByEmail(ctx, gomock.Any()).Return(nil, entity.NotFoundError)
 			},
 			wantErr: entity.NotFoundError,
 		},
@@ -168,9 +188,12 @@ func TestLoginUseCase(t *testing.T) {
 
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
-
+			uowMock := mocks.NewMockUnitOfWork(ctrl)
 			userMock := mocks.NewMockUserRepo(ctrl)
 			authMock := mocks.NewMockAuthRepo(ctrl)
+
+			uowMock.EXPECT().Users().Return(userMock).AnyTimes()
+			uowMock.EXPECT().Autho().Return(authMock).AnyTimes()
 
 			if tc.setupMock != nil {
 				tc.setupMock(userMock, authMock)
@@ -189,7 +212,7 @@ func TestLoginUseCase(t *testing.T) {
 				patchRefresh.Unpatch()
 			}()
 
-			uc := NewAuthUseCase(userMock, authMock)
+			uc := NewAuthUseCase(uowMock, nil, nil)
 			cred, err := uc.LoginUseCase(ctx, tc.email, tc.password)
 
 			require.ErrorIs(t, err, tc.wantErr)
@@ -212,7 +235,7 @@ func TestRefreshUseCase(t *testing.T) {
 	cases := []struct {
 		name           string
 		refreshToken   string
-		setupMocks     func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo)
+		setupMocks     func(uow *mocks.MockUnitOfWork, authMock *mocks.MockAuthRepo)
 		patchParseFunc func() func()
 		wantErr        error
 		wantAccess     string
@@ -221,15 +244,21 @@ func TestRefreshUseCase(t *testing.T) {
 		{
 			name:         "OK",
 			refreshToken: "dummy.refresh.value",
-			setupMocks: func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo) {
+			setupMocks: func(uow *mocks.MockUnitOfWork, authMock *mocks.MockAuthRepo) {
 				storedToken := &entity.RefreshToken{
 					ID:        0,
 					TokenID:   tokenID,
 					UserID:    userID,
 					ExpiresAt: time.Now().Add(100 * time.Minute),
 				}
+				authMock.EXPECT().GetToken(ctx, gomock.Any(), gomock.Any()).Return(storedToken, nil)
+				uow.EXPECT().
+					Do(ctx, gomock.Any()).
+					Times(1).
+					DoAndReturn(func(ctx context.Context, fn func(usecase.UnitOfWork) error) error {
+						return fn(uow)
+					})
 				gomock.InOrder(
-					authMock.EXPECT().GetToken(ctx, gomock.Any(), gomock.Any()).Return(storedToken, nil),
 					authMock.EXPECT().DeleteToken(ctx, gomock.Any(), gomock.Any()).Return(nil),
 					authMock.EXPECT().CreateToken(ctx, gomock.Any()).Return(nil),
 				)
@@ -263,7 +292,7 @@ func TestRefreshUseCase(t *testing.T) {
 		{
 			name:         "BadParseToken",
 			refreshToken: "dummy.refresh.value",
-			setupMocks:   func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo) {},
+			setupMocks:   func(uow *mocks.MockUnitOfWork, authMock *mocks.MockAuthRepo) {},
 			patchParseFunc: func() func() {
 				patch := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
 					return nil, errors.New("bad token")
@@ -275,7 +304,7 @@ func TestRefreshUseCase(t *testing.T) {
 		{
 			name:         "InvalidType",
 			refreshToken: "dummy.refresh.value",
-			setupMocks:   func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo) {},
+			setupMocks:   func(uow *mocks.MockUnitOfWork, authMock *mocks.MockAuthRepo) {},
 			patchParseFunc: func() func() {
 				patch := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
 					return &tokens.Claims{
@@ -293,7 +322,7 @@ func TestRefreshUseCase(t *testing.T) {
 		{
 			name:         "NotFoundToken",
 			refreshToken: "dummy.refresh.value",
-			setupMocks: func(userMock *mocks.MockUserRepo, authMock *mocks.MockAuthRepo) {
+			setupMocks: func(uow *mocks.MockUnitOfWork, authMock *mocks.MockAuthRepo) {
 				gomock.InOrder(
 					authMock.EXPECT().GetToken(ctx, gomock.Any(), gomock.Any()).Return(nil, entity.NotFoundError),
 				)
@@ -322,17 +351,20 @@ func TestRefreshUseCase(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
-			userMock := mocks.NewMockUserRepo(ctrl)
+			uowMock := mocks.NewMockUnitOfWork(ctrl)
 			authMock := mocks.NewMockAuthRepo(ctrl)
+			tokenMock := mocks.NewMockСache(ctrl)
+
+			uowMock.EXPECT().Autho().Return(authMock).AnyTimes()
 
 			if tc.setupMocks != nil {
-				tc.setupMocks(userMock, authMock)
+				tc.setupMocks(uowMock, authMock)
 			}
 
 			unpatch := tc.patchParseFunc()
 			defer unpatch()
 
-			uc := NewAuthUseCase(userMock, authMock)
+			uc := NewAuthUseCase(uowMock, tokenMock, nil)
 			dto, err := uc.RefreshTokenUseCase(ctx, tc.refreshToken)
 
 			if tc.wantErr != nil {
@@ -345,219 +377,811 @@ func TestRefreshUseCase(t *testing.T) {
 		})
 	}
 }
+func TestValidateAccessToken(t *testing.T) {
+	tokenID := "token-id"
 
-// func TestLoginUseCase_BadCredentials(t *testing.T) {
-// 	t.Parallel()
+	ctx := context.Background()
 
-// 	testEmail := "test@gmail.com"
-// 	testPwd := "correctPwd123"
-// 	wrongPwd := "wrongPwd12323"
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-// 	salt, _ := pwd.GenerateSalt()
-// 	hashed := pwd.HashPassword(testPwd, []byte(salt))
-// 	existingUser := entity.User{
-// 		ID:             0,
-// 		Email:          testEmail,
-// 		HashedPassword: hashed,
-// 		Salt:           salt,
-// 	}
+	type testCase struct {
+		name      string
+		token     string
+		setupMock func(c *mocks.MockСache)
+		patchFunc func() func()
+		wantErr   bool
+	}
 
-// 	ctrl := gomock.NewController(t)
-// 	defer ctrl.Finish()
-// 	userMock := mocks.NewMockUserRepo(ctrl)
-// 	authMock := mocks.NewMockAuthRepo(ctrl)
+	tests := []testCase{
+		{
+			name:  "success",
+			token: "access.token",
+			patchFunc: func() func() {
+				patch := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+					return &tokens.Claims{
+						Sub:  "sub",
+						Type: entity.AccessTokenType,
+						RegisteredClaims: jwt.RegisteredClaims{
+							ID: tokenID,
+						}}, nil
+				})
+				return func() { patch.Unpatch() }
+			},
+			setupMock: func(c *mocks.MockСache) {
+				c.EXPECT().
+					IsBlacklisted(ctx, tokenID).
+					Return(false, nil)
+			},
+			wantErr: false,
+		},
+		{
+			name:  "blacklisted",
+			token: "access.token",
+			patchFunc: func() func() {
+				patch := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+					return &tokens.Claims{
+						Sub:  "sub",
+						Type: entity.AccessTokenType,
+						RegisteredClaims: jwt.RegisteredClaims{
+							ID: tokenID,
+						}}, nil
+				})
+				return func() { patch.Unpatch() }
+			},
+			setupMock: func(c *mocks.MockСache) {
+				c.EXPECT().
+					IsBlacklisted(ctx, tokenID).
+					Return(true, nil)
+			},
+			wantErr: true,
+		},
+		{
+			name:  "invalid token",
+			token: "bad-token",
+			patchFunc: func() func() {
+				patch := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+					return nil, errors.New("bad token")
+				})
+				return func() { patch.Unpatch() }
+			},
+			setupMock: func(c *mocks.MockСache) {},
+			wantErr:   true,
+		},
+		{
+			name: "cache error",
+			patchFunc: func() func() {
+				patch := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+					return &tokens.Claims{
+						Sub:  "sub",
+						Type: entity.AccessTokenType,
+						RegisteredClaims: jwt.RegisteredClaims{
+							ID: tokenID,
+						}}, nil
+				})
+				return func() { patch.Unpatch() }
+			},
+			setupMock: func(c *mocks.MockСache) {
+				c.EXPECT().
+					IsBlacklisted(ctx, tokenID).
+					Return(false, errors.New("redis down"))
+			},
+			wantErr: true,
+		},
+		{
+			name: "invalid token type",
+			patchFunc: func() func() {
+				patch := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+					return &tokens.Claims{Sub: "sub", Type: "bad type"}, nil
+				})
+				return func() { patch.Unpatch() }
+			},
+			setupMock: func(c *mocks.MockСache) {},
+			wantErr:   true,
+		},
+	}
 
-// 	userMock.EXPECT().GetUserByEmail(gomock.Any()).Return(&existingUser, nil)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cache := mocks.NewMockСache(ctrl)
+			tt.setupMock(cache)
+			unpatch := tt.patchFunc()
+			defer unpatch()
 
-// 	uc := NewAuthUseCase(userMock, authMock)
-// 	_, err := uc.LoginUseCase(testEmail, wrongPwd)
-// 	require.ErrorIs(t, err, entity.BadCredentials)
-// }
+			uc := AuthUseCase{
+				cache: cache,
+			}
 
-// func TestLoginUseCase_NotFound(t *testing.T) {
-// 	t.Parallel()
+			_, err := uc.ValidateAccessToken(ctx, tt.token)
 
-// 	ctrl := gomock.NewController(t)
-// 	defer ctrl.Finish()
-// 	userMock := mocks.NewMockUserRepo(ctrl)
-// 	authMock := mocks.NewMockAuthRepo(ctrl)
-// 	gomock.InOrder(
-// 		userMock.EXPECT().GetUserByEmail(gomock.Any()).Return(nil, entity.NotFoundError),
-// 	)
-// 	uc := NewAuthUseCase(userMock, authMock)
-// 	_, err := uc.LoginUseCase("not@exists.com", "somePwd123")
-// 	require.ErrorIs(t, err, entity.NotFoundError)
-// }
+			if (err != nil) != tt.wantErr {
+				t.Errorf("err = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
 
-// func TestLoginUseCase_InvalidInput(t *testing.T) {
-// 	t.Parallel()
+func TestValidateRefreshToken(t *testing.T) {
+	tokenID := "refresh-id"
+	userID := 1
 
-// 	ctrl := gomock.NewController(t)
-// 	defer ctrl.Finish()
-// 	userMock := mocks.NewMockUserRepo(ctrl)
-// 	authMock := mocks.NewMockAuthRepo(ctrl)
-// 	uc := NewAuthUseCase(userMock, authMock)
-// 	_, err := uc.LoginUseCase("wrongsyntax.com", "somePwd123")
-// 	require.ErrorIs(t, err, entity.InvalidInput)
-// }
+	ctx := context.Background()
 
-// func TestRefreshUseCase_OK(t *testing.T) {
-// 	t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-// 	testRefreshToken := "dummy.refresh.value"
-// 	testAccessToken := "dummy.access.value"
-// 	userID := 1
-// 	tokenID := "token.id"
-// 	storedToken := &entity.RefreshToken{
-// 		ID:        0,
-// 		TokenID:   tokenID,
-// 		UserID:    userID,
-// 		ExpiresAt: time.Now().Add(100 * time.Minute),
-// 	}
+	type testCase struct {
+		name      string
+		token     string
+		setupMock func(r *mocks.MockAuthRepo)
+		patchFunc func() func()
+		wantErr   bool
+	}
 
-// 	ctrl := gomock.NewController(t)
-// 	defer ctrl.Finish()
+	tests := []testCase{
+		{
+			name:  "success",
+			token: "refresh.token",
+			patchFunc: func() func() {
+				patch := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+					return &tokens.Claims{
+						Sub:  strconv.Itoa(userID),
+						Type: entity.RefreshTokenType,
+						RegisteredClaims: jwt.RegisteredClaims{
+							ID: tokenID,
+						},
+					}, nil
+				})
+				return func() { patch.Unpatch() }
+			},
+			setupMock: func(r *mocks.MockAuthRepo) {
+				r.EXPECT().
+					GetToken(ctx, tokenID, userID).
+					Return(&entity.RefreshToken{
+						ExpiresAt: time.Now().Add(time.Hour),
+					}, nil)
+			},
+			wantErr: false,
+		},
+		{
+			name:  "expired",
+			token: "refresh.token",
+			patchFunc: func() func() {
+				patch := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+					return &tokens.Claims{
+						Sub:  strconv.Itoa(userID),
+						Type: entity.RefreshTokenType,
+						RegisteredClaims: jwt.RegisteredClaims{
+							ID: tokenID,
+						},
+					}, nil
+				})
+				return func() { patch.Unpatch() }
+			},
+			setupMock: func(r *mocks.MockAuthRepo) {
+				r.EXPECT().
+					GetToken(ctx, tokenID, userID).
+					Return(&entity.RefreshToken{
+						ExpiresAt: time.Now().Add(-time.Hour),
+					}, nil)
+			},
+			wantErr: true,
+		},
+		{
+			name:  "not found",
+			token: "refresh.token",
+			patchFunc: func() func() {
+				patch := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+					return &tokens.Claims{
+						Sub:  strconv.Itoa(userID),
+						Type: entity.RefreshTokenType,
+						RegisteredClaims: jwt.RegisteredClaims{
+							ID: tokenID,
+						},
+					}, nil
+				})
+				return func() { patch.Unpatch() }
+			},
+			setupMock: func(r *mocks.MockAuthRepo) {
+				r.EXPECT().
+					GetToken(ctx, tokenID, userID).
+					Return(nil, nil)
+			},
+			wantErr: true,
+		},
+		{
+			name:  "repo error",
+			token: "refresh.token",
+			patchFunc: func() func() {
+				patch := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+					return &tokens.Claims{
+						Sub:  strconv.Itoa(userID),
+						Type: entity.RefreshTokenType,
+						RegisteredClaims: jwt.RegisteredClaims{
+							ID: tokenID,
+						},
+					}, nil
+				})
+				return func() { patch.Unpatch() }
+			},
+			setupMock: func(r *mocks.MockAuthRepo) {
+				r.EXPECT().
+					GetToken(ctx, tokenID, userID).
+					Return(nil, errors.New("db error"))
+			},
+			wantErr: true,
+		},
+		{
+			name:  "invalid token",
+			token: "bad-token",
+			patchFunc: func() func() {
+				patch := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+					return nil, errors.New("bad token")
+				})
+				return func() { patch.Unpatch() }
+			},
+			setupMock: func(r *mocks.MockAuthRepo) {},
+			wantErr:   true,
+		},
+		{
+			name:  "invalid type",
+			token: "refresh.token",
+			patchFunc: func() func() {
+				patch := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+					return &tokens.Claims{
+						Sub:  strconv.Itoa(userID),
+						Type: "wrong",
+					}, nil
+				})
+				return func() { patch.Unpatch() }
+			},
+			setupMock: func(r *mocks.MockAuthRepo) {},
+			wantErr:   true,
+		},
+		{
+			name:  "invalid userID",
+			token: "refresh.token",
+			patchFunc: func() func() {
+				patch := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+					return &tokens.Claims{
+						Sub:  "not-int",
+						Type: entity.RefreshTokenType,
+						RegisteredClaims: jwt.RegisteredClaims{
+							ID: tokenID,
+						},
+					}, nil
+				})
+				return func() { patch.Unpatch() }
+			},
+			setupMock: func(r *mocks.MockAuthRepo) {},
+			wantErr:   true,
+		},
+	}
 
-// 	userMock := mocks.NewMockUserRepo(ctrl)
-// 	authMock := mocks.NewMockAuthRepo(ctrl)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctl := gomock.NewController(t)
+			defer ctl.Finish()
 
-// 	gomock.InOrder(
-// 		authMock.EXPECT().GetToken(gomock.Any(), gomock.Any()).Return(storedToken, nil),
-// 		authMock.EXPECT().DeleteToken(gomock.Any(), gomock.Any()).Return(nil),
-// 		authMock.EXPECT().CreateToken(gomock.Any()).Return(nil),
-// 	)
+			mockUOW := mocks.NewMockUnitOfWork(ctl)
+			mockAuth := mocks.NewMockAuthRepo(ctl)
+			mockCache := mocks.NewMockСache(ctl)
+			mockSender := mocks.NewMockMailSender(ctl)
 
-// 	patchParse := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
-// 		c := tokens.Claims{
-// 			Sub:  strconv.Itoa(userID),
-// 			Type: entity.RefreshTokenType,
-// 			RegisteredClaims: jwt.RegisteredClaims{
-// 				ID: tokenID,
-// 			},
-// 		}
-// 		return &c, nil
-// 	})
-// 	patchAccess := monkey.Patch(tokens.GenerateAccessToken, func(userID int, exp time.Duration) (string, error) {
-// 		return testAccessToken, nil
-// 	})
+			mockUOW.EXPECT().Autho().Return(mockAuth).AnyTimes()
 
-// 	patchRefresh := monkey.Patch(tokens.GenerateRefreshToken, func(tokenID string, userID int, exp time.Duration) (string, error) {
-// 		return testRefreshToken, nil
-// 	})
+			tt.setupMock(mockAuth)
+			unpatch := tt.patchFunc()
+			defer unpatch()
 
-// 	defer func() {
-// 		patchAccess.Unpatch()
-// 		patchRefresh.Unpatch()
-// 		patchParse.Unpatch()
-// 	}()
+			uc := NewAuthUseCase(mockUOW, mockCache, mockSender)
 
-// 	uc := NewAuthUseCase(userMock, authMock)
+			_, _, err := uc.ValidateRefreshToken(ctx, tt.token)
 
-// 	dto, err := uc.RefreshTokenUseCase(testRefreshToken)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("err = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
 
-// 	require.NoError(t, err)
-// 	require.Equal(t, dto.AccessToken, testAccessToken)
-// 	require.Equal(t, dto.RefreshToken, testRefreshToken)
-// }
+func TestLogoutUseCase(t *testing.T) {
+	accessID := "access-id"
+	refreshID := "refresh-id"
+	userID := 1
 
-// func TestRefreshUseCase_BadParseToken(t *testing.T) {
-// 	t.Parallel()
+	ctx := context.Background()
 
-// 	testRefreshToken := "dummy.refresh.value"
+	type testCase struct {
+		name      string
+		dto       dto.LogoutDTO
+		setupMock func(c *mocks.MockСache, r *mocks.MockAuthRepo)
+		patchFunc func() func()
+		wantErr   bool
+	}
 
-// 	ctrl := gomock.NewController(t)
-// 	defer ctrl.Finish()
+	tests := []testCase{
+		{
+			name: "success",
+			dto: dto.LogoutDTO{
+				AccessToken:  "access.token",
+				RefreshToken: "refresh.token",
+			},
+			patchFunc: func() func() {
+				patch := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+					switch token {
+					case "access.token":
+						return &tokens.Claims{
+							Type: entity.AccessTokenType,
+							RegisteredClaims: jwt.RegisteredClaims{
+								ID: accessID,
+							},
+						}, nil
+					case "refresh.token":
+						return &tokens.Claims{
+							Sub:  strconv.Itoa(userID),
+							Type: entity.RefreshTokenType,
+							RegisteredClaims: jwt.RegisteredClaims{
+								ID: refreshID,
+							},
+						}, nil
+					default:
+						return nil, errors.New("bad token")
+					}
+				})
+				return func() { patch.Unpatch() }
+			},
+			setupMock: func(c *mocks.MockСache, r *mocks.MockAuthRepo) {
+				// access validation
+				c.EXPECT().
+					IsBlacklisted(ctx, accessID).
+					Return(false, nil)
 
-// 	userMock := mocks.NewMockUserRepo(ctrl)
-// 	authMock := mocks.NewMockAuthRepo(ctrl)
+				// refresh validation
+				r.EXPECT().
+					GetToken(ctx, refreshID, userID).
+					Return(&entity.RefreshToken{
+						ExpiresAt: time.Now().Add(time.Hour),
+					}, nil)
 
-// 	patchParse := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
-// 		return nil, errors.New("bad token")
-// 	})
+				// delete refresh
+				r.EXPECT().
+					DeleteToken(ctx, refreshID, userID).
+					Return(nil)
 
-// 	defer func() {
-// 		patchParse.Unpatch()
-// 	}()
+				// blacklist access
+				c.EXPECT().
+					SetBlacklist(ctx, accessID, gomock.Any()).
+					Return(nil)
+			},
+			wantErr: false,
+		},
+		{
+			name: "access invalid",
+			dto: dto.LogoutDTO{
+				AccessToken:  "bad",
+				RefreshToken: "refresh.token",
+			},
+			patchFunc: func() func() {
+				patch := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+					return nil, errors.New("bad token")
+				})
+				return func() { patch.Unpatch() }
+			},
+			setupMock: func(c *mocks.MockСache, r *mocks.MockAuthRepo) {},
+			wantErr:   true,
+		},
+		{
+			name: "refresh invalid",
+			dto: dto.LogoutDTO{
+				AccessToken:  "access.token",
+				RefreshToken: "bad",
+			},
+			patchFunc: func() func() {
+				patch := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+					if token == "access.token" {
+						return &tokens.Claims{
+							Type: entity.AccessTokenType,
+							RegisteredClaims: jwt.RegisteredClaims{
+								ID: accessID,
+							},
+						}, nil
+					}
+					return nil, errors.New("bad token")
+				})
+				return func() { patch.Unpatch() }
+			},
+			setupMock: func(c *mocks.MockСache, r *mocks.MockAuthRepo) {
+				c.EXPECT().
+					IsBlacklisted(ctx, accessID).
+					Return(false, nil)
+			},
+			wantErr: true,
+		},
+		{
+			name: "delete error",
+			dto: dto.LogoutDTO{
+				AccessToken:  "access.token",
+				RefreshToken: "refresh.token",
+			},
+			patchFunc: func() func() {
+				patch := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+					switch token {
+					case "access.token":
+						return &tokens.Claims{
+							Type: entity.AccessTokenType,
+							RegisteredClaims: jwt.RegisteredClaims{
+								ID: accessID,
+							},
+						}, nil
+					case "refresh.token":
+						return &tokens.Claims{
+							Sub:  strconv.Itoa(userID),
+							Type: entity.RefreshTokenType,
+							RegisteredClaims: jwt.RegisteredClaims{
+								ID: refreshID,
+							},
+						}, nil
+					default:
+						return nil, errors.New("bad token")
+					}
+				})
+				return func() { patch.Unpatch() }
+			},
+			setupMock: func(c *mocks.MockСache, r *mocks.MockAuthRepo) {
+				c.EXPECT().
+					IsBlacklisted(ctx, accessID).
+					Return(false, nil)
 
-// 	uc := NewAuthUseCase(userMock, authMock)
+				r.EXPECT().
+					GetToken(ctx, refreshID, userID).
+					Return(&entity.RefreshToken{
+						ExpiresAt: time.Now().Add(time.Hour),
+					}, nil)
 
-// 	_, err := uc.RefreshTokenUseCase(testRefreshToken)
+				r.EXPECT().
+					DeleteToken(ctx, refreshID, userID).
+					Return(errors.New("db error"))
+			},
+			wantErr: true,
+		},
+		{
+			name: "blacklist error",
+			dto: dto.LogoutDTO{
+				AccessToken:  "access.token",
+				RefreshToken: "refresh.token",
+			},
+			patchFunc: func() func() {
+				patch := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
+					switch token {
+					case "access.token":
+						return &tokens.Claims{
+							Type: entity.AccessTokenType,
+							RegisteredClaims: jwt.RegisteredClaims{
+								ID: accessID,
+							},
+						}, nil
+					case "refresh.token":
+						return &tokens.Claims{
+							Sub:  strconv.Itoa(userID),
+							Type: entity.RefreshTokenType,
+							RegisteredClaims: jwt.RegisteredClaims{
+								ID: refreshID,
+							},
+						}, nil
+					default:
+						return nil, errors.New("bad token")
+					}
+				})
+				return func() { patch.Unpatch() }
+			},
+			setupMock: func(c *mocks.MockСache, r *mocks.MockAuthRepo) {
+				c.EXPECT().
+					IsBlacklisted(ctx, accessID).
+					Return(false, nil)
 
-// 	require.ErrorIs(t, err, entity.JWTError)
-// }
+				r.EXPECT().
+					GetToken(ctx, refreshID, userID).
+					Return(&entity.RefreshToken{
+						ExpiresAt: time.Now().Add(time.Hour),
+					}, nil)
 
-// func TestRefreshUseCase_InvalidType(t *testing.T) {
-// 	t.Parallel()
+				r.EXPECT().
+					DeleteToken(ctx, refreshID, userID).
+					Return(nil)
 
-// 	testRefreshToken := "dummy.refresh.value"
-// 	userID := 1
-// 	tokenID := "token.id"
+				c.EXPECT().
+					SetBlacklist(ctx, accessID, gomock.Any()).
+					Return(errors.New("redis down"))
+			},
+			wantErr: true,
+		},
+	}
 
-// 	ctrl := gomock.NewController(t)
-// 	defer ctrl.Finish()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
 
-// 	userMock := mocks.NewMockUserRepo(ctrl)
-// 	authMock := mocks.NewMockAuthRepo(ctrl)
+			mockUOW := mocks.NewMockUnitOfWork(ctrl)
+			mockAuth := mocks.NewMockAuthRepo(ctrl)
+			mockCache := mocks.NewMockСache(ctrl)
+			mockSender := mocks.NewMockMailSender(ctrl)
 
-// 	patchParse := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
-// 		c := tokens.Claims{
-// 			Sub:  strconv.Itoa(userID),
-// 			Type: "invalid_type",
-// 			RegisteredClaims: jwt.RegisteredClaims{
-// 				ID: tokenID,
-// 			},
-// 		}
-// 		return &c, nil
-// 	})
+			mockUOW.EXPECT().
+				Autho().
+				Return(mockAuth).
+				AnyTimes()
 
-// 	defer func() {
-// 		patchParse.Unpatch()
-// 	}()
+			tt.setupMock(mockCache, mockAuth)
 
-// 	uc := NewAuthUseCase(userMock, authMock)
+			unpatch := tt.patchFunc()
+			defer unpatch()
 
-// 	_, err := uc.RefreshTokenUseCase(testRefreshToken)
+			uc := NewAuthUseCase(mockUOW, mockCache, mockSender)
 
-// 	require.ErrorIs(t, err, entity.JWTError)
-// }
+			err := uc.LogoutUseCase(ctx, tt.dto)
 
-// func TestRefreshUseCase_NotFoundToken(t *testing.T) {
-// 	t.Parallel()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("err = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
 
-// 	testRefreshToken := "dummy.refresh.value"
-// 	userID := 1
-// 	tokenID := "token.id"
+func TestSendVerificationCode(t *testing.T) {
+	ctx := context.Background()
+	email := "test@email.com"
 
-// 	ctrl := gomock.NewController(t)
-// 	defer ctrl.Finish()
+	tests := []struct {
+		name  string
+		setup func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockСache, mockSender *mocks.MockMailSender)
+		err   error
+	}{
+		{
+			name: "OK",
+			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockСache, mockSender *mocks.MockMailSender) {
+				gomock.InOrder(
+					mockUser.EXPECT().GetByEmail(ctx, email).Return(nil, nil),
+					mockCache.EXPECT().IsBlacklisted(ctx, email).Return(false, nil),
+					mockCache.EXPECT().SetBlacklist(ctx, email, gomock.Any()).Return(nil),
+					mockCache.EXPECT().CreateRecoverSession(ctx, gomock.Any(), gomock.Any(), gomock.Any()).Return(nil),
+				)
+				mockSender.EXPECT().SendCode(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+			},
+			err: nil,
+		},
+		{
+			name: "Email not found",
+			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockСache, mockSender *mocks.MockMailSender) {
+				mockUser.EXPECT().GetByEmail(ctx, email).Return(nil, entity.NotFoundError)
+			},
+			err: entity.NotFoundError,
+		},
+		{
+			name: "Email in blacklis",
+			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockСache, mockSender *mocks.MockMailSender) {
+				mockUser.EXPECT().GetByEmail(ctx, email).Return(nil, nil)
+				mockCache.EXPECT().IsBlacklisted(ctx, email).Return(true, nil)
+			},
+			err: entity.ToManyRequest,
+		},
+	}
 
-// 	userMock := mocks.NewMockUserRepo(ctrl)
-// 	authMock := mocks.NewMockAuthRepo(ctrl)
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			ctl := gomock.NewController(t)
+			defer ctl.Finish()
 
-// 	gomock.InOrder(
-// 		authMock.EXPECT().GetToken(gomock.Any(), gomock.Any()).Return(nil, entity.NotFoundError),
-// 	)
+			mockUOW := mocks.NewMockUnitOfWork(ctl)
+			mockUser := mocks.NewMockUserRepo(ctl)
+			mockCache := mocks.NewMockСache(ctl)
+			mockSender := mocks.NewMockMailSender(ctl)
 
-// 	patchParse := monkey.Patch(tokens.ParseToken, func(token string) (*tokens.Claims, error) {
-// 		c := tokens.Claims{
-// 			Sub:  strconv.Itoa(userID),
-// 			Type: entity.RefreshTokenType,
-// 			RegisteredClaims: jwt.RegisteredClaims{
-// 				ID: tokenID,
-// 			},
-// 		}
-// 		return &c, nil
-// 	})
+			mockUOW.EXPECT().Users().Return(mockUser).AnyTimes()
 
-// 	defer func() {
-// 		patchParse.Unpatch()
-// 	}()
+			if tc.setup != nil {
+				tc.setup(mockUOW, mockUser, mockCache, mockSender)
+			}
 
-// 	uc := NewAuthUseCase(userMock, authMock)
+			authUC := NewAuthUseCase(mockUOW, mockCache, mockSender)
 
-// 	_, err := uc.RefreshTokenUseCase(testRefreshToken)
+			_, err := authUC.SendVerificationCode(ctx, email)
+			require.ErrorIs(t, err, tc.err)
+		})
+	}
 
-// 	require.ErrorIs(t, err, entity.JWTError)
+}
 
-// }
-// //
+func TestCheckRecoveryCode(t *testing.T) {
+	ctx := context.Background()
+	sessionID := "test-session-id"
+
+	tests := []struct {
+		name  string
+		code  string
+		setup func(mockCache *mocks.MockСache)
+		err   error
+	}{
+		{
+			name: "OK",
+			code: "code",
+			setup: func(mockCache *mocks.MockСache) {
+				session := &entity.RecoverSession{
+					Email:    "test@email.com",
+					Code:     "code",
+					Attempts: 0,
+					Verified: false,
+				}
+
+				gomock.InOrder(
+					mockCache.EXPECT().GetRecoverSession(ctx, sessionID).Return(session, nil),
+					mockCache.EXPECT().SetRecoverVerified(ctx, sessionID, gomock.Any()).Return(nil))
+			},
+			err: nil,
+		},
+		{
+			name: "Session is empty",
+			code: "code",
+			setup: func(mockCache *mocks.MockСache) {
+				var session *entity.RecoverSession
+
+				gomock.InOrder(
+					mockCache.EXPECT().GetRecoverSession(ctx, sessionID).Return(session, nil),
+				)
+			},
+			err: entity.BadCredentials,
+		},
+		{
+			name: "Invalid code",
+			code: "wrong_code",
+			setup: func(mockCache *mocks.MockСache) {
+				session := &entity.RecoverSession{
+					Email:    "test@email.com",
+					Code:     "code",
+					Attempts: 0,
+					Verified: false,
+				}
+
+				gomock.InOrder(
+					mockCache.EXPECT().GetRecoverSession(ctx, sessionID).Return(session, nil),
+					mockCache.EXPECT().IncrementRecoverAttempts(ctx, sessionID).Return(int64(1), nil),
+				)
+			},
+			err: entity.BadCredentials,
+		},
+		{
+			name: "Invalid code and max limit",
+			code: "wrong_code",
+			setup: func(mockCache *mocks.MockСache) {
+				session := &entity.RecoverSession{
+					Email:    "test@email.com",
+					Code:     "code",
+					Attempts: MaxAttemptsRecovery,
+					Verified: false,
+				}
+
+				gomock.InOrder(
+					mockCache.EXPECT().GetRecoverSession(ctx, sessionID).Return(session, nil),
+					mockCache.EXPECT().IncrementRecoverAttempts(ctx, sessionID).Return(int64(MaxAttemptsRecovery+1), nil),
+					mockCache.EXPECT().DeleteRecoverSession(ctx, sessionID).Return(nil),
+				)
+			},
+			err: entity.ToManyRequest,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			ctl := gomock.NewController(t)
+			defer ctl.Finish()
+
+			mockUOW := mocks.NewMockUnitOfWork(ctl)
+			mockUser := mocks.NewMockUserRepo(ctl)
+			mockCache := mocks.NewMockСache(ctl)
+			mockSender := mocks.NewMockMailSender(ctl)
+
+			mockUOW.EXPECT().Users().Return(mockUser).AnyTimes()
+
+			if tc.setup != nil {
+				tc.setup(mockCache)
+			}
+
+			authUC := NewAuthUseCase(mockUOW, mockCache, mockSender)
+
+			err := authUC.CheckRecoveryCode(ctx, sessionID, tc.code)
+			require.ErrorIs(t, err, tc.err)
+		})
+	}
+
+}
+
+func TestUpdateUserPassword(t *testing.T) {
+	ctx := context.Background()
+	sessionID := "test-session-id"
+
+	tests := []struct {
+		name  string
+		pwd   string
+		setup func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockСache)
+		err   error
+	}{
+		{
+			name: "OK",
+			pwd:  "new_pwd",
+			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockСache) {
+				email := "test@email.com"
+				session := &entity.RecoverSession{
+					Email:    email,
+					Verified: true,
+				}
+
+				gomock.InOrder(
+					mockCache.EXPECT().GetRecoverSession(ctx, sessionID).Return(session, nil),
+					mockUser.EXPECT().UpdatePwd(ctx, email, gomock.Any(), gomock.Any()).Return(nil),
+					mockCache.EXPECT().DeleteRecoverSession(ctx, sessionID).Return(nil),
+				)
+			},
+			err: nil,
+		},
+		{
+			name: "Empty session",
+			pwd:  "new_pwd",
+			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockСache) {
+				var session *entity.RecoverSession
+
+				gomock.InOrder(
+					mockCache.EXPECT().GetRecoverSession(ctx, sessionID).Return(session, nil),
+				)
+			},
+			err: entity.BadCredentials,
+		},
+
+		{
+			name: "Session is not verified",
+			pwd:  "new_pwd",
+			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockСache) {
+				email := "test@email.com"
+				session := &entity.RecoverSession{
+					Email:    email,
+					Verified: false,
+				}
+
+				gomock.InOrder(
+					mockCache.EXPECT().GetRecoverSession(ctx, sessionID).Return(session, nil),
+				)
+			},
+			err: entity.BadCredentials,
+		},
+	}
+
+	for _, tc := range tests {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			ctl := gomock.NewController(t)
+			defer ctl.Finish()
+
+			mockUOW := mocks.NewMockUnitOfWork(ctl)
+			mockUser := mocks.NewMockUserRepo(ctl)
+			mockCache := mocks.NewMockСache(ctl)
+			mockSender := mocks.NewMockMailSender(ctl)
+
+			mockUOW.EXPECT().Users().Return(mockUser).AnyTimes()
+
+			if tc.setup != nil {
+				tc.setup(mockUOW, mockUser, mockCache)
+			}
+
+			authUC := NewAuthUseCase(mockUOW, mockCache, mockSender)
+
+			err := authUC.UpdateUserPassword(ctx, sessionID, tc.pwd)
+			require.ErrorIs(t, err, tc.err)
+		})
+	}
+
+}

@@ -1,0 +1,1287 @@
+basePath: /api
+definitions:
+  auth.LoginResponse:
+    properties:
+      access_token:
+        type: string
+      expire_at:
+        type: integer
+    type: object
+  dto.CategoryDTO:
+    properties:
+      alias:
+        type: string
+      name:
+        type: string
+    type: object
+  dto.CreatedPoster:
+    properties:
+      alias:
+        type: string
+      id:
+        type: integer
+    type: object
+  dto.DeveloperDTO:
+    properties:
+      avatar_url:
+        type: string
+      developer_id:
+        type: integer
+      developer_name:
+        type: string
+    type: object
+  dto.FacilityDTO:
+    properties:
+      alias:
+        type: string
+      name:
+        type: string
+    type: object
+  dto.FlatDTO:
+    properties:
+      flat_category:
+        type: string
+      flat_number:
+        type: integer
+      floor:
+        type: integer
+      room_count:
+        type: integer
+    type: object
+  dto.GeographyDTO:
+    properties:
+      lat:
+        type: number
+      lon:
+        type: number
+    type: object
+  dto.HouseDTO:
+    type: object
+  dto.OAuthCodeFlow:
+    properties:
+      code:
+        type: string
+      code_verifier:
+        type: string
+      device_id:
+        type: string
+      state:
+        type: string
+    type: object
+  dto.PhotoDTO:
+    properties:
+      img_url:
+        type: string
+      order:
+        type: integer
+    type: object
+  dto.PosterCardDTO:
+    properties:
+      address:
+        type: string
+      alias:
+        type: string
+      area:
+        type: number
+      flat_category:
+        type: string
+      id:
+        type: integer
+      imageUrl:
+        type: string
+      metro:
+        type: string
+      price:
+        type: number
+    type: object
+  dto.PosterDTO:
+    properties:
+      address:
+        type: string
+      alias:
+        type: string
+      area:
+        type: number
+      building_geo:
+        $ref: '#/definitions/dto.GeographyDTO'
+      category:
+        $ref: '#/definitions/dto.CategoryDTO'
+      city:
+        type: string
+      company:
+        $ref: '#/definitions/dto.UtilityCompanyCardDTO'
+      description:
+        type: string
+      district:
+        type: string
+      facilities:
+        items:
+          $ref: '#/definitions/dto.FacilityDTO'
+        type: array
+      flat:
+        $ref: '#/definitions/dto.FlatDTO'
+      floor_count:
+        type: integer
+      house:
+        $ref: '#/definitions/dto.HouseDTO'
+      id:
+        type: integer
+      images:
+        items:
+          $ref: '#/definitions/dto.PhotoDTO'
+        type: array
+      metro:
+        type: string
+      metro_geo:
+        $ref: '#/definitions/dto.GeographyDTO'
+      price:
+        type: number
+      seller:
+        $ref: '#/definitions/dto.PosterSellerDTO'
+    type: object
+  dto.PosterSellerDTO:
+    properties:
+      avatar_url:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      phone:
+        type: string
+    type: object
+  dto.PostersResponse:
+    properties:
+      len:
+        type: integer
+      posters:
+        items:
+          $ref: '#/definitions/dto.PosterCardDTO'
+        type: array
+    type: object
+  dto.UserDTO:
+    properties:
+      avatar_url:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      last_name:
+        type: string
+      phone:
+        type: string
+    type: object
+  dto.UtilityCompanyCardDTO:
+    properties:
+      alias:
+        type: string
+      avatar_url:
+        type: string
+      company_name:
+        type: string
+      id:
+        type: integer
+    type: object
+  dto.UtilityCompanyDTO:
+    properties:
+      address:
+        type: string
+      alias:
+        type: string
+      avatar_url:
+        type: string
+      company_name:
+        type: string
+      description:
+        type: string
+      developer:
+        $ref: '#/definitions/dto.DeveloperDTO'
+      geo:
+        $ref: '#/definitions/dto.GeographyDTO'
+      id:
+        type: integer
+      phone:
+        type: string
+      photos:
+        items:
+          $ref: '#/definitions/dto.PhotoDTO'
+        type: array
+    type: object
+  request.UpdatePwdDTO:
+    properties:
+      password:
+        type: string
+    type: object
+  request.UserEmail:
+    properties:
+      email:
+        type: string
+    type: object
+  request.VerifyCodeDTO:
+    properties:
+      code:
+        type: string
+    type: object
+  response.CompaniesResponse:
+    properties:
+      len:
+        type: integer
+      utility_companies:
+        items:
+          $ref: '#/definitions/dto.UtilityCompanyCardDTO'
+        type: array
+    type: object
+  response.CreatedPosterResponse:
+    properties:
+      poster:
+        $ref: '#/definitions/dto.CreatedPoster'
+    type: object
+  response.DevelopersResponse:
+    properties:
+      developers:
+        items:
+          $ref: '#/definitions/dto.DeveloperDTO'
+        type: array
+      len:
+        type: integer
+    type: object
+  response.ErrorResponse:
+    properties:
+      details:
+        type: string
+      error:
+        type: string
+    type: object
+  response.PosterResponse:
+    properties:
+      poster:
+        $ref: '#/definitions/dto.PosterDTO'
+    type: object
+  response.ValidationErrorResponse:
+    properties:
+      error:
+        type: string
+      field:
+        type: string
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+host: localhost:8000
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: Created by TheBugs in 2026
+  license:
+    name: MIT
+  termsOfService: http://swagger.io/terms/
+  title: DomDeli API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Authenticate user and return access token + set refresh token cookie
+      parameters:
+      - description: User email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: User password
+        in: formData
+        name: password
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Successful login, returns access token
+          headers:
+            Set-Cookie:
+              description: refresh_token=<NEW_REFRESH_TOKEN>; HttpOnly; Path=/api/auth/refresh;
+                Max-Age=...
+              type: string
+          schema:
+            $ref: '#/definitions/auth.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ValidationErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - CSRFToken: []
+      summary: Login user
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Blacklist access/refresh tokens and delete refresh cookie
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Successfully logged out (no content)
+        "400":
+          description: Missing tokens
+          schema:
+            $ref: '#/definitions/response.ValidationErrorResponse'
+        "401":
+          description: Invalid tokens
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Blacklist error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      - CSRFToken: []
+      summary: User logout
+      tags:
+      - Auth
+  /auth/recover:
+    post:
+      consumes:
+      - application/json
+      description: Generates recovery session, sends verification code to user's email
+        and sets session_id cookie
+      parameters:
+      - description: User email
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.UserEmail'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Status OK
+          headers:
+            Set-Cookie:
+              description: session_id=<SESSION_ID>; HttpOnly; Path=/api/auth; Max-Age=600
+              type: string
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ValidationErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - CSRFToken: []
+      summary: Send recovery code to email
+      tags:
+      - Auth
+  /auth/recover/reset:
+    post:
+      consumes:
+      - application/json
+      description: Updates password using verified recovery session (session_id cookie
+        required)
+      parameters:
+      - description: New password
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdatePwdDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Password updated
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ValidationErrorResponse'
+        "401":
+          description: Session not verified or invalid
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - CSRFToken: []
+      summary: Update user password
+      tags:
+      - Auth
+  /auth/recover/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verifies code from email using session_id cookie and marks session
+        as verified
+      parameters:
+      - description: Verification code
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.VerifyCodeDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Status verified
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ValidationErrorResponse'
+        "401":
+          description: Invalid code or session
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - CSRFToken: []
+      summary: Verify recovery code
+      tags:
+      - Auth
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: Obtain new access token using refresh token stored in cookie (refresh_token
+        cookie required)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: New access token, also updates refresh token cookie
+          headers:
+            Set-Cookie:
+              description: new refresh_token=...; HttpOnly; Path=/api/auth/refresh;
+                Max-Age=...
+              type: string
+          schema:
+            $ref: '#/definitions/auth.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ValidationErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - CSRFToken: []
+      summary: Refresh access token
+      tags:
+      - Auth
+  /auth/reg:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Register new user with email and password
+      parameters:
+      - description: User email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: User password
+        in: formData
+        name: password
+        required: true
+        type: string
+      - description: User phone
+        in: formData
+        name: phone
+        required: true
+        type: string
+      - description: User firstname
+        in: formData
+        name: firstname
+        required: true
+        type: string
+      - description: User lastname
+        in: formData
+        name: lastname
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ValidationErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Register new user
+      tags:
+      - Auth
+  /auth/yandex:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user and return access token + set refresh token cookie
+      parameters:
+      - description: OAuth user cred by Authorization code flow
+        in: body
+        name: flow
+        required: true
+        schema:
+          $ref: '#/definitions/dto.OAuthCodeFlow'
+      responses:
+        "200":
+          description: Successful login, returns access token
+          headers:
+            Set-Cookie:
+              description: refresh_token=<NEW_REFRESH_TOKEN>; HttpOnly; Path=/api/auth/refresh;
+                Max-Age=...
+              type: string
+          schema:
+            $ref: '#/definitions/auth.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ValidationErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - CSRFToken: []
+      summary: Login user from Yandex
+      tags:
+      - Auth
+  /csrf-token:
+    get:
+      consumes:
+      - application/json
+      description: Create and get csrf token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: CSRF token
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get CSRF token
+      tags:
+      - Auth
+  /posters/by-alias/{alias}:
+    get:
+      description: Returns the poster with all information about it
+      parameters:
+      - description: Alias of poster
+        in: path
+        name: alias
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PosterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get poster by alias
+      tags:
+      - posters
+  /posters/flat:
+    post:
+      description: Creates a flat poster with photos
+      parameters:
+      - description: Poster price
+        in: formData
+        name: price
+        required: true
+        type: number
+      - description: Poster description
+        in: formData
+        name: description
+        required: true
+        type: string
+      - description: Property category alias
+        in: formData
+        name: category_alias
+        required: true
+        type: string
+      - description: Property area
+        in: formData
+        name: area
+        required: true
+        type: number
+      - description: Building address
+        in: formData
+        name: address
+        required: true
+        type: string
+      - description: City Name
+        in: formData
+        name: city
+        required: true
+        type: string
+      - description: District
+        in: formData
+        name: district
+        type: string
+      - description: Building floor count
+        in: formData
+        name: floor_count
+        required: true
+        type: integer
+      - description: Company ID
+        in: formData
+        name: company_id
+        type: integer
+      - description: Latitude
+        in: formData
+        name: geo_lat
+        required: true
+        type: number
+      - description: Longitude
+        in: formData
+        name: geo_lon
+        required: true
+        type: number
+      - description: Flat category ID
+        in: formData
+        name: flat_category_id
+        required: true
+        type: integer
+      - description: Flat number
+        in: formData
+        name: flat_number
+        required: true
+        type: integer
+      - description: Flat floor
+        in: formData
+        name: flat_floor
+        required: true
+        type: integer
+      - collectionFormat: csv
+        description: Facilities aliases
+        in: formData
+        items:
+          type: string
+        name: features
+        type: array
+      - description: First photo file
+        in: formData
+        name: photos.0.file
+        type: file
+      - description: First photo order
+        in: formData
+        name: photos.0.order
+        type: integer
+      - description: Second photo file
+        in: formData
+        name: photos.1.file
+        type: file
+      - description: Second photo order
+        in: formData
+        name: photos.1.order
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.CreatedPosterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      - CSRFToken: []
+      summary: Create flat poster
+      tags:
+      - posters
+  /posters/flat/{alias}:
+    delete:
+      description: Deletes a flat poster with all related data (photos, property,
+        building)
+      parameters:
+      - description: Poster alias
+        in: path
+        name: alias
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CreatedPosterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      - CSRFToken: []
+      summary: Delete flat poster
+      tags:
+      - posters
+    put:
+      description: Updates a flat poster with photos
+      parameters:
+      - description: Poster alias
+        in: path
+        name: alias
+        required: true
+        type: string
+      - description: Poster price
+        in: formData
+        name: price
+        type: number
+      - description: Poster description
+        in: formData
+        name: description
+        type: string
+      - description: Property category alias
+        in: formData
+        name: category_alias
+        type: string
+      - description: Property area
+        in: formData
+        name: area
+        type: number
+      - description: Building address
+        in: formData
+        name: address
+        type: string
+      - description: City
+        in: formData
+        name: city
+        type: string
+      - description: District
+        in: formData
+        name: district
+        type: string
+      - description: Building floor count
+        in: formData
+        name: floor_count
+        type: integer
+      - description: Company ID
+        in: formData
+        name: company_id
+        type: integer
+      - description: Latitude
+        in: formData
+        name: geo_lat
+        type: number
+      - description: Longitude
+        in: formData
+        name: geo_lon
+        type: number
+      - description: Flat category ID
+        in: formData
+        name: flat_category_id
+        type: integer
+      - description: Flat number
+        in: formData
+        name: flat_number
+        type: integer
+      - description: Flat floor
+        in: formData
+        name: flat_floor
+        type: integer
+      - collectionFormat: csv
+        description: Facilities aliases
+        in: formData
+        items:
+          type: string
+        name: features
+        type: array
+      - description: First photo file
+        in: formData
+        name: photos.0.file
+        type: file
+      - description: First photo order
+        in: formData
+        name: photos.0.order
+        type: integer
+      - description: Second photo file
+        in: formData
+        name: photos.1.file
+        type: file
+      - description: Second photo order
+        in: formData
+        name: photos.1.order
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CreatedPosterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      - CSRFToken: []
+      summary: Update flat poster
+      tags:
+      - posters
+  /posters/flats:
+    get:
+      description: Returns filtered list of apartment posters
+      parameters:
+      - default: 12
+        description: Posters per page
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      - default: 0
+        description: Pagination offset
+        in: query
+        minimum: 0
+        name: offset
+        type: integer
+      - description: Full-text search
+        in: query
+        name: search_query
+        type: string
+      - description: Utility company alias
+        in: query
+        name: utility_company
+        type: string
+      - description: Category alias
+        in: query
+        name: category
+        type: string
+      - description: Exact room count
+        in: query
+        name: room_count
+        type: integer
+      - description: Min price
+        in: query
+        name: min_price
+        type: integer
+      - description: Max price
+        in: query
+        name: max_price
+        type: integer
+      - collectionFormat: csv
+        description: Facilities aliases
+        in: query
+        items:
+          type: string
+        name: facilities
+        type: array
+      - description: Min area, sq.m
+        in: query
+        name: min_square
+        type: integer
+      - description: Max area, sq.m
+        in: query
+        name: max_square
+        type: integer
+      - description: Min floor
+        in: query
+        name: min_flat_floor
+        type: integer
+      - description: Max floor
+        in: query
+        name: max_flat_floor
+        type: integer
+      - description: Min building floors
+        in: query
+        name: min_building_floor
+        type: integer
+      - description: Max building floors
+        in: query
+        name: max_building_floor
+        type: integer
+      - default: false
+        description: Exclude 1st floor
+        in: query
+        name: not_first_floor
+        type: boolean
+      - default: false
+        description: Exclude last floor
+        in: query
+        name: not_last_floor
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PostersResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get list of posters
+      tags:
+      - posters
+  /posters/me:
+    get:
+      description: Returns the number of retrieved posters and their list
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PosterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get list of user`s posters
+      tags:
+      - posters
+  /posters/me/{alias}:
+    get:
+      description: Returns the number of retrieved posters and their list
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PosterResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get list of user`s posters
+      tags:
+      - posters
+  /user/me:
+    get:
+      description: Returns user details
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user details
+      tags:
+      - users
+  /user/me/profile:
+    put:
+      description: Returns user details
+      parameters:
+      - description: New Firstname
+        in: formData
+        name: first_name
+        type: string
+      - description: New Lastname
+        in: formData
+        name: last_name
+        type: string
+      - description: New Phone
+        in: formData
+        name: phone
+        type: string
+      - description: Avatar file
+        in: formData
+        name: avatar
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UserDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user details
+      tags:
+      - users
+  /utility-companies/:
+    get:
+      description: Returns utility complexies by developers
+      parameters:
+      - description: Developer id
+        in: query
+        name: developer_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.CompaniesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get utility complexies by developers
+      tags:
+      - utility_complexes
+  /utility-companies/by-alias/{alias}:
+    get:
+      description: Returns utility complex details along with its photos by the given
+        alias
+      parameters:
+      - description: Utility Complex Alias
+        in: path
+        name: alias
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.UtilityCompanyDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get utility complex by alias
+      tags:
+      - utility_complexes
+  /utility-companies/developers:
+    get:
+      description: Returns developers
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.DevelopersResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get developers
+      tags:
+      - utility_complexes
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+  CSRFToken:
+    description: CSRF токен в заголовке X-CSRF-Token для защищённых
+    in: header
+    name: X-CSRF-Token
+    type: apiKey
+swagger: "2.0"

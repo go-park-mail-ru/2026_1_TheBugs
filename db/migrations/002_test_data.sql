@@ -1,5 +1,27 @@
 -- ============================================================
--- 1. Города
+-- 1. Профили пользователей
+-- ============================================================
+INSERT INTO profiles (phone, first_name, last_name) VALUES
+    ('+7 495 123 45 67', 'Иван', 'Петров'),
+    ('+7 495 987 65 43', 'Анна', 'Соколова'),
+    ('+7 812 111 22 33', 'Сергей', 'Кузьмин'),
+    ('+7 812 222 33 44', 'Ольга', 'Морозова'),
+    ('+7 843 444 55 66', 'Дмитрий', 'Волков'),
+    ('+7 843 555 66 77', 'Мария', 'Новикова');
+
+-- ============================================================
+-- 2. Пользователи
+-- ============================================================
+INSERT INTO users (email, hashed_password, provider, profile_id, salt) VALUES
+    ('ivan.petrov@mail.ru', '$2b$12$abcdefgh1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN', NULL, 1, 'salt_ivan_001'),
+    ('anna.sokolova@yandex.ru', '$2b$12$zyxwvutsrqponmlkjihgfedcbaZYXWVUTSRQPONMLKJIHGFEDCBA0123', NULL, 2, 'salt_anna_002'),
+    ('sergey.kuzmin@gmail.com', NULL, 'google', 3, 'salt_sergey_003'),
+    ('olga.morozova@mail.ru', '$2b$12$1234567890abcdefgh1234567890abcdefghijklmnopqrstuvwxyzABC', NULL, 4, 'salt_olga_004'),
+    ('dmitry.volkov@yandex.ru', NULL, 'vk', 5, 'salt_dmitry_005'),
+    ('maria.novikova@gmail.com', '$2b$12$qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM12', NULL, 6, 'salt_maria_006');
+
+-- ============================================================
+-- 3. Города
 -- ============================================================
 INSERT INTO cities (city_name) VALUES
     ('Москва'),
@@ -9,357 +31,303 @@ INSERT INTO cities (city_name) VALUES
     ('Екатеринбург');
 
 -- ============================================================
--- 2. Станции метро
+-- 4. Станции метро
 -- ============================================================
-INSERT INTO metro_stations (station_name) VALUES
-    ('Арбатская'),
-    ('Тверская'),
-    ('Белорусская'),
-    ('Киевская'),
-    ('Лубянка'),
-    ('Невский проспект'),
-    ('Площадь Восстания'),
-    ('Сенная площадь'),
-    ('Казань Центральная'),
-    ('Площадь Ленина');
+INSERT INTO metro_stations (station_name, geo) VALUES
+    ('Арбатская', ST_GeogFromText('SRID=4326;POINT(37.5806 55.7495)')),
+    ('Тверская', ST_GeogFromText('SRID=4326;POINT(37.6173 55.7558)')),
+    ('Белорусская', ST_GeogFromText('SRID=4326;POINT(37.5880 55.7750)')),
+    ('Киевская', ST_GeogFromText('SRID=4326;POINT(37.5614 55.7438)')),
+    ('Лубянка', ST_GeogFromText('SRID=4326;POINT(37.6296 55.7626)')),
+    ('Невский проспект', ST_GeogFromText('SRID=4326;POINT(30.3294 59.9343)')),
+    ('Площадь Восстания', ST_GeogFromText('SRID=4326;POINT(30.3600 59.9340)')),
+    ('Сенная площадь', ST_GeogFromText('SRID=4326;POINT(30.3150 59.9250)')),
+    ('Казань Центральная', ST_GeogFromText('SRID=4326;POINT(49.1221 55.7887)')),
+    ('Площадь Ленина', ST_GeogFromText('SRID=4326;POINT(49.1250 55.7910)'));
 
 -- ============================================================
--- 3. ЖК Компании
+-- 5. Категории недвижимости
 -- ============================================================
-INSERT INTO utility_companies (company_name, contacts, geo, address, city_id, metro_station_id) VALUES
-    (
-        'СтройГрупп',
-        '+7 (495) 123-45-67',
-        ST_GeogFromText('POINT(37.6173 55.7558)'),
-        'ул. Тверская, д. 10, офис 5',
-        (SELECT id FROM cities WHERE city_name = 'Москва'),
-        (SELECT id FROM metro_stations WHERE station_name = 'Тверская')
-    ),
-    (
-        'ПремиумДом',
-        '+7 (495) 987-65-43',
-        ST_GeogFromText('POINT(37.5806 55.7495)'),
-        'ул. Арбат, д. 20',
-        (SELECT id FROM cities WHERE city_name = 'Москва'),
-        (SELECT id FROM metro_stations WHERE station_name = 'Арбатская')
-    ),
-    (
-        'НордСтрой',
-        '+7 (812) 111-22-33',
-        ST_GeogFromText('POINT(30.3141 59.9311)'),
-        'Невский пр., д. 50',
-        (SELECT id FROM cities WHERE city_name = 'Санкт-Петербург'),
-        (SELECT id FROM metro_stations WHERE station_name = 'Невский проспект')
-    ),
-    (
-        'КазаньИнвест',
-        '+7 (843) 444-55-66',
-        ST_GeogFromText('POINT(49.1221 55.7887)'),
-        'ул. Баумана, д. 15',
-        (SELECT id FROM cities WHERE city_name = 'Казань'),
-        (SELECT id FROM metro_stations WHERE station_name = 'Казань Центральная')
-    ),
-    (
-        'УралСтройКом',
-        '+7 (343) 777-88-99',
-        ST_GeogFromText('POINT(60.6122 56.8519)'),
-        'ул. Ленина, д. 30',
-        (SELECT id FROM cities WHERE city_name = 'Екатеринбург'),
-        NULL
-    );
+INSERT INTO property_categories (name, alias) VALUES
+    ('Квартира', 'flat'),
+    ('Дом', 'house'),
+    ('Апартаменты', 'apartments');
 
 -- ============================================================
--- 4. Пользователи
+-- Застройщики (developers)
 -- ============================================================
-INSERT INTO users (email, hashed_password, provider, salt, company_id) VALUES
-    (
-        'ivan.petrov@mail.ru',
-        '$2b$12$abcdefgh1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN',
-        NULL,
-        'salt_ivan_001',
-        (SELECT id FROM utility_companies WHERE company_name = 'СтройГрупп')
-    ),
-    (
-        'anna.sokolova@yandex.ru',
-        '$2b$12$zyxwvutsrqponmlkjihgfedcbaZYXWVUTSRQPONMLKJIHGFEDCBA0123',
-        NULL,
-        'salt_anna_002',
-        (SELECT id FROM utility_companies WHERE company_name = 'ПремиумДом')
-    ),
-    (
-        'sergey.kuzmin@gmail.com',
-        NULL,
-        'google',
-        'salt_sergey_003',
-        NULL
-    ),
-    (
-        'olga.morozova@mail.ru',
-        '$2b$12$1234567890abcdefgh1234567890abcdefghijklmnopqrstuvwxyzABC',
-        NULL,
-        'salt_olga_004',
-        (SELECT id FROM utility_companies WHERE company_name = 'НордСтрой')
-    ),
-    (
-        'dmitry.volkov@yandex.ru',
-        NULL,
-        'vk',
-        'salt_dmitry_005',
-        NULL
-    ),
-    (
-        'maria.novikova@gmail.com',
-        '$2b$12$qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM12',
-        NULL,
-        'salt_maria_006',
-        (SELECT id FROM utility_companies WHERE company_name = 'КазаньИнвест')
-    );
+INSERT INTO developers (developer_name, avatar_url) VALUES
+    ('ГК СтройГрупп Девелопмент', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRw0YaHp30Xwau65hiGgdHeglHZVI9tFZDzoQ&s'),
+    ('ПремиумДом Девелопмент', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRw0YaHp30Xwau65hiGgdHeglHZVI9tFZDzoQ&s'),
+    ('НордСтрой Девелопмент', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRw0YaHp30Xwau65hiGgdHeglHZVI9tFZDzoQ&s'),
+    ('КазаньИнвест Девелопмент', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRw0YaHp30Xwau65hiGgdHeglHZVI9tFZDzoQ&s'),
+    ('УралСтройКом Девелопмент', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRw0YaHp30Xwau65hiGgdHeglHZVI9tFZDzoQ&s');
 
 -- ============================================================
--- 5. Дома
+-- 6. ЖК Компании (utility_companies)
 -- ============================================================
-INSERT INTO buildings (geo, address, district, company_id, city_id, metro_station_id) VALUES
-    (
-        ST_GeogFromText('POINT(37.6155 55.7520)'),
-        'ул. Тверская, д. 25',
-        'Центральный',
-        (SELECT id FROM utility_companies WHERE company_name = 'СтройГрупп'),
-        (SELECT id FROM cities WHERE city_name = 'Москва'),
-        (SELECT id FROM metro_stations WHERE station_name = 'Тверская')
-    ),
-    (
-        ST_GeogFromText('POINT(37.5870 55.7490)'),
-        'ул. Арбат, д. 36',
-        'Арбат',
-        (SELECT id FROM utility_companies WHERE company_name = 'ПремиумДом'),
-        (SELECT id FROM cities WHERE city_name = 'Москва'),
-        (SELECT id FROM metro_stations WHERE station_name = 'Арбатская')
-    ),
-    (
-        ST_GeogFromText('POINT(37.5990 55.7510)'),
-        'Смоленская пл., д. 3',
-        'Арбат',
-        (SELECT id FROM utility_companies WHERE company_name = 'ПремиумДом'),
-        (SELECT id FROM cities WHERE city_name = 'Москва'),
-        (SELECT id FROM metro_stations WHERE station_name = 'Киевская')
-    ),
-    (
-        ST_GeogFromText('POINT(30.3200 59.9340)'),
-        'Невский пр., д. 88',
-        'Центральный',
-        (SELECT id FROM utility_companies WHERE company_name = 'НордСтрой'),
-        (SELECT id FROM cities WHERE city_name = 'Санкт-Петербург'),
-        (SELECT id FROM metro_stations WHERE station_name = 'Площадь Восстания')
-    ),
-    (
-        ST_GeogFromText('POINT(30.2980 59.9280)'),
-        'ул. Садовая, д. 14',
-        'Адмиралтейский',
-        (SELECT id FROM utility_companies WHERE company_name = 'НордСтрой'),
-        (SELECT id FROM cities WHERE city_name = 'Санкт-Петербург'),
-        (SELECT id FROM metro_stations WHERE station_name = 'Сенная площадь')
-    ),
-    (
-        ST_GeogFromText('POINT(49.1250 55.7910)'),
-        'ул. Баумана, д. 42',
-        'Вахитовский',
-        (SELECT id FROM utility_companies WHERE company_name = 'КазаньИнвест'),
-        (SELECT id FROM cities WHERE city_name = 'Казань'),
-        NULL
-    );
+INSERT INTO utility_companies 
+(company_name, phone, geo, address, avatar_url, alias, description, developer_id) 
+VALUES
+    ('СтройГрупп', '+7 495 123 48 77',
+     ST_GeogFromText('SRID=4326;POINT(37.6173 55.7558)'),
+     'г. Москва, ул. Тверская, д. 10, офис 5',
+     'https://logotab.ru/storage/logotypes/1194/logotip-zhk-1083.jpg.jpg',
+     'stroigroup',
+     'Современный жилой комплекс бизнес-класса в центре Москвы с развитой инфраструктурой и подземным паркингом.',
+     (SELECT id FROM developers WHERE developer_name = 'ГК СтройГрупп Девелопмент')),
+
+    ('ПремиумДом', '+7 495 987 65 43',
+     ST_GeogFromText('SRID=4326;POINT(37.5806 55.7495)'),
+     'г. Москва, ул. Арбат, д. 20',
+     'https://profi-storage.storage.yandexcloud.net/iblock/6c3/ymsd8l4okdnq64hrej0l6mnjkunh3ym4/logo-_11_.svg',
+     'premiumdom',
+     'Элитный жилой комплекс с дизайнерской архитектурой, закрытой территорией и круглосуточной охраной.',
+     (SELECT id FROM developers WHERE developer_name = 'ПремиумДом Девелопмент')),
+
+    ('НордСтрой', '+7 812 111 22 33',
+     ST_GeogFromText('SRID=4326;POINT(30.3141 59.9311)'),
+     'г. Санкт-Петербург, Невский пр., д. 50',
+     'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRH_W7hzypC9OPgWn77SgqQ2OOZHYzGY1ZYXw&s',
+     'nordstroy',
+     'ЖК в историческом центре Санкт-Петербурга с видом на Неву и удобной транспортной доступностью.',
+     (SELECT id FROM developers WHERE developer_name = 'НордСтрой Девелопмент')),
+
+    ('КазаньИнвест', '+7 843 444 55 66',
+     ST_GeogFromText('SRID=4326;POINT(49.1221 55.7887)'),
+     'г. Казань, ул. Баумана, д. 15',
+     'https://mir-s3-cdn-cf.behance.net/projects/404/171d7853318135.Y3JvcCwxMDIyLDgwMCwxODcsMA.jpg',
+     'kazaninvest',
+     'Комфортный жилой комплекс в центре Казани с благоустроенными дворами и развитой инфраструктурой.',
+     (SELECT id FROM developers WHERE developer_name = 'КазаньИнвест Девелопмент')),
+
+    ('УралСтройКом', '+7 343 777 88 99',
+     ST_GeogFromText('SRID=4326;POINT(60.6122 56.8519)'),
+     'г. Екатеринбург, ул. Ленина, д. 30',
+     'https://sh.agency/upload/iblock/76b/76b329d4d06d8a87939c571a4601aa60.jpg',
+     'uralstroy',
+     'Современный ЖК в Екатеринбурге с просторными квартирами и удобным доступом к деловому центру города.',
+     (SELECT id FROM developers WHERE developer_name = 'УралСтройКом Девелопмент'));
+
+
+
+INSERT INTO utility_companies_photos (img_url, sequence_order, utility_company_id) VALUES
+    ('https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 1, (SELECT id FROM utility_companies WHERE alias = 'stroigroup')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM utility_companies WHERE alias = 'stroigroup')),
+     ('https://n1s1.hsmedia.ru/0c/2e/40/0c2e4035e8da10aafba72e6f8b35b889/1000x750_0xac120003_8249795801571942265.jpg', 3, (SELECT id FROM utility_companies WHERE alias = 'stroigroup')),
+    ('https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 1, (SELECT id FROM utility_companies WHERE alias = 'premiumdom')),
+    ('https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 2, (SELECT id FROM utility_companies WHERE alias = 'premiumdom')),
+    ('https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 1, (SELECT id FROM utility_companies WHERE alias = 'nordstroy')),
+    ('https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 2, (SELECT id FROM utility_companies WHERE alias = 'nordstroy'));
 
 -- ============================================================
--- 6. Типы помещений
+-- 7. Дома (buildings)
 -- ============================================================
-INSERT INTO apartment_categories (name, description) VALUES
-    ('Студия',          'Однокомнатная квартира без отдельной спальни'),
-    ('1-комнатная',     'Квартира с одной жилой комнатой'),
-    ('2-комнатная',     'Квартира с двумя жилыми комнатами'),
-    ('3-комнатная',     'Квартира с тремя жилыми комнатами'),
-    ('Апартаменты',     'Нежилое помещение с улучшенной отделкой'),
-    ('Пентхаус',        'Квартира на последнем этаже с террасой');
+INSERT INTO buildings (address, geo, city_id, metro_station_id, district, floor_count, company_id) VALUES
+    -- Москва
+    ('ул. Тверская, д. 25', ST_GeogFromText('SRID=4326;POINT(37.6155 55.7520)'), 1, 2, 'Центральный', 12, (SELECT id FROM utility_companies WHERE alias = 'stroigroup')),
+    ('ул. Тверская, д. 30', ST_GeogFromText('SRID=4326;POINT(37.6155 55.7520)'), 1, 2, 'Центральный', 12, (SELECT id FROM utility_companies WHERE alias = 'stroigroup')),
+    ('ул. Арбат, д. 36', ST_GeogFromText('SRID=4326;POINT(37.5870 55.7490)'), 1, 1, 'Арбат', 15, (SELECT id FROM utility_companies WHERE alias = 'premiumdom')),
+    ('Смоленская пл., д. 3', ST_GeogFromText('SRID=4326;POINT(37.5990 55.7510)'), 1, 4, 'Арбат', 8, (SELECT id FROM utility_companies WHERE alias = 'premiumdom')),
+    -- Санкт-Петербург
+    ('Невский пр., д. 88', ST_GeogFromText('SRID=4326;POINT(30.3200 59.9340)'), 2, 7, 'Центральный', 18, (SELECT id FROM utility_companies WHERE alias = 'nordstroy')),
+    ('ул. Садовая, д. 14', ST_GeogFromText('SRID=4326;POINT(30.2980 59.9280)'), 2, 8, 'Адмиралтейский', 10, (SELECT id FROM utility_companies WHERE alias = 'nordstroy')),
+    ('Невский пр., д. 90', ST_GeogFromText('SRID=4326;POINT(30.3200 59.9340)'), 2, 7, 'Центральный', 18, (SELECT id FROM utility_companies WHERE alias = 'nordstroy')),
+    ('ул. Галошина, д. 15', ST_GeogFromText('SRID=4326;POINT(30.2980 59.9280)'), 2, 8, 'Адмиралтейский', 10, (SELECT id FROM utility_companies WHERE alias = 'nordstroy')),
+    -- Казань
+    ('ул. Белый, д. 42', ST_GeogFromText('SRID=4326;POINT(49.1260 55.7910)'), 3, 9, 'Вахитовский', 14, (SELECT id FROM utility_companies WHERE alias = 'kazaninvest')),
+    ('ул. Тукая, д. 42', ST_GeogFromText('SRID=4326;POINT(49.1270 55.7910)'), 3, 9, 'Тукая', 14, NULL),
+    ('ул. Баумана, д. 42', ST_GeogFromText('SRID=4326;POINT(49.1250 55.7910)'), 3, 9, 'Вахитовский', 14, (SELECT id FROM utility_companies WHERE alias = 'kazaninvest'));
+
 
 -- ============================================================
--- 7. Помещения
+-- 8. Категории квартир (flat_categories)
 -- ============================================================
-INSERT INTO apartments (floor, area, number, building_id, category_id) VALUES
-    -- ул. Тверская, д. 25
-    (3,  20, 12, (SELECT id FROM buildings WHERE address = 'ул. Тверская, д. 25'),   (SELECT id FROM apartment_categories WHERE name = 'Студия')),
-    (5,  40, 31, (SELECT id FROM buildings WHERE address = 'ул. Тверская, д. 25'),   (SELECT id FROM apartment_categories WHERE name = '1-комнатная')),
-    (7,  43, 54, (SELECT id FROM buildings WHERE address = 'ул. Тверская, д. 25'),   (SELECT id FROM apartment_categories WHERE name = '2-комнатная')),
-    -- ул. Арбат, д. 36
-    (2,  34, 5, (SELECT id FROM buildings WHERE address = 'ул. Арбат, д. 36'),      (SELECT id FROM apartment_categories WHERE name = '1-комнатная')),
-    (4, 32, 18, (SELECT id FROM buildings WHERE address = 'ул. Арбат, д. 36'),      (SELECT id FROM apartment_categories WHERE name = '3-комнатная')),
-    (10, 93, 99, (SELECT id FROM buildings WHERE address = 'ул. Арбат, д. 36'),      (SELECT id FROM apartment_categories WHERE name = 'Пентхаус')),
-    -- Смоленская пл., д. 3
-    (1, 12,  2, (SELECT id FROM buildings WHERE address = 'Смоленская пл., д. 3'),  (SELECT id FROM apartment_categories WHERE name = 'Студия')),
-    (6, 110, 45, (SELECT id FROM buildings WHERE address = 'Смоленская пл., д. 3'),  (SELECT id FROM apartment_categories WHERE name = '2-комнатная')),
-    -- Невский пр., д. 88
-    (2,  223, 8, (SELECT id FROM buildings WHERE address = 'Невский пр., д. 88'),    (SELECT id FROM apartment_categories WHERE name = '1-комнатная')),
-    (9, 123, 77, (SELECT id FROM buildings WHERE address = 'Невский пр., д. 88'),    (SELECT id FROM apartment_categories WHERE name = 'Апартаменты')),
-    -- ул. Садовая, д. 14
-    (3, 222, 22, (SELECT id FROM buildings WHERE address = 'ул. Садовая, д. 14'),    (SELECT id FROM apartment_categories WHERE name = '2-комнатная')),
-    -- ул. Баумана, д. 42
-    (4,12,  35, (SELECT id FROM buildings WHERE address = 'ул. Баумана, д. 42'),    (SELECT id FROM apartment_categories WHERE name = '3-комнатная'));
+INSERT INTO flat_categories (name, room_count) VALUES 
+    ('Студия', 0),
+    ('1-комн.', 1),
+    ('2-комн.', 2),
+    ('3-комн.', 3),
+    ('4-комн.', 4),
+    ('5-комн.', 5),
+    ('6+ комн.', 6);
+
 
 -- ============================================================
--- 8. Объявления
+-- 9. Объекты недвижимости (property)
 -- ============================================================
-INSERT INTO posters (title, price, avatar_url, description, user_id, apartment_id) VALUES
-    (
-        'Студия у Тверской, свежий ремонт',
-        65000.00,
-        'https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg',
-        'Уютная студия после капитального ремонта. Новая кухня, встроенные шкафы. Рядом метро.',
-        (SELECT id FROM users WHERE email = 'ivan.petrov@mail.ru'),
-        (SELECT id FROM apartments WHERE number = 12 AND building_id = (SELECT id FROM buildings WHERE address = 'ул. Тверская, д. 25'))
-    ),
-    (
-        'Просторная 2-комнатная на Тверской',
-        120000.00,
-        'https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg',
-        'Светлая квартира с панорамным видом. Паркинг в подарок.',
-        (SELECT id FROM users WHERE email = 'ivan.petrov@mail.ru'),
-        (SELECT id FROM apartments WHERE number = 54 AND building_id = (SELECT id FROM buildings WHERE address = 'ул. Тверская, д. 25'))
-    ),
-    (
-        'Пентхаус на Арбате — эксклюзив',
-        350000.00,
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTj_cN2apQuTB2vu5_v4J3FnyrhHD6Y5x_BXA&s',
-        'Уникальный пентхаус с открытой террасой 80 кв.м. Консьерж, закрытая территория.',
-        (SELECT id FROM users WHERE email = 'anna.sokolova@yandex.ru'),
-        (SELECT id FROM apartments WHERE number = 99 AND building_id = (SELECT id FROM buildings WHERE address = 'ул. Арбат, д. 36'))
-    ),
-    (
-        '1-комнатная на Арбате',
-        85000.00,
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxc4pnGQ858I3MeioxaDuJavns23B_bbJ_pw&s',
-        'Отличное место для жизни. Арбат в шаговой доступности. Мебель остаётся.',
-        (SELECT id FROM users WHERE email = 'anna.sokolova@yandex.ru'),
-        (SELECT id FROM apartments WHERE number = 5 AND building_id = (SELECT id FROM buildings WHERE address = 'ул. Арбат, д. 36'))
-    ),
-    (
-        'Студия у Смоленской площади',
-        55000.00,
-        'https://n1s1.hsmedia.ru/0c/2e/40/0c2e4035e8da10aafba72e6f8b35b889/1000x750_0xac120003_8249795801571942265.jpg',
-        'Компактная студия для одного или пары. Первый этаж, высокие потолки.',
-        (SELECT id FROM users WHERE email = 'sergey.kuzmin@gmail.com'),
-        (SELECT id FROM apartments WHERE number = 2 AND building_id = (SELECT id FROM buildings WHERE address = 'Смоленская пл., д. 3'))
-    ),
-    (
-        '1-комнатная на Невском',
-        75000.00,
-        'https://inminecraft.ru/_ph/7/937019994.png',
-        'Квартира в историческом центре Петербурга. Дизайнерский ремонт 2024 года.',
-        (SELECT id FROM users WHERE email = 'olga.morozova@mail.ru'),
-        (SELECT id FROM apartments WHERE number = 8 AND building_id = (SELECT id FROM buildings WHERE address = 'Невский пр., д. 88'))
-    ),
-    (
-        'Апартаменты с видом на Неву',
-        200000.00,
-        'https://st.dg-home.ru/upload/blog_editor/18b/2hwc7stcrv1vq9vx40o0k7bt3skuc1xn/11_divan.jpg',
-        'Элитные апартаменты, 9 этаж. Потрясающий вид на Неву. Подземный паркинг.',
-        (SELECT id FROM users WHERE email = 'olga.morozova@mail.ru'),
-        (SELECT id FROM apartments WHERE number = 77 AND building_id = (SELECT id FROM buildings WHERE address = 'Невский пр., д. 88'))
-    ),
-    (
-        '2-комнатная на Садовой',
-        90000.00,
-        'https://cs14.pikabu.ru/post_img/big/2024/01/12/11/1705087246125258124.jpg',
-        'Тихий двор, развитая инфраструктура. Школа и детсад в 5 минутах.',
-        (SELECT id FROM users WHERE email = 'dmitry.volkov@yandex.ru'),
-        (SELECT id FROM apartments WHERE number = 22 AND building_id = (SELECT id FROM buildings WHERE address = 'ул. Садовая, д. 14'))
-    ),
-    (
-        '3-комнатная в центре Казани',
-        95000.00,
-        'https://garagetek.ru/uploads/images/GarageTek_Etush01.jpg',
-        'Большая семейная квартира. Все комнаты изолированы. Лоджия 8 кв.м.',
-        (SELECT id FROM users WHERE email = 'maria.novikova@gmail.com'),
-        (SELECT id FROM apartments WHERE number = 35 AND building_id = (SELECT id FROM buildings WHERE address = 'ул. Баумана, д. 42'))
-    );
+INSERT INTO property (category_id, building_id, area) VALUES
+    (1, 1, 20),  -- Тверская 25, студия
+    (1, 2, 43),  -- Тверская 25, 2-к
+    (1, 3, 93),  -- Арбат 36, пентхаус
+    (1, 4, 34),  -- Арбат 36, 1-к
+    (1, 5, 12),  -- Смоленская, студия
+    (1, 6, 110), -- Смоленская, 2-к
+    (1, 7, 223), -- Невский 88, 1-к
+    (1, 8, 123), -- Невский 88, апартаменты
+    (1, 9, 222), -- Садовая, 2-к
+    (1, 10, 222); 
 
 -- ============================================================
--- 9. История изменения цены
+-- 10. Квартиры (flat)
 -- ============================================================
-INSERT INTO price_history (price, changed_at, poster_id) VALUES
-    (70000.00, NOW() - INTERVAL '60 days', (SELECT id FROM posters WHERE title = 'Студия у Тверской, свежий ремонт')),
-    (67000.00, NOW() - INTERVAL '30 days', (SELECT id FROM posters WHERE title = 'Студия у Тверской, свежий ремонт')),
-    (65000.00, NOW() - INTERVAL '5 days',  (SELECT id FROM posters WHERE title = 'Студия у Тверской, свежий ремонт')),
-
-    (130000.00, NOW() - INTERVAL '45 days', (SELECT id FROM posters WHERE title = 'Просторная 2-комнатная на Тверской')),
-    (120000.00, NOW() - INTERVAL '10 days', (SELECT id FROM posters WHERE title = 'Просторная 2-комнатная на Тверской')),
-
-    (400000.00, NOW() - INTERVAL '90 days', (SELECT id FROM posters WHERE title = 'Пентхаус на Арбате — эксклюзив')),
-    (375000.00, NOW() - INTERVAL '60 days', (SELECT id FROM posters WHERE title = 'Пентхаус на Арбате — эксклюзив')),
-    (350000.00, NOW() - INTERVAL '20 days', (SELECT id FROM posters WHERE title = 'Пентхаус на Арбате — эксклюзив')),
-
-    (80000.00, NOW() - INTERVAL '30 days', (SELECT id FROM posters WHERE title = '1-комнатная на Арбате')),
-    (85000.00, NOW() - INTERVAL '7 days',  (SELECT id FROM posters WHERE title = '1-комнатная на Арбате')),
-
-    (210000.00, NOW() - INTERVAL '50 days', (SELECT id FROM posters WHERE title = 'Апартаменты с видом на Неву')),
-    (200000.00, NOW() - INTERVAL '15 days', (SELECT id FROM posters WHERE title = 'Апартаменты с видом на Неву'));
+INSERT INTO flat (property_id, floor, number, category_id) VALUES
+    (1, 3, 12, (SELECT id FROM flat_categories WHERE room_count = 0)),
+    (2, 7, 54, (SELECT id FROM flat_categories WHERE room_count = 1)),
+    (3, 10, 99, (SELECT id FROM flat_categories WHERE room_count = 2)),
+    (4, 2, 5, (SELECT id FROM flat_categories WHERE room_count = 2)),
+    (5, 1, 2, (SELECT id FROM flat_categories WHERE room_count = 0)),
+    (6, 6, 45, (SELECT id FROM flat_categories WHERE room_count = 3)),
+    (7, 2, 8, (SELECT id FROM flat_categories WHERE room_count = 4)),
+    (8, 9, 77, (SELECT id FROM flat_categories WHERE room_count = 5)),
+    (9, 3, 22, (SELECT id FROM flat_categories WHERE room_count = 1)),
+    (10, 3, 22, (SELECT id FROM flat_categories WHERE room_count = 1));
 
 -- ============================================================
--- 10. Лайки
+-- 11. Объявления (posters)
 -- ============================================================
-INSERT INTO likes (user_id, poster_id) VALUES
-    ((SELECT id FROM users WHERE email = 'sergey.kuzmin@gmail.com'),   (SELECT id FROM posters WHERE title = 'Студия у Тверской, свежий ремонт')),
-    ((SELECT id FROM users WHERE email = 'dmitry.volkov@yandex.ru'),   (SELECT id FROM posters WHERE title = 'Студия у Тверской, свежий ремонт')),
-    ((SELECT id FROM users WHERE email = 'maria.novikova@gmail.com'),  (SELECT id FROM posters WHERE title = 'Пентхаус на Арбате — эксклюзив')),
-    ((SELECT id FROM users WHERE email = 'olga.morozova@mail.ru'),     (SELECT id FROM posters WHERE title = 'Пентхаус на Арбате — эксклюзив')),
-    ((SELECT id FROM users WHERE email = 'ivan.petrov@mail.ru'),       (SELECT id FROM posters WHERE title = 'Апартаменты с видом на Неву')),
-    ((SELECT id FROM users WHERE email = 'anna.sokolova@yandex.ru'),   (SELECT id FROM posters WHERE title = 'Апартаменты с видом на Неву')),
-    ((SELECT id FROM users WHERE email = 'sergey.kuzmin@gmail.com'),   (SELECT id FROM posters WHERE title = '1-комнатная на Невском')),
-    ((SELECT id FROM users WHERE email = 'dmitry.volkov@yandex.ru'),   (SELECT id FROM posters WHERE title = '3-комнатная в центре Казани'));
-
--- ============================================================
--- 11. Просмотры
--- ============================================================
-INSERT INTO views (user_id, poster_id) VALUES
-    ((SELECT id FROM users WHERE email = 'sergey.kuzmin@gmail.com'),   (SELECT id FROM posters WHERE title = 'Студия у Тверской, свежий ремонт')),
-    ((SELECT id FROM users WHERE email = 'sergey.kuzmin@gmail.com'),   (SELECT id FROM posters WHERE title = 'Пентхаус на Арбате — эксклюзив')),
-    ((SELECT id FROM users WHERE email = 'dmitry.volkov@yandex.ru'),   (SELECT id FROM posters WHERE title = 'Студия у Тверской, свежий ремонт')),
-    ((SELECT id FROM users WHERE email = 'dmitry.volkov@yandex.ru'),   (SELECT id FROM posters WHERE title = 'Просторная 2-комнатная на Тверской')),
-    ((SELECT id FROM users WHERE email = 'dmitry.volkov@yandex.ru'),   (SELECT id FROM posters WHERE title = '1-комнатная на Арбате')),
-    ((SELECT id FROM users WHERE email = 'maria.novikova@gmail.com'),  (SELECT id FROM posters WHERE title = 'Пентхаус на Арбате — эксклюзив')),
-    ((SELECT id FROM users WHERE email = 'maria.novikova@gmail.com'),  (SELECT id FROM posters WHERE title = 'Апартаменты с видом на Неву')),
-    ((SELECT id FROM users WHERE email = 'olga.morozova@mail.ru'),     (SELECT id FROM posters WHERE title = 'Пентхаус на Арбате — эксклюзив')),
-    ((SELECT id FROM users WHERE email = 'ivan.petrov@mail.ru'),       (SELECT id FROM posters WHERE title = 'Апартаменты с видом на Неву')),
-    ((SELECT id FROM users WHERE email = 'anna.sokolova@yandex.ru'),   (SELECT id FROM posters WHERE title = 'Апартаменты с видом на Неву')),
-    ((SELECT id FROM users WHERE email = 'anna.sokolova@yandex.ru'),   (SELECT id FROM posters WHERE title = '3-комнатная в центре Казани'));
+INSERT INTO posters (price, avatar_url, description, user_id, property_id, alias, created_at) VALUES
+    (65000.00, 'https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 'Уютная студия после капитального ремонта. Новая кухня, встроенные шкафы. Рядом метро.', 1, 1, 'studio-tverskaya', NOW() - INTERVAL '65 days'),
+    (120000.00, 'https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 'Светлая квартира с панорамным видом. Паркинг в подарок.', 1, 2, '2room-tverskaya', NOW() - INTERVAL '50 days'),
+    (350000.00, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTj_cN2apQuTB2vu5_v4J3FnyrhHD6Y5x_BXA&s', 'Уникальный пентхаус с открытой террасой 80 кв.м. Консьерж, закрытая территория.', 2, 3, 'penthouse-arbatskaya', NOW() - INTERVAL '95 days'),
+    (85000.00, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxc4pnGQ858I3MeioxaDuJavns23B_bbJ_pw&s', 'Отличное место для жизни. Арбат в шаговой доступности. Мебель остаётся.', 2, 4, '1room-arbatskaya', NOW() - INTERVAL '35 days'),
+    (55000.00, 'https://n1s1.hsmedia.ru/0c/2e/40/0c2e4035e8da10aafba72e6f8b35b889/1000x750_0xac120003_8249795801571942265.jpg', 'Компактная студия для одного или пары. Первый этаж, высокие потолки.', 3, 5, 'studio-smolenskaya', NOW() - INTERVAL '25 days'),
+    (75000.00, 'https://inminecraft.ru/_ph/7/937019994.png', 'Квартира в историческом центре Петербурга. Дизайнерский ремонт 2024 года.', 4, 7, '1room-nevskiy', NOW() - INTERVAL '40 days'),
+    (200000.00, 'https://st.dg-home.ru/upload/blog_editor/18b/2hwc7stcrv1vq9vx40o0k7bt3skuc1xn/11_divan.jpg', 'Элитные апартаменты, 9 этаж. Потрясающий вид на Неву. Подземный паркинг.', 4, 8, 'apartments-neva-view', NOW() - INTERVAL '60 days'),
+    (90000.00, 'https://cs14.pikabu.ru/post_img/big/2024/01/12/11/1705087246125258124.jpg', 'Тихий двор, развитая инфраструктура. Школа и детсад в 5 минутах.', 5, 9, '2room-sadovaya', NOW() - INTERVAL '30 days'),
+    (95000.00, 'https://garagetek.ru/uploads/images/GarageTek_Etush01.jpg', 'Большая семейная квартира. Все комнаты изолированы. Лоджия 8 кв.м.', 6, 10, '3room-kazan', NOW() - INTERVAL '35 days');
 
 -- ============================================================
 -- 12. Фотографии объявлений
 -- ============================================================
+-- Фотографии для объявлений
 INSERT INTO poster_photos (img_url, sequence_order, poster_id) VALUES
-    ('https://cdn.example.com/posters/1/photo1.jpg', 1, (SELECT id FROM posters WHERE title = 'Студия у Тверской, свежий ремонт')),
-    ('https://cdn.example.com/posters/1/photo2.jpg', 2, (SELECT id FROM posters WHERE title = 'Студия у Тверской, свежий ремонт')),
-    ('https://cdn.example.com/posters/1/photo3.jpg', 3, (SELECT id FROM posters WHERE title = 'Студия у Тверской, свежий ремонт')),
+    ('https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 1, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
+    ('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTj_cN2apQuTB2vu5_v4J3FnyrhHD6Y5x_BXA&s', 3, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 4, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
+    ('https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 2, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
+    ('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTj_cN2apQuTB2vu5_v4J3FnyrhHD6Y5x_BXA&s', 3, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
+    ('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTj_cN2apQuTB2vu5_v4J3FnyrhHD6Y5x_BXA&s', 1, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
+    ('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxc4pnGQ858I3MeioxaDuJavns23B_bbJ_pw&s', 1, (SELECT id FROM posters WHERE alias = '1room-arbatskaya')),
+    ('https://n1s1.hsmedia.ru/0c/2e/40/0c2e4035e8da10aafba72e6f8b35b889/1000x750_0xac120003_8249795801571942265.jpg', 1, (SELECT id FROM posters WHERE alias = 'studio-smolenskaya')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM posters WHERE alias = 'studio-smolenskaya')),
+    ('https://inminecraft.ru/_ph/7/937019994.png', 1, (SELECT id FROM posters WHERE alias = '1room-nevskiy')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM posters WHERE alias = '1room-nevskiy')),
+    ('https://st.dg-home.ru/upload/blog_editor/18b/2hwc7stcrv1vq9vx40o0k7bt3skuc1xn/11_divan.jpg', 1, (SELECT id FROM posters WHERE alias = 'apartments-neva-view')),
+    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM posters WHERE alias = 'apartments-neva-view')),
+    ('https://cs14.pikabu.ru/post_img/big/2024/01/12/11/1705087246125258124.jpg', 1, (SELECT id FROM posters WHERE alias = '2room-sadovaya')),
+    ('https://garagetek.ru/uploads/images/GarageTek_Etush01.jpg', 1, (SELECT id FROM posters WHERE alias = '3room-kazan'));
 
-    ('https://cdn.example.com/posters/2/photo1.jpg', 1, (SELECT id FROM posters WHERE title = 'Просторная 2-комнатная на Тверской')),
-    ('https://cdn.example.com/posters/2/photo2.jpg', 2, (SELECT id FROM posters WHERE title = 'Просторная 2-комнатная на Тверской')),
 
-    ('https://cdn.example.com/posters/3/photo1.jpg', 1, (SELECT id FROM posters WHERE title = 'Пентхаус на Арбате — эксклюзив')),
-    ('https://cdn.example.com/posters/3/photo2.jpg', 2, (SELECT id FROM posters WHERE title = 'Пентхаус на Арбате — эксклюзив')),
-    ('https://cdn.example.com/posters/3/photo3.jpg', 3, (SELECT id FROM posters WHERE title = 'Пентхаус на Арбате — эксклюзив')),
-    ('https://cdn.example.com/posters/3/photo4.jpg', 4, (SELECT id FROM posters WHERE title = 'Пентхаус на Арбате — эксклюзив')),
+-- ============================================================
+-- 13. Лайки 
+-- ============================================================
+INSERT INTO likes (user_id, poster_id) VALUES
+    (3, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
+    (5, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
+    (6, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
+    (4, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
+    (1, (SELECT id FROM posters WHERE alias = 'apartments-neva-view')),
+    (2, (SELECT id FROM posters WHERE alias = 'apartments-neva-view'));
 
-    ('https://cdn.example.com/posters/4/photo1.jpg', 1, (SELECT id FROM posters WHERE title = '1-комнатная на Арбате')),
-    ('https://cdn.example.com/posters/4/photo2.jpg', 2, (SELECT id FROM posters WHERE title = '1-комнатная на Арбате')),
 
-    ('https://cdn.example.com/posters/5/photo1.jpg', 1, (SELECT id FROM posters WHERE title = 'Студия у Смоленской площади')),
+-- ============================================================
+-- 14. Удобства (facilities)
+-- ============================================================
+INSERT INTO facilities (name, alias) VALUES
+    ('Wi-Fi', 'wifi'),
+    ('Кондиционер', 'conditioner'),
+    ('Стиральная машина', 'washing-machine'),
+    ('Сушилка', 'dryer'),
+    ('Гладильная доска', 'ironing-board'),
+    ('Утюг', 'iron'),
+    ('Телевизор', 'tv'),
+    ('Холодильник', 'fridge'),
+    ('Микроволновка', 'microwave'),
+    ('Электроплита', 'stove'),
+    ('Посудомойка', 'dishwasher'),
+    ('Лифт', 'elevator'),
+    ('Парковка', 'parking'),
+    ('Консьерж', 'concierge'),
+    ('Детская площадка', 'playground');
 
-    ('https://cdn.example.com/posters/6/photo1.jpg', 1, (SELECT id FROM posters WHERE title = '1-комнатная на Невском')),
-    ('https://cdn.example.com/posters/6/photo2.jpg', 2, (SELECT id FROM posters WHERE title = '1-комнатная на Невском')),
 
-    ('https://cdn.example.com/posters/7/photo1.jpg', 1, (SELECT id FROM posters WHERE title = 'Апартаменты с видом на Неву')),
-    ('https://cdn.example.com/posters/7/photo2.jpg', 2, (SELECT id FROM posters WHERE title = 'Апартаменты с видом на Неву')),
-    ('https://cdn.example.com/posters/7/photo3.jpg', 3, (SELECT id FROM posters WHERE title = 'Апартаменты с видом на Неву')),
+-- ============================================================
+-- 15. Связь удобства → property (для каждого постера)
+-- ============================================================
+-- studio-tverskaya (property_id=1) - базовые удобства
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (1, (SELECT id FROM facilities WHERE alias='wifi')),
+    (1, (SELECT id FROM facilities WHERE alias='conditioner')),
+    (1, (SELECT id FROM facilities WHERE alias='washing-machine')),
+    (1, (SELECT id FROM facilities WHERE alias='fridge')),
+    (1, (SELECT id FROM facilities WHERE alias='microwave'));
 
-    ('https://cdn.example.com/posters/8/photo1.jpg', 1, (SELECT id FROM posters WHERE title = '2-комнатная на Садовой')),
-    ('https://cdn.example.com/posters/8/photo2.jpg', 2, (SELECT id FROM posters WHERE title = '2-комнатная на Садовой')),
+-- 2room-tverskaya (property_id=2) - расширенный набор
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (2, (SELECT id FROM facilities WHERE alias='wifi')),
+    (2, (SELECT id FROM facilities WHERE alias='conditioner')),
+    (2, (SELECT id FROM facilities WHERE alias='washing-machine')),
+    (2, (SELECT id FROM facilities WHERE alias='dryer')),
+    (2, (SELECT id FROM facilities WHERE alias='dishwasher')),
+    (2, (SELECT id FROM facilities WHERE alias='elevator')),
+    (2, (SELECT id FROM facilities WHERE alias='parking'));
 
-    ('https://cdn.example.com/posters/9/photo1.jpg', 1, (SELECT id FROM posters WHERE title = '3-комнатная в центре Казани')),
-    ('https://cdn.example.com/posters/9/photo2.jpg', 2, (SELECT id FROM posters WHERE title = '3-комнатная в центре Казани')),
-    ('https://cdn.example.com/posters/9/photo3.jpg', 3, (SELECT id FROM posters WHERE title = '3-комнатная в центре Казани'));
+-- penthouse-arbatskaya (property_id=3) - премиум
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (3, (SELECT id FROM facilities WHERE alias='wifi')),
+    (3, (SELECT id FROM facilities WHERE alias='conditioner')),
+    (3, (SELECT id FROM facilities WHERE alias='dishwasher')),
+    (3, (SELECT id FROM facilities WHERE alias='concierge')),
+    (3, (SELECT id FROM facilities WHERE alias='parking')),
+    (3, (SELECT id FROM facilities WHERE alias='elevator'));
+
+-- 1room-arbatskaya (property_id=4) - стандарт
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (4, (SELECT id FROM facilities WHERE alias='wifi')),
+    (4, (SELECT id FROM facilities WHERE alias='washing-machine')),
+    (4, (SELECT id FROM facilities WHERE alias='fridge')),
+    (4, (SELECT id FROM facilities WHERE alias='tv')),
+    (4, (SELECT id FROM facilities WHERE alias='iron'));
+
+-- studio-smolenskaya (property_id=5) - минимальный набор
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (5, (SELECT id FROM facilities WHERE alias='wifi')),
+    (5, (SELECT id FROM facilities WHERE alias='fridge')),
+    (5, (SELECT id FROM facilities WHERE alias='microwave'));
+
+-- 1room-nevskiy (property_id=7) - питерский стандарт
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (7, (SELECT id FROM facilities WHERE alias='wifi')),
+    (7, (SELECT id FROM facilities WHERE alias='conditioner')),
+    (7, (SELECT id FROM facilities WHERE alias='washing-machine')),
+    (7, (SELECT id FROM facilities WHERE alias='elevator'));
+
+-- apartments-neva-view (property_id=8) - люкс
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (8, (SELECT id FROM facilities WHERE alias='wifi')),
+    (8, (SELECT id FROM facilities WHERE alias='dishwasher')),
+    (8, (SELECT id FROM facilities WHERE alias='concierge')),
+    (8, (SELECT id FROM facilities WHERE alias='playground')),
+    (8, (SELECT id FROM facilities WHERE alias='parking'));
+
+-- 2room-sadovaya (property_id=9) - семейный
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (9, (SELECT id FROM facilities WHERE alias='wifi')),
+    (9, (SELECT id FROM facilities WHERE alias='washing-machine')),
+    (9, (SELECT id FROM facilities WHERE alias='dryer')),
+    (9, (SELECT id FROM facilities WHERE alias='playground')),
+    (9, (SELECT id FROM facilities WHERE alias='elevator'));
+
+-- 3room-kazan (property_id=10) - просторная
+INSERT INTO facility_property (property_id, facility_id) VALUES
+    (10, (SELECT id FROM facilities WHERE alias='wifi')),
+    (10, (SELECT id FROM facilities WHERE alias='conditioner')),
+    (10, (SELECT id FROM facilities WHERE alias='dishwasher')),
+    (10, (SELECT id FROM facilities WHERE alias='stove')),
+    (10, (SELECT id FROM facilities WHERE alias='parking'));
+
+ ANALYSE;

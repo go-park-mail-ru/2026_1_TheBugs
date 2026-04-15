@@ -1,15 +1,21 @@
 package auth
 
 import (
-	"net/http"
-
+	"crypto/rand"
+	"encoding/base64"
+	"encoding/json"
 	"log"
+	"net/http"
+	"time"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/request"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/parse"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
+	ctxLogger "github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 )
 
 type AuthHandler struct {
@@ -21,6 +27,14 @@ type FormDataCredential struct {
 	Password string `schema:"password"`
 }
 
+type FormDataCreateUser struct {
+	Email     string `schema:"email"`
+	Password  string `schema:"password"`
+	Phone     string `schema:"phone"`
+	FirstName string `schema:"firstname"`
+	LastName  string `schema:"lastname"`
+}
+
 type LoginResponse struct {
 	AccessToken    string `json:"access_token"`
 	AccessTokenExp int    `json:"expire_at"`
@@ -30,6 +44,10 @@ func NewAuthHandler(uc *auth.AuthUseCase) *AuthHandler {
 	return &AuthHandler{uc: uc}
 }
 
+func (h *AuthHandler) GetAuthMiddlewary() func(http.Handler) http.Handler {
+	return middleware.AuthMiddleware(h.uc)
+}
+
 // RegisterUser
 // @Summary       Register new user
 // @Description   Register new user with email and password
@@ -37,23 +55,35 @@ func NewAuthHandler(uc *auth.AuthUseCase) *AuthHandler {
 // @Accept        x-www-form-urlencoded
 // @Param         email formData string true "User email"
 // @Param         password formData string true "User password"
+// @Param         phone formData string true "User phone"
+// @Param         firstname formData string true "User firstname"
+// @Param         lastname formData string true "User lastname"
 // @Success       204
 // @Failure       400 {object} response.ValidationErrorResponse
 // @Failure       404 {object} response.ErrorResponse
 // @Failure       500 {object} response.ErrorResponse
 // @Router        /auth/reg [post]
 func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
-	var cred FormDataCredential
-	err := parse.ParseFormData(r, &cred)
+	op := "AuthHandler.RegisterUser"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	var cred FormDataCreateUser
+	err := utils.ParseFormData(r, &cred)
 	log.Println(cred)
 	if err != nil {
-		log.Printf("parse.ParseFormData: %s", err)
-		utils.HandelError(w, err)
+		log.Errorf("parse.ParseFormData: %s", err)
+		utils.WriteError(w, "invalid form data", http.StatusBadRequest)
 		return
 	}
-	err = h.uc.RegisterUseCase(r.Context(), cred.Email, cred.Password)
+	err = h.uc.RegisterUseCase(r.Context(), dto.CreateUserDTO{
+		Email:     cred.Email,
+		Password:  cred.Password,
+		Phone:     cred.Phone,
+		LastName:  cred.LastName,
+		FirstName: cred.FirstName,
+	})
 	if err != nil {
-		log.Printf("h.uc.RegisterUseCase: %s", err)
+		log.Errorf("h.uc.RegisterUseCase: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
@@ -72,19 +102,24 @@ func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 // @Failure       400 {object} response.ValidationErrorResponse
 // @Failure       404 {object} response.ErrorResponse
 // @Failure       500 {object} response.ErrorResponse
+// @Security     CSRFToken
 // @Router        /auth/login [post]
 func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
+	op := "AuthHandler.LoginUser"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
 	var cred FormDataCredential
-	err := parse.ParseFormData(r, &cred)
+
+	err := utils.ParseFormData(r, &cred)
 	log.Println(cred)
 	if err != nil {
-		log.Printf("parse.ParseFormData: %s", err)
-		utils.HandelError(w, err)
+		log.Errorf("parse.ParseFormData: %s", err)
+		utils.WriteError(w, "invalid form data", http.StatusBadRequest)
 		return
 	}
 	accessCred, err := h.uc.LoginUseCase(r.Context(), cred.Email, cred.Password)
 	if err != nil {
-		log.Printf("h.uc.LoginUseCase: %s", err)
+		log.Errorf("h.uc.LoginUseCase: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
@@ -110,18 +145,22 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 // @Failure       400 {object} response.ValidationErrorResponse
 // @Failure       401 {object} response.ErrorResponse
 // @Failure       500 {object} response.ErrorResponse
+// @Security     CSRFToken
 // @Router        /auth/refresh [post]
 func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
+	op := "AuthHandler.RefreshToken"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
 	cookie, err := r.Cookie("refresh_token")
 	if err != nil {
-		log.Printf("r.Cookie: %s", err)
-		utils.HandelError(w, entity.InvalidInput)
+		log.Errorf("r.Cookie: %s", err)
+		utils.WriteError(w, "invalid cookie", http.StatusBadRequest)
 		return
 	}
 	refreshToken := cookie.Value
 	accessCred, err := h.uc.RefreshTokenUseCase(r.Context(), refreshToken)
 	if err != nil {
-		log.Printf("h.uc.RefreshTokenUseCase: %s", err)
+		log.Errorf("h.uc.RefreshTokenUseCase: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
@@ -142,21 +181,25 @@ func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 // @Accept       json
 // @Produce      json
 // @Security     BearerAuth
+// @Security     CSRFToken
 // @Success      204 "Successfully logged out (no content)"
 // @Failure      400 {object} response.ValidationErrorResponse "Missing tokens"
 // @Failure      401 {object} response.ErrorResponse "Invalid tokens"
 // @Failure      500 {object} response.ErrorResponse "Blacklist error"
 // @Router       /auth/logout [post]
 func (h AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	op := "AuthHandler.Logout"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
 	accessToken, err := utils.GetAccessToken(r)
 	if err != nil {
-		log.Printf("utils.GetAccessToken: %s", err)
-		utils.HandelError(w, entity.InvalidInput)
+		log.Errorf("utils.GetAccessToken: %s", err)
+		utils.WriteError(w, "invalid access token", http.StatusUnauthorized)
 		return
 	}
 	cookie, err := r.Cookie("refresh_token")
 	if err != nil {
-		log.Printf("r.Cookie: %s", err)
+		log.Errorf("r.Cookie: %s", err)
 		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
@@ -174,10 +217,266 @@ func (h AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		Name:     "refresh_token",
 		Value:    "",
 		Path:     "/api/auth",
+		Domain:   config.Config.CORS.CookieHost,
 		MaxAge:   -1,
 		HttpOnly: true,
 		Secure:   false,
 		SameSite: http.SameSiteStrictMode,
 	})
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// POST /api/auth/vk/login
+func (h AuthHandler) VKLogin(w http.ResponseWriter, r *http.Request) {
+	op := "AuthHandler.VKLogin"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	var flow dto.OAuthCodeFlow
+	if err := json.NewDecoder(r.Body).Decode(&flow); err != nil {
+		log.Errorf("json.NewDecoder(r.Body).Decode(&flow): %s", err)
+		utils.WriteError(w, "invalid body", http.StatusBadRequest)
+		return
+	}
+
+	if flow.Code == "" || flow.DeviceID == nil || flow.State == nil {
+		log.Errorf("flow.Code || flow.DeviceID || flow.State empty ")
+		utils.WriteError(w, "invalid body", http.StatusBadRequest)
+		return
+	}
+
+	accessCred, err := h.uc.LoginUserFromVKUseCase(r.Context(), flow)
+	if err != nil {
+		log.Errorf("login vk error: %v", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	resp := LoginResponse{
+		AccessToken:    accessCred.AccessToken,
+		AccessTokenExp: accessCred.AccessTokenExp,
+	}
+
+	utils.SetRefreshCookie(w, accessCred)
+	utils.JSONResponse(w, http.StatusOK, &resp)
+}
+
+// LoginYandexUser
+// @Summary       Login user from Yandex
+// @Description   Authenticate user and return access token + set refresh token cookie
+// @Tags          Auth
+// @Accept        json
+// @Param  flow body dto.OAuthCodeFlow true "OAuth user cred by Authorization code flow"
+// @Success       200 {object} LoginResponse "Successful login, returns access token"
+// @Header        200 {string} Set-Cookie "refresh_token=<NEW_REFRESH_TOKEN>; HttpOnly; Path=/api/auth/refresh; Max-Age=..."
+// @Failure       400 {object} response.ValidationErrorResponse
+// @Failure       404 {object} response.ErrorResponse
+// @Failure       500 {object} response.ErrorResponse
+// @Security CSRFToken
+// @Router        /auth/yandex [post]
+func (h AuthHandler) YandexLogin(w http.ResponseWriter, r *http.Request) {
+	op := "AuthHandler.YandexLogin"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	var flow dto.OAuthCodeFlow
+	if err := json.NewDecoder(r.Body).Decode(&flow); err != nil {
+		log.Errorf("json.NewDecoder(r.Body).Decode(&flow): %s", err)
+		utils.WriteError(w, "invalid body", http.StatusBadRequest)
+		return
+	}
+
+	if flow.Code == "" {
+		log.Errorf("flow.Code empty ")
+		utils.WriteError(w, "invalid body", http.StatusBadRequest)
+		return
+	}
+
+	accessCred, err := h.uc.LoginUserFromYandexUseCase(r.Context(), flow)
+	if err != nil {
+		log.Errorf("login yandex error: %v", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	resp := LoginResponse{
+		AccessToken:    accessCred.AccessToken,
+		AccessTokenExp: accessCred.AccessTokenExp,
+	}
+
+	utils.SetRefreshCookie(w, accessCred)
+	utils.JSONResponse(w, http.StatusOK, &resp)
+}
+
+// SendCodeOnEmail
+// @Summary       Send recovery code to email
+// @Description   Generates recovery session, sends verification code to user's email and sets session_id cookie
+// @Tags          Auth
+// @Accept        json
+// @Produce       json
+// @Param         data body request.UserEmail true "User email"
+// @Success       200 {object} map[string]string "Status OK"
+// @Header        200 {string} Set-Cookie "session_id=<SESSION_ID>; HttpOnly; Path=/api/auth; Max-Age=600"
+// @Failure       400 {object} response.ValidationErrorResponse
+// @Failure       500 {object} response.ErrorResponse
+// @Security	  CSRFToken
+// @Router        /auth/recover [post]
+func (h AuthHandler) SendCodeOnEmail(w http.ResponseWriter, r *http.Request) {
+	op := "AuthHandler.SendCodeOnEmail"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	var data request.UserEmail
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		log.Errorf("decode: %v", err)
+		utils.WriteError(w, "invalid body", http.StatusBadRequest)
+		return
+	}
+
+	sessionID, err := h.uc.SendVerificationCode(r.Context(), data.Email)
+	if err != nil {
+		log.Errorf("SendVerificationCode: %v", err)
+		utils.HandelError(w, err)
+		return
+	}
+	http.SetCookie(
+		w,
+		&http.Cookie{
+			Name:     "session_id",
+			Value:    sessionID,
+			Path:     "/api/auth",
+			HttpOnly: true,
+			Domain:   config.Config.CORS.CookieHost,
+			SameSite: http.SameSiteLaxMode,
+			Expires:  time.Now().Add(time.Duration(int(config.Config.JWT.RecoverExp) * int(time.Second))),
+			MaxAge:   int(config.Config.JWT.RecoverExp),
+		},
+	)
+
+	utils.JSONResponse(w, http.StatusOK, map[string]string{
+		"status": "ok",
+	})
+}
+
+// VerifyRecoveryCode
+// @Summary       Verify recovery code
+// @Description   Verifies code from email using session_id cookie and marks session as verified
+// @Tags          Auth
+// @Accept        json
+// @Produce       json
+// @Param         data body request.VerifyCodeDTO true "Verification code"
+// @Success       200 {object} map[string]string "Status verified"
+// @Failure       400 {object} response.ValidationErrorResponse
+// @Failure       401 {object} response.ErrorResponse "Invalid code or session"
+// @Failure       500 {object} response.ErrorResponse
+// @Security      CSRFToken
+// @Router        /auth/recover/verify [post]
+func (h AuthHandler) VerifyRecoveryCode(w http.ResponseWriter, r *http.Request) {
+	op := "AuthHandler.VerifyRecoveryCode"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	cookie, err := r.Cookie("session_id")
+	if err != nil {
+		log.Errorf("r.Cookie: %s", err)
+		utils.WriteError(w, "invalid cookie", http.StatusBadRequest)
+		return
+	}
+	sessionId := cookie.Value
+	if sessionId == "" {
+		log.Errorf("sessionId is empty")
+		utils.WriteError(w, "session_id is empty", http.StatusBadRequest)
+		return
+	}
+
+	var data request.VerifyCodeDTO
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		log.Errorf("decode: %v", err)
+		utils.WriteError(w, "invalid body", http.StatusBadRequest)
+		return
+	}
+
+	err = h.uc.CheckRecoveryCode(r.Context(), sessionId, data.Code)
+	if err != nil {
+		log.Errorf("CheckRecoveryCode: %v", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, map[string]string{
+		"status": "verified",
+	})
+}
+
+// UpdatePassword
+// @Summary       Update user password
+// @Description   Updates password using verified recovery session (session_id cookie required)
+// @Tags          Auth
+// @Accept        json
+// @Produce       json
+// @Param         data body request.UpdatePwdDTO true "New password"
+// @Success       200 {object} map[string]string "Password updated"
+// @Failure       400 {object} response.ValidationErrorResponse
+// @Failure       401 {object} response.ErrorResponse "Session not verified or invalid"
+// @Failure       500 {object} response.ErrorResponse
+// @Security      CSRFToken
+// @Router        /auth/recover/reset [post]
+func (h AuthHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
+	op := "AuthHandler.UpdatePassword"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+	cookie, err := r.Cookie("session_id")
+	if err != nil {
+		log.Errorf("r.Cookie: %s", err)
+		utils.WriteError(w, "invalid cookie", http.StatusBadRequest)
+		return
+	}
+	sessionId := cookie.Value
+	if sessionId == "" {
+		log.Errorf("sessionId is empty")
+		utils.WriteError(w, "session_id is empty", http.StatusBadRequest)
+		return
+	}
+
+	var data request.UpdatePwdDTO
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		log.Errorf("decode: %v", err)
+		utils.WriteError(w, "invalid body", http.StatusBadRequest)
+		return
+	}
+
+	err = h.uc.UpdateUserPassword(r.Context(), sessionId, data.Password)
+	if err != nil {
+		log.Errorf("UpdateUserPassword: %v", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, map[string]string{
+		"status": "password_updated",
+	})
+}
+
+// @Summary       Get CSRF token
+// @Description   Create and get csrf token
+// @Tags          Auth
+// @Accept        json
+// @Produce       json
+// @Success       200 {object} map[string]string "CSRF token"
+// @Failure       403 {object} response.ErrorResponse
+// @Failure       500 {object} response.ErrorResponse
+// @Router        /csrf-token [get]
+func (h AuthHandler) GetCSRFToken(w http.ResponseWriter, r *http.Request) {
+	token := generateCSRFToken()
+	http.SetCookie(w, &http.Cookie{
+		Name:     "csrf_token",
+		Value:    token,
+		HttpOnly: true,
+		Path:     "/",
+		MaxAge:   3600,
+	})
+	log.Println(token)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"csrf_token": token})
+}
+
+func generateCSRFToken() string {
+	b := make([]byte, 32)
+	rand.Read(b)
+	return base64.URLEncoding.EncodeToString(b)
 }
