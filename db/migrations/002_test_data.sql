@@ -198,39 +198,90 @@ INSERT INTO flat (property_id, floor, number, category_id) VALUES
 -- 11. Объявления (posters)
 -- ============================================================
 INSERT INTO posters (price, avatar_url, description, user_id, property_id, alias, created_at) VALUES
-    (65000.00, 'https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 'Уютная студия после капитального ремонта. Новая кухня, встроенные шкафы. Рядом метро.', 1, 1, 'studio-tverskaya', NOW() - INTERVAL '65 days'),
-    (120000.00, 'https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 'Светлая квартира с панорамным видом. Паркинг в подарок.', 1, 2, '2room-tverskaya', NOW() - INTERVAL '50 days'),
-    (350000.00, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTj_cN2apQuTB2vu5_v4J3FnyrhHD6Y5x_BXA&s', 'Уникальный пентхаус с открытой террасой 80 кв.м. Консьерж, закрытая территория.', 2, 3, 'penthouse-arbatskaya', NOW() - INTERVAL '95 days'),
-    (85000.00, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxc4pnGQ858I3MeioxaDuJavns23B_bbJ_pw&s', 'Отличное место для жизни. Арбат в шаговой доступности. Мебель остаётся.', 2, 4, '1room-arbatskaya', NOW() - INTERVAL '35 days'),
-    (55000.00, 'https://n1s1.hsmedia.ru/0c/2e/40/0c2e4035e8da10aafba72e6f8b35b889/1000x750_0xac120003_8249795801571942265.jpg', 'Компактная студия для одного или пары. Первый этаж, высокие потолки.', 3, 5, 'studio-smolenskaya', NOW() - INTERVAL '25 days'),
-    (75000.00, 'https://inminecraft.ru/_ph/7/937019994.png', 'Квартира в историческом центре Петербурга. Дизайнерский ремонт 2024 года.', 4, 7, '1room-nevskiy', NOW() - INTERVAL '40 days'),
-    (200000.00, 'https://st.dg-home.ru/upload/blog_editor/18b/2hwc7stcrv1vq9vx40o0k7bt3skuc1xn/11_divan.jpg', 'Элитные апартаменты, 9 этаж. Потрясающий вид на Неву. Подземный паркинг.', 4, 8, 'apartments-neva-view', NOW() - INTERVAL '60 days'),
-    (90000.00, 'https://cs14.pikabu.ru/post_img/big/2024/01/12/11/1705087246125258124.jpg', 'Тихий двор, развитая инфраструктура. Школа и детсад в 5 минутах.', 5, 9, '2room-sadovaya', NOW() - INTERVAL '30 days'),
-    (95000.00, 'https://garagetek.ru/uploads/images/GarageTek_Etush01.jpg', 'Большая семейная квартира. Все комнаты изолированы. Лоджия 8 кв.м.', 6, 10, '3room-kazan', NOW() - INTERVAL '35 days');
+    (65000.00, 'https://design-cube.ru/wp-content/uploads/2022/06/View16-1.jpg', 'Уютная студия после капитального ремонта. Новая кухня, встроенные шкафы. Рядом метро.', 1, 1, 'studio-tverskaya', NOW() - INTERVAL '65 days'),
+    (120000.00, 'https://design-cube.ru/wp-content/uploads/2025/07/4-2.webp', 'Светлая квартира с панорамным видом. Паркинг в подарок.', 1, 2, '2room-tverskaya', NOW() - INTERVAL '50 days'),
+    (350000.00, 'https://design-cube.ru/wp-content/uploads/2026/01/23.webp', 'Уникальный пентхаус с открытой террасой 80 кв.м. Консьерж, закрытая территория.', 2, 3, 'penthouse-arbatskaya', NOW() - INTERVAL '95 days'),
+    (85000.00, 'https://design-cube.ru/wp-content/uploads/2023/10/5-Mnogo-podushek-na-rozovom-divane-pridajut-emu-stil.jpg', 'Отличное место для жизни. Арбат в шаговой доступности. Мебель остаётся.', 2, 4, '1room-arbatskaya', NOW() - INTERVAL '35 days'),
+    (55000.00, 'https://design-cube.ru/wp-content/uploads/2022/11/300_kuhnya_gostinaya_prihozhaya-15.jpg', 'Компактная студия для одного или пары. Первый этаж, высокие потолки.', 3, 5, 'studio-smolenskaya', NOW() - INTERVAL '25 days'),
+    (75000.00, 'https://design-cube.ru/wp-content/uploads/2024/01/324_kuhnya-gostinaya-1.jpg', 'Квартира в историческом центре Петербурга. Дизайнерский ремонт 2024 года.', 4, 7, '1room-nevskiy', NOW() - INTERVAL '40 days'),
+    (200000.00, 'https://design-cube.ru/wp-content/uploads/2022/04/276-Kuhnya-gostinnaya-2.jpg', 'Элитные апартаменты, 9 этаж. Потрясающий вид на Неву. Подземный паркинг.', 4, 8, 'apartments-neva-view', NOW() - INTERVAL '60 days'),
+    (90000.00, 'https://design-cube.ru/wp-content/uploads/2022/04/278_obshhaya-zona_-8.jpg', 'Тихий двор, развитая инфраструктура. Школа и детсад в 5 минутах.', 5, 9, '2room-sadovaya', NOW() - INTERVAL '30 days'),
+    (95000.00, 'https://design-cube.ru/wp-content/uploads/2025/07/5-4.webp', 'Большая семейная квартира. Все комнаты изолированы. Лоджия 8 кв.м.', 6, 10, '3room-kazan', NOW() - INTERVAL '35 days');
 
 -- ============================================================
 -- 12. Фотографии объявлений
 -- ============================================================
 -- Фотографии для объявлений
 INSERT INTO poster_photos (img_url, sequence_order, poster_id) VALUES
-    ('https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 1, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
-    ('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTj_cN2apQuTB2vu5_v4J3FnyrhHD6Y5x_BXA&s', 3, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 4, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 1, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
-    ('https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 2, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
-    ('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTj_cN2apQuTB2vu5_v4J3FnyrhHD6Y5x_BXA&s', 3, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
-    ('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTj_cN2apQuTB2vu5_v4J3FnyrhHD6Y5x_BXA&s', 1, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
-    ('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTxc4pnGQ858I3MeioxaDuJavns23B_bbJ_pw&s', 1, (SELECT id FROM posters WHERE alias = '1room-arbatskaya')),
-    ('https://n1s1.hsmedia.ru/0c/2e/40/0c2e4035e8da10aafba72e6f8b35b889/1000x750_0xac120003_8249795801571942265.jpg', 1, (SELECT id FROM posters WHERE alias = 'studio-smolenskaya')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM posters WHERE alias = 'studio-smolenskaya')),
-    ('https://inminecraft.ru/_ph/7/937019994.png', 1, (SELECT id FROM posters WHERE alias = '1room-nevskiy')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM posters WHERE alias = '1room-nevskiy')),
-    ('https://st.dg-home.ru/upload/blog_editor/18b/2hwc7stcrv1vq9vx40o0k7bt3skuc1xn/11_divan.jpg', 1, (SELECT id FROM posters WHERE alias = 'apartments-neva-view')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM posters WHERE alias = 'apartments-neva-view')),
-    ('https://cs14.pikabu.ru/post_img/big/2024/01/12/11/1705087246125258124.jpg', 1, (SELECT id FROM posters WHERE alias = '2room-sadovaya')),
-    ('https://garagetek.ru/uploads/images/GarageTek_Etush01.jpg', 1, (SELECT id FROM posters WHERE alias = '3room-kazan'));
+    ('https://design-cube.ru/wp-content/uploads/2022/06/View16-1.jpg', 1, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2022/06/View10.jpg', 2, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2022/06/View01.jpg', 3, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2022/06/View04-1.jpg', 4, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2022/06/View02-4.jpg', 5, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
+
+    ('https://design-cube.ru/wp-content/uploads/2025/07/5.webp', 1, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2025/07/6.webp', 2, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2025/07/3.webp', 3, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2025/07/4.webp', 4, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2025/07/1.webp', 5, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2025/07/3-1.webp', 6, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2025/07/2-1.webp', 7, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2025/07/4-2.webp', 8, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2025/07/5-2.webp', 9, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2025/07/3-3.webp', 10, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2025/07/5-3.webp', 11, (SELECT id FROM posters WHERE alias = '2room-tverskaya')),
+
+    ('https://design-cube.ru/wp-content/uploads/2026/01/8.webp', 1, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2026/01/7.webp', 2, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2026/01/5.webp', 3, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2026/01/6.webp', 4, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2026/01/2-7.webp', 5, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2026/01/10-4.webp', 6, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2026/01/4.2.webp', 7, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2026/01/3-3.webp', 8, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2026/01/1-5.webp', 9, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
+
+    ('https://design-cube.ru/wp-content/uploads/2023/10/5-Mnogo-podushek-na-rozovom-divane-pridajut-emu-stil.jpg', 1, (SELECT id FROM posters WHERE alias = '1room-arbatskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2023/10/7-Fartuk-kuhni-vylozhen-belosnezhnoj-keramicheskoj-plitkoj.jpg', 2, (SELECT id FROM posters WHERE alias = '1room-arbatskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2023/10/13-Stilnuju-zonu-TV-ukrasil-vorsistyj-kover.jpg', 3, (SELECT id FROM posters WHERE alias = '1room-arbatskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2023/10/8-Stilnaya-vstroennaya-mebel-cveta-temnoj-polyni-funkcionalna.jpg', 4, (SELECT id FROM posters WHERE alias = '1room-arbatskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2023/10/2-Dvuhyarusna-krovat-pudrovogo-cveta-osnashhena-lestnicej-i-svetilnikami.jpg', 5, (SELECT id FROM posters WHERE alias = '1room-arbatskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2023/10/7-Beliznu-tualetnogo-stolika-podcherknula-zelenaya-podvesnaya-ljustra.jpg', 6, (SELECT id FROM posters WHERE alias = '1room-arbatskaya')),
+
+    ('https://design-cube.ru/wp-content/uploads/2022/11/300_kuhnya_gostinaya_prihozhaya-15.jpg', 1, (SELECT id FROM posters WHERE alias = 'studio-smolenskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2022/11/300_kuhnya_gostinaya_prihozhaya-2.jpg', 2, (SELECT id FROM posters WHERE alias = 'studio-smolenskaya')),
+    ('https://design-cube.ru/wp-content/uploads/2022/11/300_s.u-9.jpg', 3, (SELECT id FROM posters WHERE alias = 'studio-smolenskaya')),
+
+    ('https://design-cube.ru/wp-content/uploads/2024/01/324_kuhnya-gostinaya-1.jpg', 1, (SELECT id FROM posters WHERE alias = '1room-nevskiy')),
+    ('https://design-cube.ru/wp-content/uploads/2024/01/324_kuhnya-gostinaya-5.jpg', 2, (SELECT id FROM posters WHERE alias = '1room-nevskiy')),
+    ('https://design-cube.ru/wp-content/uploads/2024/01/324_kuhnya-gostinaya-10.jpg', 3, (SELECT id FROM posters WHERE alias = '1room-nevskiy')),
+    ('https://design-cube.ru/wp-content/uploads/2024/01/324_spalnya-2.jpg', 4, (SELECT id FROM posters WHERE alias = '1room-nevskiy')),
+    ('https://design-cube.ru/wp-content/uploads/2024/01/324_spalnya-4.jpg', 5, (SELECT id FROM posters WHERE alias = '1room-nevskiy')),
+    ('https://design-cube.ru/wp-content/uploads/2024/01/324_postirochnaya-9.jpg', 6, (SELECT id FROM posters WHERE alias = '1room-nevskiy')),
+
+    ('https://design-cube.ru/wp-content/uploads/2022/04/276-Kuhnya-gostinnaya-2.jpg', 1, (SELECT id FROM posters WHERE alias = 'apartments-neva-view')),
+    ('https://design-cube.ru/wp-content/uploads/2022/04/276-Kuhnya-gostinnaya-1.jpg', 2, (SELECT id FROM posters WHERE alias = 'apartments-neva-view')),
+    ('https://design-cube.ru/wp-content/uploads/2022/04/276-Prihozhaya-1.jpg', 3, (SELECT id FROM posters WHERE alias = 'apartments-neva-view')),
+    ('https://design-cube.ru/wp-content/uploads/2022/04/276-Sanuzel-1.jpg', 4, (SELECT id FROM posters WHERE alias = 'apartments-neva-view')),
+
+    ('https://design-cube.ru/wp-content/uploads/2022/04/278_obshhaya-zona_-4.jpg', 1, (SELECT id FROM posters WHERE alias = '2room-sadovaya')),
+    ('https://design-cube.ru/wp-content/uploads/2022/04/278_obshhaya-zona_-8.jpg', 2, (SELECT id FROM posters WHERE alias = '2room-sadovaya')),
+    ('https://design-cube.ru/wp-content/uploads/2022/04/278_obshhaya-zona_-14.jpg', 3, (SELECT id FROM posters WHERE alias = '2room-sadovaya')),
+    ('https://design-cube.ru/wp-content/uploads/2022/04/278_obshhaya-zona_-19.jpg', 4, (SELECT id FROM posters WHERE alias = '2room-sadovaya')),
+    ('https://design-cube.ru/wp-content/uploads/2022/04/278_spalnya_-3.jpg', 5, (SELECT id FROM posters WHERE alias = '2room-sadovaya')),
+    ('https://design-cube.ru/wp-content/uploads/2022/04/278_spalnya_-4.jpg', 6, (SELECT id FROM posters WHERE alias = '2room-sadovaya')),
+    ('https://design-cube.ru/wp-content/uploads/2022/04/278_vanna_-1.jpg', 7, (SELECT id FROM posters WHERE alias = '2room-sadovaya')),
+    ('https://design-cube.ru/wp-content/uploads/2022/04/278_vanna_-3.jpg', 8, (SELECT id FROM posters WHERE alias = '2room-sadovaya')),
+
+    ('https://design-cube.ru/wp-content/uploads/2025/07/7-2.webp', 1, (SELECT id FROM posters WHERE alias = '3room-kazan'));
+    ('https://design-cube.ru/wp-content/uploads/2025/07/5-4.webp', 2, (SELECT id FROM posters WHERE alias = '3room-kazan'));
+    ('https://design-cube.ru/wp-content/uploads/2025/07/4-4.webp', 3, (SELECT id FROM posters WHERE alias = '3room-kazan'));
+    ('https://design-cube.ru/wp-content/uploads/2025/07/3-4.webp', 4, (SELECT id FROM posters WHERE alias = '3room-kazan'));
+    ('https://design-cube.ru/wp-content/uploads/2025/07/5-5.webp', 5, (SELECT id FROM posters WHERE alias = '3room-kazan'));
+    ('https://design-cube.ru/wp-content/uploads/2025/07/4_Post.webp', 6, (SELECT id FROM posters WHERE alias = '3room-kazan'));
+    ('https://design-cube.ru/wp-content/uploads/2025/07/40100_Post.webp', 7, (SELECT id FROM posters WHERE alias = '3room-kazan'));
+    ('https://design-cube.ru/wp-content/uploads/2025/07/10000_Post.webp', 8, (SELECT id FROM posters WHERE alias = '3room-kazan'));
+    ('https://design-cube.ru/wp-content/uploads/2025/07/30000_Post.webp', 9, (SELECT id FROM posters WHERE alias = '3room-kazan'));
 
 
 -- ============================================================
