@@ -273,14 +273,14 @@ INSERT INTO poster_photos (img_url, sequence_order, poster_id) VALUES
     ('https://design-cube.ru/wp-content/uploads/2022/04/278_vanna_-1.jpg', 7, (SELECT id FROM posters WHERE alias = '2room-sadovaya')),
     ('https://design-cube.ru/wp-content/uploads/2022/04/278_vanna_-3.jpg', 8, (SELECT id FROM posters WHERE alias = '2room-sadovaya')),
 
-    ('https://design-cube.ru/wp-content/uploads/2025/07/7-2.webp', 1, (SELECT id FROM posters WHERE alias = '3room-kazan'));
-    ('https://design-cube.ru/wp-content/uploads/2025/07/5-4.webp', 2, (SELECT id FROM posters WHERE alias = '3room-kazan'));
-    ('https://design-cube.ru/wp-content/uploads/2025/07/4-4.webp', 3, (SELECT id FROM posters WHERE alias = '3room-kazan'));
-    ('https://design-cube.ru/wp-content/uploads/2025/07/3-4.webp', 4, (SELECT id FROM posters WHERE alias = '3room-kazan'));
-    ('https://design-cube.ru/wp-content/uploads/2025/07/5-5.webp', 5, (SELECT id FROM posters WHERE alias = '3room-kazan'));
-    ('https://design-cube.ru/wp-content/uploads/2025/07/4_Post.webp', 6, (SELECT id FROM posters WHERE alias = '3room-kazan'));
-    ('https://design-cube.ru/wp-content/uploads/2025/07/40100_Post.webp', 7, (SELECT id FROM posters WHERE alias = '3room-kazan'));
-    ('https://design-cube.ru/wp-content/uploads/2025/07/10000_Post.webp', 8, (SELECT id FROM posters WHERE alias = '3room-kazan'));
+    ('https://design-cube.ru/wp-content/uploads/2025/07/7-2.webp', 1, (SELECT id FROM posters WHERE alias = '3room-kazan')),
+    ('https://design-cube.ru/wp-content/uploads/2025/07/5-4.webp', 2, (SELECT id FROM posters WHERE alias = '3room-kazan')),
+    ('https://design-cube.ru/wp-content/uploads/2025/07/4-4.webp', 3, (SELECT id FROM posters WHERE alias = '3room-kazan')),
+    ('https://design-cube.ru/wp-content/uploads/2025/07/3-4.webp', 4, (SELECT id FROM posters WHERE alias = '3room-kazan')),
+    ('https://design-cube.ru/wp-content/uploads/2025/07/5-5.webp', 5, (SELECT id FROM posters WHERE alias = '3room-kazan')),
+    ('https://design-cube.ru/wp-content/uploads/2025/07/4_Post.webp', 6, (SELECT id FROM posters WHERE alias = '3room-kazan')),
+    ('https://design-cube.ru/wp-content/uploads/2025/07/40100_Post.webp', 7, (SELECT id FROM posters WHERE alias = '3room-kazan')),
+    ('https://design-cube.ru/wp-content/uploads/2025/07/10000_Post.webp', 8, (SELECT id FROM posters WHERE alias = '3room-kazan')),
     ('https://design-cube.ru/wp-content/uploads/2025/07/30000_Post.webp', 9, (SELECT id FROM posters WHERE alias = '3room-kazan'));
 
 
