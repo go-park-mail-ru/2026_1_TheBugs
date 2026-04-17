@@ -57,11 +57,11 @@ INSERT INTO property_categories (name, alias) VALUES
 -- Застройщики (developers)
 -- ============================================================
 INSERT INTO developers (developer_name, avatar_url) VALUES
-    ('ГК СтройГрупп Девелопмент', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRw0YaHp30Xwau65hiGgdHeglHZVI9tFZDzoQ&s'),
-    ('ПремиумДом Девелопмент', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRw0YaHp30Xwau65hiGgdHeglHZVI9tFZDzoQ&s'),
-    ('НордСтрой Девелопмент', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRw0YaHp30Xwau65hiGgdHeglHZVI9tFZDzoQ&s'),
+    ('Донстрой', 'https://upload.wikimedia.org/wikipedia/commons/1/1e/%D0%9B%D0%BE%D0%B3%D0%BE%D1%82%D0%B8%D0%BF_%D0%94%D0%BE%D0%BD%D1%81%D1%82%D1%80%D0%BE%D0%B9.png'),
+    ('ПремиумДом Девелопмент', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHoLsgU0o4GhmieKk6j0Bq2gILNxDrQLALHg&s'),
+    ('НордСтрой Девелопмент', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcStmh7s8ef89_ITaTytzK4mP9O8ReVnrh-3UQ&s'),
     ('КазаньИнвест Девелопмент', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRw0YaHp30Xwau65hiGgdHeglHZVI9tFZDzoQ&s'),
-    ('УралСтройКом Девелопмент', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRw0YaHp30Xwau65hiGgdHeglHZVI9tFZDzoQ&s');
+    ('УралСтройКом Девелопмент', 'https://domselect.ru/storage/main/sk-psk.jpg');
 
 -- ============================================================
 -- 6. ЖК Компании (utility_companies)
@@ -69,20 +69,22 @@ INSERT INTO developers (developer_name, avatar_url) VALUES
 INSERT INTO utility_companies 
 (company_name, phone, geo, address, avatar_url, alias, description, developer_id) 
 VALUES
-    ('СтройГрупп', '+7 495 123 48 77',
+    ('Символ', '+7 495 123 48 77',
      ST_GeogFromText('SRID=4326;POINT(37.6173 55.7558)'),
      'г. Москва, ул. Тверская, д. 10, офис 5',
-     'https://logotab.ru/storage/logotypes/1194/logotip-zhk-1083.jpg.jpg',
+     'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTr_mhDYpgBiUdG8GfGpnse45MCmYiSZIAu9w&s',
      'stroigroup',
-     'Современный жилой комплекс бизнес-класса в центре Москвы с развитой инфраструктурой и подземным паркингом.',
-     (SELECT id FROM developers WHERE developer_name = 'ГК СтройГрупп Девелопмент')),
+     'СИМВОЛ — новая городская среда в окружении исторического центра Москвы. Высокий статус СИМВОЛА подтверждают десятки профессиональных наград, в числе которых лучший квартал Москвы и России, лучший городской дизайн и самая комфортная среда.
+Ультрасовременная архитектура от звездных бюро Москвы и Лондона и 10 га парковой территории сделали СИМВОЛ одним из самых престижных и узнаваемых жилых пространств столицы. Парк «Зеленая река» сегодня — не просто одно из любимых мест отдыха и прогулок москвичей, но и настоящая визитная карточка СИМВОЛА.
+Здесь все готово для жизни. Продуманные общественные пространства в домах, более 100 действующих объектов инфраструктуры и все возможности центра с его галереями, музеями, театрами, торговыми и бизнес-центрами превратили СИМВОЛ в особый мир, где реализуются любые сценарии вашей жизни.',
+     (SELECT id FROM developers WHERE developer_name = 'Донстрой')),
 
     ('ПремиумДом', '+7 495 987 65 43',
      ST_GeogFromText('SRID=4326;POINT(37.5806 55.7495)'),
      'г. Москва, ул. Арбат, д. 20',
      'https://profi-storage.storage.yandexcloud.net/iblock/6c3/ymsd8l4okdnq64hrej0l6mnjkunh3ym4/logo-_11_.svg',
      'premiumdom',
-     'Элитный жилой комплекс с дизайнерской архитектурой, закрытой территорией и круглосуточной охраной.',
+     'Элитный жилой комплекс с уникальной архитектурной концепцией, разработанной ведущими бюро, где каждая деталь продумана до мелочей. Проект сочетает современные технологии строительства, премиальные материалы и изысканный дизайн общественных пространств. Закрытая охраняемая территория обеспечивает высокий уровень безопасности и приватности для жителей, а система видеонаблюдения и контроль доступа работают круглосуточно. Внутренний двор благоустроен по принципу «двор без машин»: ландшафтный дизайн, зоны отдыха, детские и спортивные площадки создают комфортную среду для жизни. В шаговой доступности находятся рестораны, бутики, образовательные учреждения и культурные объекты центра Москвы. Подземный паркинг, консьерж-сервис и развитая инфраструктура делают комплекс идеальным выбором для тех, кто ценит статус, комфорт и высокий уровень сервиса.',
      (SELECT id FROM developers WHERE developer_name = 'ПремиумДом Девелопмент')),
 
     ('НордСтрой', '+7 812 111 22 33',
@@ -90,7 +92,7 @@ VALUES
      'г. Санкт-Петербург, Невский пр., д. 50',
      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRH_W7hzypC9OPgWn77SgqQ2OOZHYzGY1ZYXw&s',
      'nordstroy',
-     'ЖК в историческом центре Санкт-Петербурга с видом на Неву и удобной транспортной доступностью.',
+     'Современный жилой комплекс, расположенный в историческом центре Санкт-Петербурга, гармонично вписанный в архитектурный облик города. Из окон открываются живописные виды на набережные и акваторию Невы, создавая атмосферу уюта и вдохновения. Проект предусматривает удобные планировки квартир с высокими потолками и большими окнами, обеспечивающими максимальное естественное освещение. Внутренняя инфраструктура включает коммерческие помещения, зоны отдыха и благоустроенные дворы с озеленением. Отличная транспортная доступность позволяет быстро добраться до ключевых районов города, а близость к станциям метро делает передвижение особенно удобным. В пешей доступности находятся культурные достопримечательности, театры, музеи, а также лучшие рестораны и кафе города. Комплекс идеально подходит для тех, кто хочет жить в центре событий, не отказываясь от комфорта и современного уровня жизни.',
      (SELECT id FROM developers WHERE developer_name = 'НордСтрой Девелопмент')),
 
     ('КазаньИнвест', '+7 843 444 55 66',
@@ -98,7 +100,7 @@ VALUES
      'г. Казань, ул. Баумана, д. 15',
      'https://mir-s3-cdn-cf.behance.net/projects/404/171d7853318135.Y3JvcCwxMDIyLDgwMCwxODcsMA.jpg',
      'kazaninvest',
-     'Комфортный жилой комплекс в центре Казани с благоустроенными дворами и развитой инфраструктурой.',
+     'Жилой комплекс комфорт-класса в самом сердце Казани, сочетающий современную архитектуру и продуманную городскую среду. Проект ориентирован на удобство повседневной жизни: эргономичные планировки квартир, качественные строительные материалы и современные инженерные решения обеспечивают высокий уровень комфорта. Особое внимание уделено благоустройству территории — зеленые дворы, прогулочные зоны, детские и спортивные площадки формируют безопасное и уютное пространство для жителей всех возрастов. Комплекс расположен в районе с развитой инфраструктурой: рядом находятся торговые центры, школы, детские сады, медицинские учреждения и остановки общественного транспорта. Исторический центр города и основные достопримечательности находятся в шаговой доступности, что делает локацию особенно привлекательной. Это идеальный вариант для тех, кто ищет баланс между динамичной городской жизнью и комфортом.',
      (SELECT id FROM developers WHERE developer_name = 'КазаньИнвест Девелопмент')),
 
     ('УралСтройКом', '+7 343 777 88 99',
@@ -106,19 +108,28 @@ VALUES
      'г. Екатеринбург, ул. Ленина, д. 30',
      'https://sh.agency/upload/iblock/76b/76b329d4d06d8a87939c571a4601aa60.jpg',
      'uralstroy',
-     'Современный ЖК в Екатеринбурге с просторными квартирами и удобным доступом к деловому центру города.',
+     'Современный жилой комплекс в Екатеринбурге, созданный с учетом актуальных требований к качеству жизни в мегаполисе. Архитектурная концепция проекта сочетает лаконичный стиль и функциональность, а разнообразие планировок позволяет подобрать оптимальное решение для любого образа жизни. Просторные квартиры с панорамными окнами наполняются естественным светом, создавая ощущение открытого пространства. Комплекс располагает собственной инфраструктурой: подземный паркинг, коммерческие помещения, зоны отдыха и благоустроенные дворы с озеленением. Удобное расположение обеспечивает быстрый доступ к деловому центру города, а также к основным транспортным магистралям. В непосредственной близости находятся бизнес-центры, учебные заведения, магазины и рестораны. Проект ориентирован на активных городских жителей, ценящих комфорт, практичность и современную городскую среду.',
      (SELECT id FROM developers WHERE developer_name = 'УралСтройКом Девелопмент'));
 
 
 
 INSERT INTO utility_companies_photos (img_url, sequence_order, utility_company_id) VALUES
-    ('https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 1, (SELECT id FROM utility_companies WHERE alias = 'stroigroup')),
-    ('https://salon.ru/storage/thumbs/gallery/272/271492/835_3500_s927.jpg', 2, (SELECT id FROM utility_companies WHERE alias = 'stroigroup')),
-     ('https://n1s1.hsmedia.ru/0c/2e/40/0c2e4035e8da10aafba72e6f8b35b889/1000x750_0xac120003_8249795801571942265.jpg', 3, (SELECT id FROM utility_companies WHERE alias = 'stroigroup')),
-    ('https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 1, (SELECT id FROM utility_companies WHERE alias = 'premiumdom')),
-    ('https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 2, (SELECT id FROM utility_companies WHERE alias = 'premiumdom')),
-    ('https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 1, (SELECT id FROM utility_companies WHERE alias = 'nordstroy')),
-    ('https://dizayn-interera.moscow/images/blog/111/0_ta0g-5m.jpg', 2, (SELECT id FROM utility_companies WHERE alias = 'nordstroy'));
+    ('https://simvol-kvartal.ru/upload/dev2fun.imagecompress/webp/iblock/00c/y13z8xnvwh3kfx8uzjew62t43ux519b6.webp', 1, (SELECT id FROM utility_companies WHERE alias = 'stroigroup')),
+    ('https://simvol-kvartal.ru/upload/dev2fun.imagecompress/webp/iblock/465/ef7v1x7whetdlyx82k02i1k3jovx3zli.webp', 2, (SELECT id FROM utility_companies WHERE alias = 'stroigroup')),
+    ('https://simvol-kvartal.ru/upload/dev2fun.imagecompress/webp/iblock/235/ns84d8jqjfximts8vcupphhbbsglx1zs.webp', 3, (SELECT id FROM utility_companies WHERE alias = 'stroigroup')),
+    ('https://cdn.a101.ru/proxy/insecure/w:2560/q:80/plain/https://cdn.a101.ru/mmedia/p/pag/i/25cd7f9aff.jpg@webp', 1, (SELECT id FROM utility_companies WHERE alias = 'premiumdom')),
+    ('https://cdn.a101.ru/proxy/insecure/w:2560/q:80/plain/https://cdn.a101.ru/mmedia/p/pag/i/3d6f8f1613.jpg@webp', 2, (SELECT id FROM utility_companies WHERE alias = 'premiumdom')),
+    ('https://cdn.a101.ru/proxy/insecure/w:2560/q:80/plain/https://cdn.a101.ru/mmedia/p/pag/i/8f84c7b936.jpg@webp', 3, (SELECT id FROM utility_companies WHERE alias = 'premiumdom')),
+    ('https://cdn.a101.ru/proxy/insecure/w:2560/q:80/plain/https://cdn.a101.ru/mmedia/p/pag/i/584a3cf6d9.jpg@webp', 1, (SELECT id FROM utility_companies WHERE alias = 'nordstroy')),
+    ('https://ss.metronews.ru/userfiles/materials/181/1819761/858x540_d3c9c6c9.jpg', 2, (SELECT id FROM utility_companies WHERE alias = 'nordstroy')),
+    ('https://cdn.a101.ru/proxy/insecure/w:2560/q:80/plain/https://cdn.a101.ru/mmedia/p/pag/i/b3ae409b35.jpg@webp', 3, (SELECT id FROM utility_companies WHERE alias = 'nordstroy')),
+    ('https://donstroy.moscow/upload/iblock/958/iwi8wynvfpd9pfq48mcn9gma2bkfnlws.jpg', 1, (SELECT id FROM utility_companies WHERE alias = 'kazaninvest')),
+    ('https://donstroy.moscow/upload/iblock/5a5/a5edkxw0y093s6ulkr7ono86tei7m1da.jpg', 2, (SELECT id FROM utility_companies WHERE alias = 'kazaninvest')),
+    ('https://donstroy.moscow/upload/iblock/049/j9tydlo0tmyvfmj21jq573msglaqbvj8.jpg', 3, (SELECT id FROM utility_companies WHERE alias = 'kazaninvest')),
+    ('https://cdn.samolet.ru/imgproxy/insecure/q:90/rs:fill:1260:695/g:ce/bl:0/c:0/plain/https://media.samolet.ru/r/pp/pptgc/image/1_B4fcK8e.jpg@webp', 1, (SELECT id FROM utility_companies WHERE alias = 'uralstroy')),
+    ('https://cdn.samolet.ru/imgproxy/insecure/q:90/rs:fill:1260:695/g:ce/bl:0/c:0/plain/https://media.samolet.ru/r/pp/pptgc/image/3_UQDjomO.jpg@webp', 2, (SELECT id FROM utility_companies WHERE alias = 'uralstroy')),
+    ('https://cdn.samolet.ru/imgproxy/insecure/q:90/rs:fill:1260:695/g:ce/bl:0/c:0/plain/https://media.samolet.ru/r/pp/pptgc/image/%D0%9A%D0%B2%D0%B0%D1%80%D1%82%D0%B0%D0%BB_%D0%BD%D0%B0_%D0%92%D0%BE%D0%B4%D0%B5_5_%D0%BA%D0%BE%D1%80%D0%BF%D1%83%D1%81_%D0%B8%D0%BC%D0%B8%D0%B4%D0%B6_2_2025-03-06.jpg@webp', 3, (SELECT id FROM utility_companies WHERE alias = 'uralstroy'));
+
 
 -- ============================================================
 -- 7. Дома (buildings)
