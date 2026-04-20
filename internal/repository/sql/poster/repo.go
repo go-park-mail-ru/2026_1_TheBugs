@@ -3,6 +3,7 @@ package poster
 import (
 	"context"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
@@ -806,20 +807,7 @@ func (r *PosterRepo) GetPostersByMapBounds(ctx context.Context, coords dto.MapBo
 }
 
 func gridSizeByZoom(zoom int) float64 {
-	switch {
-	case zoom < 6:
-		return 0.9
-	case zoom < 7:
-		return 0.7
-	case zoom < 8:
-		return 0.5
-	case zoom < 10:
-		return 0.08
-	case zoom < 12:
-		return 0.03
-	default:
-		return 0.02
-	}
+	return math.Pow(2, float64(12-zoom))*0.01 + 0.01
 }
 
 func (r *PosterRepo) GetPostersByRadius(ctx context.Context, point dto.GeographyDTO, radius entity.Metre) ([]entity.Poster, error) {
