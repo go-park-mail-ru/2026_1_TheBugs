@@ -793,7 +793,7 @@ func (r *PosterRepo) GetPostersByMapBounds(ctx context.Context, coords dto.MapBo
 		cs.cell_count DESC NULLS LAST
 	LIMIT 50;
 			`
-	rows, err := r.pool.Query(ctx, sql, coords.BBox.SouthWest.Lon, coords.BBox.SouthWest.Lat, coords.BBox.NorthEast.Lon, coords.BBox.NorthEast.Lat, 0.01)
+	rows, err := r.pool.Query(ctx, sql, coords.BBox.SouthWest.Lon, coords.BBox.SouthWest.Lat, coords.BBox.NorthEast.Lon, coords.BBox.NorthEast.Lat, 0.001)
 	if err != nil {
 		return nil, repository.HandelPgErrors(err)
 	}
