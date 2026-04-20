@@ -2,6 +2,7 @@ package poster
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/response"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
@@ -377,4 +378,73 @@ func (h *PosterHandler) DeleteFlatPoster(w http.ResponseWriter, r *http.Request)
 	response.Poster = deletedPoster
 
 	utils.JSONResponse(w, http.StatusOK, response)
+}
+
+// @Summary Get list of posters JSONGeo
+// @Description Returns filtered list of apartment posters on in JSONGeo notation
+// @Tags posters
+// @Produce json
+// @Param sw_lat query float32 true "South West Lat"
+// @Param sw_lon query float32 true "South West Lon"
+// @Param ne_lat query float32 true "North East Lat"
+// @Param ne_lon query float32 true "North East Lon"
+// @Param zoom query int true "Map Zoom"
+// @Success 200 {object} dto.GeoJSONFeatureResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/geo [get]
+func (h *PosterHandler) GetFlatsMapAll(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GetFlatsMapAll"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	bbox, err := utils.ParseMapFilters(r)
+	if err != nil {
+		log.Errorf("utils.ParseMapFilters: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	posters, err := h.uc.GetPostersByCoords(r.Context(), bbox)
+	if err != nil {
+		log.Errorf("h.uc.GetPostersByCoord: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, posters)
+}
+
+// @Summary Get list of posters by point
+// @Description Returns posters by point
+// @Tags posters
+// @Produce json
+// @Param lat query float32 true "Lat"
+// @Param lon query float32 true "Lon"
+// @Success 200 {object} response.MyPostersResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/by-point [get]
+func (h *PosterHandler) GetPostersByPoint(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GetFlatsMapAll"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+	q := r.URL.Query()
+	lat, err := strconv.ParseFloat(q.Get("lat"), 32)
+	if err != nil {
+		log.Errorf("strconv.ParseFloat(q.Get(lat): %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+	}
+	lon, err := strconv.ParseFloat(q.Get("lon"), 32)
+	if err != nil {
+		log.Errorf("strconv.ParseFloat(q.Get(lon): %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+	}
+
+	posters, err := h.uc.GetPostersByRadius(r.Context(), dto.GeographyDTO{Lat: lat, Lon: lon})
+	if err != nil {
+		log.Errorf("h.uc.GetPostersByRadius: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, response.MyPostersResponse{Posters: posters, Len: len(posters)})
 }

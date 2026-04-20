@@ -216,3 +216,42 @@ func ParseFileInput(fileHeader *multipart.FileHeader) (*dto.FileInput, error) {
 		File:        file,
 	}, nil
 }
+
+func ParseMapFilters(r *http.Request) (dto.MapBounds, error) {
+	q := r.URL.Query()
+
+	swLat, err := strconv.ParseFloat(q.Get("sw_lat"), 32)
+	if err != nil {
+		return dto.MapBounds{}, err
+	}
+	swLng, err := strconv.ParseFloat(q.Get("sw_lon"), 32)
+	if err != nil {
+		return dto.MapBounds{}, err
+	}
+	neLat, err := strconv.ParseFloat(q.Get("ne_lat"), 32)
+	if err != nil {
+		return dto.MapBounds{}, err
+	}
+	neLng, err := strconv.ParseFloat(q.Get("ne_lon"), 32)
+	if err != nil {
+		return dto.MapBounds{}, err
+	}
+
+	zoom, err := strconv.Atoi(q.Get("zoom"))
+	if err != nil {
+		return dto.MapBounds{}, err
+	}
+	return dto.MapBounds{
+		BBox: dto.BBox{
+			SouthWest: dto.SouthWest{
+				Lat: swLat,
+				Lon: swLng,
+			},
+			NorthEast: dto.NorthEast{
+				Lat: neLat,
+				Lon: neLng,
+			},
+		},
+		Zoom: zoom,
+	}, nil
+}
