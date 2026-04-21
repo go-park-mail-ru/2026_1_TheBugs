@@ -1,6 +1,7 @@
 package elasticsearch
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -52,44 +53,27 @@ func ParseInSliceStruct[T any](body io.Reader) ([]T, int, error) {
 	return res, resp.Res.Total.Value, nil
 }
 
-func NewESRepo(client *es.Client) *ESRepo {
-	return &ESRepo{client: client}
-}
-
-func (r *ESRepo) SearchPosters(ctx context.Context, filters dto.PostersFiltersDTO) (*dto.PostersResponse, error) {
+func ApplyPostersFilters(filters dto.PostersFiltersDTO) SearchQuery {
 	var should []any
 	var notMust []any
 
 	if filters.SearchQuery != nil {
 		matchQuery := MultiMatchQuery{
-			Query:     *filters.SearchQuery,
-			Type:      "best_fields",
-			Fuzziness: "AUTO",
+			Query: *filters.SearchQuery,
+			Type:  "best_fields",
+			//Fuzziness: "AUTO",
 			Fields: []string{
 				"city^100",
-				"description^5",
+				// "description^5",
 				"address^20",
-				"flat_category^10",
+				// "flat_category^10",
 				"station_name^10",
 				"district^10",
 				"company_name^15",
-				"facilities.name^10",
+				//"facilities.name^10",
 			},
 		}
 		should = append(should, map[string]any{"multi_match": matchQuery})
-		// should = append(should, map[string]interface{}{
-		// 	"nested": map[string]interface{}{
-		// 		"path": "facilities",
-		// 		"query": map[string]interface{}{
-		// 			"match": map[string]interface{}{
-		// 				"facilities.name": map[string]interface{}{
-		// 					"query": *filters.SearchQuery,
-		// 					"boost": float64(10),
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// })
 	} else {
 		should = append(should, map[string]any{"match_all": map[string]any{}})
 	}
@@ -148,7 +132,7 @@ func (r *ESRepo) SearchPosters(ctx context.Context, filters dto.PostersFiltersDT
 	filter = ApplyRangeFilter(filter, "floor", filters.MaxFlatFloor, filters.MinFlatFloor)
 	filter = ApplyRangeFilter(filter, "building_floor", filters.MaxBuildingFloor, filters.MinBuildingFloor)
 
-	searchQuery := SearchQuery{
+	return SearchQuery{
 		Size:           filters.Limit,
 		From:           filters.Offset,
 		TrackTotalHits: true,
@@ -158,6 +142,14 @@ func (r *ESRepo) SearchPosters(ctx context.Context, filters dto.PostersFiltersDT
 			MustNot: notMust,
 		}},
 	}
+}
+
+func NewESRepo(client *es.Client) *ESRepo {
+	return &ESRepo{client: client}
+}
+
+func (r *ESRepo) SearchPosters(ctx context.Context, filters dto.PostersFiltersDTO) (*dto.PostersResponse, error) {
+	searchQuery := ApplyPostersFilters(filters)
 
 	queryBody, err := json.Marshal(searchQuery)
 	if err != nil {
@@ -184,4 +176,256 @@ func (r *ESRepo) SearchPosters(ctx context.Context, filters dto.PostersFiltersDT
 		Posters: dto.PostersToPostersDTO(posters),
 		Len:     total,
 	}, nil
+}
+
+func (r *ESRepo) GetClustersByMapBounds(ctx context.Context, coords dto.MapBounds, filters dto.PostersFiltersDTO) ([]entity.ClusterPoint, error) {
+	precision := (float64(coords.Zoom) * 0.6)
+
+	// query := map[string]interface{}{
+	// 	"size": 0,
+	// 	"query": map[string]interface{}{
+	// 		"bool": map[string]interface{}{
+	// 			"filter": []interface{}{
+	// 				map[string]interface{}{
+	// 					"geo_bounding_box": map[string]interface{}{
+	// 						"geo": map[string]interface{}{
+	// 							"top_left": map[string]interface{}{
+	// 								"lat": coords.BBox.NorthEast.Lat,
+	// 								"lon": coords.BBox.SouthWest.Lon,
+	// 							},
+	// 							"bottom_right": map[string]interface{}{
+	// 								"lat": coords.BBox.SouthWest.Lat,
+	// 								"lon": coords.BBox.NorthEast.Lon,
+	// 							},
+	// 						},
+	// 					},
+	// 				},
+	// 			},
+	// 		},
+	// 	},
+	// 	"aggs": map[string]interface{}{
+	// 		"by_grid": map[string]interface{}{
+	// 			"geohash_grid": map[string]interface{}{
+	// 				"field":     "geo",
+	// 				"size":      50,
+	// 				"precision": precision,
+	// 			},
+	// 			"aggs": map[string]interface{}{
+	// 				"centroid": map[string]interface{}{"geo_centroid": map[string]string{"field": "geo"}},
+	// 			},
+	// 		},
+	// 	},
+	// }
+
+	searchQuery := ApplyPostersFilters(filters)
+	searchQuery.TrackTotalHits = false
+
+	searchQuery.Sourse = map[string]any{
+		"includes": []string{"buckets"},
+	}
+
+	searchQuery.Query.Bool.Filter = append(searchQuery.Query.Bool.Filter, map[string]any{
+		"geo_bounding_box": map[string]any{
+			"geo": map[string]any{
+				"top_left": map[string]any{
+					"lat": coords.BBox.NorthEast.Lat,
+					"lon": coords.BBox.SouthWest.Lon,
+				},
+				"bottom_right": map[string]any{
+					"lat": coords.BBox.SouthWest.Lat,
+					"lon": coords.BBox.NorthEast.Lon,
+				},
+			},
+		},
+	})
+
+	searchQuery.Aggs = map[string]any{
+		"by_grid": map[string]any{
+			"geohash_grid": map[string]any{
+				"field":     "geo",
+				"size":      50,
+				"precision": precision,
+			},
+			"aggs": map[string]any{
+				"centroid": map[string]any{"geo_centroid": map[string]string{"field": "geo"}},
+			},
+		},
+	}
+
+	queryBody, err := json.Marshal(searchQuery)
+	if err != nil {
+		return nil, fmt.Errorf("marshal query: %w", err)
+	}
+	fmt.Println(string(queryBody))
+
+	res, err := r.client.Search(
+		r.client.Search.WithIndex("posters"),
+		r.client.Search.WithContext(ctx),
+		r.client.Search.WithBody(strings.NewReader(string(queryBody))),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("search: %w", err)
+	}
+	defer res.Body.Close()
+
+	var esResp struct {
+		Aggregations json.RawMessage `json:"aggregations"`
+	}
+	if err := json.NewDecoder(res.Body).Decode(&esResp); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+
+	return parseSimpleClusters(esResp.Aggregations)
+}
+
+func parseSimpleClusters(aggs json.RawMessage) ([]entity.ClusterPoint, error) {
+	var aggsResp struct {
+		ByGrid struct {
+			Buckets []struct {
+				Key      string `json:"key"`
+				DocCount int64  `json:"doc_count"`
+				Centroid struct {
+					Location struct {
+						Lat float64 `json:"lat"`
+						Lon float64 `json:"lon"`
+					} `json:"location"`
+				} `json:"centroid"`
+			} `json:"buckets"`
+		} `json:"by_grid"`
+	}
+
+	if err := json.Unmarshal(aggs, &aggsResp); err != nil {
+		return nil, fmt.Errorf("unmarshal aggs: %w", err)
+	}
+
+	clusters := make([]entity.ClusterPoint, 0, len(aggsResp.ByGrid.Buckets))
+
+	for i, bucket := range aggsResp.ByGrid.Buckets {
+		clusters = append(clusters, entity.ClusterPoint{
+			ID:    int64(i + 1),
+			Lat:   bucket.Centroid.Location.Lat,
+			Lon:   bucket.Centroid.Location.Lon,
+			Count: int64(bucket.DocCount),
+		})
+	}
+
+	return clusters, nil
+}
+
+func (r *ESRepo) GetPostersByMapBounds(ctx context.Context, coords dto.MapBounds, filters dto.PostersFiltersDTO) ([]entity.AnyPoint, error) {
+
+	searchQuery := ApplyPostersFilters(filters)
+	searchQuery.TrackTotalHits = false
+
+	searchQuery.Query.Bool.Filter = append(searchQuery.Query.Bool.Filter, map[string]any{
+		"geo_bounding_box": map[string]any{
+			"geo": map[string]any{
+				"top_left": map[string]any{
+					"lat": coords.BBox.NorthEast.Lat,
+					"lon": coords.BBox.SouthWest.Lon,
+				},
+				"bottom_right": map[string]any{
+					"lat": coords.BBox.SouthWest.Lat,
+					"lon": coords.BBox.NorthEast.Lon,
+				},
+			},
+		},
+	})
+	searchQuery.Aggs = map[string]any{
+		"clusters": map[string]any{
+			"geohash_grid": map[string]any{
+				"field":     "geo",
+				"size":      50,
+				"precision": 9,
+			},
+			"aggs": map[string]any{
+				"centroid": map[string]any{
+					"geo_centroid": map[string]any{
+						"field": "geo",
+					},
+				},
+				"price_min": map[string]any{
+					"min": map[string]any{"field": "price"},
+				},
+				"price_max": map[string]any{
+					"max": map[string]any{"field": "price"},
+				},
+				"top_1": map[string]any{
+					"top_hits": map[string]any{
+						"_source": map[string]any{
+							"includes": []string{"id", "price", "alias"},
+						},
+						"size": 1,
+					},
+				},
+			},
+		},
+	}
+	queryBody, err := json.Marshal(searchQuery)
+	if err != nil {
+		return nil, fmt.Errorf("marshal query: %w", err)
+	}
+	fmt.Println(queryBody)
+
+	var resp struct {
+		Aggregations struct {
+			Clusters struct {
+				Buckets []struct {
+					DocCount int64 `json:"doc_count"`
+					Centroid struct {
+						Location struct{ Lat, Lon float64 } `json:"location"`
+					} `json:"centroid"`
+					PriceMin struct {
+						Value float64 `json:"value"`
+					} `json:"price_min"`
+					PriceMax struct {
+						Value float64 `json:"value"`
+					} `json:"price_max"`
+					TopHit struct {
+						Hits struct {
+							Hits []struct {
+								Source struct {
+									ID    int64   `json:"id"`
+									Price float64 `json:"price"`
+									Alias string  `json:"alias"`
+								} `json:"_source"`
+							} `json:"hits"`
+						} `json:"hits"`
+					} `json:"top_1"`
+				} `json:"buckets"`
+			} `json:"clusters"`
+		} `json:"aggregations"`
+	}
+
+	res, err := r.client.Search(
+		r.client.Search.WithIndex("posters"),
+		r.client.Search.WithContext(ctx),
+		r.client.Search.WithBody(bytes.NewReader(queryBody)),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
+		return nil, fmt.Errorf("decode response: %w", err)
+	}
+
+	result := make([]entity.AnyPoint, 0, len(resp.Aggregations.Clusters.Buckets))
+	for i, b := range resp.Aggregations.Clusters.Buckets {
+		p := entity.AnyPoint{
+			ID:       int64(i + 1),
+			Lat:      b.Centroid.Location.Lat,
+			Lon:      b.Centroid.Location.Lon,
+			Count:    &b.DocCount,
+			PriceMin: &b.PriceMin.Value,
+			PriceMax: &b.PriceMax.Value,
+			Cluster:  b.DocCount > 1,
+		}
+		if b.DocCount == 1 && len(b.TopHit.Hits.Hits) > 0 {
+			p.Price = &b.TopHit.Hits.Hits[0].Source.Price
+			p.Alias = &b.TopHit.Hits.Hits[0].Source.Alias
+		}
+		result = append(result, p)
+	}
+
+	return result, nil
 }

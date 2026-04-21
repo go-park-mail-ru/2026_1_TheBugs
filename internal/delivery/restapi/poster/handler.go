@@ -389,6 +389,21 @@ func (h *PosterHandler) DeleteFlatPoster(w http.ResponseWriter, r *http.Request)
 // @Param ne_lat query float32 true "North East Lat"
 // @Param ne_lon query float32 true "North East Lon"
 // @Param zoom query int true "Map Zoom"
+// @Param search_query query string false "Full-text search"
+// @Param utility_company query string false "Utility company alias"
+// @Param category query string false "Category alias"
+// @Param room_count query int false "Exact room count"
+// @Param min_price query int false "Min price"
+// @Param max_price query int false "Max price"
+// @Param facilities query []string false "Facilities aliases"
+// @Param min_square query int false "Min area, sq.m"
+// @Param max_square query int false "Max area, sq.m"
+// @Param min_flat_floor query int false "Min floor"
+// @Param max_flat_floor query int false "Max floor"
+// @Param min_building_floor query int false "Min building floors"
+// @Param max_building_floor query int false "Max building floors"
+// @Param not_first_floor query boolean false "Exclude 1st floor" default(false)
+// @Param not_last_floor query boolean false "Exclude last floor" default(false)
 // @Success 200 {object} dto.GeoJSONFeatureResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
@@ -403,8 +418,14 @@ func (h *PosterHandler) GetFlatsMapAll(w http.ResponseWriter, r *http.Request) {
 		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
+	params, err := utils.ParsePostersFilters(r)
+	if err != nil {
+		log.Errorf("utils.ParsePostersFilters: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
 
-	posters, err := h.uc.GetPostersByCoords(r.Context(), bbox)
+	posters, err := h.uc.GetPostersByCoords(r.Context(), bbox, params)
 	if err != nil {
 		log.Errorf("h.uc.GetPostersByCoord: %s", err)
 		utils.HandelError(w, err)

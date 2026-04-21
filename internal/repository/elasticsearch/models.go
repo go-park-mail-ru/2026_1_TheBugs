@@ -16,14 +16,16 @@ type Query struct {
 	Bool BoolQuery `json:"bool"`
 }
 type SearchQuery struct {
-	Size           int   `json:"size"`
-	From           int   `json:"from"`
-	TrackTotalHits any   `json:"track_total_hits"`
-	Query          Query `json:"query"`
+	Size           int            `json:"size"`
+	From           int            `json:"from"`
+	TrackTotalHits any            `json:"track_total_hits"`
+	Query          Query          `json:"query"`
+	Sourse         map[string]any `json:"_source,omitempty"`
+	Aggs           map[string]any `json:"aggs,omitempty"`
 }
 
 type BoolQuery struct {
-	Must    []any `json:"must"`
+	Must    []any `json:"must,omitempty"`
 	Should  []any `json:"should,omitempty"`
 	Filter  []any `json:"filter,omitempty"`
 	MustNot []any `json:"must_not,omitempty"`
@@ -32,7 +34,7 @@ type BoolQuery struct {
 type MultiMatchQuery struct {
 	Query     string   `json:"query"`
 	Type      string   `json:"type"`
-	Fuzziness string   `json:"fuzziness"`
+	Fuzziness string   `json:"fuzziness,omitempty"`
 	Fields    []string `json:"fields"`
 }
 

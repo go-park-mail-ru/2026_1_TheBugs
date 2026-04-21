@@ -28,15 +28,15 @@ type Poster struct {
 }
 
 type AnyPoint struct {
-	ID       int64   `db:"id" json:"id"`
-	Lat      float64 `db:"lat" json:"lat"`
-	Lon      float64 `db:"lon" json:"lon"`
-	Count    *int64  `db:"count" json:"count,omitempty"`
-	PriceMin *int64  `db:"price_min" json:"priceMin,omitempty"`
-	PriceMax *int64  `db:"price_max" json:"priceMax,omitempty"`
-	Price    *int64  `db:"price" json:"price,omitempty"`
-	Alias    *string `db:"alias" json:"alias,omitempty"`
-	Cluster  bool    `db:"cluster" json:"cluster"`
+	ID       int64    `db:"id" json:"id"`
+	Lat      float64  `db:"lat" json:"lat"`
+	Lon      float64  `db:"lon" json:"lon"`
+	Count    *int64   `db:"count" json:"count,omitempty"`
+	PriceMin *float64 `db:"price_min" json:"priceMin,omitempty"`
+	PriceMax *float64 `db:"price_max" json:"priceMax,omitempty"`
+	Price    *float64 `db:"price" json:"price,omitempty"`
+	Alias    *string  `db:"alias" json:"alias,omitempty"`
+	Cluster  bool     `db:"cluster" json:"cluster"`
 }
 
 type PosterPoint struct {
@@ -49,12 +49,12 @@ type PosterPoint struct {
 }
 
 type ClusterPoint struct {
-	ID       int64   `db:"id" json:"id"`
-	Lat      float64 `db:"lat" json:"lat"`
-	Lon      float64 `db:"lon" json:"lon"`
-	Count    int64   `db:"count" json:"count"`
-	PriceMin int64   `db:"price_min" json:"priceMin"`
-	PriceMax int64   `db:"price_max" json:"priceMax"`
+	ID    int64   `db:"id" json:"id"`
+	Lat   float64 `db:"lat" json:"lat"`
+	Lon   float64 `db:"lon" json:"lon"`
+	Count int64   `db:"count" json:"count"`
+	// PriceMin int64   `db:"price_min" json:"priceMin,omitempty"`
+	// PriceMax int64   `db:"price_max" json:"priceMax,omitempty"`
 }
 
 type PosterImage struct {

@@ -308,11 +308,9 @@ func ClustersToGEOJsons(clusters []entity.ClusterPoint) []GeoJSONFeature {
 				Coordinates: []float64{c.Lon, c.Lat},
 			},
 			Properties: map[string]any{
-				"id":       c.ID,
-				"count":    c.Count,
-				"priceMin": c.PriceMin,
-				"priceMax": c.PriceMax,
-				"cluster":  true,
+				"id":      c.ID,
+				"count":   c.Count,
+				"cluster": true,
 			},
 		})
 	}
