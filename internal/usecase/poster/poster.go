@@ -540,3 +540,17 @@ func (uc *PosterUseCase) AddViewPoster(ctx context.Context, alias string, userID
 
 	return nil
 }
+
+func (uc *PosterUseCase) GetViewsPoster(ctx context.Context, alias string) (int, error) {
+	poster, err := uc.uow.Posters().GetByAlias(ctx, alias, nil)
+	if err != nil {
+		return 0, fmt.Errorf("uc.PosterRepo.GetByAlias: %w", err)
+	}
+
+	views, err := uc.uow.Posters().GetViewsCount(ctx, poster.ID)
+	if err != nil {
+		return 0, fmt.Errorf("uc.PosterRepo.GetViewsCount: %w", err)
+	}
+
+	return views, nil
+}

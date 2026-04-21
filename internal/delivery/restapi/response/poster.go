@@ -19,3 +19,7 @@ type MyPostersResponse struct {
 type CreatedPosterResponse struct {
 	Poster *dto.CreatedPoster `json:"poster"`
 }
+
+type PosterViewsResponse struct {
+	Views int `json:"views"`
+}

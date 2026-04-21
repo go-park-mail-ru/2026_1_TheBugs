@@ -1257,6 +1257,51 @@ const docTemplate = `{
             }
         },
         "/posters/{alias}/views": {
+            "get": {
+                "description": "Returns poster views count",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posters"
+                ],
+                "summary": "Get poster views",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Poster alias",
+                        "name": "alias",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.PosterViewsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -1989,6 +2034,14 @@ const docTemplate = `{
             "properties": {
                 "poster": {
                     "$ref": "#/definitions/dto.PosterDTO"
+                }
+            }
+        },
+        "response.PosterViewsResponse": {
+            "type": "object",
+            "properties": {
+                "views": {
+                    "type": "integer"
                 }
             }
         },

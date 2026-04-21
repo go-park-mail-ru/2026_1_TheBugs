@@ -758,3 +758,22 @@ func (r *PosterRepo) AddView(ctx context.Context, userID int, posterID int) {
 		}
 	}(userID, posterID)
 }
+
+func (r *PosterRepo) GetViewsCount(ctx context.Context, posterID int) (int, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetViewsCount")
+	log.Info("start db get views")
+
+	query := `
+		SELECT COUNT(*)
+		FROM views
+		WHERE poster_id = $1
+	`
+
+	var count int
+	err := r.pool.QueryRow(ctx, query, posterID).Scan(&count)
+	if err != nil {
+		return 0, repository.HandelPgErrors(err)
+	}
+
+	return count, nil
+}
