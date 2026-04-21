@@ -261,6 +261,7 @@ CREATE TABLE IF NOT EXISTS views (
 
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id),
     CONSTRAINT fk_poster FOREIGN KEY (poster_id) REFERENCES posters(id)
+    CONSTRAINT unique_user_poster_view UNIQUE (user_id, poster_id)
 );
 
 COMMENT ON TABLE views IS 'Просмотры';

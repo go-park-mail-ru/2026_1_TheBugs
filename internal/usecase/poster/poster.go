@@ -529,3 +529,14 @@ func (uc *PosterUseCase) DeleteFlatPoster(ctx context.Context, alias string, use
 
 	return deletedPoster, nil
 }
+
+func (uc *PosterUseCase) AddViewPoster(ctx context.Context, alias string, userID int) error {
+	poster, err := uc.uow.Posters().GetByAlias(ctx, alias, nil)
+	if err != nil {
+		return fmt.Errorf("uc.PosterRepo.GetByAlias: %w", err)
+	}
+
+	uc.uow.Posters().AddView(ctx, userID, poster.ID)
+
+	return nil
+}

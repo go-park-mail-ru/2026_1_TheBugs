@@ -2,6 +2,7 @@ package poster
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -733,4 +734,27 @@ func (r *PosterRepo) DeleteBuilding(ctx context.Context, buildingID int) error {
 		return repository.HandelPgErrors(err)
 	}
 	return nil
+}
+
+func (r *PosterRepo) AddView(ctx context.Context, userID int, posterID int) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.AddView")
+	log.Info("start db add view")
+
+	go func(userID, posterID int) {
+		query := `
+			INSERT INTO views (user_id, poster_id)
+			VALUES ($1, $2)
+		`
+
+		_, err := r.pool.Exec(context.Background(), query, userID, posterID)
+		if err != nil {
+			pgErr := repository.HandelPgErrors(err)
+
+			if errors.Is(pgErr, entity.AlredyExitError) {
+				return
+			}
+
+			log.Errorf("r.pool.Exec: %s", pgErr)
+		}
+	}(userID, posterID)
 }
