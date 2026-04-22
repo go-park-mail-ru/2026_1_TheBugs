@@ -2,6 +2,7 @@ package poster
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -721,4 +722,46 @@ func (r *PosterRepo) DeleteBuilding(ctx context.Context, buildingID int) error {
 		return repository.HandelPgErrors(err)
 	}
 	return nil
+}
+
+func (r *PosterRepo) AddView(ctx context.Context, userID int, posterID int) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.AddView")
+	log.Info("start db add view")
+
+	go func(userID, posterID int) {
+		query := `
+			INSERT INTO views (user_id, poster_id)
+			VALUES ($1, $2)
+		`
+
+		_, err := r.pool.Exec(context.Background(), query, userID, posterID)
+		if err != nil {
+			pgErr := repository.HandelPgErrors(err)
+
+			if errors.Is(pgErr, entity.AlredyExitError) {
+				return
+			}
+
+			log.Errorf("r.pool.Exec: %s", pgErr)
+		}
+	}(userID, posterID)
+}
+
+func (r *PosterRepo) GetViewsCount(ctx context.Context, posterID int) (int, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetViewsCount")
+	log.Info("start db get views")
+
+	query := `
+		SELECT COUNT(*)
+		FROM views
+		WHERE poster_id = $1
+	`
+
+	var count int
+	err := r.pool.QueryRow(ctx, query, posterID).Scan(&count)
+	if err != nil {
+		return 0, repository.HandelPgErrors(err)
+	}
+
+	return count, nil
 }

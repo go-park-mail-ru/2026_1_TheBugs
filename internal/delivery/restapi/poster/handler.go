@@ -378,3 +378,73 @@ func (h *PosterHandler) DeleteFlatPoster(w http.ResponseWriter, r *http.Request)
 
 	utils.JSONResponse(w, http.StatusOK, response)
 }
+
+// @Summary Add poster view
+// @Description Adds a view for a poster
+// @Tags posters
+// @Produce json
+// @Security     BearerAuth
+// @Security     CSRFToken
+// @Param alias path string true "Poster alias"
+// @Success 200
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/{alias}/views [post]
+func (h *PosterHandler) AddViewPoster(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.AddViewPoster"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	userID, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.Errorf("utils.GetUserID: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	alias, err := utils.ParseAliasFromRequest(r)
+	if err != nil {
+		log.Errorf("utils.ParseAliasFromRequest: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	err = h.uc.AddViewPoster(r.Context(), alias, userID)
+	if err != nil {
+		log.Errorf("h.uc.AddViewPoster: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+}
+
+// @Summary Get poster views
+// @Description Returns poster views count
+// @Tags posters
+// @Produce json
+// @Param alias path string true "Poster alias"
+// @Success 200 {object} response.PosterViewsResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/{alias}/views [get]
+func (h *PosterHandler) GetViewsPoster(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GetViewsPoster"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	alias, err := utils.ParseAliasFromRequest(r)
+	if err != nil {
+		log.Errorf("utils.ParseAliasFromRequest: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	views, err := h.uc.GetViewsPoster(r.Context(), alias)
+	if err != nil {
+		log.Errorf("h.uc.GetViewsPoster: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, views)
+}
