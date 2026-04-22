@@ -57,6 +57,11 @@ type PosterRepo interface {
 	DeleteFlat(ctx context.Context, propertyID int) error
 	DeleteProperty(ctx context.Context, propertyID int) error
 	DeleteBuilding(ctx context.Context, buildingID int) error
+
+	AddFavorite(ctx context.Context, userID int, posterID int) error
+	GetFavoritesFlatsByUserID(ctx context.Context, userID int) ([]entity.PosterFlat, error)
+	CountFavoritesByUserID(ctx context.Context, userID int) (int, error)
+	DeleteFavorite(ctx context.Context, userID int, posterID int) error
 }
 
 type AuthRepo interface {
