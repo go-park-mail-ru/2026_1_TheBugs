@@ -329,36 +329,24 @@ func (r *PosterRepo) CreateProperty(ctx context.Context, poster *dto.PosterInput
 }
 
 func (r *PosterRepo) InsertFacilities(ctx context.Context, propertyID int, aliases []string) error {
+	if len(aliases) == 0 {
+		return nil
+	}
+
 	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.InsertFacilities")
-	log.Info("start db query")
 
-	selectQuery := `
-		SELECT id
-		FROM facilities
-		WHERE alias = ANY($1::text[])
+	query := `
+	INSERT INTO facility_property (property_id, facility_id)
+	SELECT $1, id 
+	FROM facilities 
+	WHERE alias = ANY($2::text[])
+	ON CONFLICT DO NOTHING;
 	`
 
-	rows, err := r.pool.Query(ctx, selectQuery, aliases)
+	_, err := r.pool.Exec(ctx, query, propertyID, aliases)
 	if err != nil {
+		log.WithError(err).Error("failed to insert facilities")
 		return repository.HandelPgErrors(err)
-	}
-	defer rows.Close()
-
-	facilityIDs, err := pgx.CollectRows(rows, pgx.RowTo[int])
-	if err != nil {
-		return repository.HandelPgErrors(err)
-	}
-
-	insertQuery := `
-		INSERT INTO facility_property (property_id, facility_id)
-		VALUES ($1, $2)
-	`
-
-	for _, facilityID := range facilityIDs {
-		_, err = r.pool.Exec(ctx, insertQuery, propertyID, facilityID)
-		if err != nil {
-			return repository.HandelPgErrors(err)
-		}
 	}
 
 	return nil
