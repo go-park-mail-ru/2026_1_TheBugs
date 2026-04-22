@@ -1094,6 +1094,20 @@ func (m *MockSearchRepo) EXPECT() *MockSearchRepoMockRecorder {
 	return m.recorder
 }
 
+// DeletePoster mocks base method.
+func (m *MockSearchRepo) DeletePoster(ctx context.Context, posterID int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeletePoster", ctx, posterID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeletePoster indicates an expected call of DeletePoster.
+func (mr *MockSearchRepoMockRecorder) DeletePoster(ctx, posterID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePoster", reflect.TypeOf((*MockSearchRepo)(nil).DeletePoster), ctx, posterID)
+}
+
 // GetClustersByMapBounds mocks base method.
 func (m *MockSearchRepo) GetClustersByMapBounds(ctx context.Context, coords dto.MapBounds, filters dto.PostersFiltersDTO) ([]entity.ClusterPoint, error) {
 	m.ctrl.T.Helper()

@@ -429,3 +429,43 @@ func (r *ESRepo) GetPostersByMapBounds(ctx context.Context, coords dto.MapBounds
 
 	return result, nil
 }
+
+func (r *ESRepo) DeletePoster(ctx context.Context, posterID int) error {
+	var filter []any
+	termQuery := TermQuery{
+		Term: map[string]any{
+			"id": posterID,
+		},
+	}
+	filter = append(filter, termQuery)
+	searchQuery := SearchQuery{
+		Size:           1,
+		TrackTotalHits: true,
+		Query: Query{Bool: BoolQuery{
+			Filter: filter,
+		}},
+	}
+	queryBody, err := json.Marshal(searchQuery)
+	if err != nil {
+		return fmt.Errorf("marshal query: %w", err)
+	}
+	fmt.Println(queryBody)
+
+	res, err := r.client.DeleteByQuery(
+		[]string{"posters"},
+		bytes.NewReader(queryBody),
+		r.client.DeleteByQuery.WithContext(ctx),
+	)
+	if err != nil {
+		return fmt.Errorf("delete by query request failed: %w", err)
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		b, _ := io.ReadAll(res.Body)
+		return fmt.Errorf("delete by query returned %s: %s", res.Status(), string(b))
+	}
+
+	return nil
+
+}

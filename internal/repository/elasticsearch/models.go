@@ -16,8 +16,8 @@ type Query struct {
 	Bool BoolQuery `json:"bool"`
 }
 type SearchQuery struct {
-	Size           int            `json:"size"`
-	From           int            `json:"from"`
+	Size           int            `json:"size,omitempty"`
+	From           int            `json:"from,omitempty"`
 	TrackTotalHits any            `json:"track_total_hits"`
 	Query          Query          `json:"query"`
 	Sourse         map[string]any `json:"_source,omitempty"`

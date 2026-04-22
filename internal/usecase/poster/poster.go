@@ -79,16 +79,16 @@ func (uc *PosterUseCase) SearchPostersUseCase(ctx context.Context, filters dto.P
 		log.Printf("uc.search.SearchPosters: %s", err)
 		return nil, err
 	}
-	ids := make([]int, 0, response.Len)
-	for _, p := range response.Posters {
-		ids = append(ids, p.ID)
-	}
-	posters, err := uc.uow.Posters().GetFlatsByIDs(ctx, ids)
-	if err != nil {
-		log.Printf("uc.uow.Posters().GetFlatsByIDs: %s", err)
-		return nil, err
-	}
-	response.Posters = dto.PostersToPostersDTO(posters)
+	// ids := make([]int, 0, response.Len)
+	// for _, p := range response.Posters {
+	// 	ids = append(ids, p.ID)
+	// }
+	// posters, err := uc.uow.Posters().GetFlatsByIDs(ctx, ids)
+	// if err != nil {
+	// 	log.Printf("uc.uow.Posters().GetFlatsByIDs: %s", err)
+	// 	return nil, err
+	// }
+	// response.Posters = dto.PostersToPostersDTO(posters)
 	return response, nil
 }
 
@@ -511,6 +511,10 @@ func (uc *PosterUseCase) DeleteFlatPoster(ctx context.Context, alias string, use
 		err = r.Posters().DeleteBuilding(ctx, ids.BuildingID)
 		if err != nil {
 			return fmt.Errorf("delete building: %w", err)
+		}
+		err = uc.search.DeletePoster(ctx, ids.PosterID)
+		if err != nil {
+			return fmt.Errorf("uc.search.DeletePoster: %w", err)
 		}
 
 		deletedPoster = &dto.CreatedPoster{
