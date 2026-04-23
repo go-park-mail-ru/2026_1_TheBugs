@@ -1735,3 +1735,298 @@ func TestDeleteFlatPoster(t *testing.T) {
 		})
 	}
 }
+
+func TestAddFavoritePoster(t *testing.T) {
+	ctx := context.Background()
+	alias := "kvartira-na-arbate"
+	userID := 1
+
+	existingPoster := &entity.PosterById{
+		ID:    4,
+		Alias: alias,
+	}
+
+	tests := []struct {
+		name      string
+		param     string
+		setupMock func(m *mocks.MockPosterRepo)
+		wantErr   error
+	}{
+		{
+			name:  "ok",
+			param: alias,
+			setupMock: func(m *mocks.MockPosterRepo) {
+				m.EXPECT().
+					GetByAlias(ctx, alias, nil).
+					Return(existingPoster, nil).
+					Times(1)
+
+				m.EXPECT().
+					AddFavorite(ctx, userID, existingPoster.ID).
+					Return(nil).
+					Times(1)
+			},
+			wantErr: nil,
+		},
+		{
+			name:  "repo_error",
+			param: alias,
+			setupMock: func(m *mocks.MockPosterRepo) {
+				m.EXPECT().
+					GetByAlias(ctx, alias, nil).
+					Return(&entity.PosterById{}, entity.NotFoundError).
+					Times(1)
+			},
+			wantErr: entity.NotFoundError,
+		},
+		{
+			name:  "add_favorite_error",
+			param: alias,
+			setupMock: func(m *mocks.MockPosterRepo) {
+				m.EXPECT().
+					GetByAlias(ctx, alias, nil).
+					Return(existingPoster, nil).
+					Times(1)
+
+				m.EXPECT().
+					AddFavorite(ctx, userID, existingPoster.ID).
+					Return(entity.ServiceError).
+					Times(1)
+			},
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepo := mocks.NewMockPosterRepo(ctrl)
+			mockUOW := mocks.NewMockUnitOfWork(ctrl)
+			mockFile := mocks.NewMockFileRepo(ctrl)
+
+			mockUOW.EXPECT().
+				Posters().
+				Return(mockRepo).
+				AnyTimes()
+
+			if test.setupMock != nil {
+				test.setupMock(mockRepo)
+			}
+
+			uc := NewPosterUseCase(mockUOW, mockFile, nil)
+
+			err := uc.AddFavoritePoster(ctx, alias, userID)
+
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestGetFavoritesPoster(t *testing.T) {
+	ctx := context.Background()
+	userID := 1
+
+	existingListPoster := []entity.PosterFlat{
+		{ID: 1, Price: 11111, Address: "street_1"},
+		{ID: 2, Price: 22222, Address: "street_2"},
+		{ID: 3, Price: 33333, Address: "street_3"},
+	}
+
+	expectedDTO := []dto.PosterCardDTO{
+		{ID: 1, Price: 11111, Address: "street_1"},
+		{ID: 2, Price: 22222, Address: "street_2"},
+		{ID: 3, Price: 33333, Address: "street_3"},
+	}
+
+	tests := []struct {
+		name      string
+		setupMock func(m *mocks.MockPosterRepo)
+		want      *dto.PostersResponse
+		wantErr   error
+	}{
+		{
+			name: "OK",
+			setupMock: func(m *mocks.MockPosterRepo) {
+				m.EXPECT().
+					GetFavoritesFlatsByUserID(ctx, userID).
+					Return(existingListPoster, nil).
+					Times(1)
+
+				m.EXPECT().
+					CountFavoritesByUserID(ctx, userID).
+					Return(len(existingListPoster), nil).
+					Times(1)
+			},
+			want: &dto.PostersResponse{
+				Posters: expectedDTO,
+				Len:     len(existingListPoster),
+			},
+			wantErr: nil,
+		},
+		{
+			name: "RepoError",
+			setupMock: func(m *mocks.MockPosterRepo) {
+				m.EXPECT().
+					GetFavoritesFlatsByUserID(ctx, userID).
+					Return(nil, entity.ServiceError).
+					Times(1)
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+		{
+			name: "CountError",
+			setupMock: func(m *mocks.MockPosterRepo) {
+				m.EXPECT().
+					GetFavoritesFlatsByUserID(ctx, userID).
+					Return(existingListPoster, nil).
+					Times(1)
+
+				m.EXPECT().
+					CountFavoritesByUserID(ctx, userID).
+					Return(0, entity.ServiceError).
+					Times(1)
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepo := mocks.NewMockPosterRepo(ctrl)
+			mockUOW := mocks.NewMockUnitOfWork(ctrl)
+			mockFile := mocks.NewMockFileRepo(ctrl)
+
+			mockUOW.EXPECT().
+				Posters().
+				Return(mockRepo).
+				AnyTimes()
+
+			if test.setupMock != nil {
+				test.setupMock(mockRepo)
+			}
+
+			uc := NewPosterUseCase(mockUOW, mockFile, nil)
+
+			got, err := uc.GetFavoritesPoster(ctx, userID)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, test.want.Len, got.Len)
+			require.Equal(t, len(test.want.Posters), len(got.Posters))
+
+			for i, p := range test.want.Posters {
+				require.Equal(t, p.ID, got.Posters[i].ID)
+				require.Equal(t, p.Address, got.Posters[i].Address)
+				require.Equal(t, p.Price, got.Posters[i].Price)
+			}
+		})
+	}
+}
+
+func TestDeleteFavoritePoster(t *testing.T) {
+	ctx := context.Background()
+	alias := "kvartira-na-arbate"
+	userID := 1
+
+	existingPoster := &entity.PosterById{
+		ID:    4,
+		Alias: alias,
+	}
+
+	tests := []struct {
+		name      string
+		param     string
+		setupMock func(m *mocks.MockPosterRepo)
+		wantErr   error
+	}{
+		{
+			name:  "ok",
+			param: alias,
+			setupMock: func(m *mocks.MockPosterRepo) {
+				m.EXPECT().
+					GetByAlias(ctx, alias, nil).
+					Return(existingPoster, nil).
+					Times(1)
+
+				m.EXPECT().
+					DeleteFavorite(ctx, userID, existingPoster.ID).
+					Return(nil).
+					Times(1)
+			},
+			wantErr: nil,
+		},
+		{
+			name:  "repo_error",
+			param: alias,
+			setupMock: func(m *mocks.MockPosterRepo) {
+				m.EXPECT().
+					GetByAlias(ctx, alias, nil).
+					Return(&entity.PosterById{}, entity.NotFoundError).
+					Times(1)
+			},
+			wantErr: entity.NotFoundError,
+		},
+		{
+			name:  "delete_error",
+			param: alias,
+			setupMock: func(m *mocks.MockPosterRepo) {
+				m.EXPECT().
+					GetByAlias(ctx, alias, nil).
+					Return(existingPoster, nil).
+					Times(1)
+
+				m.EXPECT().
+					DeleteFavorite(ctx, userID, existingPoster.ID).
+					Return(entity.ServiceError).
+					Times(1)
+			},
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepo := mocks.NewMockPosterRepo(ctrl)
+			mockUOW := mocks.NewMockUnitOfWork(ctrl)
+			mockFile := mocks.NewMockFileRepo(ctrl)
+
+			mockUOW.EXPECT().
+				Posters().
+				Return(mockRepo).
+				AnyTimes()
+
+			if test.setupMock != nil {
+				test.setupMock(mockRepo)
+			}
+
+			uc := NewPosterUseCase(mockUOW, mockFile, nil)
+
+			err := uc.DeleteFavoritePoster(ctx, alias, userID)
+
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+		})
+	}
+}
