@@ -47,6 +47,8 @@ func HandelError(w http.ResponseWriter, err error) {
 		WriteError(w, "not enought records", http.StatusNotFound)
 	case errors.Is(err, entity.ToManyRequest):
 		WriteError(w, "to many requests", http.StatusTooManyRequests)
+	case errors.Is(err, entity.UnverifiedUser):
+		WriteError(w, "email is unverified", http.StatusForbidden)
 	default:
 		WriteError(w, "internal", http.StatusInternalServerError)
 	}

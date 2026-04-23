@@ -143,6 +143,20 @@ func (mr *MockUserRepoMockRecorder) UpdatePwd(ctx, email, pwd, salt interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePwd", reflect.TypeOf((*MockUserRepo)(nil).UpdatePwd), ctx, email, pwd, salt)
 }
 
+// VerifyEmail mocks base method.
+func (m *MockUserRepo) VerifyEmail(ctx context.Context, email string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifyEmail", ctx, email)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// VerifyEmail indicates an expected call of VerifyEmail.
+func (mr *MockUserRepoMockRecorder) VerifyEmail(ctx, email interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyEmail", reflect.TypeOf((*MockUserRepo)(nil).VerifyEmail), ctx, email)
+}
+
 // MockPosterRepo is a mock of PosterRepo interface.
 type MockPosterRepo struct {
 	ctrl     *gomock.Controller
@@ -1003,6 +1017,20 @@ func (m *MockMailSender) SendRecoveryCode(ctx context.Context, to, code string) 
 func (mr *MockMailSenderMockRecorder) SendRecoveryCode(ctx, to, code interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendRecoveryCode", reflect.TypeOf((*MockMailSender)(nil).SendRecoveryCode), ctx, to, code)
+}
+
+// SendVerificationCode mocks base method.
+func (m *MockMailSender) SendVerificationCode(ctx context.Context, to, code string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendVerificationCode", ctx, to, code)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendVerificationCode indicates an expected call of SendVerificationCode.
+func (mr *MockMailSenderMockRecorder) SendVerificationCode(ctx, to, code interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendVerificationCode", reflect.TypeOf((*MockMailSender)(nil).SendVerificationCode), ctx, to, code)
 }
 
 // MockFileRepo is a mock of FileRepo interface.

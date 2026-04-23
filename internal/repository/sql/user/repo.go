@@ -126,7 +126,7 @@ func (r *UserRepo) CreateByProvider(ctx context.Context, dto dto.CreateUserByPro
 	if err != nil {
 		return nil, repository.HandelPgErrors(err)
 	}
-	sql := `INSERT INTO users (email, provider, provider_id, profile_id, is_verified) VALUES ($1, $2, $3, $4, 1) 
+	sql := `INSERT INTO users (email, provider, provider_id, profile_id, is_verified) VALUES ($1, $2, $3, $4, TRUE) 
 			RETURNING id, email, hashed_password, salt, provider`
 	row, err := r.pool.Query(ctx, sql, dto.Email, dto.Provider, dto.ProviderID, profileID)
 	if err != nil {

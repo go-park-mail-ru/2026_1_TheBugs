@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"math/rand"
 	"strconv"
 	"time"
 
@@ -20,6 +19,9 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/pwd"
 	"github.com/google/uuid"
 )
+
+const MaxAttemptsRecovery = 5
+const SessionBlacklistTimeout = 1 * time.Minute
 
 type AuthUseCase struct {
 	uow    usecase.UnitOfWork
@@ -79,7 +81,7 @@ func (uc AuthUseCase) LoginUseCase(ctx context.Context, email string, passwod st
 	}
 	user, err := uc.uow.Users().GetByEmail(ctx, email)
 	if !user.IsVerified {
-		return &cred, entity.NotFoundError
+		return &cred, entity.UnverifiedUser
 	}
 
 	if err != nil {
@@ -333,40 +335,44 @@ func (uc AuthUseCase) LoginUserFromYandexUseCase(ctx context.Context, flow dto.O
 	return &cred, nil
 }
 
-const MaxAttemptsRecovery = 5
-
-func (uc AuthUseCase) SendVerificationCode(ctx context.Context, email string) (string, error) {
-	op := "AuthUseCase.SendVerificationCode"
-	log := ctxLogger.GetLogger(ctx).WithField("op", op)
-
+func (uc AuthUseCase) createSesssion(ctx context.Context, email string) (string, string, error) { // TODO: потом это переделать
 	_, err := uc.uow.Users().GetByEmail(ctx, email)
 	if err != nil {
-		return "", fmt.Errorf("uc.uow.Users().GetByEmail: %w", err)
+		return "", "", fmt.Errorf("uc.uow.Users().GetByEmail: %w", err)
 	}
 	blocked, err := uc.cache.IsBlacklisted(ctx, email)
 	if err != nil {
-		return "", fmt.Errorf("uc.cache.IsBlacklisted: %w", err)
+		return "", "", fmt.Errorf("uc.cache.IsBlacklisted: %w", err)
 	}
 	if blocked {
-		return "", fmt.Errorf("max limit offset: %w", entity.ToManyRequest)
+		return "", "", fmt.Errorf("max limit offset: %w", entity.ToManyRequest)
 	}
-	err = uc.cache.SetBlacklist(ctx, email, time.Duration(1*time.Minute))
+	err = uc.cache.SetBlacklist(ctx, email, time.Duration(SessionBlacklistTimeout))
 	if err != nil {
-		return "", fmt.Errorf("uc.cache.SetBlacklist: %w", err)
+		return "", "", fmt.Errorf("uc.cache.SetBlacklist: %w", err)
 	}
-	seed := rand.New(rand.NewSource(time.Now().UnixNano()))
-	code := fmt.Sprintf("%05d", seed.Intn(100000))
-	sessionId := fmt.Sprintf("%010x", seed.Int())[:10]
+	code := pwd.GenerateCode()
+	sessionId := pwd.GenerateSessionID()
 	err = uc.cache.CreateRecoverSession(ctx, sessionId, entity.RecoverSession{Email: email, Code: code, Attempts: 0, Verified: false}, config.Config.JWT.RecoverExp)
 	if err != nil {
-		return "", fmt.Errorf("uc.cache.CreateRecoverSession: %w", err)
+		return "", "", fmt.Errorf("uc.cache.CreateRecoverSession: %w", err)
 	}
-	log.Info("send code")
+	return sessionId, code, nil
+}
+
+func (uc AuthUseCase) SendRecoveryCode(ctx context.Context, email string) (string, error) {
+	op := "AuthUseCase.SendVerificationCode"
+	log := ctxLogger.GetLogger(ctx).WithField("op", op)
+
+	sessionID, code, err := uc.createSesssion(ctx, email)
+	if err != nil {
+		return "", fmt.Errorf("uc.createSesssion: %w", err)
+	}
 	if err := uc.sender.SendRecoveryCode(ctx, email, code); err != nil {
 		log.Errorf("send code: %v", err)
 	}
 
-	return sessionId, nil
+	return sessionID, nil
 }
 
 func (uc AuthUseCase) CheckRecoveryCode(ctx context.Context, sessionID string, code string) error {
@@ -422,49 +428,33 @@ func (uc AuthUseCase) SendVerificationEmailCode(ctx context.Context, email strin
 	op := "AuthUseCase.SendVerificationEmailCode"
 	log := ctxLogger.GetLogger(ctx).WithField("op", op)
 
-	u, err := uc.uow.Users().GetByEmail(ctx, email)
+	sessionID, code, err := uc.createSesssion(ctx, email)
 	if err != nil {
-		return "", fmt.Errorf("uc.uow.Users().GetByEmail: %w", err)
+		return "", fmt.Errorf("uc.createSesssion: %w", err)
 	}
-	if u.IsVerified {
-		return "", fmt.Errorf("user already verified: %w", entity.BadCredentials)
-	}
-	blocked, err := uc.cache.IsBlacklisted(ctx, email)
-	if err != nil {
-		return "", fmt.Errorf("uc.cache.IsBlacklisted: %w", err)
-	}
-	if blocked {
-		return "", fmt.Errorf("max limit offset: %w", entity.ToManyRequest)
-	}
-	err = uc.cache.SetBlacklist(ctx, email, time.Duration(1*time.Minute))
-	if err != nil {
-		return "", fmt.Errorf("uc.cache.SetBlacklist: %w", err)
-	}
-	seed := rand.New(rand.NewSource(time.Now().UnixNano()))
-	code := fmt.Sprintf("%05d", seed.Intn(100000))
-	sessionId := fmt.Sprintf("%010x", seed.Int())[:10]
-	err = uc.cache.CreateRecoverSession(ctx, sessionId, entity.RecoverSession{Email: email, Code: code, Attempts: 0, Verified: false}, config.Config.JWT.RecoverExp)
-	if err != nil {
-		return "", fmt.Errorf("uc.cache.CreateRecoverSession: %w", err)
-	}
-	log.Info("send code")
 	if err := uc.sender.SendVerificationCode(ctx, email, code); err != nil {
 		log.Errorf("send code: %v", err)
 	}
 
-	return sessionId, nil
+	return sessionID, nil
 }
 
-func (uc AuthUseCase) VerifyUserEmail(ctx context.Context, sessionID string) error {
+func (uc AuthUseCase) VerifyUserEmail(ctx context.Context, sessionID string, code string) error {
 	session, err := uc.cache.GetRecoverSession(ctx, sessionID)
 	if err != nil {
 		return fmt.Errorf("uc.cache.GetRecoverSession: %w", err)
 	}
 	if session == nil {
-		return fmt.Errorf("session empty: %w", entity.BadCredentials)
+		return fmt.Errorf("session is empty: %w", entity.BadCredentials)
 	}
-	if !session.Verified {
-		return fmt.Errorf("session unvirified: %w", entity.BadCredentials)
+
+	if session.Code != code {
+		attempts, _ := uc.cache.IncrementRecoverAttempts(ctx, sessionID)
+		if attempts > MaxAttemptsRecovery {
+			_ = uc.cache.DeleteRecoverSession(ctx, sessionID)
+			return fmt.Errorf("max limit offset: %w", entity.ToManyRequest)
+		}
+		return fmt.Errorf("bad code: %w", entity.BadCredentials)
 	}
 	err = uc.uow.Users().VerifyEmail(ctx, session.Email)
 	if err != nil {

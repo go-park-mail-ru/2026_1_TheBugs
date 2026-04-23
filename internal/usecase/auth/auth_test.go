@@ -988,7 +988,7 @@ func TestSendVerificationCode(t *testing.T) {
 
 			authUC := NewAuthUseCase(mockUOW, mockCache, mockSender)
 
-			_, err := authUC.SendVerificationCode(ctx, email)
+			_, err := authUC.SendRecoveryCode(ctx, email)
 			require.ErrorIs(t, err, tc.err)
 		})
 	}
