@@ -947,7 +947,7 @@ func TestSendVerificationCode(t *testing.T) {
 					mockCache.EXPECT().SetBlacklist(ctx, email, gomock.Any()).Return(nil),
 					mockCache.EXPECT().CreateRecoverSession(ctx, gomock.Any(), gomock.Any(), gomock.Any()).Return(nil),
 				)
-				mockSender.EXPECT().SendCode(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+				mockSender.EXPECT().SendRecoveryCode(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 			},
 			err: nil,
 		},

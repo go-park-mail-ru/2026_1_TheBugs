@@ -78,6 +78,9 @@ func (uc AuthUseCase) LoginUseCase(ctx context.Context, email string, passwod st
 		return &cred, err
 	}
 	user, err := uc.uow.Users().GetByEmail(ctx, email)
+	if !user.IsVerified {
+		return &cred, entity.NotFoundError
+	}
 
 	if err != nil {
 		return &cred, entity.NotFoundError
@@ -359,7 +362,7 @@ func (uc AuthUseCase) SendVerificationCode(ctx context.Context, email string) (s
 		return "", fmt.Errorf("uc.cache.CreateRecoverSession: %w", err)
 	}
 	log.Info("send code")
-	if err := uc.sender.SendCode(ctx, email, code); err != nil {
+	if err := uc.sender.SendRecoveryCode(ctx, email, code); err != nil {
 		log.Errorf("send code: %v", err)
 	}
 
@@ -407,6 +410,65 @@ func (uc AuthUseCase) UpdateUserPassword(ctx context.Context, sessionID string, 
 	err = uc.uow.Users().UpdatePwd(ctx, session.Email, hashedPwd, salt)
 	if err != nil {
 		return fmt.Errorf("uc.uow.Users().UpdatePwd: %w", err)
+	}
+	err = uc.cache.DeleteRecoverSession(ctx, sessionID)
+	if err != nil {
+		return fmt.Errorf("uc.cache.DeleteRecoverSession: %w", err)
+	}
+	return nil
+}
+
+func (uc AuthUseCase) SendVerificationEmailCode(ctx context.Context, email string) (string, error) {
+	op := "AuthUseCase.SendVerificationEmailCode"
+	log := ctxLogger.GetLogger(ctx).WithField("op", op)
+
+	u, err := uc.uow.Users().GetByEmail(ctx, email)
+	if err != nil {
+		return "", fmt.Errorf("uc.uow.Users().GetByEmail: %w", err)
+	}
+	if u.IsVerified {
+		return "", fmt.Errorf("user already verified: %w", entity.BadCredentials)
+	}
+	blocked, err := uc.cache.IsBlacklisted(ctx, email)
+	if err != nil {
+		return "", fmt.Errorf("uc.cache.IsBlacklisted: %w", err)
+	}
+	if blocked {
+		return "", fmt.Errorf("max limit offset: %w", entity.ToManyRequest)
+	}
+	err = uc.cache.SetBlacklist(ctx, email, time.Duration(1*time.Minute))
+	if err != nil {
+		return "", fmt.Errorf("uc.cache.SetBlacklist: %w", err)
+	}
+	seed := rand.New(rand.NewSource(time.Now().UnixNano()))
+	code := fmt.Sprintf("%05d", seed.Intn(100000))
+	sessionId := fmt.Sprintf("%010x", seed.Int())[:10]
+	err = uc.cache.CreateRecoverSession(ctx, sessionId, entity.RecoverSession{Email: email, Code: code, Attempts: 0, Verified: false}, config.Config.JWT.RecoverExp)
+	if err != nil {
+		return "", fmt.Errorf("uc.cache.CreateRecoverSession: %w", err)
+	}
+	log.Info("send code")
+	if err := uc.sender.SendVerificationCode(ctx, email, code); err != nil {
+		log.Errorf("send code: %v", err)
+	}
+
+	return sessionId, nil
+}
+
+func (uc AuthUseCase) VerifyUserEmail(ctx context.Context, sessionID string) error {
+	session, err := uc.cache.GetRecoverSession(ctx, sessionID)
+	if err != nil {
+		return fmt.Errorf("uc.cache.GetRecoverSession: %w", err)
+	}
+	if session == nil {
+		return fmt.Errorf("session empty: %w", entity.BadCredentials)
+	}
+	if !session.Verified {
+		return fmt.Errorf("session unvirified: %w", entity.BadCredentials)
+	}
+	err = uc.uow.Users().VerifyEmail(ctx, session.Email)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Users().VerifyEmail: %w", err)
 	}
 	err = uc.cache.DeleteRecoverSession(ctx, sessionID)
 	if err != nil {

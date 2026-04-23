@@ -991,18 +991,18 @@ func (m *MockMailSender) EXPECT() *MockMailSenderMockRecorder {
 	return m.recorder
 }
 
-// SendCode mocks base method.
-func (m *MockMailSender) SendCode(ctx context.Context, to, code string) error {
+// SendRecoveryCode mocks base method.
+func (m *MockMailSender) SendRecoveryCode(ctx context.Context, to, code string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendCode", ctx, to, code)
+	ret := m.ctrl.Call(m, "SendRecoveryCode", ctx, to, code)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// SendCode indicates an expected call of SendCode.
-func (mr *MockMailSenderMockRecorder) SendCode(ctx, to, code interface{}) *gomock.Call {
+// SendRecoveryCode indicates an expected call of SendRecoveryCode.
+func (mr *MockMailSenderMockRecorder) SendRecoveryCode(ctx, to, code interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendCode", reflect.TypeOf((*MockMailSender)(nil).SendCode), ctx, to, code)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendRecoveryCode", reflect.TypeOf((*MockMailSender)(nil).SendRecoveryCode), ctx, to, code)
 }
 
 // MockFileRepo is a mock of FileRepo interface.

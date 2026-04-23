@@ -11,6 +11,7 @@ type User struct {
 	Salt           *string `db:"salt"`
 	HashedPassword *string `db:"hashed_password"`
 	Provider       *string `db:"provider"`
+	IsVerified     bool    `db:"is_verified"`
 }
 
 type UserDetails struct {

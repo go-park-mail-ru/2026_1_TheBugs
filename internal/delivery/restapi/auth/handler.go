@@ -355,6 +355,55 @@ func (h AuthHandler) SendCodeOnEmail(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// SendCodeOnEmail
+// @Summary       Send verify code to email
+// @Description   Generates recovery session, sends verification code to user's email and sets session_id cookie
+// @Tags          Auth
+// @Accept        json
+// @Produce       json
+// @Param         data body request.UserEmail true "User email"
+// @Success       200 {object} map[string]string "Status OK"
+// @Header        200 {string} Set-Cookie "session_id=<SESSION_ID>; HttpOnly; Path=/api/auth; Max-Age=600"
+// @Failure       400 {object} response.ValidationErrorResponse
+// @Failure       500 {object} response.ErrorResponse
+// @Security	  CSRFToken
+// @Router        /auth/email [post]
+func (h AuthHandler) SendVerifyCodeOnEmail(w http.ResponseWriter, r *http.Request) {
+	op := "AuthHandler.SendVerifyCodeOnEmail"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	var data request.UserEmail
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		log.Errorf("decode: %v", err)
+		utils.WriteError(w, "invalid body", http.StatusBadRequest)
+		return
+	}
+
+	sessionID, err := h.uc.SendVerificationEmailCode(r.Context(), data.Email)
+	if err != nil {
+		log.Errorf("SendVerificationCode: %v", err)
+		utils.HandelError(w, err)
+		return
+	}
+	http.SetCookie(
+		w,
+		&http.Cookie{
+			Name:     "session_id",
+			Value:    sessionID,
+			Path:     "/api/auth",
+			HttpOnly: true,
+			Domain:   config.Config.CORS.CookieHost,
+			SameSite: http.SameSiteLaxMode,
+			Expires:  time.Now().Add(time.Duration(int(config.Config.JWT.RecoverExp) * int(time.Second))),
+			MaxAge:   int(config.Config.JWT.RecoverExp),
+		},
+	)
+
+	utils.JSONResponse(w, http.StatusOK, map[string]string{
+		"status": "ok",
+	})
+}
+
 // VerifyRecoveryCode
 // @Summary       Verify recovery code
 // @Description   Verifies code from email using session_id cookie and marks session as verified
@@ -367,7 +416,7 @@ func (h AuthHandler) SendCodeOnEmail(w http.ResponseWriter, r *http.Request) {
 // @Failure       401 {object} response.ErrorResponse "Invalid code or session"
 // @Failure       500 {object} response.ErrorResponse
 // @Security      CSRFToken
-// @Router        /auth/recover/verify [post]
+// @Router        /auth/verify [post]
 func (h AuthHandler) VerifyRecoveryCode(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.VerifyRecoveryCode"
 	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
@@ -404,8 +453,7 @@ func (h AuthHandler) VerifyRecoveryCode(w http.ResponseWriter, r *http.Request) 
 	})
 }
 
-// UpdatePassword
-// @Summary       Update user password
+// @Summary       Verify user email
 // @Description   Updates password using verified recovery session (session_id cookie required)
 // @Tags          Auth
 // @Accept        json

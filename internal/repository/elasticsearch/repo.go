@@ -11,6 +11,7 @@ import (
 	es "github.com/elastic/go-elasticsearch/v9"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 )
 
 func ApplyRangeFilter[T []any](filters T, field string, max *int, min *int) T {
@@ -450,21 +451,23 @@ func (r *ESRepo) DeletePoster(ctx context.Context, posterID int) error {
 		return fmt.Errorf("marshal query: %w", err)
 	}
 	fmt.Println(queryBody)
+	go func(ctx context.Context) {
+		log := ctxLogger.GetLogger(ctx).WithField("op", "ESRepo.DeletePoster")
+		res, err := r.client.DeleteByQuery(
+			[]string{"posters"},
+			bytes.NewReader(queryBody),
+			r.client.DeleteByQuery.WithContext(ctx),
+		)
+		if err != nil {
+			log.Errorf("delete by query request failed: %w", err)
+		}
+		defer res.Body.Close()
 
-	res, err := r.client.DeleteByQuery(
-		[]string{"posters"},
-		bytes.NewReader(queryBody),
-		r.client.DeleteByQuery.WithContext(ctx),
-	)
-	if err != nil {
-		return fmt.Errorf("delete by query request failed: %w", err)
-	}
-	defer res.Body.Close()
-
-	if res.IsError() {
-		b, _ := io.ReadAll(res.Body)
-		return fmt.Errorf("delete by query returned %s: %s", res.Status(), string(b))
-	}
+		if res.IsError() {
+			b, _ := io.ReadAll(res.Body)
+			log.Errorf("delete by query returned %s: %s", res.Status(), string(b))
+		}
+	}(ctx)
 
 	return nil
 

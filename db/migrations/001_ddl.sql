@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), 
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), 
     salt TEXT, 
+    is_verified BOOLEAN NOT NULL DEFAULT 0,
     profile_id BIGINT NOT NULL, 
 
     CONSTRAINT fk_profile FOREIGN KEY (profile_id) REFERENCES profiles(id), 
