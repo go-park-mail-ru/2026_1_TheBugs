@@ -287,7 +287,7 @@ INSERT INTO poster_photos (img_url, sequence_order, poster_id) VALUES
 -- ============================================================
 -- 13. Лайки 
 -- ============================================================
-INSERT INTO likes (user_id, poster_id) VALUES
+INSERT INTO favorites (user_id, poster_id) VALUES
     (3, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
     (5, (SELECT id FROM posters WHERE alias = 'studio-tverskaya')),
     (6, (SELECT id FROM posters WHERE alias = 'penthouse-arbatskaya')),
