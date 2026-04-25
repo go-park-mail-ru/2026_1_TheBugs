@@ -149,3 +149,98 @@ func (h *OrderHandler) GetOrders(w http.ResponseWriter, r *http.Request) {
 
 	utils.JSONResponse(w, http.StatusOK, orders)
 }
+
+// @Summary Get order by id
+// @Description Returns full support order info by id
+// @Tags handlings
+// @Produce json
+// @Security     BearerAuth
+// @Security     CSRFToken
+// @Param id path integer true "Order ID"
+// @Success 200 {object} dto.OrderFullDTO
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 403 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /support/orders/{id} [get]
+func (h *OrderHandler) GetOrderByID(w http.ResponseWriter, r *http.Request) {
+	op := "OrderHandler.GetOrderByID"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	userID, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.Errorf("utils.GetUserID: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	orderID, err := utils.ParseIDFromRequest(r)
+	if err != nil {
+		log.Errorf("strconv.Atoi: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	order, err := h.uc.GetOrderByID(r.Context(), userID, orderID)
+	if err != nil {
+		log.Errorf("utils.ParseIDFromRequest: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, order)
+}
+
+// @Summary Answer order
+// @Description Sends support answer to user email
+// @Tags support
+// @Accept multipart/form-data
+// @Produce json
+// @Security     BearerAuth
+// @Security     CSRFToken
+// @Param id path integer true "Order ID"
+// @Param answer formData string true "Support answer"
+// @Success 200
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 403 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /support/orders/{id}/answer [post]
+func (h *OrderHandler) AnswerOrder(w http.ResponseWriter, r *http.Request) {
+	op := "OrderHandler.AnswerOrder"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	adminID, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.Errorf("utils.GetUserID: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	orderID, err := utils.ParseIDFromRequest(r)
+	if err != nil {
+		log.Errorf("utils.ParseIDFromRequest: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	var req dto.OrderAnswerDTO
+
+	err = utils.ParseMultipartFormData(r, &req)
+	if err != nil {
+		log.Errorf("utils.ParseMultipartFormData: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	err = h.uc.AnswerOrder(r.Context(), adminID, orderID, req.Answer)
+	if err != nil {
+		log.Errorf("h.uc.AnswerOrder: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}

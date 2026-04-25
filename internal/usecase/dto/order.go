@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/photo"
 	"github.com/google/uuid"
 )
 
@@ -91,4 +92,44 @@ func ToOrderPreview(entities []entity.Order) []OrderPreviewDTO {
 type OrdersResponse struct {
 	Len    int               `json:"len"`
 	Orders []OrderPreviewDTO `json:"order"`
+}
+
+type OrderFullDTO struct {
+	ID           int        `json:"id"`
+	CategoryName string     `json:"category_name"`
+	Status       string     `json:"status"`
+	Description  string     `json:"description"`
+	CreatedAt    time.Time  `json:"created_at"`
+	Images       []PhotoDTO `json:"images"`
+}
+
+func OrderToOrderFullDTO(order *entity.OrderFull) *OrderFullDTO {
+	images := make([]PhotoDTO, 0, len(order.Photos))
+
+	for _, image := range order.Photos {
+		images = append(images, PhotoDTO{
+			ImgURL: image.ImgURL,
+			Order:  image.Order,
+		})
+	}
+
+	return &OrderFullDTO{
+		ID:           order.ID,
+		CategoryName: order.CategoryName,
+		Status:       order.Status,
+		Description:  order.Description,
+		CreatedAt:    order.CreatedAt,
+		Images:       images,
+	}
+}
+
+func MakeOrderUrlsFromPaths(order *OrderFullDTO, publicHost string, bucket string) {
+	for i, image := range order.Images {
+		url := photo.MakeUrlFromPath(image.ImgURL, publicHost, bucket)
+		order.Images[i].ImgURL = url
+	}
+}
+
+type OrderAnswerDTO struct {
+	Answer string `form:"answer"`
 }

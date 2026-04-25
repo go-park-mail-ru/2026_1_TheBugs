@@ -18,6 +18,14 @@ definitions:
     properties:
       answer:
         type: string
+      missing_info:
+        items:
+          type: string
+        type: array
+      reason:
+        type: string
+      status:
+        type: string
     type: object
   dto.CreatedPoster:
     properties:
@@ -71,6 +79,23 @@ definitions:
       device_id:
         type: string
       state:
+        type: string
+    type: object
+  dto.OrderFullDTO:
+    properties:
+      category_name:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      images:
+        items:
+          $ref: '#/definitions/dto.PhotoDTO'
+        type: array
+      status:
         type: string
     type: object
   dto.OrderPreviewDTO:
@@ -313,6 +338,50 @@ info:
   title: DomDeli API
   version: "1.0"
 paths:
+  /auth/admin/login:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Authenticate admin user and return access token + set refresh token
+        cookie
+      parameters:
+      - description: User email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: User password
+        in: formData
+        name: password
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Successful login, returns access token
+          headers:
+            Set-Cookie:
+              description: refresh_token=<NEW_REFRESH_TOKEN>; HttpOnly; Path=/api/auth/refresh;
+                Max-Age=...
+              type: string
+          schema:
+            $ref: '#/definitions/auth.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ValidationErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - CSRFToken: []
+      summary: Login admin user
+      tags:
+      - Auth
   /auth/login:
     post:
       consumes:
@@ -1311,6 +1380,95 @@ paths:
       summary: Create handling
       tags:
       - handlings
+  /support/orders/{id}:
+    get:
+      description: Returns full support order info by id
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.OrderFullDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      - CSRFToken: []
+      summary: Get order by id
+      tags:
+      - handlings
+  /support/orders/{id}/answer:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Sends support answer to user email
+      parameters:
+      - description: Order ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Support answer
+        in: formData
+        name: answer
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      - CSRFToken: []
+      summary: Answer order
+      tags:
+      - support
   /user/me:
     get:
       description: Returns user details

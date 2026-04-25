@@ -9,6 +9,7 @@ import (
 	repository "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
+	"github.com/jackc/pgx/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
@@ -166,4 +167,78 @@ func (r *OrderRepo) GetAll(ctx context.Context) ([]entity.Order, error) {
 	}
 
 	return orders, nil
+}
+
+func (r *OrderRepo) GetByID(ctx context.Context, orderID int) (*entity.OrderFull, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "OrderRepo.GetByID")
+	log.Info("start db query")
+
+	query := `
+		SELECT 
+			h.id,
+			h.user_id,
+			hc.name,
+			h.status,
+			h.description,
+			h.created_at
+		FROM handlings h
+		JOIN handling_categories hc ON hc.id = h.category_id
+		WHERE h.id = $1
+	`
+
+	var order entity.OrderFull
+
+	err := r.pool.QueryRow(ctx, query, orderID).Scan(
+		&order.ID,
+		&order.UserID,
+		&order.CategoryName,
+		&order.Status,
+		&order.Description,
+		&order.CreatedAt,
+	)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return &order, nil
+}
+
+func (r *OrderRepo) GetOrderImages(ctx context.Context, id int) ([]entity.OrderPhoto, error) {
+	query := `
+		SELECT hp.img_url, hp.sequence_order AS "order"
+		FROM handling_photos hp
+		WHERE hp.handling_id = $1
+		ORDER BY hp.sequence_order
+	`
+
+	rows, err := r.pool.Query(ctx, query, id)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	defer rows.Close()
+
+	images, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.OrderPhoto])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return images, rows.Err()
+}
+
+func (r *OrderRepo) FinishOrder(ctx context.Context, orderID int, adminID int) error {
+	query := `
+		UPDATE handlings
+		SET status = 'finished',
+		    admin_id = $1,
+		    updated_at = NOW()
+		WHERE id = $2
+	`
+
+	_, err := r.pool.Exec(ctx, query, adminID, orderID)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+
+	return nil
 }

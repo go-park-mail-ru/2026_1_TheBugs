@@ -50,3 +50,31 @@ func (e *SMTPSender) SendCode(ctx context.Context, email, code string) error {
 
 	return nil
 }
+
+func (e *SMTPSender) SendAnswer(ctx context.Context, email string, orderID int, answer string) error {
+	from := config.Config.SMTP.Email
+
+	m := gomail.NewMessage()
+	m.SetHeader("From", fmt.Sprintf(`"DomDeli" <%s>`, from))
+	m.SetHeader("To", email)
+	m.SetHeader("Subject", fmt.Sprintf("Ответ поддержки по обращению #%d", orderID))
+	m.SetHeader("Reply-To", from)
+
+	m.SetBody("text/html", fmt.Sprintf(`
+		<h2>Ответ поддержки</h2>
+		<p><b>Номер обращения:</b> #%d</p>
+		<p>%s</p>
+	`, orderID, answer))
+
+	dialer := gomail.NewDialer(e.host, e.port, e.username, e.password)
+
+	go func(ctx context.Context) {
+		if err := dialer.DialAndSend(m); err != nil {
+			log.Printf("gomail send answer: %s", err)
+			return
+		}
+		log.Printf("✅ Answer sent to %s", email)
+	}(ctx)
+
+	return nil
+}

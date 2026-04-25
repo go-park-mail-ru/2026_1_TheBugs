@@ -84,6 +84,21 @@ func (mr *MockUserRepoMockRecorder) GetByEmail(ctx, email interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByEmail", reflect.TypeOf((*MockUserRepo)(nil).GetByEmail), ctx, email)
 }
 
+// GetByEmailSecurity mocks base method.
+func (m *MockUserRepo) GetByEmailSecurity(ctx context.Context, email string) (*entity.UserSecurity, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByEmailSecurity", ctx, email)
+	ret0, _ := ret[0].(*entity.UserSecurity)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByEmailSecurity indicates an expected call of GetByEmailSecurity.
+func (mr *MockUserRepoMockRecorder) GetByEmailSecurity(ctx, email interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByEmailSecurity", reflect.TypeOf((*MockUserRepo)(nil).GetByEmailSecurity), ctx, email)
+}
+
 // GetByID mocks base method.
 func (m *MockUserRepo) GetByID(ctx context.Context, id int) (*dto.UserDTO, error) {
 	m.ctrl.T.Helper()
@@ -987,6 +1002,20 @@ func (m *MockMailSender) EXPECT() *MockMailSenderMockRecorder {
 	return m.recorder
 }
 
+// SendAnswer mocks base method.
+func (m *MockMailSender) SendAnswer(ctx context.Context, email string, orderID int, answer string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendAnswer", ctx, email, orderID, answer)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendAnswer indicates an expected call of SendAnswer.
+func (mr *MockMailSenderMockRecorder) SendAnswer(ctx, email, orderID, answer interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendAnswer", reflect.TypeOf((*MockMailSender)(nil).SendAnswer), ctx, email, orderID, answer)
+}
+
 // SendCode mocks base method.
 func (m *MockMailSender) SendCode(ctx context.Context, to, code string) error {
 	m.ctrl.T.Helper()
@@ -1105,6 +1134,44 @@ func (mr *MockSearchRepoMockRecorder) SearchPosters(ctx, filters interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchPosters", reflect.TypeOf((*MockSearchRepo)(nil).SearchPosters), ctx, filters)
 }
 
+// MockSupportAgent is a mock of SupportAgent interface.
+type MockSupportAgent struct {
+	ctrl     *gomock.Controller
+	recorder *MockSupportAgentMockRecorder
+}
+
+// MockSupportAgentMockRecorder is the mock recorder for MockSupportAgent.
+type MockSupportAgentMockRecorder struct {
+	mock *MockSupportAgent
+}
+
+// NewMockSupportAgent creates a new mock instance.
+func NewMockSupportAgent(ctrl *gomock.Controller) *MockSupportAgent {
+	mock := &MockSupportAgent{ctrl: ctrl}
+	mock.recorder = &MockSupportAgentMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockSupportAgent) EXPECT() *MockSupportAgentMockRecorder {
+	return m.recorder
+}
+
+// Chat mocks base method.
+func (m *MockSupportAgent) Chat(ctx context.Context, systemPrompt, userPrompt string) (*dto.ChatResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Chat", ctx, systemPrompt, userPrompt)
+	ret0, _ := ret[0].(*dto.ChatResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Chat indicates an expected call of Chat.
+func (mr *MockSupportAgentMockRecorder) Chat(ctx, systemPrompt, userPrompt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Chat", reflect.TypeOf((*MockSupportAgent)(nil).Chat), ctx, systemPrompt, userPrompt)
+}
+
 // MockOrderRepo is a mock of OrderRepo interface.
 type MockOrderRepo struct {
 	ctrl     *gomock.Controller
@@ -1129,17 +1196,78 @@ func (m *MockOrderRepo) EXPECT() *MockOrderRepoMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockOrderRepo) Create(ctx context.Context, order *dto.Order) error {
+func (m *MockOrderRepo) Create(ctx context.Context, order *dto.Order) (int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", ctx, order)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Create indicates an expected call of Create.
 func (mr *MockOrderRepoMockRecorder) Create(ctx, order interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockOrderRepo)(nil).Create), ctx, order)
+}
+
+// GetAll mocks base method.
+func (m *MockOrderRepo) GetAll(ctx context.Context) ([]entity.Order, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAll", ctx)
+	ret0, _ := ret[0].([]entity.Order)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAll indicates an expected call of GetAll.
+func (mr *MockOrderRepoMockRecorder) GetAll(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAll", reflect.TypeOf((*MockOrderRepo)(nil).GetAll), ctx)
+}
+
+// GetByID mocks base method.
+func (m *MockOrderRepo) GetByID(ctx context.Context, orderID int) (*entity.OrderFull, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByID", ctx, orderID)
+	ret0, _ := ret[0].(*entity.OrderFull)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByID indicates an expected call of GetByID.
+func (mr *MockOrderRepoMockRecorder) GetByID(ctx, orderID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockOrderRepo)(nil).GetByID), ctx, orderID)
+}
+
+// GetByUserID mocks base method.
+func (m *MockOrderRepo) GetByUserID(ctx context.Context, userID int) ([]entity.Order, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByUserID", ctx, userID)
+	ret0, _ := ret[0].([]entity.Order)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByUserID indicates an expected call of GetByUserID.
+func (mr *MockOrderRepoMockRecorder) GetByUserID(ctx, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUserID", reflect.TypeOf((*MockOrderRepo)(nil).GetByUserID), ctx, userID)
+}
+
+// GetOrderImages mocks base method.
+func (m *MockOrderRepo) GetOrderImages(ctx context.Context, id int) ([]entity.OrderPhoto, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOrderImages", ctx, id)
+	ret0, _ := ret[0].([]entity.OrderPhoto)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOrderImages indicates an expected call of GetOrderImages.
+func (mr *MockOrderRepoMockRecorder) GetOrderImages(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrderImages", reflect.TypeOf((*MockOrderRepo)(nil).GetOrderImages), ctx, id)
 }
 
 // InsertPhotos mocks base method.

@@ -108,5 +108,7 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		apiGroup.Handle("/support/orders", AuthMiddlewary(http.HandlerFunc(order.CreateOrder))).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.Handle("/support/agent-response", http.HandlerFunc(order.GetSupportAgentResponse)).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.Handle("/support/orders", AuthMiddlewary(http.HandlerFunc(order.GetOrders))).Methods(http.MethodGet, http.MethodOptions)
+		apiGroup.Handle("/support/orders/{id}", AuthMiddlewary(http.HandlerFunc(order.GetOrderByID))).Methods(http.MethodGet, http.MethodOptions)
+		apiGroup.Handle("/support/orders/{id}/answer", AuthMiddlewary(http.HandlerFunc(order.AnswerOrder))).Methods(http.MethodPost, http.MethodOptions)
 	} //alias
 }

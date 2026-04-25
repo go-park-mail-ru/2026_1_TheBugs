@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
@@ -13,9 +14,10 @@ import (
 )
 
 type OrderUseCase struct {
-	uow   usecase.UnitOfWork
-	file  usecase.FileRepo
-	agent usecase.SupportAgent
+	uow    usecase.UnitOfWork
+	file   usecase.FileRepo
+	agent  usecase.SupportAgent
+	sender usecase.MailSender
 }
 
 func NewOrderUseCase(uow usecase.UnitOfWork, file usecase.FileRepo, agent usecase.SupportAgent) *OrderUseCase {
@@ -192,4 +194,75 @@ func (uc *OrderUseCase) GetUserOrders(ctx context.Context, userID int) (*dto.Ord
 	}
 
 	return response, nil
+}
+
+func (uc *OrderUseCase) GetOrderByID(ctx context.Context, userID int, orderID int) (*dto.OrderFullDTO, error) {
+	user, err := uc.uow.Users().GetByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Users().GetByID: %w", err)
+	}
+
+	superUser, err := uc.uow.Users().GetByEmailSecurity(ctx, user.Email)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Users().GetByEmailSecurity: %w", err)
+	}
+
+	order, err := uc.uow.Order().GetByID(ctx, orderID)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Order().GetByID: %w", err)
+	}
+
+	if !superUser.IsAdmin && order.UserID != userID {
+		return nil, entity.ServiceError
+	}
+
+	photos, err := uc.uow.Order().GetOrderImages(ctx, orderID)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Order().GetPhotosByOrderID: %w", err)
+	}
+
+	order.Photos = photos
+
+	orderDTO := dto.OrderToOrderFullDTO(order)
+	dto.MakeOrderUrlsFromPaths(orderDTO, config.Config.PublicHost, config.Config.Bucket)
+
+	return orderDTO, nil
+}
+
+func (uc *OrderUseCase) AnswerOrder(ctx context.Context, adminID int, orderID int, answer string) error {
+	admin, err := uc.uow.Users().GetByID(ctx, adminID)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Users().GetByID: %w", err)
+	}
+
+	superUser, err := uc.uow.Users().GetByEmailSecurity(ctx, admin.Email)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Users().GetByEmailSecurity: %w", err)
+	}
+
+	if !superUser.IsAdmin {
+		return entity.ServiceError
+	}
+
+	order, err := uc.uow.Order().GetByID(ctx, orderID)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Order().GetByID: %w", err)
+	}
+
+	user, err := uc.uow.Users().GetByID(ctx, order.UserID)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Users().GetByID: %w", err)
+	}
+
+	err = uc.sender.SendAnswer(ctx, user.Email, orderID, answer)
+	if err != nil {
+		return fmt.Errorf("uc.sender.SendAnswer: %w", err)
+	}
+
+	err = uc.uow.Order().FinishOrder(ctx, orderID, adminID)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Order().FinishOrder: %w", err)
+	}
+
+	return nil
 }

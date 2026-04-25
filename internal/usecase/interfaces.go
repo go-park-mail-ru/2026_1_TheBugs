@@ -96,6 +96,7 @@ type Сache interface {
 
 type MailSender interface {
 	SendCode(ctx context.Context, to string, code string) error
+	SendAnswer(ctx context.Context, email string, orderID int, answer string) error
 }
 
 type FileRepo interface {
@@ -117,4 +118,7 @@ type OrderRepo interface {
 	InsertPhotos(ctx context.Context, orderID int, photos []dto.PhotoInput) error
 	GetByUserID(ctx context.Context, userID int) ([]entity.Order, error)
 	GetAll(ctx context.Context) ([]entity.Order, error)
+	GetByID(ctx context.Context, orderID int) (*entity.OrderFull, error)
+	GetOrderImages(ctx context.Context, id int) ([]entity.OrderPhoto, error)
+	FinishOrder(ctx context.Context, orderID int, adminID int) error
 }
