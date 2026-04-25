@@ -265,6 +265,37 @@ CREATE TABLE IF NOT EXISTS views (
 );
 
 COMMENT ON TABLE views IS 'Просмотры';
+
+
+CREATE TABLE IF NOT EXISTS chats (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+);
+
+COMMENT ON TABLE chats IS 'Чаты';
+
+CREATE TABLE IF NOT EXISTS messages (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    user_id BIGINT NOT NULL,
+    chat_id BIGINT NOT NULL,
+    text TEXT NOT NULL,
+
+    CONSTRAINT fk_msg_user FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT fk_chat_user FOREIGN KEY (chat_id) REFERENCES chats(id),
+    CONSTRAINT text_length_check CHECK ( LENGTH(text) <= 500 )
+);
+
+COMMENT ON TABLE messages IS 'Сообщения';
+
+CREATE TABLE IF NOT EXISTS chats_users (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    user_id BIGINT NOT NULL,
+    chat_id BIGINT NOT NULL,
+
+    CONSTRAINT fk_chats_users_user FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT fk_chats_users_chat FOREIGN KEY (chat_id) REFERENCES chats(id)
+);
  
 
 CREATE INDEX idx_likes_users_id ON likes(user_id);
