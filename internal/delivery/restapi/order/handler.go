@@ -119,3 +119,35 @@ func (h *OrderHandler) GetSupportAgentResponse(w http.ResponseWriter, r *http.Re
 
 	utils.JSONResponse(w, http.StatusOK, resp)
 }
+
+// @Summary Get user orders
+// @Description Returns all support orders of authorized user
+// @Tags handlings
+// @Produce json
+// @Security     BearerAuth
+// @Security     CSRFToken
+// @Success 200 {object} dto.OrdersResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /support/orders [get]
+func (h *OrderHandler) GetOrders(w http.ResponseWriter, r *http.Request) {
+	op := "OrderHandler.GetOrders"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	userID, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.Errorf("utils.GetUserID: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	orders, err := h.uc.GetUserOrders(r.Context(), userID)
+	if err != nil {
+		log.Errorf("h.uc.GetUserOrders: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, orders)
+}

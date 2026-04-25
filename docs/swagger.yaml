@@ -73,6 +73,26 @@ definitions:
       state:
         type: string
     type: object
+  dto.OrderPreviewDTO:
+    properties:
+      category_name:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      status:
+        type: string
+    type: object
+  dto.OrdersResponse:
+    properties:
+      len:
+        type: integer
+      order:
+        items:
+          $ref: '#/definitions/dto.OrderPreviewDTO'
+        type: array
+    type: object
   dto.PhotoDTO:
     properties:
       img_url:
@@ -1208,6 +1228,33 @@ paths:
       tags:
       - support
   /support/orders:
+    get:
+      description: Returns all support orders of authorized user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.OrdersResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      - CSRFToken: []
+      summary: Get user orders
+      tags:
+      - handlings
     post:
       description: Creates a user handling (order) with optional photos
       parameters:

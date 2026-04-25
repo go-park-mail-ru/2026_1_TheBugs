@@ -159,3 +159,19 @@ func (uc *OrderUseCase) GetSupportAgentResponse(ctx context.Context, userPrompt 
 	return response, nil
 
 }
+
+func (uc *OrderUseCase) GetUserOrders(ctx context.Context, userID int) (*dto.OrdersResponse, error) {
+	orders, err := uc.uow.Order().GetByUserID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	orderDTOs := dto.ToOrderPreview(orders)
+
+	response := &dto.OrdersResponse{
+		Len:    len(orderDTOs),
+		Orders: orderDTOs,
+	}
+
+	return response, nil
+}
