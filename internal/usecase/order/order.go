@@ -161,9 +161,27 @@ func (uc *OrderUseCase) GetSupportAgentResponse(ctx context.Context, userPrompt 
 }
 
 func (uc *OrderUseCase) GetUserOrders(ctx context.Context, userID int) (*dto.OrdersResponse, error) {
-	orders, err := uc.uow.Order().GetByUserID(ctx, userID)
+	user, err := uc.uow.Users().GetByID(ctx, userID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("uc.uow.Users().GetByID: %w", err)
+	}
+
+	superUser, err := uc.uow.Users().GetByEmailSecurity(ctx, user.Email)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Users().GetByEmailSecurity: %w", err)
+	}
+
+	var orders []entity.Order
+	if superUser.IsAdmin {
+		orders, err = uc.uow.Order().GetAll(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("uc.uow.Order().GetAll: %w", err)
+		}
+	} else {
+		orders, err = uc.uow.Order().GetByUserID(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	orderDTOs := dto.ToOrderPreview(orders)

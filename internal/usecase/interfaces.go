@@ -116,4 +116,5 @@ type OrderRepo interface {
 	Create(ctx context.Context, order *dto.Order) (int, error)
 	InsertPhotos(ctx context.Context, orderID int, photos []dto.PhotoInput) error
 	GetByUserID(ctx context.Context, userID int) ([]entity.Order, error)
+	GetAll(ctx context.Context) ([]entity.Order, error)
 }

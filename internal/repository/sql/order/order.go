@@ -121,3 +121,49 @@ func (r *OrderRepo) GetByUserID(ctx context.Context, userID int) ([]entity.Order
 
 	return orders, nil
 }
+
+func (r *OrderRepo) GetAll(ctx context.Context) ([]entity.Order, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "OrderRepo.GetAll")
+	log.Info("start db query")
+
+	query := `
+		SELECT 
+			h.id,
+			hc.name,
+			h.status,
+			h.created_at
+		FROM handlings h
+		JOIN handling_categories hc ON hc.id = h.category_id
+		ORDER BY h.created_at DESC
+	`
+
+	rows, err := r.pool.Query(ctx, query)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+	defer rows.Close()
+
+	orders := make([]entity.Order, 0)
+
+	for rows.Next() {
+		var o entity.Order
+
+		err = rows.Scan(
+			&o.ID,
+			&o.CategoryName,
+			&o.Status,
+			&o.CreatedAt,
+		)
+		if err != nil {
+			return nil, repository.HandelPgErrors(err)
+		}
+
+		orders = append(orders, o)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return orders, nil
+}
