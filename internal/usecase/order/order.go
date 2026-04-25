@@ -18,7 +18,7 @@ type OrderUseCase struct {
 	agent usecase.SupportAgent
 }
 
-func NewOrderUseCase(uow usecase.UnitOfWork, file usecase.FileRepo, search usecase.SearchRepo, agent usecase.SupportAgent) *OrderUseCase {
+func NewOrderUseCase(uow usecase.UnitOfWork, file usecase.FileRepo, agent usecase.SupportAgent) *OrderUseCase {
 	return &OrderUseCase{
 		uow:   uow,
 		file:  file,
