@@ -107,6 +107,10 @@ type SearchRepo interface {
 	SearchPosters(ctx context.Context, filters dto.PostersFiltersDTO) (*dto.PostersResponse, error)
 }
 
+type SupportAgent interface {
+	Chat(ctx context.Context, systemPrompt string, userPrompt string) (*dto.ChatResult, error)
+}
+
 type OrderRepo interface {
 	Create(ctx context.Context, order *dto.Order) (int, error)
 	InsertPhotos(ctx context.Context, orderID int, photos []dto.PhotoInput) error

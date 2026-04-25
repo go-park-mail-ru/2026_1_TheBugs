@@ -2,9 +2,11 @@ package openrouter
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	openai "github.com/openai/openai-go/v3"
 	"github.com/openai/openai-go/v3/option"
 )
@@ -26,14 +28,7 @@ func New(apiKey, model string) *OpenRouterClient {
 	}
 }
 
-type ChatResult struct {
-	Answer             string  `json:"answer"`
-	Category           string  `json:"category"`
-	ShouldCreateTicket bool    `json:"should_create_ticket"`
-	Confidence         float64 `json:"confidence"`
-}
-
-func (c *OpenRouterClient) Chat(ctx context.Context, systemPrompt string, userPrompt string) (*ChatResult, error) {
+func (c *OpenRouterClient) Chat(ctx context.Context, systemPrompt string, userPrompt string) (*dto.ChatResult, error) {
 	resp, err := c.client.Chat.Completions.New(ctx, openai.ChatCompletionNewParams{
 		Model: c.model,
 		Messages: []openai.ChatCompletionMessageParamUnion{
@@ -51,14 +46,14 @@ func (c *OpenRouterClient) Chat(ctx context.Context, systemPrompt string, userPr
 
 	content := resp.Choices[0].Message.Content
 	fmt.Println(content)
-	// if content == "" {
-	// 	return nil, fmt.Errorf("empty assistant content")
-	// }
+	if content == "" {
+		return nil, fmt.Errorf("empty assistant content")
+	}
 
-	// var out ChatResult
-	// if err := json.Unmarshal([]byte(content), &out); err != nil {
-	// 	return nil, err
-	// }
+	var out dto.ChatResult
+	if err := json.Unmarshal([]byte(content), &out); err != nil {
+		return nil, err
+	}
 
-	return nil, nil
+	return &out, nil
 }

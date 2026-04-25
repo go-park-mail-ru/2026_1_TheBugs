@@ -13,14 +13,16 @@ import (
 )
 
 type OrderUseCase struct {
-	uow  usecase.UnitOfWork
-	file usecase.FileRepo
+	uow   usecase.UnitOfWork
+	file  usecase.FileRepo
+	agent usecase.SupportAgent
 }
 
-func NewOrderUseCase(uow usecase.UnitOfWork, file usecase.FileRepo) *OrderUseCase {
+func NewOrderUseCase(uow usecase.UnitOfWork, file usecase.FileRepo, search usecase.SearchRepo, agent usecase.SupportAgent) *OrderUseCase {
 	return &OrderUseCase{
-		uow:  uow,
-		file: file,
+		uow:   uow,
+		file:  file,
+		agent: agent,
 	}
 }
 
@@ -108,4 +110,52 @@ func (uc *OrderUseCase) uploadPhoto(ctx context.Context, photoPoster dto.PhotoIn
 	}
 
 	return key, nil
+}
+
+func (uc *OrderUseCase) GetSupportAgentResponse(ctx context.Context, userPrompt string) (*dto.ChatResult, error) {
+	systemPrompt := `
+	Ты — помощник службы поддержки ДомДели, сервиса аренды жилья.
+
+	Твоя задача — помочь пользователю решить проблему быстро, кратко и по существу.
+
+	Правила:
+	- Отвечай на языке пользователя.
+	- Если знаешь ответ — дай его сразу.
+	- Если не знаешь — честно скажи, что не знаешь.
+	- Не выдумывай факты, условия, цены, адреса, статусы брони и правила.
+	- Не предлагай обратиться к человеку без причины.
+	- Если для ответа не хватает данных, явно укажи, чего именно не хватает.
+	- Если проблема требует ручной проверки, доступа к заказу, платежам, личным данным, спору или технической диагностики — пометь это как обращение к человеку.
+
+	Формат ответа:
+	Всегда возвращай только JSON без лишнего текста:
+
+	{
+	"status": "ok|error|human_required",
+	"answer": "краткий ответ пользователю",
+	"missing_info": ["что нужно уточнить или проверить"],
+	"reason": "краткая причина, если status = error или human_required"
+	}
+
+	Правила для status:
+	- ok — если вопрос решен.
+	- error — если ответ неизвестен, данных недостаточно для безопасного ответа или есть противоречие.
+	- human_required — если нужна ручная проверка или участие сотрудника.
+
+	Дополнительные правила:
+	- Если status = ok, missing_info должен быть пустым массивом.
+	- Если status = error, кратко объясни, что не так.
+	- Если status = human_required, объясни, почему нужен человек.
+	- Если пользователь не указал важные данные, перечисли их в missing_info.
+	- Не давай длинных объяснений.
+	- Не используй markdown, только JSON.
+		`
+
+	response, err := uc.agent.Chat(ctx, systemPrompt, userPrompt)
+	if err != nil {
+		return nil, fmt.Errorf("uc.agent.Chat: %w", err)
+	}
+
+	return response, nil
+
 }
