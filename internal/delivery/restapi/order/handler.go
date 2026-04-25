@@ -1,7 +1,6 @@
 package order
 
 import (
-	"encoding/json"
 	"net/http"
 	"strings"
 
@@ -84,7 +83,7 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 // @Accept mpfd
 // @Produce json
 // @Security BearerAuth
-// @Security     CSRFToken
+// @Security CSRFToken
 // @Param user_prompt formData string true "User prompt"
 // @Success 200 {object} dto.ChatResult
 // @Failure 400 {object} response.ErrorResponse
@@ -95,22 +94,21 @@ func (h *OrderHandler) GetSupportAgentResponse(w http.ResponseWriter, r *http.Re
 	op := "OrderHandler.GetSupportAgentResponse"
 	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
-	var req struct {
-		UserPrompt string `json:"user_prompt"`
+	if err := r.ParseMultipartForm(10 << 20); err != nil {
+		if err := r.ParseForm(); err != nil {
+			log.Errorf("r.ParseForm: %s", err)
+			utils.HandelError(w, entity.InvalidInput)
+			return
+		}
 	}
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		log.Errorf("json.NewDecoder.Decode: %s", err)
+	userPrompt := strings.TrimSpace(r.FormValue("user_prompt"))
+	if userPrompt == "" {
 		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
 
-	if strings.TrimSpace(req.UserPrompt) == "" {
-		utils.HandelError(w, entity.InvalidInput)
-		return
-	}
-
-	resp, err := h.uc.GetSupportAgentResponse(r.Context(), req.UserPrompt)
+	resp, err := h.uc.GetSupportAgentResponse(r.Context(), userPrompt)
 	if err != nil {
 		log.Errorf("h.uc.GetSupportAgentResponse: %s", err)
 		utils.HandelError(w, err)
