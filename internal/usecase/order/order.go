@@ -13,20 +13,18 @@ import (
 )
 
 type OrderUseCase struct {
-	uow    usecase.UnitOfWork
-	file   usecase.FileRepo
-	search usecase.SearchRepo
+	uow  usecase.UnitOfWork
+	file usecase.FileRepo
 }
 
-func NewOrderUseCase(uow usecase.UnitOfWork, file usecase.FileRepo, search usecase.SearchRepo) *OrderUseCase {
+func NewOrderUseCase(uow usecase.UnitOfWork, file usecase.FileRepo) *OrderUseCase {
 	return &OrderUseCase{
-		uow:    uow,
-		file:   file,
-		search: search,
+		uow:  uow,
+		file: file,
 	}
 }
 
-func (uc *OrderUseCase) CreateFlatPoster(ctx context.Context, order *dto.OrderDTO) error {
+func (uc *OrderUseCase) CreateOrder(ctx context.Context, order *dto.OrderDTO) error {
 	/*err := validator.ValidatePosterBase(poster)
 	if err != nil {
 		return nil, fmt.Errorf("validator.ValidatePosterBase: %w", err)
@@ -46,7 +44,7 @@ func (uc *OrderUseCase) CreateFlatPoster(ctx context.Context, order *dto.OrderDT
 
 	err = uc.uow.Do(ctx, func(r usecase.UnitOfWork) error {
 
-		posterID, err := r.Posters().Create(ctx, createOrder)
+		orderID, err := r.Order().Create(ctx, createOrder)
 		if err != nil {
 			return fmt.Errorf("uc.PosterRepo.Create: %w", err)
 		}
@@ -59,16 +57,9 @@ func (uc *OrderUseCase) CreateFlatPoster(ctx context.Context, order *dto.OrderDT
 			keys = append(keys, key)
 		}
 
-		err = r.Posters().InsertPhotos(ctx, posterID, createOrder.Images)
+		err = r.Order().InsertPhotos(ctx, orderID, createOrder.Images)
 		if err != nil {
 			return fmt.Errorf("uc.PosterRepo.InsertPhotos: %w", err)
-		}
-
-		if len(createOrder.Images) > 0 {
-			err = r.Posters().InsertMainPhoto(ctx, posterID, post.Images[0].Path)
-			if err != nil {
-				return fmt.Errorf("r.Posters().InsertMainPhoto: %w", err)
-			}
 		}
 
 		return nil
@@ -77,13 +68,13 @@ func (uc *OrderUseCase) CreateFlatPoster(ctx context.Context, order *dto.OrderDT
 	if err != nil {
 		cleanErr := uc.cleanUploadedFiles(ctx, keys)
 		if cleanErr != nil {
-			return nil, fmt.Errorf("uc.cleanUploadedFiles: %w", cleanErr)
+			return fmt.Errorf("uc.cleanUploadedFiles: %w", cleanErr)
 		}
 
-		return nil, fmt.Errorf("uc.uow.Do: %w", err)
+		return fmt.Errorf("uc.uow.Do: %w", err)
 	}
 
-	return createdPoster, nil
+	return nil
 }
 
 func (uc *OrderUseCase) cleanUploadedFiles(ctx context.Context, keys []string) error {

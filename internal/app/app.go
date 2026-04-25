@@ -16,6 +16,7 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi"
 	authHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/auth"
 	complexHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/complex"
+	orderHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/order"
 	posterHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
 	userHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/elasticsearch"
@@ -25,6 +26,7 @@ import (
 	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
 	authUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
 	complexUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/complex"
+	orderUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/order"
 	posterUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
 	userUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/user"
 	"github.com/minio/minio-go/v7"
@@ -91,8 +93,11 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	userUC := userUC.NewUserUseCase(uow, fileRepo)
 	userHandler := userHandler.NewUserHandler(userUC)
 
+	orderUC := orderUC.NewOrderUseCase(uow, fileRepo)
+	orderHandler := orderHandler.NewOrderHandler(orderUC)
+
 	r := mux.NewRouter()
-	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler, userHandler)
+	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler, userHandler, orderHandler)
 	serverAddress := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	srv := &http.Server{
 		Handler:      r,
