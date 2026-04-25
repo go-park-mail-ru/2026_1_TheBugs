@@ -12,6 +12,14 @@ type User struct {
 	HashedPassword *string `db:"hashed_password"`
 	Provider       *string `db:"provider"`
 }
+type UserSecurity struct {
+	ID             int     `db:"id"`
+	Email          string  `db:"email"`
+	Salt           *string `db:"salt"`
+	HashedPassword *string `db:"hashed_password"`
+	Provider       *string `db:"provider"`
+	IsAdmin        bool    `db:"is_admin"`
+}
 
 type UserDetails struct {
 	ID        int     `db:"id"`

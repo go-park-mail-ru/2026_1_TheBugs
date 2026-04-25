@@ -111,6 +111,48 @@ func (uc AuthUseCase) LoginUseCase(ctx context.Context, email string, passwod st
 	return &cred, nil
 }
 
+func (uc AuthUseCase) LoginAdminUseCase(ctx context.Context, email string, passwod string) (*dto.UserAccessCredDTO, error) {
+	var cred dto.UserAccessCredDTO
+	if err := validator.ValidateCred(email, passwod); err != nil {
+		return &cred, err
+	}
+	user, err := uc.uow.Users().GetByEmailSecurity(ctx, email)
+
+	if err != nil {
+		return &cred, entity.NotFoundError
+	}
+	if !user.IsAdmin {
+		return &cred, entity.BadCredentials
+	}
+	if user.HashedPassword == nil || user.Salt == nil {
+		return nil, entity.BadCredentials
+	}
+
+	ok := pwd.VerifyPassword(passwod, []byte(*user.Salt), *user.HashedPassword)
+
+	if !ok {
+		return &cred, entity.BadCredentials
+
+	}
+	accessToken, err := tokens.GenerateAccessToken(user.ID, config.Config.JWT.AccessExp)
+
+	if err != nil {
+		return &cred, entity.ServiceError
+	}
+
+	refreshToken, _, err := uc.createAndSaveRefreshToken(ctx, user.ID)
+	if err != nil {
+		return &cred, entity.ServiceError
+	}
+	cred = dto.UserAccessCredDTO{
+		AccessToken:     accessToken,
+		AccessTokenExp:  int(config.Config.JWT.AccessExp.Seconds()),
+		RefreshToken:    refreshToken,
+		RefreshTokenExp: int(config.Config.JWT.RefreshExp.Seconds()),
+	}
+	return &cred, nil
+}
+
 func (uc AuthUseCase) createAndSaveRefreshToken(ctx context.Context, userID int) (string, time.Time, error) {
 	refreshTokenID := uuid.NewString()
 	refreshTokenExp := config.Config.JWT.RefreshExp

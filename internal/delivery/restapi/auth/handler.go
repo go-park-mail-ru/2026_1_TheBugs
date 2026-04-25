@@ -134,6 +134,50 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// LoginAdminUser
+// @Summary       Login admin user
+// @Description   Authenticate admin user and return access token + set refresh token cookie
+// @Tags          Auth
+// @Accept        x-www-form-urlencoded
+// @Param         email formData string true "User email"
+// @Param         password formData string true "User password"
+// @Success       200 {object} LoginResponse "Successful login, returns access token"
+// @Header        200 {string} Set-Cookie "refresh_token=<NEW_REFRESH_TOKEN>; HttpOnly; Path=/api/auth/refresh; Max-Age=..."
+// @Failure       400 {object} response.ValidationErrorResponse
+// @Failure       404 {object} response.ErrorResponse
+// @Failure       500 {object} response.ErrorResponse
+// @Security     CSRFToken
+// @Router        /auth/admin/login [post]
+func (h AuthHandler) LoginAdminUser(w http.ResponseWriter, r *http.Request) {
+	op := "AuthHandler.LoginAdminUser"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	var cred FormDataCredential
+
+	err := utils.ParseFormData(r, &cred)
+	log.Println(cred)
+	if err != nil {
+		log.Errorf("parse.ParseFormData: %s", err)
+		utils.WriteError(w, "invalid form data", http.StatusBadRequest)
+		return
+	}
+	accessCred, err := h.uc.LoginAdminUseCase(r.Context(), cred.Email, cred.Password)
+	if err != nil {
+		log.Errorf("h.uc.LoginAdminUseCase: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+	resp := LoginResponse{
+		AccessToken:    accessCred.AccessToken,
+		AccessTokenExp: accessCred.AccessTokenExp,
+	}
+
+	utils.SetRefreshCookie(w, accessCred)
+
+	utils.JSONResponse(w, http.StatusOK, &resp)
+
+}
+
 // RefreshToken
 // @Summary       Refresh access token
 // @Description   Obtain new access token using refresh token stored in cookie (refresh_token cookie required)

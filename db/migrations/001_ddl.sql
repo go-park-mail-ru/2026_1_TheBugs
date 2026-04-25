@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), 
     salt TEXT, 
     profile_id BIGINT NOT NULL, 
+    is_admin BOOLEAN NOT NULL DEFAULT FALSE,
 
     CONSTRAINT fk_profile FOREIGN KEY (profile_id) REFERENCES profiles(id), 
     CONSTRAINT email_check CHECK ( email ~ '^[^@]+@[^@]+\.[^@]+$' AND LENGTH(email)<= 255 ), 

@@ -40,6 +40,22 @@ func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*entity.User, 
 
 }
 
+func (r *UserRepo) GetByEmailSecurity(ctx context.Context, email string) (*entity.UserSecurity, error) {
+	sql := `SELECT id, email, salt, hashed_password, provider, is_admin FROM users WHERE email=$1`
+	row, err := r.pool.Query(ctx, sql, email)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+	defer row.Close()
+
+	user, err := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[entity.UserSecurity])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return &user, nil
+}
+
 func (r *UserRepo) GetByID(ctx context.Context, id int) (*dto.UserDTO, error) {
 	sql := `SELECT u.id, u.email, p.first_name, p.last_name, p.avatar_url, p.phone
 			FROM users u

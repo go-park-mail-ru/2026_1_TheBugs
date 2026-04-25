@@ -13,6 +13,7 @@ import (
 
 type UserRepo interface {
 	GetByEmail(ctx context.Context, email string) (*entity.User, error)
+	GetByEmailSecurity(ctx context.Context, email string) (*entity.UserSecurity, error)
 	Create(ctx context.Context, dto dto.CreateUserDTO) (*entity.User, error)
 	CreateByProvider(ctx context.Context, dto dto.CreateUserByProviderDTO) (*entity.User, error)
 	GetByProvider(ctx context.Context, provider string, email string) (*entity.User, error)
