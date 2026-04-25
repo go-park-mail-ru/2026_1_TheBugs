@@ -20,6 +20,7 @@ import (
 	userHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/elasticsearch"
 	minioRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/minio"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/openrouter"
 	tokensRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/redis/tokens"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/smtp"
 	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
@@ -39,6 +40,7 @@ import (
 )
 
 func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
+	ai := openrouter.New(config.Config.OpenRouter.APIKey, config.Config.OpenRouter.Model)
 	dsn := dsn.BuildDSN(cfg.Postgres)
 	rdb := redis.NewClient(&redis.Options{Addr: fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port), Password: cfg.Redis.Password, DB: cfg.Redis.DB})
 	minioClient, err := minio.New(cfg.Endpoint, &minio.Options{
