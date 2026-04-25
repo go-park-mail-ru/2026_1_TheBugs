@@ -323,17 +323,6 @@ COMMENT ON TABLE handling_categories IS 'Фото обращения';
 
 CREATE INDEX idx_favorites_users_id ON favorites(user_id);
 
-
-CREATE TABLE IF NOT EXISTS chats_users (
-    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    user_id BIGINT NOT NULL,
-    chat_id BIGINT NOT NULL,
-
-    CONSTRAINT fk_chats_users_user FOREIGN KEY (user_id) REFERENCES users(id),
-    CONSTRAINT fk_chats_users_chat FOREIGN KEY (chat_id) REFERENCES chats(id)
-);
- 
-
 CREATE INDEX idx_likes_users_id ON likes(user_id);
 CREATE INDEX idx_views_users_id ON views(user_id);
 
