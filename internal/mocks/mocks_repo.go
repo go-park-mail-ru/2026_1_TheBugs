@@ -784,6 +784,20 @@ func (mr *MockUnitOfWorkMockRecorder) Do(ctx, fn interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Do", reflect.TypeOf((*MockUnitOfWork)(nil).Do), ctx, fn)
 }
 
+// Order mocks base method.
+func (m *MockUnitOfWork) Order() usecase.OrderRepo {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Order")
+	ret0, _ := ret[0].(usecase.OrderRepo)
+	return ret0
+}
+
+// Order indicates an expected call of Order.
+func (mr *MockUnitOfWorkMockRecorder) Order() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Order", reflect.TypeOf((*MockUnitOfWork)(nil).Order))
+}
+
 // Posters mocks base method.
 func (m *MockUnitOfWork) Posters() usecase.PosterRepo {
 	m.ctrl.T.Helper()
@@ -1089,4 +1103,55 @@ func (m *MockSearchRepo) SearchPosters(ctx context.Context, filters dto.PostersF
 func (mr *MockSearchRepoMockRecorder) SearchPosters(ctx, filters interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchPosters", reflect.TypeOf((*MockSearchRepo)(nil).SearchPosters), ctx, filters)
+}
+
+// MockOrderRepo is a mock of OrderRepo interface.
+type MockOrderRepo struct {
+	ctrl     *gomock.Controller
+	recorder *MockOrderRepoMockRecorder
+}
+
+// MockOrderRepoMockRecorder is the mock recorder for MockOrderRepo.
+type MockOrderRepoMockRecorder struct {
+	mock *MockOrderRepo
+}
+
+// NewMockOrderRepo creates a new mock instance.
+func NewMockOrderRepo(ctrl *gomock.Controller) *MockOrderRepo {
+	mock := &MockOrderRepo{ctrl: ctrl}
+	mock.recorder = &MockOrderRepoMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockOrderRepo) EXPECT() *MockOrderRepoMockRecorder {
+	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockOrderRepo) Create(ctx context.Context, order *dto.Order) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", ctx, order)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockOrderRepoMockRecorder) Create(ctx, order interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockOrderRepo)(nil).Create), ctx, order)
+}
+
+// InsertPhotos mocks base method.
+func (m *MockOrderRepo) InsertPhotos(ctx context.Context, orderID int, photos []dto.PhotoInput) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertPhotos", ctx, orderID, photos)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// InsertPhotos indicates an expected call of InsertPhotos.
+func (mr *MockOrderRepoMockRecorder) InsertPhotos(ctx, orderID, photos interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertPhotos", reflect.TypeOf((*MockOrderRepo)(nil).InsertPhotos), ctx, orderID, photos)
 }

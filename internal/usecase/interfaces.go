@@ -79,6 +79,7 @@ type UnitOfWork interface {
 	Posters() PosterRepo
 	Autho() AuthRepo
 	UtilityCompany() UtilityCompanyRepo
+	Order() OrderRepo
 	Do(ctx context.Context, fn func(r UnitOfWork) error) error
 }
 
@@ -104,4 +105,9 @@ type FileRepo interface {
 
 type SearchRepo interface {
 	SearchPosters(ctx context.Context, filters dto.PostersFiltersDTO) (*dto.PostersResponse, error)
+}
+
+type OrderRepo interface {
+	Create(ctx context.Context, order *dto.Order) (int, error)
+	InsertPhotos(ctx context.Context, orderID int, photos []dto.PhotoInput) error
 }

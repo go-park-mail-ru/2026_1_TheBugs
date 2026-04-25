@@ -3,7 +3,6 @@ package order
 import (
 	"net/http"
 
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/response"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
@@ -21,6 +20,24 @@ func NewOrderHandler(uc *order.OrderUseCase) *OrderHandler {
 	}
 }
 
+// @Summary Create handling
+// @Description Creates a user handling (order) with optional photos
+// @Tags handlings
+// @Produce json
+// @Security     BearerAuth
+// @Security     CSRFToken
+// @Param category_id formData integer true "Handling category ID"
+// @Param description formData string true "Handling description"
+// @Param photos.0.file formData file false "First photo file"
+// @Param photos.0.order formData integer false "First photo order"
+// @Param photos.1.file formData file false "Second photo file"
+// @Param photos.1.order formData integer false "Second photo order"
+// @Success 201
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /support/orders [post]
 func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	op := "OrderHandler.CreateOrder"
 	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
@@ -49,15 +66,12 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	order, err := h.uc.CreateOrder(r.Context(), &req)
+	err = h.uc.CreateOrder(r.Context(), &req)
 	if err != nil {
 		log.Errorf("h.uc.CreateOrder: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
 
-	var response response.CreatedPosterResponse
-	response.Poster = poster
-
-	utils.JSONResponse(w, http.StatusCreated, response)
+	w.WriteHeader(http.StatusCreated)
 }

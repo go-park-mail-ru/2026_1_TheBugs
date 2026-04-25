@@ -1166,6 +1166,63 @@ paths:
       summary: Get list of user`s posters
       tags:
       - posters
+  /support/orders:
+    post:
+      description: Creates a user handling (order) with optional photos
+      parameters:
+      - description: Handling category ID
+        in: formData
+        name: category_id
+        required: true
+        type: integer
+      - description: Handling description
+        in: formData
+        name: description
+        required: true
+        type: string
+      - description: First photo file
+        in: formData
+        name: photos.0.file
+        type: file
+      - description: First photo order
+        in: formData
+        name: photos.0.order
+        type: integer
+      - description: Second photo file
+        in: formData
+        name: photos.1.file
+        type: file
+      - description: Second photo order
+        in: formData
+        name: photos.1.order
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      - CSRFToken: []
+      summary: Create handling
+      tags:
+      - handlings
   /user/me:
     get:
       description: Returns user details
