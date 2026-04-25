@@ -14,6 +14,11 @@ definitions:
       name:
         type: string
     type: object
+  dto.ChatResult:
+    properties:
+      answer:
+        type: string
+    type: object
   dto.CreatedPoster:
     properties:
       alias:
@@ -1166,6 +1171,42 @@ paths:
       summary: Get list of user`s posters
       tags:
       - posters
+  /support/agent-response:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Sends user prompt to support agent and returns AI response
+      parameters:
+      - description: User prompt
+        in: formData
+        name: user_prompt
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.ChatResult'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      - CSRFToken: []
+      summary: Get support agent response
+      tags:
+      - support
   /support/orders:
     post:
       description: Creates a user handling (order) with optional photos
