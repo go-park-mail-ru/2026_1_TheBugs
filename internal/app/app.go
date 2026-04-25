@@ -95,7 +95,7 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	userUC := userUC.NewUserUseCase(uow, fileRepo)
 	userHandler := userHandler.NewUserHandler(userUC)
 
-	orderUC := orderUC.NewOrderUseCase(uow, fileRepo)
+	orderUC := orderUC.NewOrderUseCase(uow, fileRepo, ai)
 	orderHandler := orderHandler.NewOrderHandler(orderUC)
 
 	r := mux.NewRouter()
