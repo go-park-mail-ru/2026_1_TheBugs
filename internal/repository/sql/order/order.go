@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	repository "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
@@ -72,4 +73,51 @@ func (r *OrderRepo) InsertPhotos(ctx context.Context, orderID int, photos []dto.
 	}
 
 	return nil
+}
+
+func (r *OrderRepo) GetByUserID(ctx context.Context, userID int) ([]entity.Order, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "OrderRepo.GetByUserID")
+	log.Info("start db query")
+
+	query := `
+		SELECT 
+			h.id,
+			hc.name,
+			h.status,
+			h.created_at
+		FROM handlings h
+		JOIN handling_categories hc ON hc.id = h.category_id
+		WHERE h.user_id = $1
+		ORDER BY h.created_at DESC
+	`
+
+	rows, err := r.pool.Query(ctx, query, userID)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+	defer rows.Close()
+
+	orders := make([]entity.Order, 0)
+
+	for rows.Next() {
+		var o entity.Order
+
+		err = rows.Scan(
+			&o.ID,
+			&o.CategoryName,
+			&o.Status,
+			&o.CreatedAt,
+		)
+		if err != nil {
+			return nil, repository.HandelPgErrors(err)
+		}
+
+		orders = append(orders, o)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return orders, nil
 }

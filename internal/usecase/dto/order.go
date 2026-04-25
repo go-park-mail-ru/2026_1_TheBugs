@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/google/uuid"
 )
 
@@ -63,4 +64,31 @@ func GeneratePhotoPathForOrder(order int) string {
 	reqId := fmt.Sprintf("%016x", seed.Int())[:10]
 	reqId += fmt.Sprintf("_ord_%d", order)
 	return fmt.Sprintf("/poster/img/%s/%s.jpg", uuid.New().String(), reqId)
+}
+
+type OrderPreviewDTO struct {
+	ID           int       `json:"id"`
+	CategoryName string    `json:"category_name"`
+	Status       string    `json:"status"`
+	CreatedAt    time.Time `json:"created_at"`
+}
+
+func ToOrderPreview(entities []entity.Order) []OrderPreviewDTO {
+	result := make([]OrderPreviewDTO, 0, len(entities))
+
+	for _, e := range entities {
+		result = append(result, OrderPreviewDTO{
+			ID:           e.ID,
+			CategoryName: e.CategoryName,
+			Status:       e.Status,
+			CreatedAt:    e.CreatedAt,
+		})
+	}
+
+	return result
+}
+
+type OrdersResponse struct {
+	Len    int               `json:"len"`
+	Orders []OrderPreviewDTO `json:"order"`
 }
