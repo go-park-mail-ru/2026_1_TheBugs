@@ -870,6 +870,7 @@ func (r *PosterRepo) GetClustersByMapBounds(ctx context.Context, coords dto.MapB
 	}
 
 	return clusters, nil
+}
 func (r *PosterRepo) AddFavorite(ctx context.Context, userID int, posterID int) error {
 	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.AddFavorite")
 	log.Info("start db add favorite")
@@ -939,6 +940,13 @@ func (r *PosterRepo) CountFavoritesByUserID(ctx context.Context, userID int) (in
 
 	var count int
 	err := r.pool.QueryRow(ctx, query, userID).Scan(&count)
+	if err != nil {
+		return 0, repository.HandelPgErrors(err)
+	}
+
+	return count, nil
+}
+
 func (r *PosterRepo) AddView(ctx context.Context, userID int, posterID int) {
 	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.AddView")
 	log.Info("start db add view")

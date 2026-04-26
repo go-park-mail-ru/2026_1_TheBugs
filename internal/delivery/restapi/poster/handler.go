@@ -417,6 +417,7 @@ func (h *PosterHandler) AddFavoritePoster(w http.ResponseWriter, r *http.Request
 		return
 	}
 }
+
 // @Summary Add poster view
 // @Description Adds a view for a poster
 // @Tags posters
@@ -454,6 +455,37 @@ func (h *PosterHandler) AddViewPoster(w http.ResponseWriter, r *http.Request) {
 		utils.HandelError(w, err)
 		return
 	}
+}
+
+// @Summary Get poster views
+// @Description Returns poster views count
+// @Tags posters
+// @Produce json
+// @Param alias path string true "Poster alias"
+// @Success 200 {object} response.PosterViewsResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/{alias}/views [get]
+func (h *PosterHandler) GetViewsPoster(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GetViewsPoster"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	alias, err := utils.ParseAliasFromRequest(r)
+	if err != nil {
+		log.Errorf("utils.ParseAliasFromRequest: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	views, err := h.uc.GetViewsPoster(r.Context(), alias)
+	if err != nil {
+		log.Errorf("h.uc.GetViewsPoster: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, views)
 }
 
 // @Summary Get favorite posters

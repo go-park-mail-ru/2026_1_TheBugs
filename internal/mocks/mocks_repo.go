@@ -180,6 +180,18 @@ func (mr *MockPosterRepoMockRecorder) AddFavorite(ctx, userID, posterID interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddFavorite", reflect.TypeOf((*MockPosterRepo)(nil).AddFavorite), ctx, userID, posterID)
 }
 
+// AddView mocks base method.
+func (m *MockPosterRepo) AddView(ctx context.Context, userID, posterID int) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "AddView", ctx, userID, posterID)
+}
+
+// AddView indicates an expected call of AddView.
+func (mr *MockPosterRepoMockRecorder) AddView(ctx, userID, posterID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddView", reflect.TypeOf((*MockPosterRepo)(nil).AddView), ctx, userID, posterID)
+}
+
 // CountFavoritesByUserID mocks base method.
 func (m *MockPosterRepo) CountFavoritesByUserID(ctx context.Context, userID int) (int, error) {
 	m.ctrl.T.Helper()
@@ -193,16 +205,6 @@ func (m *MockPosterRepo) CountFavoritesByUserID(ctx context.Context, userID int)
 func (mr *MockPosterRepoMockRecorder) CountFavoritesByUserID(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountFavoritesByUserID", reflect.TypeOf((*MockPosterRepo)(nil).CountFavoritesByUserID), ctx, userID)
-// AddView mocks base method.
-func (m *MockPosterRepo) AddView(ctx context.Context, userID, posterID int) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "AddView", ctx, userID, posterID)
-}
-
-// AddView indicates an expected call of AddView.
-func (mr *MockPosterRepoMockRecorder) AddView(ctx, userID, posterID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddView", reflect.TypeOf((*MockPosterRepo)(nil).AddView), ctx, userID, posterID)
 }
 
 // CountPosters mocks base method.
@@ -423,6 +425,21 @@ func (mr *MockPosterRepoMockRecorder) GetCityByName(ctx, name interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCityByName", reflect.TypeOf((*MockPosterRepo)(nil).GetCityByName), ctx, name)
 }
 
+// GetClustersByMapBounds mocks base method.
+func (m *MockPosterRepo) GetClustersByMapBounds(ctx context.Context, coords dto.MapBounds) ([]entity.ClusterPoint, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetClustersByMapBounds", ctx, coords)
+	ret0, _ := ret[0].([]entity.ClusterPoint)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetClustersByMapBounds indicates an expected call of GetClustersByMapBounds.
+func (mr *MockPosterRepoMockRecorder) GetClustersByMapBounds(ctx, coords interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClustersByMapBounds", reflect.TypeOf((*MockPosterRepo)(nil).GetClustersByMapBounds), ctx, coords)
+}
+
 // GetFavoritesFlatsByUserID mocks base method.
 func (m *MockPosterRepo) GetFavoritesFlatsByUserID(ctx context.Context, userID int) ([]entity.PosterFlat, error) {
 	m.ctrl.T.Helper()
@@ -436,21 +453,6 @@ func (m *MockPosterRepo) GetFavoritesFlatsByUserID(ctx context.Context, userID i
 func (mr *MockPosterRepoMockRecorder) GetFavoritesFlatsByUserID(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavoritesFlatsByUserID", reflect.TypeOf((*MockPosterRepo)(nil).GetFavoritesFlatsByUserID), ctx, userID)
-}
-  
-  // GetClustersByMapBounds mocks base method.
-func (m *MockPosterRepo) GetClustersByMapBounds(ctx context.Context, coords dto.MapBounds) ([]entity.ClusterPoint, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetClustersByMapBounds", ctx, coords)
-	ret0, _ := ret[0].([]entity.ClusterPoint)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetClustersByMapBounds indicates an expected call of GetClustersByMapBounds.
-func (mr *MockPosterRepoMockRecorder) GetClustersByMapBounds(ctx, coords interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClustersByMapBounds", reflect.TypeOf((*MockPosterRepo)(nil).GetClustersByMapBounds), ctx, coords)
 }
 
 // GetFlatByPropetyID mocks base method.
