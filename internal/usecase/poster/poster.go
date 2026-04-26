@@ -653,15 +653,15 @@ func (uc *PosterUseCase) GenerateDescription(ctx context.Context, input dto.Gene
 	 НЕ ДЕЛАЙ форматированя текста только текст
 	 НЕ БОЛЕЕ 3000 символов
 	 Выходной текст должен быть ПОЛНОСТЬЮ на русском языке.
+	 НЕ ПРИДУМЫВАЙ НИКАКОЙ ИНФОРМАЦИИ, опирайся на предоставленную информацию.
 	 Вот информация об объекте недвижимости:
 	- Тип недвижимости: %s
 	- Количество комнат: %s
-	- Город: %s
 	- Общая площадь: %f кв.м
 	- Оссобенности: %s
 	 `
 
-	res, err := uc.agent.Chat(ctx, fmt.Sprintf(systemPrompt, input.Category, input.FlatCategory, input.City, input.Area, input.Features), "Сгенерируй описание для этого объекта недвижимости.")
+	res, err := uc.agent.Chat(ctx, fmt.Sprintf(systemPrompt, input.Category, input.FlatCategory, input.Area, input.Features), "Сгенерируй описание для этого объекта недвижимости.")
 	if err != nil {
 		return "", fmt.Errorf("uc.agent.Chat: %w", err)
 	}
