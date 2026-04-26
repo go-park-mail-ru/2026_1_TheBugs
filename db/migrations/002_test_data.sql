@@ -12,13 +12,13 @@ INSERT INTO profiles (phone, first_name, last_name) VALUES
 -- ============================================================
 -- 2. Пользователи
 -- ============================================================
-INSERT INTO users (email, hashed_password, provider, profile_id, salt) VALUES
-    ('ivan.petrov@mail.ru', '$2b$12$abcdefgh1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN', NULL, 1, 'salt_ivan_001'),
-    ('anna.sokolova@yandex.ru', '$2b$12$zyxwvutsrqponmlkjihgfedcbaZYXWVUTSRQPONMLKJIHGFEDCBA0123', NULL, 2, 'salt_anna_002'),
-    ('sergey.kuzmin@gmail.com', NULL, 'google', 3, 'salt_sergey_003'),
-    ('olga.morozova@mail.ru', '$2b$12$1234567890abcdefgh1234567890abcdefghijklmnopqrstuvwxyzABC', NULL, 4, 'salt_olga_004'),
-    ('dmitry.volkov@yandex.ru', NULL, 'vk', 5, 'salt_dmitry_005'),
-    ('maria.novikova@gmail.com', '$2b$12$qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM12', NULL, 6, 'salt_maria_006');
+INSERT INTO users (email, hashed_password, provider, profile_id, salt, is_verified) VALUES
+    ('ivan.petrov@mail.ru', '$2b$12$abcdefgh1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN', NULL, 1, 'salt_ivan_001', true),
+    ('anna.sokolova@yandex.ru', '$2b$12$zyxwvutsrqponmlkjihgfedcbaZYXWVUTSRQPONMLKJIHGFEDCBA0123', NULL, 2, 'salt_anna_002', true),
+    ('sergey.kuzmin@gmail.com', NULL, 'google', 3, 'salt_sergey_003', true),
+    ('olga.morozova@mail.ru', '$2b$12$1234567890abcdefgh1234567890abcdefghijklmnopqrstuvwxyzABC', NULL, 4, 'salt_olga_004', true),
+    ('dmitry.volkov@yandex.ru', NULL, 'vk', 5, 'salt_dmitry_005', true),
+    ('maria.novikova@gmail.com', '$2b$12$qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM12', NULL, 6, 'salt_maria_006', true);
 
 -- ============================================================
 -- 3. Города

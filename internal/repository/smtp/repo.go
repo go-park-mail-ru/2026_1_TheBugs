@@ -66,6 +66,7 @@ func (e *SMTPSender) SendVerificationCode(ctx context.Context, email, code strin
     `, code))
 
 	dialer := gomail.NewDialer(e.host, e.port, e.username, e.password)
+	log.Printf("start")
 
 	go func(ctx context.Context) {
 		if err := dialer.DialAndSend(m); err != nil {
