@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"log"
 
@@ -455,19 +456,27 @@ func (r *ESRepo) DeletePoster(ctx context.Context, posterID int) error {
 		return fmt.Errorf("marshal query: %w", err)
 	}
 	fmt.Println(queryBody)
-	go func(ctx context.Context) {
+	go func() {
+		bgCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
 		res, err := r.client.DeleteByQuery(
 			[]string{"posters"},
 			bytes.NewReader(queryBody),
-			r.client.DeleteByQuery.WithContext(ctx),
+			r.client.DeleteByQuery.WithContext(bgCtx),
 		)
 		if err != nil {
-			log.Printf("delete by query request failed: %w", err)
+			log.Printf("delete by query request failed: %v", err)
+			return
 		}
+		defer res.Body.Close()
+
 		if res.IsError() {
 			log.Printf("delete by query returned %s", res.Status())
+		} else {
+			log.Printf("delete by query succeeded for poster ID: %d", posterID)
 		}
-	}(ctx)
+	}()
 
 	return nil
 
