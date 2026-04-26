@@ -5,11 +5,11 @@ until curl -s http://localhost:9200/_cluster/health > /dev/null; do
   sleep 2
 done
 
-curl -X DELETE "localhost:9200/posters" -s > /dev/null || true
+curl -v -X DELETE "localhost:9200/posters" -s || true
 
-curl -X PUT "localhost:9200/posters" \
-  -H 'Content-Type: application/json' << 'EOF'
-{
+curl -v -X PUT "localhost:9200/posters" \
+  -H 'Content-Type: application/json' \
+  -d '{
   "settings": {
     "analysis": {
       "filter": {
@@ -44,7 +44,6 @@ curl -X PUT "localhost:9200/posters" \
       }
     }
   }
-}
-EOF
+}'
 
 echo "✅ Индекс posters создан!"
