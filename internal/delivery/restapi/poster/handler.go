@@ -2,6 +2,7 @@ package poster
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/response"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
@@ -523,4 +524,94 @@ func (h *PosterHandler) DeleteFavoritePoster(w http.ResponseWriter, r *http.Requ
 		utils.HandelError(w, err)
 		return
 	}
+}
+
+// @Summary Get list of posters JSONGeo
+// @Description Returns filtered list of apartment posters on in JSONGeo notation
+// @Tags posters
+// @Produce json
+// @Param sw_lat query float32 true "South West Lat"
+// @Param sw_lon query float32 true "South West Lon"
+// @Param ne_lat query float32 true "North East Lat"
+// @Param ne_lon query float32 true "North East Lon"
+// @Param zoom query int true "Map Zoom"
+// @Param search_query query string false "Full-text search"
+// @Param utility_company query string false "Utility company alias"
+// @Param category query string false "Category alias"
+// @Param room_count query int false "Exact room count"
+// @Param min_price query int false "Min price"
+// @Param max_price query int false "Max price"
+// @Param facilities query []string false "Facilities aliases"
+// @Param min_square query int false "Min area, sq.m"
+// @Param max_square query int false "Max area, sq.m"
+// @Param min_flat_floor query int false "Min floor"
+// @Param max_flat_floor query int false "Max floor"
+// @Param min_building_floor query int false "Min building floors"
+// @Param max_building_floor query int false "Max building floors"
+// @Param not_first_floor query boolean false "Exclude 1st floor" default(false)
+// @Param not_last_floor query boolean false "Exclude last floor" default(false)
+// @Success 200 {object} dto.GeoJSONFeatureResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/geo [get]
+func (h *PosterHandler) GetFlatsMapAll(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GetFlatsMapAll"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	bbox, err := utils.ParseMapFilters(r)
+	if err != nil {
+		log.Errorf("utils.ParseMapFilters: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+	params, err := utils.ParsePostersFilters(r)
+	if err != nil {
+		log.Errorf("utils.ParsePostersFilters: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	posters, err := h.uc.GetPostersByCoords(r.Context(), bbox, params)
+	if err != nil {
+		log.Errorf("h.uc.GetPostersByCoord: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, posters)
+}
+
+// @Summary Get list of posters by point
+// @Description Returns posters by point
+// @Tags posters
+// @Produce json
+// @Param lat query float32 true "Lat"
+// @Param lon query float32 true "Lon"
+// @Success 200 {object} response.MyPostersResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/by-point [get]
+func (h *PosterHandler) GetPostersByPoint(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GetFlatsMapAll"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+	q := r.URL.Query()
+	lat, err := strconv.ParseFloat(q.Get("lat"), 32)
+	if err != nil {
+		log.Errorf("strconv.ParseFloat(q.Get(lat): %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+	}
+	lon, err := strconv.ParseFloat(q.Get("lon"), 32)
+	if err != nil {
+		log.Errorf("strconv.ParseFloat(q.Get(lon): %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+	}
+
+	posters, err := h.uc.GetPostersByRadius(r.Context(), dto.GeographyDTO{Lat: lat, Lon: lon})
+	if err != nil {
+		log.Errorf("h.uc.GetPostersByRadius: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, response.MyPostersResponse{Posters: posters, Len: len(posters)})
 }

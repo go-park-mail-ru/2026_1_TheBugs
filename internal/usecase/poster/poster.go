@@ -79,16 +79,16 @@ func (uc *PosterUseCase) SearchPostersUseCase(ctx context.Context, filters dto.P
 		log.Printf("uc.search.SearchPosters: %s", err)
 		return nil, err
 	}
-	ids := make([]int, 0, response.Len)
-	for _, p := range response.Posters {
-		ids = append(ids, p.ID)
-	}
-	posters, err := uc.uow.Posters().GetFlatsByIDs(ctx, ids)
-	if err != nil {
-		log.Printf("uc.uow.Posters().GetFlatsByIDs: %s", err)
-		return nil, err
-	}
-	response.Posters = dto.PostersToPostersDTO(posters)
+	// ids := make([]int, 0, response.Len)
+	// for _, p := range response.Posters {
+	// 	ids = append(ids, p.ID)
+	// }
+	// posters, err := uc.uow.Posters().GetFlatsByIDs(ctx, ids)
+	// if err != nil {
+	// 	log.Printf("uc.uow.Posters().GetFlatsByIDs: %s", err)
+	// 	return nil, err
+	// }
+	// response.Posters = dto.PostersToPostersDTO(posters)
 	return response, nil
 }
 
@@ -512,6 +512,10 @@ func (uc *PosterUseCase) DeleteFlatPoster(ctx context.Context, alias string, use
 		if err != nil {
 			return fmt.Errorf("delete building: %w", err)
 		}
+		err = uc.search.DeletePoster(ctx, ids.PosterID)
+		if err != nil {
+			return fmt.Errorf("uc.search.DeletePoster: %w", err)
+		}
 
 		deletedPoster = &dto.CreatedPoster{
 			ID:    ids.PosterID,
@@ -528,6 +532,42 @@ func (uc *PosterUseCase) DeleteFlatPoster(ctx context.Context, alias string, use
 	}
 
 	return deletedPoster, nil
+}
+
+func (uc *PosterUseCase) GetPostersByCoords(ctx context.Context, bounds dto.MapBounds, filters dto.PostersFiltersDTO) (*dto.GeoJSONFeatureResponse, error) {
+	filters.Offset = 0
+	filters.Limit = 100
+
+	if bounds.Zoom < 13 {
+		clusters, err := uc.search.GetClustersByMapBounds(ctx, bounds, filters)
+		if err != nil {
+			return nil, fmt.Errorf("uc.uow.Posters().GetClustersByCoords: %w", err)
+		}
+
+		return &dto.GeoJSONFeatureResponse{
+			Posters: dto.ClustersToGEOJsons(clusters),
+			Len:     len(clusters),
+		}, nil
+	}
+
+	posters, err := uc.search.GetPostersByMapBounds(ctx, bounds, filters)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Posters().GetPostersByCoords: %w", err)
+	}
+
+	return &dto.GeoJSONFeatureResponse{
+		Posters: dto.PostersToGEOJsons(posters),
+		Len:     len(posters),
+	}, nil
+}
+
+func (uc *PosterUseCase) GetPostersByRadius(ctx context.Context, point dto.GeographyDTO) ([]dto.MyPosterDTO, error) {
+	posters, err := uc.uow.Posters().GetPostersByRadius(ctx, point, 10)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Posters().GetPostersByRadius: %w", err)
+	}
+
+	return dto.MyPosterToMyPosterDTO(posters), nil
 }
 
 func (uc *PosterUseCase) AddViewPoster(ctx context.Context, alias string, userID int) error {

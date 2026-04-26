@@ -48,6 +48,25 @@ definitions:
       room_count:
         type: integer
     type: object
+  dto.GeoJSONFeature:
+    properties:
+      geometry:
+        $ref: '#/definitions/dto.Geometry'
+      propertiese:
+        additionalProperties: {}
+        type: object
+      type:
+        type: string
+    type: object
+  dto.GeoJSONFeatureResponse:
+    properties:
+      features:
+        items:
+          $ref: '#/definitions/dto.GeoJSONFeature'
+        type: array
+      len:
+        type: integer
+    type: object
   dto.GeographyDTO:
     properties:
       lat:
@@ -55,7 +74,33 @@ definitions:
       lon:
         type: number
     type: object
+  dto.Geometry:
+    properties:
+      coordinates:
+        items:
+          type: number
+        type: array
+      type:
+        type: string
+    type: object
   dto.HouseDTO:
+    type: object
+  dto.MyPosterDTO:
+    properties:
+      address:
+        type: string
+      alias:
+        type: string
+      area:
+        type: number
+      avatar_url:
+        type: string
+      category:
+        $ref: '#/definitions/dto.CategoryDTO'
+      id:
+        type: integer
+      price:
+        type: number
     type: object
   dto.OAuthCodeFlow:
     properties:
@@ -254,6 +299,15 @@ definitions:
         type: string
       error:
         type: string
+    type: object
+  response.MyPostersResponse:
+    properties:
+      len:
+        type: integer
+      posters:
+        items:
+          $ref: '#/definitions/dto.MyPosterDTO'
+        type: array
     type: object
   response.PosterResponse:
     properties:
@@ -730,32 +784,38 @@ paths:
       summary: Get poster by alias
       tags:
       - posters
-  /posters/favorites:
+  /posters/by-point:
     get:
-      description: Returns all favorite posters of the user
+      description: Returns posters by point
+      parameters:
+      - description: Lat
+        format: float32
+        in: query
+        name: lat
+        required: true
+        type: number
+      - description: Lon
+        format: float32
+        in: query
+        name: lon
+        required: true
+        type: number
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dto.PostersResponse'
+            $ref: '#/definitions/response.MyPostersResponse'
         "400":
           description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "401":
-          description: Unauthorized
           schema:
             $ref: '#/definitions/response.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      - CSRFToken: []
-      summary: Get favorite posters
+      summary: Get list of posters by point
       tags:
       - posters
   /posters/flat:
@@ -1135,6 +1195,122 @@ paths:
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: Get list of posters
+      tags:
+      - posters
+  /posters/geo:
+    get:
+      description: Returns filtered list of apartment posters on in JSONGeo notation
+      parameters:
+      - description: South West Lat
+        format: float32
+        in: query
+        name: sw_lat
+        required: true
+        type: number
+      - description: South West Lon
+        format: float32
+        in: query
+        name: sw_lon
+        required: true
+        type: number
+      - description: North East Lat
+        format: float32
+        in: query
+        name: ne_lat
+        required: true
+        type: number
+      - description: North East Lon
+        format: float32
+        in: query
+        name: ne_lon
+        required: true
+        type: number
+      - description: Map Zoom
+        in: query
+        name: zoom
+        required: true
+        type: integer
+      - description: Full-text search
+        in: query
+        name: search_query
+        type: string
+      - description: Utility company alias
+        in: query
+        name: utility_company
+        type: string
+      - description: Category alias
+        in: query
+        name: category
+        type: string
+      - description: Exact room count
+        in: query
+        name: room_count
+        type: integer
+      - description: Min price
+        in: query
+        name: min_price
+        type: integer
+      - description: Max price
+        in: query
+        name: max_price
+        type: integer
+      - collectionFormat: csv
+        description: Facilities aliases
+        in: query
+        items:
+          type: string
+        name: facilities
+        type: array
+      - description: Min area, sq.m
+        in: query
+        name: min_square
+        type: integer
+      - description: Max area, sq.m
+        in: query
+        name: max_square
+        type: integer
+      - description: Min floor
+        in: query
+        name: min_flat_floor
+        type: integer
+      - description: Max floor
+        in: query
+        name: max_flat_floor
+        type: integer
+      - description: Min building floors
+        in: query
+        name: min_building_floor
+        type: integer
+      - description: Max building floors
+        in: query
+        name: max_building_floor
+        type: integer
+      - default: false
+        description: Exclude 1st floor
+        in: query
+        name: not_first_floor
+        type: boolean
+      - default: false
+        description: Exclude last floor
+        in: query
+        name: not_last_floor
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GeoJSONFeatureResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get list of posters JSONGeo
       tags:
       - posters
   /posters/me:

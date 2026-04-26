@@ -30,7 +30,10 @@ type PosterRepo interface {
 	GetFlatByPropetyID(ctx context.Context, propertyID int) (*entity.Flat, error)
 
 	GetByUserID(ctx context.Context, userID int) ([]entity.Poster, error)
+	GetClustersByMapBounds(ctx context.Context, coords dto.MapBounds) ([]entity.ClusterPoint, error)
 	GetMetroStationByRadius(ctx context.Context, buidingGeo dto.GeographyDTO, radius entity.Metre) ([]entity.MetroStation, error)
+	GetPostersByMapBounds(ctx context.Context, coords dto.MapBounds) ([]entity.AnyPoint, error)
+	GetPostersByRadius(ctx context.Context, point dto.GeographyDTO, radius entity.Metre) ([]entity.Poster, error)
 
 	CreateBuilding(ctx context.Context, poster *dto.PosterInput) (int, error)
 	CreateProperty(ctx context.Context, poster *dto.PosterInput, buildingID int) (int, error)
@@ -108,4 +111,7 @@ type FileRepo interface {
 
 type SearchRepo interface {
 	SearchPosters(ctx context.Context, filters dto.PostersFiltersDTO) (*dto.PostersResponse, error)
+	GetClustersByMapBounds(ctx context.Context, coords dto.MapBounds, filters dto.PostersFiltersDTO) ([]entity.ClusterPoint, error)
+	GetPostersByMapBounds(ctx context.Context, coords dto.MapBounds, filters dto.PostersFiltersDTO) ([]entity.AnyPoint, error)
+	DeletePoster(ctx context.Context, posterID int) error
 }

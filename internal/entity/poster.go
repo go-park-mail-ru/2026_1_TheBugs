@@ -27,6 +27,35 @@ type Poster struct {
 	CategoryAlias string  `db:"category_alias"`
 }
 
+type AnyPoint struct {
+	ID       int64    `db:"id" json:"id"`
+	Lat      float64  `db:"lat" json:"lat"`
+	Lon      float64  `db:"lon" json:"lon"`
+	Count    *int64   `db:"count" json:"count,omitempty"`
+	PriceMin *float64 `db:"price_min" json:"priceMin,omitempty"`
+	Price    *float64 `db:"price" json:"price,omitempty"`
+	Alias    *string  `db:"alias" json:"alias,omitempty"`
+	Group    bool     `db:"cluster" json:"group"`
+}
+
+type PosterPoint struct {
+	ID      int64   `db:"id" json:"id"`
+	Lat     float64 `db:"lat" json:"lat"`
+	Lon     float64 `db:"lon" json:"lon"`
+	Price   int64   `db:"price" json:"price"`
+	Alias   string  `db:"alias" json:"alias"`
+	Cluster bool    `db:"cluster" json:"cluster"`
+}
+
+type ClusterPoint struct {
+	ID    int64   `db:"id" json:"id"`
+	Lat   float64 `db:"lat" json:"lat"`
+	Lon   float64 `db:"lon" json:"lon"`
+	Count int64   `db:"count" json:"count"`
+	// PriceMin int64   `db:"price_min" json:"priceMin,omitempty"`
+	// PriceMax int64   `db:"price_max" json:"priceMax,omitempty"`
+}
+
 type PosterImage struct {
 	ImgURL string `db:"img_url"`
 	Order  int    `db:"sequence_order"`

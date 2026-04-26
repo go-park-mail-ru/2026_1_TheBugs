@@ -28,6 +28,7 @@ curl -X PUT "localhost:9200/posters" \
   },
   "mappings": {
     "properties": {
+      "geo": { "type": "geo_point" },
       "description": {"type": "text", "analyzer": "russian_analyzer"},
       "facilities": {
         "type": "nested",

@@ -589,39 +589,43 @@ const docTemplate = `{
                 }
             }
         },
-        "/posters/favorites": {
+        "/posters/by-point": {
             "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    },
-                    {
-                        "CSRFToken": []
-                    }
-                ],
-                "description": "Returns all favorite posters of the user",
+                "description": "Returns posters by point",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "posters"
                 ],
-                "summary": "Get favorite posters",
+                "summary": "Get list of posters by point",
+                "parameters": [
+                    {
+                        "type": "number",
+                        "format": "float32",
+                        "description": "Lat",
+                        "name": "lat",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "format": "float32",
+                        "description": "Lon",
+                        "name": "lon",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/dto.PostersResponse"
+                            "$ref": "#/definitions/response.MyPostersResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -1204,6 +1208,175 @@ const docTemplate = `{
                 }
             }
         },
+        "/posters/geo": {
+            "get": {
+                "description": "Returns filtered list of apartment posters on in JSONGeo notation",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posters"
+                ],
+                "summary": "Get list of posters JSONGeo",
+                "parameters": [
+                    {
+                        "type": "number",
+                        "format": "float32",
+                        "description": "South West Lat",
+                        "name": "sw_lat",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "format": "float32",
+                        "description": "South West Lon",
+                        "name": "sw_lon",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "format": "float32",
+                        "description": "North East Lat",
+                        "name": "ne_lat",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "format": "float32",
+                        "description": "North East Lon",
+                        "name": "ne_lon",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Map Zoom",
+                        "name": "zoom",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Full-text search",
+                        "name": "search_query",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Utility company alias",
+                        "name": "utility_company",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Category alias",
+                        "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Exact room count",
+                        "name": "room_count",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Min price",
+                        "name": "min_price",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Max price",
+                        "name": "max_price",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Facilities aliases",
+                        "name": "facilities",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Min area, sq.m",
+                        "name": "min_square",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Max area, sq.m",
+                        "name": "max_square",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Min floor",
+                        "name": "min_flat_floor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Max floor",
+                        "name": "max_flat_floor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Min building floors",
+                        "name": "min_building_floor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Max building floors",
+                        "name": "max_building_floor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Exclude 1st floor",
+                        "name": "not_first_floor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Exclude last floor",
+                        "name": "not_last_floor",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GeoJSONFeatureResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/posters/me": {
             "get": {
                 "security": [
@@ -1767,6 +1940,35 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.GeoJSONFeature": {
+            "type": "object",
+            "properties": {
+                "geometry": {
+                    "$ref": "#/definitions/dto.Geometry"
+                },
+                "propertiese": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GeoJSONFeatureResponse": {
+            "type": "object",
+            "properties": {
+                "features": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.GeoJSONFeature"
+                    }
+                },
+                "len": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.GeographyDTO": {
             "type": "object",
             "properties": {
@@ -1778,8 +1980,48 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.Geometry": {
+            "type": "object",
+            "properties": {
+                "coordinates": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.HouseDTO": {
             "type": "object"
+        },
+        "dto.MyPosterDTO": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "alias": {
+                    "type": "string"
+                },
+                "area": {
+                    "type": "number"
+                },
+                "avatar_url": {
+                    "type": "string"
+                },
+                "category": {
+                    "$ref": "#/definitions/dto.CategoryDTO"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
         },
         "dto.OAuthCodeFlow": {
             "type": "object",
@@ -2083,6 +2325,20 @@ const docTemplate = `{
                 },
                 "error": {
                     "type": "string"
+                }
+            }
+        },
+        "response.MyPostersResponse": {
+            "type": "object",
+            "properties": {
+                "len": {
+                    "type": "integer"
+                },
+                "posters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.MyPosterDTO"
+                    }
                 }
             }
         },

@@ -95,6 +95,8 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		apiGroup.HandleFunc("/utility-companies/", UtilityCompany.GetUtilityCompaniesByDeveloper).Methods(http.MethodGet)
 
 		apiGroup.HandleFunc("/posters/flats", post.GetFlatsAll).Methods(http.MethodGet)
+		apiGroup.HandleFunc("/posters/geo", post.GetFlatsMapAll).Methods(http.MethodGet, http.MethodOptions)
+		apiGroup.HandleFunc("/posters/by-point", post.GetPostersByPoint).Methods(http.MethodGet, http.MethodOptions)
 		apiGroup.HandleFunc("/posters/by-alias/{alias}", post.GetPoster).Methods(http.MethodGet)
 
 		apiGroup.Handle("/posters/me", AuthMiddlewary(http.HandlerFunc(post.GetPostersByUser))).Methods(http.MethodGet, http.MethodOptions)

@@ -437,6 +437,21 @@ func (mr *MockPosterRepoMockRecorder) GetFavoritesFlatsByUserID(ctx, userID inte
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavoritesFlatsByUserID", reflect.TypeOf((*MockPosterRepo)(nil).GetFavoritesFlatsByUserID), ctx, userID)
 }
+  
+  // GetClustersByMapBounds mocks base method.
+func (m *MockPosterRepo) GetClustersByMapBounds(ctx context.Context, coords dto.MapBounds) ([]entity.ClusterPoint, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetClustersByMapBounds", ctx, coords)
+	ret0, _ := ret[0].([]entity.ClusterPoint)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetClustersByMapBounds indicates an expected call of GetClustersByMapBounds.
+func (mr *MockPosterRepoMockRecorder) GetClustersByMapBounds(ctx, coords interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClustersByMapBounds", reflect.TypeOf((*MockPosterRepo)(nil).GetClustersByMapBounds), ctx, coords)
+}
 
 // GetFlatByPropetyID mocks base method.
 func (m *MockPosterRepo) GetFlatByPropetyID(ctx context.Context, propertyID int) (*entity.Flat, error) {
@@ -511,6 +526,36 @@ func (m *MockPosterRepo) GetPhotoPathsByPosterID(ctx context.Context, posterID i
 func (mr *MockPosterRepoMockRecorder) GetPhotoPathsByPosterID(ctx, posterID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPhotoPathsByPosterID", reflect.TypeOf((*MockPosterRepo)(nil).GetPhotoPathsByPosterID), ctx, posterID)
+}
+
+// GetPostersByMapBounds mocks base method.
+func (m *MockPosterRepo) GetPostersByMapBounds(ctx context.Context, coords dto.MapBounds) ([]entity.AnyPoint, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPostersByMapBounds", ctx, coords)
+	ret0, _ := ret[0].([]entity.AnyPoint)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPostersByMapBounds indicates an expected call of GetPostersByMapBounds.
+func (mr *MockPosterRepoMockRecorder) GetPostersByMapBounds(ctx, coords interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostersByMapBounds", reflect.TypeOf((*MockPosterRepo)(nil).GetPostersByMapBounds), ctx, coords)
+}
+
+// GetPostersByRadius mocks base method.
+func (m *MockPosterRepo) GetPostersByRadius(ctx context.Context, point dto.GeographyDTO, radius entity.Metre) ([]entity.Poster, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPostersByRadius", ctx, point, radius)
+	ret0, _ := ret[0].([]entity.Poster)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPostersByRadius indicates an expected call of GetPostersByRadius.
+func (mr *MockPosterRepoMockRecorder) GetPostersByRadius(ctx, point, radius interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostersByRadius", reflect.TypeOf((*MockPosterRepo)(nil).GetPostersByRadius), ctx, point, radius)
 }
 
 // GetUpdateIDsByAlias mocks base method.
@@ -1130,6 +1175,50 @@ func NewMockSearchRepo(ctrl *gomock.Controller) *MockSearchRepo {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockSearchRepo) EXPECT() *MockSearchRepoMockRecorder {
 	return m.recorder
+}
+
+// DeletePoster mocks base method.
+func (m *MockSearchRepo) DeletePoster(ctx context.Context, posterID int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeletePoster", ctx, posterID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeletePoster indicates an expected call of DeletePoster.
+func (mr *MockSearchRepoMockRecorder) DeletePoster(ctx, posterID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePoster", reflect.TypeOf((*MockSearchRepo)(nil).DeletePoster), ctx, posterID)
+}
+
+// GetClustersByMapBounds mocks base method.
+func (m *MockSearchRepo) GetClustersByMapBounds(ctx context.Context, coords dto.MapBounds, filters dto.PostersFiltersDTO) ([]entity.ClusterPoint, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetClustersByMapBounds", ctx, coords, filters)
+	ret0, _ := ret[0].([]entity.ClusterPoint)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetClustersByMapBounds indicates an expected call of GetClustersByMapBounds.
+func (mr *MockSearchRepoMockRecorder) GetClustersByMapBounds(ctx, coords, filters interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClustersByMapBounds", reflect.TypeOf((*MockSearchRepo)(nil).GetClustersByMapBounds), ctx, coords, filters)
+}
+
+// GetPostersByMapBounds mocks base method.
+func (m *MockSearchRepo) GetPostersByMapBounds(ctx context.Context, coords dto.MapBounds, filters dto.PostersFiltersDTO) ([]entity.AnyPoint, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPostersByMapBounds", ctx, coords, filters)
+	ret0, _ := ret[0].([]entity.AnyPoint)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPostersByMapBounds indicates an expected call of GetPostersByMapBounds.
+func (mr *MockSearchRepoMockRecorder) GetPostersByMapBounds(ctx, coords, filters interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostersByMapBounds", reflect.TypeOf((*MockSearchRepo)(nil).GetPostersByMapBounds), ctx, coords, filters)
 }
 
 // SearchPosters mocks base method.
