@@ -8,6 +8,8 @@ import (
 	"io"
 	"strings"
 
+	"log"
+
 	es "github.com/elastic/go-elasticsearch/v9"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
@@ -460,13 +462,13 @@ func (r *ESRepo) DeletePoster(ctx context.Context, posterID int) error {
 			r.client.DeleteByQuery.WithContext(ctx),
 		)
 		if err != nil {
-			log.Errorf("delete by query request failed: %w", err)
+			log.Printf("delete by query request failed: %w", err)
 		}
 		defer res.Body.Close()
 
 		if res.IsError() {
 			b, _ := io.ReadAll(res.Body)
-			log.Errorf("delete by query returned %s: %s", res.Status(), string(b))
+			log.Printf("delete by query returned %s: %s", res.Status(), string(b))
 		}
 	}(ctx)
 
