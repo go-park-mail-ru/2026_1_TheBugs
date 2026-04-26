@@ -237,7 +237,7 @@ func ParseMapFilters(r *http.Request) (dto.MapBounds, error) {
 		return dto.MapBounds{}, err
 	}
 
-	zoom, err := strconv.Atoi(q.Get("zoom"))
+	zoom, err := strconv.ParseFloat(q.Get("zoom"), 32)
 	if err != nil {
 		return dto.MapBounds{}, err
 	}
@@ -252,6 +252,6 @@ func ParseMapFilters(r *http.Request) (dto.MapBounds, error) {
 				Lon: neLng,
 			},
 		},
-		Zoom: zoom,
+		Zoom: int(zoom),
 	}, nil
 }

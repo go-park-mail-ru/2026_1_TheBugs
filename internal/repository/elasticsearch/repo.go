@@ -347,9 +347,6 @@ func (r *ESRepo) GetPostersByMapBounds(ctx context.Context, coords dto.MapBounds
 				"price_min": map[string]any{
 					"min": map[string]any{"field": "price"},
 				},
-				"price_max": map[string]any{
-					"max": map[string]any{"field": "price"},
-				},
 				"top_1": map[string]any{
 					"top_hits": map[string]any{
 						"_source": map[string]any{
@@ -378,9 +375,6 @@ func (r *ESRepo) GetPostersByMapBounds(ctx context.Context, coords dto.MapBounds
 					PriceMin struct {
 						Value float64 `json:"value"`
 					} `json:"price_min"`
-					PriceMax struct {
-						Value float64 `json:"value"`
-					} `json:"price_max"`
 					TopHit struct {
 						Hits struct {
 							Hits []struct {
@@ -417,8 +411,7 @@ func (r *ESRepo) GetPostersByMapBounds(ctx context.Context, coords dto.MapBounds
 			Lon:      b.Centroid.Location.Lon,
 			Count:    &b.DocCount,
 			PriceMin: &b.PriceMin.Value,
-			PriceMax: &b.PriceMax.Value,
-			Cluster:  b.DocCount > 1,
+			Group:    b.DocCount > 1,
 		}
 		if b.DocCount == 1 && len(b.TopHit.Hits.Hits) > 0 {
 			p.Price = &b.TopHit.Hits.Hits[0].Source.Price

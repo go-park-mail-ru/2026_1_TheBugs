@@ -33,10 +33,9 @@ type AnyPoint struct {
 	Lon      float64  `db:"lon" json:"lon"`
 	Count    *int64   `db:"count" json:"count,omitempty"`
 	PriceMin *float64 `db:"price_min" json:"priceMin,omitempty"`
-	PriceMax *float64 `db:"price_max" json:"priceMax,omitempty"`
 	Price    *float64 `db:"price" json:"price,omitempty"`
 	Alias    *string  `db:"alias" json:"alias,omitempty"`
-	Cluster  bool     `db:"cluster" json:"cluster"`
+	Group    bool     `db:"cluster" json:"group"`
 }
 
 type PosterPoint struct {

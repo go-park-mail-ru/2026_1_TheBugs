@@ -254,18 +254,15 @@ type GeoJSONFeatureResponse struct {
 
 func PosterPointToGeoJSON(p entity.AnyPoint) GeoJSONFeature {
 	properties := map[string]any{
-		"id":      p.ID,
-		"cluster": p.Cluster,
+		"id":    p.ID,
+		"group": p.Group,
 	}
-	if p.Cluster {
+	if p.Group {
 		if p.Count != nil {
 			properties["count"] = *p.Count
 		}
 		if p.PriceMin != nil {
 			properties["priceMin"] = *p.PriceMin
-		}
-		if p.PriceMax != nil {
-			properties["priceMax"] = *p.PriceMax
 		}
 	} else {
 		if p.Price != nil {
