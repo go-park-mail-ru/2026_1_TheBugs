@@ -19,6 +19,7 @@ type SearchQuery struct {
 	Size           int            `json:"size,omitempty"`
 	From           int            `json:"from,omitempty"`
 	TrackTotalHits any            `json:"track_total_hits"`
+	MinScore       float32        `json:"min_score"`
 	Query          Query          `json:"query"`
 	Sourse         map[string]any `json:"_source,omitempty"`
 	Aggs           map[string]any `json:"aggs,omitempty"`

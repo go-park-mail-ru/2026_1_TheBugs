@@ -137,6 +137,7 @@ func ApplyPostersFilters(filters dto.PostersFiltersDTO) SearchQuery {
 		Size:           filters.Limit,
 		From:           filters.Offset,
 		TrackTotalHits: true,
+		MinScore:       0.1,
 		Query: Query{Bool: BoolQuery{
 			Should:  should,
 			Filter:  filter,
@@ -220,6 +221,7 @@ func (r *ESRepo) GetClustersByMapBounds(ctx context.Context, coords dto.MapBound
 
 	searchQuery := ApplyPostersFilters(filters)
 	searchQuery.TrackTotalHits = false
+	searchQuery.Size = 0
 
 	searchQuery.Sourse = map[string]any{
 		"includes": []string{"buckets"},
