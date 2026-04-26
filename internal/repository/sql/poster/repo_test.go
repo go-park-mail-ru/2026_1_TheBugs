@@ -2523,3 +2523,356 @@ func TestGetViewsCountRepo(t *testing.T) {
 		})
 	}
 }
+func TestAddFavoriteRepo(t *testing.T) {
+	inputUserID := 7
+	inputPosterID := 4
+
+	query := regexp.QuoteMeta(`
+		INSERT INTO favorites (user_id, poster_id)
+		VALUES ($1, $2)
+	`)
+
+	tests := []struct {
+		name      string
+		paramUser int
+		paramPost int
+		setupMock func(m pgxmock.PgxPoolIface)
+		wantErr   error
+	}{
+		{
+			name:      "ok",
+			paramUser: inputUserID,
+			paramPost: inputPosterID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(inputUserID, inputPosterID).
+					WillReturnResult(pgxmock.NewResult("INSERT", 1))
+			},
+			wantErr: nil,
+		},
+		{
+			name:      "already_exist",
+			paramUser: inputUserID,
+			paramPost: inputPosterID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(inputUserID, inputPosterID).
+					WillReturnError(&pgconn.PgError{
+						Code: "23505",
+					})
+			},
+			wantErr: nil,
+		},
+		{
+			name:      "exec_error",
+			paramUser: inputUserID,
+			paramPost: inputPosterID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(inputUserID, inputPosterID).
+					WillReturnError(errors.New("db error"))
+			},
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mock, err := pgxmock.NewPool()
+			require.NoError(t, err)
+			defer mock.Close()
+
+			test.setupMock(mock)
+
+			repo := NewPosterRepo(mock)
+
+			err = repo.AddFavorite(context.Background(), test.paramUser, test.paramPost)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}
+
+func TestGetFavoritesFlatsByUserIDRepo(t *testing.T) {
+	expectedPosters := []entity.PosterFlat{
+		{
+			ID:           1,
+			Price:        100000,
+			ImgURL:       lo.ToPtr("img1.jpg"),
+			Address:      "street_1",
+			Metro:        lo.ToPtr("Арбатская"),
+			Area:         35.5,
+			Alias:        "alias_1",
+			Floor:        lo.ToPtr(3),
+			FlatCategory: lo.ToPtr("1-room"),
+		},
+		{
+			ID:           2,
+			Price:        200000,
+			ImgURL:       lo.ToPtr("img2.jpg"),
+			Address:      "street_2",
+			Metro:        lo.ToPtr("Смоленская"),
+			Area:         45.0,
+			Alias:        "alias_2",
+			Floor:        lo.ToPtr(5),
+			FlatCategory: lo.ToPtr("2-room"),
+		},
+	}
+
+	inputUserID := 7
+
+	query := regexp.QuoteMeta(`
+		SELECT p.id, p.price, p.avatar_url,
+			b.address, ms.station_name,
+			prop.area, p.alias, f.floor,
+			fc.name AS flat_category
+		FROM favorites fav
+		JOIN posters p ON p.id = fav.poster_id
+		JOIN property prop ON prop.id = p.property_id
+		JOIN buildings b ON b.id = prop.building_id
+		LEFT JOIN metro_stations ms ON ms.id = b.metro_station_id
+		LEFT JOIN flat f ON f.property_id = prop.id
+		LEFT JOIN flat_categories fc ON fc.id = f.category_id
+		WHERE fav.user_id = $1 AND p.deleted_at IS NULL
+	`)
+
+	tests := []struct {
+		name      string
+		param     int
+		setupMock func(m pgxmock.PgxPoolIface)
+		want      []entity.PosterFlat
+		wantErr   error
+	}{
+		{
+			name:  "ok",
+			param: inputUserID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{
+					"id", "price", "avatar_url", "address", "station_name", "area", "alias", "floor", "flat_category",
+				}).AddRow(
+					1, 100000.0, lo.ToPtr("img1.jpg"), "street_1", lo.ToPtr("Арбатская"), 35.5, "alias_1", lo.ToPtr(3), lo.ToPtr("1-room"),
+				).AddRow(
+					2, 200000.0, lo.ToPtr("img2.jpg"), "street_2", lo.ToPtr("Смоленская"), 45.0, "alias_2", lo.ToPtr(5), lo.ToPtr("2-room"),
+				)
+
+				m.ExpectQuery(query).
+					WithArgs(inputUserID).
+					WillReturnRows(rows)
+			},
+			want:    expectedPosters,
+			wantErr: nil,
+		},
+		{
+			name:  "not_found",
+			param: inputUserID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{
+					"id", "price", "avatar_url", "address", "station_name", "area", "alias", "floor", "flat_category",
+				})
+
+				m.ExpectQuery(query).
+					WithArgs(inputUserID).
+					WillReturnRows(rows)
+			},
+			want:    []entity.PosterFlat{},
+			wantErr: nil,
+		},
+		{
+			name:  "collect_rows_error",
+			param: inputUserID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{
+					"id", "price", "avatar_url", "address", "station_name", "area", "alias", "floor", "flat_category",
+				}).AddRow(
+					"bad-id", 100000.0, lo.ToPtr("img1.jpg"), "street_1", lo.ToPtr("Арбатская"), 35.5, "alias_1", lo.ToPtr(3), lo.ToPtr("1-room"),
+				)
+
+				m.ExpectQuery(query).
+					WithArgs(inputUserID).
+					WillReturnRows(rows)
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mock, err := pgxmock.NewPool()
+			require.NoError(t, err)
+			defer mock.Close()
+
+			test.setupMock(mock)
+
+			repo := NewPosterRepo(mock)
+
+			got, err := repo.GetFavoritesFlatsByUserID(context.Background(), test.param)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, test.want, got)
+			require.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}
+
+func TestCountFavoritesByUserIDRepo(t *testing.T) {
+	inputUserID := 7
+
+	query := regexp.QuoteMeta(`
+		SELECT COUNT(*)
+		FROM favorites
+		WHERE user_id = $1
+	`)
+
+	tests := []struct {
+		name      string
+		param     int
+		setupMock func(m pgxmock.PgxPoolIface)
+		want      int
+		wantErr   error
+	}{
+		{
+			name:  "ok",
+			param: inputUserID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{"count"}).
+					AddRow(5)
+
+				m.ExpectQuery(query).
+					WithArgs(inputUserID).
+					WillReturnRows(rows)
+			},
+			want:    5,
+			wantErr: nil,
+		},
+		{
+			name:  "zero",
+			param: inputUserID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{"count"}).
+					AddRow(0)
+
+				m.ExpectQuery(query).
+					WithArgs(inputUserID).
+					WillReturnRows(rows)
+			},
+			want:    0,
+			wantErr: nil,
+		},
+		{
+			name:  "query_error",
+			param: inputUserID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectQuery(query).
+					WithArgs(inputUserID).
+					WillReturnError(errors.New("db error"))
+			},
+			want:    0,
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mock, err := pgxmock.NewPool()
+			require.NoError(t, err)
+			defer mock.Close()
+
+			test.setupMock(mock)
+
+			repo := NewPosterRepo(mock)
+
+			got, err := repo.CountFavoritesByUserID(context.Background(), test.param)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, test.want, got)
+			require.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}
+
+func TestDeleteFavoriteRepo(t *testing.T) {
+	inputUserID := 7
+	inputPosterID := 4
+
+	query := regexp.QuoteMeta(`
+		DELETE FROM favorites
+		WHERE user_id = $1 AND poster_id = $2
+	`)
+
+	tests := []struct {
+		name      string
+		paramUser int
+		paramPost int
+		setupMock func(m pgxmock.PgxPoolIface)
+		wantErr   error
+	}{
+		{
+			name:      "ok",
+			paramUser: inputUserID,
+			paramPost: inputPosterID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(inputUserID, inputPosterID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 1))
+			},
+			wantErr: nil,
+		},
+		{
+			name:      "not_found",
+			paramUser: inputUserID,
+			paramPost: inputPosterID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(inputUserID, inputPosterID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 0))
+			},
+			wantErr: nil,
+		},
+		{
+			name:      "exec_error",
+			paramUser: inputUserID,
+			paramPost: inputPosterID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(inputUserID, inputPosterID).
+					WillReturnError(errors.New("db error"))
+			},
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mock, err := pgxmock.NewPool()
+			require.NoError(t, err)
+			defer mock.Close()
+
+			test.setupMock(mock)
+
+			repo := NewPosterRepo(mock)
+
+			err = repo.DeleteFavorite(context.Background(), test.paramUser, test.paramPost)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}

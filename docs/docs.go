@@ -589,6 +589,52 @@ const docTemplate = `{
                 }
             }
         },
+        "/posters/favorites": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "CSRFToken": []
+                    }
+                ],
+                "description": "Returns all favorite posters of the user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posters"
+                ],
+                "summary": "Get favorite posters",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PostersResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/posters/flat": {
             "post": {
                 "security": [
@@ -1256,16 +1302,24 @@ const docTemplate = `{
                 }
             }
         },
-        "/posters/{alias}/views": {
-            "get": {
-                "description": "Returns poster views count",
+        "/posters/{alias}/favorites": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "CSRFToken": []
+                    }
+                ],
+                "description": "Adds a poster to user's favorites",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "posters"
                 ],
-                "summary": "Get poster views",
+                "summary": "Add poster to favorites",
                 "parameters": [
                     {
                         "type": "string",
@@ -1277,13 +1331,16 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.PosterViewsResponse"
-                        }
+                        "description": "OK"
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -1302,7 +1359,7 @@ const docTemplate = `{
                     }
                 }
             },
-            "post": {
+            "delete": {
                 "security": [
                     {
                         "BearerAuth": []
@@ -1311,14 +1368,14 @@ const docTemplate = `{
                         "CSRFToken": []
                     }
                 ],
-                "description": "Adds a view for a poster",
+                "description": "Deletes a poster from user's favorites",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "posters"
                 ],
-                "summary": "Add poster view",
+                "summary": "Remove poster from favorites",
                 "parameters": [
                     {
                         "type": "string",

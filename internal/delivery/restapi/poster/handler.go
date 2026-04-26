@@ -379,6 +379,43 @@ func (h *PosterHandler) DeleteFlatPoster(w http.ResponseWriter, r *http.Request)
 	utils.JSONResponse(w, http.StatusOK, response)
 }
 
+// @Summary Add poster to favorites
+// @Description Adds a poster to user's favorites
+// @Tags posters
+// @Produce json
+// @Security     BearerAuth
+// @Security     CSRFToken
+// @Param alias path string true "Poster alias"
+// @Success 200
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/{alias}/favorites [post]
+func (h *PosterHandler) AddFavoritePoster(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.AddFavoritePoster"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	userID, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.Errorf("utils.GetUserID: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+	alias, err := utils.ParseAliasFromRequest(r)
+	if err != nil {
+		log.Errorf("utils.ParseAliasFromRequest: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	err = h.uc.AddFavoritePoster(r.Context(), alias, userID)
+	if err != nil {
+		log.Errorf("h.uc.AddFavoritePoster: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+}
 // @Summary Add poster view
 // @Description Adds a view for a poster
 // @Tags posters
@@ -418,20 +455,61 @@ func (h *PosterHandler) AddViewPoster(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// @Summary Get poster views
-// @Description Returns poster views count
+// @Summary Get favorite posters
+// @Description Returns all favorite posters of the user
 // @Tags posters
 // @Produce json
-// @Param alias path string true "Poster alias"
-// @Success 200 {object} response.PosterViewsResponse
+// @Security     BearerAuth
+// @Security     CSRFToken
+// @Success 200 {object} dto.PostersResponse
 // @Failure 400 {object} response.ErrorResponse
-// @Failure 404 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /posters/{alias}/views [get]
-func (h *PosterHandler) GetViewsPoster(w http.ResponseWriter, r *http.Request) {
-	op := "PosterHandler.GetViewsPoster"
+// @Router /posters/favorites [get]
+func (h *PosterHandler) GetFavoritesPoster(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GetFavoritesPoster"
 	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
+	userID, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.Errorf("utils.GetUserID: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	posters, err := h.uc.GetFavoritesPoster(r.Context(), userID)
+	if err != nil {
+		log.Errorf("h.uc.GetFavoritesPoster: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, posters)
+}
+
+// @Summary Remove poster from favorites
+// @Description Deletes a poster from user's favorites
+// @Tags posters
+// @Produce json
+// @Security     BearerAuth
+// @Security     CSRFToken
+// @Param alias path string true "Poster alias"
+// @Success 200
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/{alias}/favorites [delete]
+func (h *PosterHandler) DeleteFavoritePoster(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.DeleteFavoritePoster"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	userID, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.Errorf("utils.GetUserID: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
 	alias, err := utils.ParseAliasFromRequest(r)
 	if err != nil {
 		log.Errorf("utils.ParseAliasFromRequest: %s", err)
@@ -439,12 +517,10 @@ func (h *PosterHandler) GetViewsPoster(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	views, err := h.uc.GetViewsPoster(r.Context(), alias)
+	err = h.uc.DeleteFavoritePoster(r.Context(), alias, userID)
 	if err != nil {
-		log.Errorf("h.uc.GetViewsPoster: %s", err)
+		log.Errorf("h.uc.DeleteFavoritePoster: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
-
-	utils.JSONResponse(w, http.StatusOK, views)
 }

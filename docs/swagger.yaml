@@ -624,39 +624,9 @@ paths:
       summary: Get CSRF token
       tags:
       - Auth
-  /posters/{alias}/views:
-    get:
-      description: Returns poster views count
-      parameters:
-      - description: Poster alias
-        in: path
-        name: alias
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.PosterViewsResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      summary: Get poster views
-      tags:
-      - posters
-    post:
-      description: Adds a view for a poster
+  /posters/{alias}/favorites:
+    delete:
+      description: Deletes a poster from user's favorites
       parameters:
       - description: Poster alias
         in: path
@@ -687,7 +657,42 @@ paths:
       security:
       - BearerAuth: []
       - CSRFToken: []
-      summary: Add poster view
+      summary: Remove poster from favorites
+      tags:
+      - posters
+    post:
+      description: Adds a poster to user's favorites
+      parameters:
+      - description: Poster alias
+        in: path
+        name: alias
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      - CSRFToken: []
+      summary: Add poster to favorites
       tags:
       - posters
   /posters/by-alias/{alias}:
@@ -723,6 +728,34 @@ paths:
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: Get poster by alias
+      tags:
+      - posters
+  /posters/favorites:
+    get:
+      description: Returns all favorite posters of the user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PostersResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      - CSRFToken: []
+      summary: Get favorite posters
       tags:
       - posters
   /posters/flat:

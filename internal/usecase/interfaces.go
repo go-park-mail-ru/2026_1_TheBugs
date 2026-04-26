@@ -58,6 +58,10 @@ type PosterRepo interface {
 	DeleteProperty(ctx context.Context, propertyID int) error
 	DeleteBuilding(ctx context.Context, buildingID int) error
 
+	AddFavorite(ctx context.Context, userID int, posterID int) error
+	GetFavoritesFlatsByUserID(ctx context.Context, userID int) ([]entity.PosterFlat, error)
+	CountFavoritesByUserID(ctx context.Context, userID int) (int, error)
+	DeleteFavorite(ctx context.Context, userID int, posterID int) error
 	AddView(ctx context.Context, userID int, posterID int)
 	GetViewsCount(ctx context.Context, posterID int) (int, error)
 }
