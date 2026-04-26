@@ -75,13 +75,13 @@ services:
       - "9200:9200"
     volumes:
       - ./deploy/elasticsearch/init.sh:/usr/local/bin/init-es.sh
-    # command: >
-    #   bash -c "
-    #     /usr/local/bin/docker-entrypoint.sh elasticsearch &
-    #     sleep 30 && 
-    #     sh /usr/local/bin/init-es.sh &&
-    #     wait
-    #   "
+    command: >
+      bash -c "
+        /usr/local/bin/docker-entrypoint.sh elasticsearch &
+        sleep 30 && 
+        sh /usr/local/bin/init-es.sh &&
+        wait
+      "
     healthcheck:
       test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health"]
       interval: 10s
