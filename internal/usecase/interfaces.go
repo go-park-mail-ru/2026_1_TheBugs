@@ -115,3 +115,7 @@ type SearchRepo interface {
 	GetPostersByMapBounds(ctx context.Context, coords dto.MapBounds, filters dto.PostersFiltersDTO) ([]entity.AnyPoint, error)
 	DeletePoster(ctx context.Context, posterID int) error
 }
+
+type LLMAgent interface {
+	Chat(ctx context.Context, systemPrompt string, userPrompt string) (*dto.ChatResult, error)
+}

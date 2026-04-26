@@ -27,13 +27,15 @@ type PosterUseCase struct {
 	uow    usecase.UnitOfWork
 	file   usecase.FileRepo
 	search usecase.SearchRepo
+	agent  usecase.LLMAgent
 }
 
-func NewPosterUseCase(uow usecase.UnitOfWork, file usecase.FileRepo, search usecase.SearchRepo) *PosterUseCase {
+func NewPosterUseCase(uow usecase.UnitOfWork, file usecase.FileRepo, search usecase.SearchRepo, agent usecase.LLMAgent) *PosterUseCase {
 	return &PosterUseCase{
 		uow:    uow,
 		file:   file,
 		search: search,
+		agent:  agent,
 	}
 }
 
@@ -640,4 +642,28 @@ func (uc *PosterUseCase) GetViewsPoster(ctx context.Context, alias string) (int,
 	}
 
 	return views, nil
+}
+
+func (uc *PosterUseCase) GenerateDescription(ctx context.Context, input dto.GenerateDescriptionDTO) (string, error) {
+	const systemPrompt = `
+	Ты - помощник для создания описаний объявлений о аренде недвижимости. 
+	Тебе будет предоставлена информация об объекте недвижимости, и ты должен создать привлекательное и информативное описание для потенциальных арендаторов или покупателей.
+	 Описание должно быть кратким, но содержательным, выделяя ключевые особенности и преимущества объекта. 
+	 Используй дружелюбный и профессиональный тон, чтобы привлечь внимание читателей и вызвать интерес к объекту недвижимости. 
+	 НЕ ДЕЛАЙ форматированя текста только текст
+	 НЕ БОЛЕЕ 3000 символов
+	 Выходной текст должен быть ПОЛНОСТЬЮ на русском языке.
+	 Вот информация об объекте недвижимости:
+	- Тип недвижимости: %s
+	- Количество комнат: %s
+	- Город: %s
+	- Общая площадь: %f кв.м
+	- Оссобенности: %s
+	 `
+
+	res, err := uc.agent.Chat(ctx, fmt.Sprintf(systemPrompt, input.Category, input.FlatCategory, input.City, input.Area, input.Features), "Сгенерируй описание для этого объекта недвижимости.")
+	if err != nil {
+		return "", fmt.Errorf("uc.agent.Chat: %w", err)
+	}
+	return res.Content, nil
 }

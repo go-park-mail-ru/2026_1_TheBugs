@@ -62,6 +62,7 @@ func (h *AuthHandler) GetAuthMiddlewary() func(http.Handler) http.Handler {
 // @Failure       400 {object} response.ValidationErrorResponse
 // @Failure       404 {object} response.ErrorResponse
 // @Failure       500 {object} response.ErrorResponse
+// @Security     CSRFToken
 // @Router        /auth/reg [post]
 func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.RegisterUser"

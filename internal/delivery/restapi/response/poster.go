@@ -23,3 +23,7 @@ type CreatedPosterResponse struct {
 type PosterViewsResponse struct {
 	Views int `json:"views"`
 }
+
+type GenerateDescriptionResponse struct {
+	Description string `json:"description"`
+}

@@ -368,6 +368,11 @@ const docTemplate = `{
         },
         "/auth/reg": {
             "post": {
+                "security": [
+                    {
+                        "CSRFToken": []
+                    }
+                ],
                 "description": "Register new user with email and password",
                 "consumes": [
                     "application/x-www-form-urlencoded"
@@ -1254,6 +1259,57 @@ const docTemplate = `{
                 }
             }
         },
+        "/posters/generate-description": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "CSRFToken": []
+                    }
+                ],
+                "description": "Returns description for poster by given parameters",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posters"
+                ],
+                "summary": "Generate poster description",
+                "parameters": [
+                    {
+                        "description": "Poster parameters",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.GenerateDescriptionDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GenerateDescriptionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/posters/geo": {
             "get": {
                 "description": "Returns filtered list of apartment posters on in JSONGeo notation",
@@ -2089,6 +2145,38 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.GenerateDescriptionDTO": {
+            "type": "object",
+            "properties": {
+                "area": {
+                    "type": "number"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "features": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "flat_category": {
+                    "type": "string"
+                },
+                "flat_floor": {
+                    "type": "integer"
+                },
+                "flat_number": {
+                    "type": "integer"
+                },
+                "floor_count": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.GeoJSONFeature": {
             "type": "object",
             "properties": {
@@ -2473,6 +2561,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.GenerateDescriptionResponse": {
+            "type": "object",
+            "properties": {
+                "description": {
                     "type": "string"
                 }
             }

@@ -133,7 +133,7 @@ func TestGetPostersUseCase(t *testing.T) {
 				test.setupMock(mockRepo)
 			}
 
-			uc := NewPosterUseCase(mockUOW, mockFile, nil)
+			uc := NewPosterUseCase(mockUOW, mockFile, nil, nil)
 
 			got, err := uc.GetPostersUseCase(ctx, test.params)
 			if test.wantErr != nil {
@@ -489,7 +489,7 @@ func TestGetPosterByAliasUseCase(t *testing.T) {
 				test.setupMock(mockRepo)
 			}
 
-			uc := NewPosterUseCase(mockUOW, mockFile, nil)
+			uc := NewPosterUseCase(mockUOW, mockFile, nil, nil)
 
 			res, err := uc.GetPosterByAliasUseCase(ctx, alias, nil)
 
@@ -589,7 +589,7 @@ func TestGetPosterByUserID(t *testing.T) {
 
 			tt.setup(posterRepo)
 
-			uc := NewPosterUseCase(uow, fileRepo, nil)
+			uc := NewPosterUseCase(uow, fileRepo, nil, nil)
 			res, err := uc.GetPosterByUserID(ctx, userID)
 
 			require.NoError(t, err)
@@ -702,7 +702,7 @@ func TestGetMetroStationsByRadius(t *testing.T) {
 				test.setupMock(mockRepo)
 			}
 
-			uc := NewPosterUseCase(mockUOW, mockFile, nil)
+			uc := NewPosterUseCase(mockUOW, mockFile, nil, nil)
 
 			res, err := uc.GetMetroStationsByRadius(ctx, test.param)
 
@@ -969,7 +969,7 @@ func TestCreateFlatPoster(t *testing.T) {
 				test.setupMock(mockRepo, mockUOW, mockFile)
 			}
 
-			uc := NewPosterUseCase(mockUOW, mockFile, nil)
+			uc := NewPosterUseCase(mockUOW, mockFile, nil, nil)
 
 			res, err := uc.CreateFlatPoster(ctx, test.poster)
 
@@ -1380,7 +1380,7 @@ func TestUpdateFlatPoster(t *testing.T) {
 				test.setupMock(mockRepo, mockUOW, mockFile)
 			}
 
-			uc := NewPosterUseCase(mockUOW, mockFile, nil)
+			uc := NewPosterUseCase(mockUOW, mockFile, nil, nil)
 
 			res, err := uc.UpdateFlatPoster(ctx, test.alias, test.poster)
 
@@ -1718,7 +1718,7 @@ func TestDeleteFlatPoster(t *testing.T) {
 				test.setupMock(mockRepo, mockUOW, mockFile)
 			}
 
-			uc := NewPosterUseCase(mockUOW, mockFile, nil)
+			uc := NewPosterUseCase(mockUOW, mockFile, nil, nil)
 
 			res, err := uc.DeleteFlatPoster(ctx, test.alias, test.userID)
 
@@ -1791,7 +1791,7 @@ func TestAddViewPoster(t *testing.T) {
 				test.setup(posterRepo)
 			}
 
-			uc := NewPosterUseCase(uow, fileRepo, nil)
+			uc := NewPosterUseCase(uow, fileRepo, nil, nil)
 
 			err := uc.AddViewPoster(ctx, alias, userID)
 
@@ -1882,7 +1882,7 @@ func TestGetViewsPoster(t *testing.T) {
 				test.setup(posterRepo)
 			}
 
-			uc := NewPosterUseCase(uow, fileRepo, nil)
+			uc := NewPosterUseCase(uow, fileRepo, nil, nil)
 
 			res, err := uc.GetViewsPoster(ctx, alias)
 
@@ -1977,7 +1977,7 @@ func TestAddFavoritePoster(t *testing.T) {
 				test.setupMock(mockRepo)
 			}
 
-			uc := NewPosterUseCase(mockUOW, mockFile, nil)
+			uc := NewPosterUseCase(mockUOW, mockFile, nil, nil)
 
 			err := uc.AddFavoritePoster(ctx, alias, userID)
 
@@ -2079,7 +2079,7 @@ func TestGetFavoritesPoster(t *testing.T) {
 				test.setupMock(mockRepo)
 			}
 
-			uc := NewPosterUseCase(mockUOW, mockFile, nil)
+			uc := NewPosterUseCase(mockUOW, mockFile, nil, nil)
 
 			got, err := uc.GetFavoritesPoster(ctx, userID)
 			if test.wantErr != nil {
@@ -2179,7 +2179,7 @@ func TestDeleteFavoritePoster(t *testing.T) {
 				test.setupMock(mockRepo)
 			}
 
-			uc := NewPosterUseCase(mockUOW, mockFile, nil)
+			uc := NewPosterUseCase(mockUOW, mockFile, nil, nil)
 
 			err := uc.DeleteFavoritePoster(ctx, alias, userID)
 

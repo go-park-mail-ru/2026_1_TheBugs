@@ -48,6 +48,27 @@ definitions:
       room_count:
         type: integer
     type: object
+  dto.GenerateDescriptionDTO:
+    properties:
+      area:
+        type: number
+      category:
+        type: string
+      city:
+        type: string
+      features:
+        items:
+          type: string
+        type: array
+      flat_category:
+        type: string
+      flat_floor:
+        type: integer
+      flat_number:
+        type: integer
+      floor_count:
+        type: integer
+    type: object
   dto.GeoJSONFeature:
     properties:
       geometry:
@@ -298,6 +319,11 @@ definitions:
       details:
         type: string
       error:
+        type: string
+    type: object
+  response.GenerateDescriptionResponse:
+    properties:
+      description:
         type: string
     type: object
   response.MyPostersResponse:
@@ -611,6 +637,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - CSRFToken: []
       summary: Register new user
       tags:
       - Auth
@@ -1289,6 +1317,37 @@ paths:
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: Get list of posters
+      tags:
+      - posters
+  /posters/generate-description:
+    post:
+      description: Returns description for poster by given parameters
+      parameters:
+      - description: Poster parameters
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/dto.GenerateDescriptionDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GenerateDescriptionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      - CSRFToken: []
+      summary: Generate poster description
       tags:
       - posters
   /posters/geo:

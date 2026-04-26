@@ -180,6 +180,14 @@ type PosterInputFlatDTO struct {
 	Images   []PhotoInputDTO `schema:"-"`
 }
 
+type GenerateDescriptionDTO struct {
+	Category     string   `json:"category"`
+	Area         float64  `json:"area"`
+	FlatCategory string   `json:"flat_category"`
+	City         string   `json:"city"`
+	Features     []string `json:"features"`
+}
+
 func PosterInputFlatDTOtoPosterInput(poster *PosterInputFlatDTO) *PosterInput {
 	return &PosterInput{
 		UserID:      poster.UserID,

@@ -1,6 +1,7 @@
 package poster
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -646,4 +647,34 @@ func (h *PosterHandler) GetPostersByPoint(w http.ResponseWriter, r *http.Request
 	}
 
 	utils.JSONResponse(w, http.StatusOK, response.MyPostersResponse{Posters: posters, Len: len(posters)})
+}
+
+// @Summary Generate poster description
+// @Description Returns description for poster by given parameters
+// @Tags posters
+// @Produce json
+// @Security     BearerAuth
+// @Security     CSRFToken
+// @Param input body dto.GenerateDescriptionDTO true "Poster parameters"
+// @Success 200 {object} response.GenerateDescriptionResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/generate-description [post]
+func (h *PosterHandler) GenerateDescription(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GenerateDescription"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+	var req dto.GenerateDescriptionDTO
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		log.Errorf("utils.ParseJSONBody: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+	description, err := h.uc.GenerateDescription(r.Context(), req)
+	if err != nil {
+		log.Errorf("h.uc.GenerateDescription: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+	utils.JSONResponse(w, http.StatusOK, response.GenerateDescriptionResponse{Description: description})
 }

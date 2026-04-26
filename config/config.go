@@ -28,14 +28,15 @@ type (
 	ProjectConfig struct {
 		AppEnv string `yaml:"app-env" env:"APP_ENV" env-default:"dev"`
 		CORS
-		Server   `yaml:"server"`
-		Postgres `yaml:"postgres"`
-		Redis    `yaml:"redis"`
-		JWT      `yaml:"jwt"`
-		OAuth    `yaml:"oauth"`
-		SMTP     `yaml:"smtp"`
-		Minio    `yaml:"minio"`
-		ES       `yaml:"es"`
+		Server     `yaml:"server"`
+		Postgres   `yaml:"postgres"`
+		Redis      `yaml:"redis"`
+		JWT        `yaml:"jwt"`
+		OAuth      `yaml:"oauth"`
+		SMTP       `yaml:"smtp"`
+		Minio      `yaml:"minio"`
+		ES         `yaml:"es"`
+		OpenRouter `yaml:"openrouter"`
 	}
 	Redis struct {
 		Host     string `yaml:"host" env:"REDIS_HOST" env-default:"localhost"`
@@ -103,6 +104,10 @@ type (
 	ES struct {
 		Host string `yaml:"host" env:"ES_HOST" env-default:"localhost"`
 		Port int    `yaml:"port" env:"ES_PORT" env-default:"9200"`
+	}
+	OpenRouter struct {
+		APIKey string `yaml:"api_key" env:"OPENROUTER_API_KEY" env-default:""`
+		Model  string `yaml:"model" env:"OPENROUTER_MODEL" env-default:"nvidia/nemotron-3-nano-30b-a3b:free"`
 	}
 )
 
