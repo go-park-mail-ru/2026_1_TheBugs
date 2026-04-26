@@ -268,6 +268,14 @@ func (r *ESRepo) GetClustersByMapBounds(ctx context.Context, coords dto.MapBound
 		return nil, fmt.Errorf("search: %w", err)
 	}
 	defer res.Body.Close()
+	bodyBytes, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println(string(bodyBytes))
+
+	res.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
 	var esResp struct {
 		Aggregations json.RawMessage `json:"aggregations"`
