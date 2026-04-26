@@ -569,3 +569,75 @@ func (uc *PosterUseCase) GetPostersByRadius(ctx context.Context, point dto.Geogr
 
 	return dto.MyPosterToMyPosterDTO(posters), nil
 }
+
+func (uc *PosterUseCase) AddViewPoster(ctx context.Context, alias string, userID int) error {
+	poster, err := uc.uow.Posters().GetByAlias(ctx, alias, nil)
+	if err != nil {
+		return fmt.Errorf("uc.PosterRepo.GetByAlias: %w", err)
+	}
+
+	uc.uow.Posters().AddView(ctx, userID, poster.ID)
+
+	return nil
+}
+
+func (uc *PosterUseCase) AddFavoritePoster(ctx context.Context, alias string, userID int) error {
+	poster, err := uc.uow.Posters().GetByAlias(ctx, alias, nil)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Posters().GetByAlias: %w", err)
+	}
+
+	err = uc.uow.Posters().AddFavorite(ctx, userID, poster.ID)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Posters().AddFavorite: %w", err)
+	}
+
+	return nil
+}
+
+func (uc *PosterUseCase) GetFavoritesPoster(ctx context.Context, userID int) (*dto.PostersResponse, error) {
+	posters, err := uc.uow.Posters().GetFavoritesFlatsByUserID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Posters().GetFavoritesFlatsByUserID: %w", err)
+	}
+
+	len, err := uc.uow.Posters().CountFavoritesByUserID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Posters().СountFavoritesByUserID: %w", err)
+	}
+
+	response := dto.PostersResponse{
+		Posters: dto.PostersToPostersDTO(posters),
+		Len:     len,
+	}
+
+	return &response, nil
+}
+
+func (uc *PosterUseCase) DeleteFavoritePoster(ctx context.Context, alias string, userID int) error {
+	poster, err := uc.uow.Posters().GetByAlias(ctx, alias, nil)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Posters().GetByAlias: %w", err)
+	}
+
+	err = uc.uow.Posters().DeleteFavorite(ctx, userID, poster.ID)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Posters().DeleteFavorite: %w", err)
+	}
+
+	return nil
+}
+
+func (uc *PosterUseCase) GetViewsPoster(ctx context.Context, alias string) (int, error) {
+	poster, err := uc.uow.Posters().GetByAlias(ctx, alias, nil)
+	if err != nil {
+		return 0, fmt.Errorf("uc.PosterRepo.GetByAlias: %w", err)
+	}
+
+	views, err := uc.uow.Posters().GetViewsCount(ctx, poster.ID)
+	if err != nil {
+		return 0, fmt.Errorf("uc.PosterRepo.GetViewsCount: %w", err)
+	}
+
+	return views, nil
+}

@@ -2,6 +2,7 @@ package poster
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"strings"
@@ -330,36 +331,24 @@ func (r *PosterRepo) CreateProperty(ctx context.Context, poster *dto.PosterInput
 }
 
 func (r *PosterRepo) InsertFacilities(ctx context.Context, propertyID int, aliases []string) error {
+	if len(aliases) == 0 {
+		return nil
+	}
+
 	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.InsertFacilities")
-	log.Info("start db query")
 
-	selectQuery := `
-		SELECT id
-		FROM facilities
-		WHERE alias = ANY($1::text[])
+	query := `
+	INSERT INTO facility_property (property_id, facility_id)
+	SELECT $1, id 
+	FROM facilities 
+	WHERE alias = ANY($2::text[])
+	ON CONFLICT DO NOTHING;
 	`
 
-	rows, err := r.pool.Query(ctx, selectQuery, aliases)
+	_, err := r.pool.Exec(ctx, query, propertyID, aliases)
 	if err != nil {
+		log.WithError(err).Error("failed to insert facilities")
 		return repository.HandelPgErrors(err)
-	}
-	defer rows.Close()
-
-	facilityIDs, err := pgx.CollectRows(rows, pgx.RowTo[int])
-	if err != nil {
-		return repository.HandelPgErrors(err)
-	}
-
-	insertQuery := `
-		INSERT INTO facility_property (property_id, facility_id)
-		VALUES ($1, $2)
-	`
-
-	for _, facilityID := range facilityIDs {
-		_, err = r.pool.Exec(ctx, insertQuery, propertyID, facilityID)
-		if err != nil {
-			return repository.HandelPgErrors(err)
-		}
 	}
 
 	return nil
@@ -881,4 +870,130 @@ func (r *PosterRepo) GetClustersByMapBounds(ctx context.Context, coords dto.MapB
 	}
 
 	return clusters, nil
+func (r *PosterRepo) AddFavorite(ctx context.Context, userID int, posterID int) error {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.AddFavorite")
+	log.Info("start db add favorite")
+
+	query := `
+		INSERT INTO favorites (user_id, poster_id)
+		VALUES ($1, $2)
+	`
+
+	_, err := r.pool.Exec(ctx, query, userID, posterID)
+	if err != nil {
+		pgErr := repository.HandelPgErrors(err)
+
+		if errors.Is(pgErr, entity.AlredyExitError) {
+			return nil
+		}
+
+		return pgErr
+	}
+
+	return nil
+}
+
+func (r *PosterRepo) GetFavoritesFlatsByUserID(ctx context.Context, userID int) ([]entity.PosterFlat, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetFavoritesByUserID")
+	log.Info("start db get favorites")
+
+	query := `
+		SELECT p.id, p.price, p.avatar_url,
+			b.address, ms.station_name,
+			prop.area, p.alias, f.floor,
+			fc.name AS flat_category
+		FROM favorites fav
+		JOIN posters p ON p.id = fav.poster_id
+		JOIN property prop ON prop.id = p.property_id
+		JOIN buildings b ON b.id = prop.building_id
+		LEFT JOIN metro_stations ms ON ms.id = b.metro_station_id
+		LEFT JOIN flat f ON f.property_id = prop.id
+		LEFT JOIN flat_categories fc ON fc.id = f.category_id
+		WHERE fav.user_id = $1 AND p.deleted_at IS NULL
+	`
+
+	rows, err := r.pool.Query(ctx, query, userID)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	defer rows.Close()
+
+	posters, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.PosterFlat])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return posters, nil
+}
+
+func (r *PosterRepo) CountFavoritesByUserID(ctx context.Context, userID int) (int, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetFavoritesCountByUserID")
+	log.Info("start db get favorites count")
+
+	query := `
+		SELECT COUNT(*)
+		FROM favorites
+		WHERE user_id = $1
+	`
+
+	var count int
+	err := r.pool.QueryRow(ctx, query, userID).Scan(&count)
+func (r *PosterRepo) AddView(ctx context.Context, userID int, posterID int) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.AddView")
+	log.Info("start db add view")
+
+	go func(userID, posterID int) {
+		query := `
+			INSERT INTO views (user_id, poster_id)
+			VALUES ($1, $2)
+		`
+
+		_, err := r.pool.Exec(context.Background(), query, userID, posterID)
+		if err != nil {
+			pgErr := repository.HandelPgErrors(err)
+
+			if errors.Is(pgErr, entity.AlredyExitError) {
+				return
+			}
+
+			log.Errorf("r.pool.Exec: %s", pgErr)
+		}
+	}(userID, posterID)
+}
+
+func (r *PosterRepo) GetViewsCount(ctx context.Context, posterID int) (int, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetViewsCount")
+	log.Info("start db get views")
+
+	query := `
+		SELECT COUNT(*)
+		FROM views
+		WHERE poster_id = $1
+	`
+
+	var count int
+	err := r.pool.QueryRow(ctx, query, posterID).Scan(&count)
+	if err != nil {
+		return 0, repository.HandelPgErrors(err)
+	}
+
+	return count, nil
+}
+
+func (r *PosterRepo) DeleteFavorite(ctx context.Context, userID int, posterID int) error {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.DeleteFavorite")
+	log.Info("start db delete favorite")
+
+	query := `
+		DELETE FROM favorites
+		WHERE user_id = $1 AND poster_id = $2
+	`
+
+	_, err := r.pool.Exec(ctx, query, userID, posterID)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+
+	return nil
 }
