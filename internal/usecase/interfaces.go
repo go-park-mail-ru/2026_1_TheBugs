@@ -18,6 +18,7 @@ type UserRepo interface {
 	GetByProvider(ctx context.Context, provider string, email string) (*entity.User, error)
 	UpdatePwd(ctx context.Context, email string, pwd string, salt string) error
 	GetByID(ctx context.Context, id int) (*dto.UserDTO, error)
+	VerifyEmail(ctx context.Context, email string) error
 	UpdateProfile(ctx context.Context, data dto.UpdateProfileDTO) (*dto.UserDTO, error)
 }
 
@@ -100,7 +101,8 @@ type Сache interface {
 }
 
 type MailSender interface {
-	SendCode(ctx context.Context, to string, code string) error
+	SendRecoveryCode(ctx context.Context, to string, code string) error
+	SendVerificationCode(ctx context.Context, to string, code string) error
 }
 
 type FileRepo interface {

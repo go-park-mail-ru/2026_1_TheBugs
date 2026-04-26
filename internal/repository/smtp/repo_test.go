@@ -61,7 +61,7 @@ func TestSMTPSender_SendCode(t *testing.T) {
 			t.Parallel()
 			sender := NewSMTPSender("smtp.gmail.com", 587, "user@gmail.com", "pass")
 
-			err := sender.SendCode(tt.args.ctx, tt.args.email, tt.args.code)
+			err := sender.SendRecoveryCode(tt.args.ctx, tt.args.email, tt.args.code)
 
 			if tt.wantErr {
 				require.Error(t, err)

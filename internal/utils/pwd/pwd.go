@@ -1,4 +1,4 @@
-package pwd
+package pwd // FIXME: исправить название пакета потом
 
 import (
 	"crypto/rand"
