@@ -485,7 +485,7 @@ func (h *PosterHandler) GetViewsPoster(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusOK, views)
+	utils.JSONResponse(w, http.StatusOK, response.PosterViewsResponse{Views: views})
 }
 
 // @Summary Get favorite posters

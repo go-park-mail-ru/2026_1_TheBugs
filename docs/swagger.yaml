@@ -314,6 +314,11 @@ definitions:
       poster:
         $ref: '#/definitions/dto.PosterDTO'
     type: object
+  response.PosterViewsResponse:
+    properties:
+      views:
+        type: integer
+    type: object
   response.ValidationErrorResponse:
     properties:
       error:
@@ -745,6 +750,36 @@ paths:
       tags:
       - posters
   /posters/{alias}/views:
+    get:
+      description: Returns poster views count
+      parameters:
+      - description: Poster alias
+        in: path
+        name: alias
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PosterViewsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get poster views
+      tags:
+      - posters
     post:
       description: Adds a view for a poster
       parameters:
