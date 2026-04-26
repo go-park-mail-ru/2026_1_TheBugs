@@ -11,7 +11,6 @@ import (
 	es "github.com/elastic/go-elasticsearch/v9"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 )
 
 func ApplyRangeFilter[T []any](filters T, field string, max *int, min *int) T {
@@ -455,7 +454,6 @@ func (r *ESRepo) DeletePoster(ctx context.Context, posterID int) error {
 	}
 	fmt.Println(queryBody)
 	go func(ctx context.Context) {
-		log := ctxLogger.GetLogger(ctx).WithField("op", "ESRepo.DeletePoster")
 		res, err := r.client.DeleteByQuery(
 			[]string{"posters"},
 			bytes.NewReader(queryBody),
