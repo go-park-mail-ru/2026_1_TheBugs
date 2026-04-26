@@ -193,6 +193,16 @@ func (m *MockPosterRepo) CountFavoritesByUserID(ctx context.Context, userID int)
 func (mr *MockPosterRepoMockRecorder) CountFavoritesByUserID(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountFavoritesByUserID", reflect.TypeOf((*MockPosterRepo)(nil).CountFavoritesByUserID), ctx, userID)
+// AddView mocks base method.
+func (m *MockPosterRepo) AddView(ctx context.Context, userID, posterID int) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "AddView", ctx, userID, posterID)
+}
+
+// AddView indicates an expected call of AddView.
+func (mr *MockPosterRepoMockRecorder) AddView(ctx, userID, posterID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddView", reflect.TypeOf((*MockPosterRepo)(nil).AddView), ctx, userID, posterID)
 }
 
 // CountPosters mocks base method.
@@ -516,6 +526,21 @@ func (m *MockPosterRepo) GetUpdateIDsByAlias(ctx context.Context, alias string) 
 func (mr *MockPosterRepoMockRecorder) GetUpdateIDsByAlias(ctx, alias interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUpdateIDsByAlias", reflect.TypeOf((*MockPosterRepo)(nil).GetUpdateIDsByAlias), ctx, alias)
+}
+
+// GetViewsCount mocks base method.
+func (m *MockPosterRepo) GetViewsCount(ctx context.Context, posterID int) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetViewsCount", ctx, posterID)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetViewsCount indicates an expected call of GetViewsCount.
+func (mr *MockPosterRepoMockRecorder) GetViewsCount(ctx, posterID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetViewsCount", reflect.TypeOf((*MockPosterRepo)(nil).GetViewsCount), ctx, posterID)
 }
 
 // InsertFacilities mocks base method.

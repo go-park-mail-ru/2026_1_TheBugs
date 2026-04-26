@@ -530,6 +530,17 @@ func (uc *PosterUseCase) DeleteFlatPoster(ctx context.Context, alias string, use
 	return deletedPoster, nil
 }
 
+func (uc *PosterUseCase) AddViewPoster(ctx context.Context, alias string, userID int) error {
+	poster, err := uc.uow.Posters().GetByAlias(ctx, alias, nil)
+	if err != nil {
+		return fmt.Errorf("uc.PosterRepo.GetByAlias: %w", err)
+	}
+
+	uc.uow.Posters().AddView(ctx, userID, poster.ID)
+
+	return nil
+}
+
 func (uc *PosterUseCase) AddFavoritePoster(ctx context.Context, alias string, userID int) error {
 	poster, err := uc.uow.Posters().GetByAlias(ctx, alias, nil)
 	if err != nil {
@@ -575,4 +586,18 @@ func (uc *PosterUseCase) DeleteFavoritePoster(ctx context.Context, alias string,
 	}
 
 	return nil
+}
+
+func (uc *PosterUseCase) GetViewsPoster(ctx context.Context, alias string) (int, error) {
+	poster, err := uc.uow.Posters().GetByAlias(ctx, alias, nil)
+	if err != nil {
+		return 0, fmt.Errorf("uc.PosterRepo.GetByAlias: %w", err)
+	}
+
+	views, err := uc.uow.Posters().GetViewsCount(ctx, poster.ID)
+	if err != nil {
+		return 0, fmt.Errorf("uc.PosterRepo.GetViewsCount: %w", err)
+	}
+
+	return views, nil
 }

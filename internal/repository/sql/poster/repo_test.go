@@ -5,6 +5,7 @@ import (
 	"errors"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
@@ -2384,6 +2385,144 @@ func TestDeleteBuildingRepo(t *testing.T) {
 	}
 }
 
+func TestAddViewRepo(t *testing.T) {
+	insertQuery := regexp.QuoteMeta(`
+		INSERT INTO views (user_id, poster_id)
+		VALUES ($1, $2)
+	`)
+
+	userID := 1
+	posterID := 10
+
+	tests := []struct {
+		name      string
+		setupMock func(m pgxmock.PgxPoolIface)
+	}{
+		{
+			name: "ok",
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(insertQuery).
+					WithArgs(userID, posterID).
+					WillReturnResult(pgxmock.NewResult("INSERT", 1))
+			},
+		},
+		{
+			name: "already_exist_error",
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(insertQuery).
+					WithArgs(userID, posterID).
+					WillReturnError(&pgconn.PgError{
+						Code: "23505",
+					})
+			},
+		},
+		{
+			name: "service_error",
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(insertQuery).
+					WithArgs(userID, posterID).
+					WillReturnError(errors.New("db error"))
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mock, err := pgxmock.NewPool()
+			require.NoError(t, err)
+			defer mock.Close()
+
+			test.setupMock(mock)
+
+			repo := NewPosterRepo(mock)
+
+			repo.AddView(context.Background(), userID, posterID)
+
+			require.Eventually(t, func() bool {
+				return mock.ExpectationsWereMet() == nil
+			}, time.Second, 10*time.Millisecond)
+		})
+	}
+}
+
+func TestGetViewsCountRepo(t *testing.T) {
+	countQuery := regexp.QuoteMeta(`
+		SELECT COUNT(*)
+		FROM views
+		WHERE poster_id = $1
+	`)
+
+	posterID := 10
+
+	tests := []struct {
+		name      string
+		param     int
+		setupMock func(m pgxmock.PgxPoolIface)
+		want      int
+		wantErr   error
+	}{
+		{
+			name:  "ok",
+			param: posterID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{"count"}).
+					AddRow(5)
+
+				m.ExpectQuery(countQuery).
+					WithArgs(posterID).
+					WillReturnRows(rows)
+			},
+			want:    5,
+			wantErr: nil,
+		},
+		{
+			name:  "not_found",
+			param: posterID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{"count"})
+
+				m.ExpectQuery(countQuery).
+					WithArgs(posterID).
+					WillReturnRows(rows)
+			},
+			want:    0,
+			wantErr: entity.NotFoundError,
+		},
+		{
+			name:  "service_error",
+			param: posterID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectQuery(countQuery).
+					WithArgs(posterID).
+					WillReturnError(errors.New("db error"))
+			},
+			want:    0,
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mock, err := pgxmock.NewPool()
+			require.NoError(t, err)
+			defer mock.Close()
+
+			test.setupMock(mock)
+
+			repo := NewPosterRepo(mock)
+
+			got, err := repo.GetViewsCount(context.Background(), test.param)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, test.want, got)
+			require.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}
 func TestAddFavoriteRepo(t *testing.T) {
 	inputUserID := 7
 	inputPosterID := 4

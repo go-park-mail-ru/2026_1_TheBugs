@@ -2094,6 +2094,14 @@ const docTemplate = `{
                 }
             }
         },
+        "response.PosterViewsResponse": {
+            "type": "object",
+            "properties": {
+                "views": {
+                    "type": "integer"
+                }
+            }
+        },
         "response.ValidationErrorResponse": {
             "type": "object",
             "properties": {

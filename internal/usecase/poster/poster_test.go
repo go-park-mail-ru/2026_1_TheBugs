@@ -1736,6 +1736,168 @@ func TestDeleteFlatPoster(t *testing.T) {
 	}
 }
 
+func TestAddViewPoster(t *testing.T) {
+	ctx := context.Background()
+	alias := "test-alias"
+	userID := 1
+
+	tests := []struct {
+		name      string
+		setup     func(mock *mocks.MockPosterRepo)
+		wantError error
+	}{
+		{
+			name: "OK",
+			setup: func(mock *mocks.MockPosterRepo) {
+				poster := &entity.PosterById{
+					ID: 10,
+				}
+
+				mock.EXPECT().
+					GetByAlias(ctx, alias, nil).
+					Return(poster, nil)
+
+				mock.EXPECT().
+					AddView(ctx, userID, poster.ID)
+			},
+			wantError: nil,
+		},
+		{
+			name: "RepoError",
+			setup: func(mock *mocks.MockPosterRepo) {
+				mock.EXPECT().
+					GetByAlias(ctx, alias, nil).
+					Return(nil, entity.ServiceError)
+			},
+			wantError: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			uow := mocks.NewMockUnitOfWork(ctrl)
+			posterRepo := mocks.NewMockPosterRepo(ctrl)
+			fileRepo := mocks.NewMockFileRepo(ctrl)
+
+			uow.EXPECT().
+				Posters().
+				Return(posterRepo).
+				AnyTimes()
+
+			if test.setup != nil {
+				test.setup(posterRepo)
+			}
+
+			uc := NewPosterUseCase(uow, fileRepo, nil)
+
+			err := uc.AddViewPoster(ctx, alias, userID)
+
+			if test.wantError != nil {
+				require.Error(t, err)
+				require.ErrorContains(t, err, test.wantError.Error())
+				return
+			}
+
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestGetViewsPoster(t *testing.T) {
+	ctx := context.Background()
+	alias := "test-alias"
+
+	tests := []struct {
+		name      string
+		setup     func(mock *mocks.MockPosterRepo)
+		want      int
+		wantError error
+	}{
+		{
+			name: "OK",
+			setup: func(mock *mocks.MockPosterRepo) {
+				poster := &entity.PosterById{
+					ID: 10,
+				}
+
+				mock.EXPECT().
+					GetByAlias(ctx, alias, nil).
+					Return(poster, nil)
+
+				mock.EXPECT().
+					GetViewsCount(ctx, poster.ID).
+					Return(5, nil)
+			},
+			want:      5,
+			wantError: nil,
+		},
+		{
+			name: "RepoErrorGetByAlias",
+			setup: func(mock *mocks.MockPosterRepo) {
+				mock.EXPECT().
+					GetByAlias(ctx, alias, nil).
+					Return(nil, entity.ServiceError)
+			},
+			want:      0,
+			wantError: entity.ServiceError,
+		},
+		{
+			name: "RepoErrorGetViews",
+			setup: func(mock *mocks.MockPosterRepo) {
+				poster := &entity.PosterById{
+					ID: 10,
+				}
+
+				mock.EXPECT().
+					GetByAlias(ctx, alias, nil).
+					Return(poster, nil)
+
+				mock.EXPECT().
+					GetViewsCount(ctx, poster.ID).
+					Return(0, entity.ServiceError)
+			},
+			want:      0,
+			wantError: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			uow := mocks.NewMockUnitOfWork(ctrl)
+			posterRepo := mocks.NewMockPosterRepo(ctrl)
+			fileRepo := mocks.NewMockFileRepo(ctrl)
+
+			uow.EXPECT().
+				Posters().
+				Return(posterRepo).
+				AnyTimes()
+
+			if test.setup != nil {
+				test.setup(posterRepo)
+			}
+
+			uc := NewPosterUseCase(uow, fileRepo, nil)
+
+			res, err := uc.GetViewsPoster(ctx, alias)
+
+			if test.wantError != nil {
+				require.Error(t, err)
+				require.ErrorContains(t, err, test.wantError.Error())
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, test.want, res)
+		})
+	}
+}
+
 func TestAddFavoritePoster(t *testing.T) {
 	ctx := context.Background()
 	alias := "kvartira-na-arbate"

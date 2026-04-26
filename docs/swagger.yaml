@@ -260,6 +260,11 @@ definitions:
       poster:
         $ref: '#/definitions/dto.PosterDTO'
     type: object
+  response.PosterViewsResponse:
+    properties:
+      views:
+        type: integer
+    type: object
   response.ValidationErrorResponse:
     properties:
       error:

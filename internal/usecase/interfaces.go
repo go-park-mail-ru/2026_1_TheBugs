@@ -62,6 +62,8 @@ type PosterRepo interface {
 	GetFavoritesFlatsByUserID(ctx context.Context, userID int) ([]entity.PosterFlat, error)
 	CountFavoritesByUserID(ctx context.Context, userID int) (int, error)
 	DeleteFavorite(ctx context.Context, userID int, posterID int) error
+	AddView(ctx context.Context, userID int, posterID int)
+	GetViewsCount(ctx context.Context, posterID int) (int, error)
 }
 
 type AuthRepo interface {
