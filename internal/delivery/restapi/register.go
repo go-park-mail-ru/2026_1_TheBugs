@@ -10,6 +10,7 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
 
@@ -53,7 +54,10 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		AllowCredentials: true,
 		ExposedHeaders:   []string{"Set-Cookie", "X-CSRF-TOKEN"},
 	})
+	metrics := middleware.NewMetricsMiddleware()
+	metrics.Register("api")
 
+	app.Handle("/metrics", promhttp.Handler())
 	app.Use(middleware.LoggingMiddleware(logger))
 	app.Use(c.Handler)
 
@@ -64,6 +68,7 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 
 	// API Routers
 	apiGroup := app.PathPrefix("/api").Subrouter()
+	apiGroup.Use(metrics.MetricsMiddleware)
 	apiGroup.Use(middleware.CSRFMiddleware)
 	apiGroup.Use(middleware.SecurityMiddleware)
 	apiGroup.Use(mux.CORSMethodMiddleware(apiGroup))
