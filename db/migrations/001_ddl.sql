@@ -268,8 +268,23 @@ CREATE TABLE IF NOT EXISTS views (
 );
 
 COMMENT ON TABLE views IS 'Просмотры';
- 
 
+CREATE TABLE IF NOT EXISTS price_history (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    poster_id BIGINT NOT NULL,
+    price NUMERIC(10,2) NOT NULL,
+    changed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT fk_poster FOREIGN KEY (poster_id) REFERENCES posters(id),
+    CONSTRAINT price_check CHECK (price > 0)
+);
+
+COMMENT ON TABLE price_history IS 'История цены';
+
+CREATE INDEX price_history_poster_id ON price_history(poster_id);
+
+CREATE INDEX idx_price_history_changed_at ON price_history(changed_at);
+ 
 CREATE INDEX idx_favorites_users_id ON favorites(user_id);
 CREATE INDEX idx_views_users_id ON views(user_id);
 

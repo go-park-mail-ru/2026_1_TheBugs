@@ -322,3 +322,21 @@ func ClustersToGEOJsons(clusters []entity.ClusterPoint) []GeoJSONFeature {
 
 	return out
 }
+
+type PriceHistoryDTO struct {
+	Date  string  `json:"date"`
+	Price float64 `json:"price"`
+}
+
+func PriceHistoryToPriceHistoryDTO(history []entity.PriceHistory) []PriceHistoryDTO {
+	result := make([]PriceHistoryDTO, 0, len(history))
+
+	for _, h := range history {
+		result = append(result, PriceHistoryDTO{
+			Date:  h.ChangedAt.Format("2006-01-02"),
+			Price: h.Price,
+		})
+	}
+
+	return result
+}

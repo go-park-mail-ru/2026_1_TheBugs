@@ -1,6 +1,8 @@
 package entity
 
 import (
+	"time"
+
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
 )
 
@@ -92,4 +94,10 @@ type PosterById struct {
 	CompanyAvatarURL *string `db:"company_avatar_url"`
 	CompanyAlias     *string `db:"company_alias"`
 	CompanyID        *int    `db:"company_id"`
+}
+
+type PriceHistory struct {
+	ID        int       `db:"id"`
+	Price     float64   `db:"price"`
+	ChangedAt time.Time `db:"changed_at"`
 }

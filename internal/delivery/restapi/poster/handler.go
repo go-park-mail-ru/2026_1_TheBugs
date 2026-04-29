@@ -559,6 +559,52 @@ func (h *PosterHandler) DeleteFavoritePoster(w http.ResponseWriter, r *http.Requ
 	}
 }
 
+// @Summary Get poster favorites count
+// @Description Returns number of users who added poster to favorites
+// @Tags posters
+// @Produce json
+// @Security     BearerAuth
+// @Security     CSRFToken
+// @Param alias path string true "Poster alias"
+// @Success 200 {object} map[string]int
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/{alias}/favorites [get]
+func (h *PosterHandler) GetFavoritesCountPoster(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GetFavoritesCountPoster"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	var userID *int
+
+	id, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.Infof("utils.GetUserID: %s", err)
+	} else {
+		userID = &id
+	}
+	alias, err := utils.ParseAliasFromRequest(r)
+	if err != nil {
+		log.Errorf("utils.ParseAliasFromRequest: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	count, isFavorite, err := h.uc.GetFavoritesCountPoster(r.Context(), alias, userID)
+	if err != nil {
+		log.Errorf("h.uc.GetFavoritesCountPoster: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	var response response.PosterFavoritesCountResponse
+	response.Count = count
+	response.IsFavorite = isFavorite
+
+	utils.JSONResponse(w, http.StatusOK, response)
+}
+
 // @Summary Get list of posters JSONGeo
 // @Description Returns filtered list of apartment posters on in JSONGeo notation
 // @Tags posters
@@ -677,4 +723,39 @@ func (h *PosterHandler) GenerateDescription(w http.ResponseWriter, r *http.Reque
 		return
 	}
 	utils.JSONResponse(w, http.StatusOK, response.GenerateDescriptionResponse{Description: description})
+}
+
+// @Summary Get poster price history
+// @Description Returns poster price history
+// @Tags posters
+// @Produce json
+// @Param alias path string true "Poster alias"
+// @Success 200 {object} response.PriceHistoryResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/{alias}/price-history [get]
+func (h *PosterHandler) GetPriceHistoryPoster(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GetPriceHistoryPoster"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	alias, err := utils.ParseAliasFromRequest(r)
+	if err != nil {
+		log.Errorf("utils.ParseAliasFromRequest: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	history, err := h.uc.GetPriceHistoryPoster(r.Context(), alias)
+	if err != nil {
+		log.Errorf("h.uc.GetPriceHistoryPoster: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	var response response.PriceHistoryResponse
+	response.History = history
+	response.Count = len(history)
+
+	utils.JSONResponse(w, http.StatusOK, response)
 }
