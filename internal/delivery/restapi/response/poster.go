@@ -29,7 +29,8 @@ type GenerateDescriptionResponse struct {
 }
 
 type PosterFavoritesCountResponse struct {
-	Count int `json:"favorites"`
+	Count      int  `json:"favorites"`
+	IsFavorite bool `json:"is_favorite"`
 }
 
 type PriceHistoryResponse struct {

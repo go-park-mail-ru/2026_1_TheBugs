@@ -571,19 +571,27 @@ func (h *PosterHandler) DeleteFavoritePoster(w http.ResponseWriter, r *http.Requ
 // @Failure 401 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
-// @Router /posters/{alias}/favorites/count [get]
+// @Router /posters/{alias}/favorites [get]
 func (h *PosterHandler) GetFavoritesCountPoster(w http.ResponseWriter, r *http.Request) {
 	op := "PosterHandler.GetFavoritesCountPoster"
 	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
+	var userID *int
+
+	id, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.Infof("utils.GetUserID: %s", err)
+	} else {
+		userID = &id
+	}
 	alias, err := utils.ParseAliasFromRequest(r)
 	if err != nil {
-		log.Errorf("utils.ParseIDFromRequest: %s", err)
+		log.Errorf("utils.ParseAliasFromRequest: %s", err)
 		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
 
-	count, err := h.uc.GetFavoritesCountPoster(r.Context(), alias)
+	count, isFavorite, err := h.uc.GetFavoritesCountPoster(r.Context(), alias, userID)
 	if err != nil {
 		log.Errorf("h.uc.GetFavoritesCountPoster: %s", err)
 		utils.HandelError(w, err)
@@ -592,6 +600,7 @@ func (h *PosterHandler) GetFavoritesCountPoster(w http.ResponseWriter, r *http.R
 
 	var response response.PosterFavoritesCountResponse
 	response.Count = count
+	response.IsFavorite = isFavorite
 
 	utils.JSONResponse(w, http.StatusOK, response)
 }

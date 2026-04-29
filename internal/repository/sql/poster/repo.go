@@ -1026,6 +1026,26 @@ func (r *PosterRepo) GetFavoritesCountByAlias(ctx context.Context, posterAlias s
 	return count, nil
 }
 
+func (r *PosterRepo) IsFavoriteByAliasAndUserID(ctx context.Context, posterAlias string, userID int) (bool, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetFavoritesByAliasAndUserID")
+	log.Info("start get favorite by alias and user id")
+	query := `
+		SELECT COUNT(*)
+		FROM favorites f
+		JOIN posters p ON p.id = f.poster_id
+		WHERE p.alias = $1 AND f.user_id = $2 AND p.deleted_at IS NULL
+		LIMIT 1;
+	`
+
+	var count int
+	err := r.pool.QueryRow(ctx, query, posterAlias, userID).Scan(&count)
+	if err != nil {
+		return false, repository.HandelPgErrors(err)
+	}
+
+	return count > 0, nil
+}
+
 func (r *PosterRepo) GetPriceHistoryByAlias(ctx context.Context, posterAlias string) ([]entity.PriceHistory, error) {
 	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetPriceHistoryByAlias")
 	log.Info("start get price history")

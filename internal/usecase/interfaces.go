@@ -67,6 +67,7 @@ type PosterRepo interface {
 	CountFavoritesByUserID(ctx context.Context, userID int) (int, error)
 	DeleteFavorite(ctx context.Context, userID int, posterID int) error
 	GetFavoritesCountByAlias(ctx context.Context, posterAlias string) (int, error)
+	IsFavoriteByAliasAndUserID(ctx context.Context, posterAlias string, userID int) (bool, error)
 
 	AddView(ctx context.Context, userID int, posterID int)
 	GetViewsCount(ctx context.Context, posterID int) (int, error)

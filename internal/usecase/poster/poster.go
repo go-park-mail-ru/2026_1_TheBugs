@@ -655,13 +655,20 @@ func (uc *PosterUseCase) DeleteFavoritePoster(ctx context.Context, alias string,
 	return nil
 }
 
-func (uc *PosterUseCase) GetFavoritesCountPoster(ctx context.Context, posterAlias string) (int, error) {
+func (uc *PosterUseCase) GetFavoritesCountPoster(ctx context.Context, posterAlias string, userID *int) (int, bool, error) {
+	var isFavorite bool
 	count, err := uc.uow.Posters().GetFavoritesCountByAlias(ctx, posterAlias)
 	if err != nil {
-		return 0, fmt.Errorf("uc.PosterRepo.GetFavoritesCountByAlias: %w", err)
+		return 0, false, fmt.Errorf("uc.PosterRepo.GetFavoritesCountByAlias: %w", err)
+	}
+	if userID != nil {
+		isFavorite, err = uc.uow.Posters().IsFavoriteByAliasAndUserID(ctx, posterAlias, *userID)
+		if err != nil {
+			return 0, false, fmt.Errorf("uc.uow.Posters().IsFavorite: %w", err)
+		}
 	}
 
-	return count, nil
+	return count, isFavorite, nil
 }
 
 func (uc *PosterUseCase) GetViewsPoster(ctx context.Context, alias string) (int, error) {
