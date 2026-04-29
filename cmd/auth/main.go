@@ -8,12 +8,12 @@ import (
 )
 
 func main() {
-	logger := logger.New(string(entity.AuthService))
-	err := config.Read(logger)
+	log := logger.New(string(entity.AuthService))
+	err := config.Read(log)
 	if err != nil {
-		logger.Fatalf("Config error: %s", err)
+		log.Fatalf("Config error: %s", err)
 	}
 
-	app.RunAuthService(&config.Config, logger)
+	app.RunAuthService(&config.Config, log)
 
 }

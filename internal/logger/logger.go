@@ -4,11 +4,13 @@ import (
 	"os"
 	"strings"
 
+	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 	"github.com/yukitsune/lokirus"
 )
 
 func New(serviceName string) *logrus.Logger {
+	godotenv.Load(".env")
 	log := logrus.New()
 
 	log.SetOutput(os.Stdout)
