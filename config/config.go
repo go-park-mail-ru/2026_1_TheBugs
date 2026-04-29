@@ -37,6 +37,7 @@ type (
 		Minio      `yaml:"minio"`
 		ES         `yaml:"es"`
 		OpenRouter `yaml:"openrouter"`
+		Loki       `yaml:"loki"`
 	}
 	Redis struct {
 		Host     string `yaml:"host" env:"REDIS_HOST" env-default:"localhost"`
@@ -108,6 +109,9 @@ type (
 	OpenRouter struct {
 		APIKey string `yaml:"api_key" env:"OPENROUTER_API_KEY" env-default:""`
 		Model  string `yaml:"model" env:"OPENROUTER_MODEL" env-default:"nvidia/nemotron-3-nano-30b-a3b:free"`
+	}
+	Loki struct {
+		URL string `yaml:"url" env:"LOKI_URL" env-default:"http://localhost:3100"`
 	}
 )
 
