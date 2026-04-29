@@ -221,7 +221,7 @@ definitions:
     type: object
   dto.PriceHistoryDTO:
     properties:
-      changed_at:
+      date:
         type: string
       price:
         type: number
@@ -348,6 +348,8 @@ definitions:
     type: object
   response.PriceHistoryResponse:
     properties:
+      count:
+        type: integer
       history:
         items:
           $ref: '#/definitions/dto.PriceHistoryDTO'

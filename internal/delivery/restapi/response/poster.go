@@ -34,4 +34,5 @@ type PosterFavoritesCountResponse struct {
 
 type PriceHistoryResponse struct {
 	History []dto.PriceHistoryDTO `json:"history"`
+	Count   int                   `json:"count"`
 }

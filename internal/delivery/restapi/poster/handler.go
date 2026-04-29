@@ -746,6 +746,7 @@ func (h *PosterHandler) GetPriceHistoryPoster(w http.ResponseWriter, r *http.Req
 
 	var response response.PriceHistoryResponse
 	response.History = history
+	response.Count = len(history)
 
 	utils.JSONResponse(w, http.StatusOK, response)
 }

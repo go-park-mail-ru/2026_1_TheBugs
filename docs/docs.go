@@ -2644,7 +2644,7 @@ const docTemplate = `{
         "dto.PriceHistoryDTO": {
             "type": "object",
             "properties": {
-                "changed_at": {
+                "date": {
                     "type": "string"
                 },
                 "price": {
@@ -2842,6 +2842,9 @@ const docTemplate = `{
         "response.PriceHistoryResponse": {
             "type": "object",
             "properties": {
+                "count": {
+                    "type": "integer"
+                },
                 "history": {
                     "type": "array",
                     "items": {
