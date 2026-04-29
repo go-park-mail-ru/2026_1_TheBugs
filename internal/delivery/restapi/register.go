@@ -57,7 +57,7 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		ExposedHeaders:   []string{"Set-Cookie", "X-CSRF-TOKEN"},
 	})
 	metrics := prom.NewMetricsMiddleware()
-	metrics.Register(entity.GatewayService)
+	metrics.Register(entity.ServiceType(config.Config.ServiceName))
 
 	app.Handle("/metrics", promhttp.Handler())
 	app.Use(middleware.LoggingMiddleware(logger))

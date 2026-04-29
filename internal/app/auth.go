@@ -49,7 +49,7 @@ func RunAuthService(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	grpcAsddr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.AuthService.Port)
 
 	metrics := prom.NewMetricsMiddleware()
-	metrics.Register(entity.AuthService)
+	metrics.Register(entity.ServiceType(cfg.ServiceName))
 
 	app.Handle("/metrics", promhttp.Handler())
 	app.Use(middleware.LoggingMiddleware(logger))
