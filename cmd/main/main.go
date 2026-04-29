@@ -3,16 +3,17 @@ package main
 import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/app"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/logger"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
-	logger := logger.New(string(entity.GatewayService))
-	err := config.Read(logger)
+	launchLogger := logrus.New()
+	err := config.Read(launchLogger)
 	if err != nil {
-		logger.Fatalf("Config error: %s", err)
+		launchLogger.Fatalf("Config error: %s", err)
 	}
+	appLogger := logger.New(&config.Config)
 
-	app.Run(&config.Config, logger)
+	app.Run(&config.Config, appLogger)
 }

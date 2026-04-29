@@ -2,28 +2,28 @@ package logger
 
 import (
 	"os"
-	"strings"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 	"github.com/yukitsune/lokirus"
 )
 
-func New(serviceName string) *logrus.Logger {
+func New(cfg *config.ProjectConfig) *logrus.Logger {
 	godotenv.Load(".env")
 	log := logrus.New()
 
 	log.SetOutput(os.Stdout)
 	log.SetFormatter(&logrus.JSONFormatter{})
-	log.SetLevel(getLogLevel())
+	log.SetLevel(logrus.InfoLevel)
 
-	lokiURL := getEnv("LOKI_URL", "http://localhost:3100")
+	lokiURL := cfg.Loki.URL
 
 	if lokiURL != "" {
 		opts := lokirus.NewLokiHookOptions().
 			WithFormatter(&logrus.JSONFormatter{}).
 			WithStaticLabels(lokirus.Labels{
-				"service": serviceName,
+				"service": cfg.ServiceName,
 			}).
 			WithLevelMap(lokirus.LevelMap{
 				logrus.TraceLevel: "trace",
@@ -49,29 +49,9 @@ func New(serviceName string) *logrus.Logger {
 	}
 
 	log.WithFields(logrus.Fields{
-		"service": serviceName,
+		"service": cfg.ServiceName,
 		"loki":    lokiURL != "",
 	}).Info("logger initialized")
 
 	return log
-}
-
-func getLogLevel() logrus.Level {
-	raw := strings.ToLower(getEnv("LOG_LEVEL", "info"))
-
-	level, err := logrus.ParseLevel(raw)
-	if err != nil {
-		return logrus.InfoLevel
-	}
-
-	return level
-}
-
-func getEnv(key string, fallback string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		return fallback
-	}
-
-	return value
 }
