@@ -1,3 +1,17 @@
+server-env: &server-common
+  environment:
+    APP_ENV: dev
+    SRV_HOST: 0.0.0.0
+    PG_HOST: postgres
+    PG_PORT: 5432
+    REDIS_HOST: redis
+    REDIS_PORT: 6379
+    SMTP_PWD: ${SMTP_PWD}
+    MINIO_ENDPOINT: minio:9000
+    ES_HOST: elasticsearch
+    OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+    LOKI_URL: http://loki:3100
+
 services:
   postgres:
     image: postgis/postgis:16-3.4
@@ -134,6 +148,39 @@ services:
       interval: 10s
       timeout: 3s
       retries: 10
+
+  # auth_service:
+  #   build:
+  #     context: .
+  #     dockerfile: microservice/auth/Dockerfile
+  #   ports:
+  #   - "8001:8001"
+
+  #   volumes:
+  #     - ./backend/config/config.yaml:/app/config/config.yaml
+  #     - ./backend/private.pem:/app/private.pem
+  #     - ./backend/public.pem:/app/public.pem
+  #   <<: *server-common
+  #   environment:
+  #     SRV_PORT: 8001
+  #     SERVICE_NAME: auth_service
+
+  # gateaway_service:
+  #   build:
+  #     context: .
+  #     dockerfile: microservice/auth/Dockerfile
+  #   ports:
+  #   - "8000:8000"
+
+  #   volumes:
+  #     - ./backend/config/config.yaml:/app/config/config.yaml
+  #     - ./backend/private.pem:/app/private.pem
+  #     - ./backend/public.pem:/app/public.pem
+  #   <<: *server-common
+  #   environment:
+  #     SRV_PORT: 8000
+  #     SERVICE_NAME: gateaway_service
+
 
 volumes:
   grafana_data:

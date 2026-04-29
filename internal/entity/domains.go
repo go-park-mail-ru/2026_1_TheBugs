@@ -6,3 +6,12 @@ type (
 	UserID    struct{}
 	Metre     uint
 )
+
+type ServiceType string
+
+const (
+	GatewayService ServiceType = "gateway_service"
+	AuthService    ServiceType = "auth_service"
+	PosterService  ServiceType = "poster_service"
+	UserService    ServiceType = "user_service"
+)

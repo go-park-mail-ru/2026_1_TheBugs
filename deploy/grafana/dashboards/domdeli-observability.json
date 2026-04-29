@@ -18,6 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
+  "id": 1,
   "links": [],
   "panels": [
     {
@@ -79,8 +80,8 @@
       "pluginVersion": "12.2.1",
       "targets": [
         {
-          "editorMode": "code",
-          "expr": "{__name__=~\"${service}_cpu_usage_percent\"}",
+          "editorMode": "builder",
+          "expr": "cpu_usage_percent{instance=\"host.docker.internal:8000\"}",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -138,8 +139,8 @@
       "pluginVersion": "12.2.1",
       "targets": [
         {
-          "editorMode": "code",
-          "expr": "api_memory_usage_bytes",
+          "editorMode": "builder",
+          "expr": "memory_usage_bytes{instance=\"host.docker.internal:8000\"}",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -203,8 +204,8 @@
       "pluginVersion": "12.2.1",
       "targets": [
         {
-          "editorMode": "code",
-          "expr": "sum(\r\n  rate({__name__=~\"${service}_requests_total\"}[5m])\r\n)",
+          "editorMode": "builder",
+          "expr": "sum(rate(requests_total{ServiceName=\"$service\"}[5m]))",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -269,7 +270,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "(\r\n  sum(rate({\r\n    __name__=~\"(${service})_errors_total\",\r\n    Url=~\"$url\"\r\n  }[5m]))\r\n  /\r\n  sum(rate({\r\n    __name__=~\"(${service})_requests_total\",\r\n    Url=~\"$url\"\r\n  }[5m]))\r\n) * 100",
+          "expr": "(\r\n  sum(rate(\r\n    errors_total{\r\n    ServiceName=\"$service\",\r\n    Url=~\"$url\"\r\n  }[5m]))\r\n  /\r\n  sum(rate(\r\n    requests_total{\r\n    ServiceName=\"$service\",\r\n    Url=~\"$url\"\r\n  }[5m]))\r\n) * 100",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -331,8 +332,8 @@
       "pluginVersion": "12.2.1",
       "targets": [
         {
-          "editorMode": "code",
-          "expr": "api_disk_usage_percent",
+          "editorMode": "builder",
+          "expr": "disk_usage_percent{instance=\"host.docker.internal:8000\"}",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -432,7 +433,7 @@
             "uid": "PBFA97CFB590B2093"
           },
           "editorMode": "code",
-          "expr": "sum by (Url) (\r\n  rate({__name__=~\"(${service})_duration_seconds_sum\", Url=~\"$url\"}[5m])\r\n)\r\n/\r\nsum by (Url) (\r\n  rate({__name__=~\"(${service})_duration_seconds_count\", Url=~\"$url\"}[5m])\r\n)",
+          "expr": "sum by (Url) (\r\n  rate(duration_seconds_sum{ServiceName=~\"$service\", Url=~\"$url\"}[5m])\r\n)\r\n/\r\nsum by (Url) (\r\n  rate(duration_seconds_count{ServiceName=~\"$service\", Url=~\"$url\"}[5m])\r\n)",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -528,7 +529,7 @@
         {
           "editorMode": "code",
           "exemplar": false,
-          "expr": "sum by (Url) (\r\n  rate({\r\n    __name__=~\"${service}_requests_total\",\r\n    Url=~\"$url\"\r\n  }[5m])\r\n)",
+          "expr": "sum by (Url) (\r\n  rate(\r\n    requests_total{\r\n    ServiceName=~\"$service\",\r\n    Url=~\"$url\"\r\n  }[5m])\r\n)",
           "legendFormat": "{{Url}}",
           "range": true,
           "refId": "A"
@@ -536,6 +537,50 @@
       ],
       "title": "RPS by Endpoints",
       "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 22,
+        "w": 22,
+        "x": 0,
+        "y": 26
+      },
+      "id": 8,
+      "options": {
+        "dedupStrategy": "none",
+        "enableInfiniteScrolling": false,
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": false,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "{service_name=\"$service\"}\r\n| json \r\n  level=\"level\", \r\n  msg=\"msg\", \r\n  method=\"method\", \r\n  path=\"path\", \r\n  request_id=\"request_id\", \r\n  duration=\"duration\", \r\n  remote_addr=\"remote_addr\", \r\n  _time=\"time\"\r\n| line_format `{{.remote_addr}} [{{.request_id}}] {{.method}} {{.path}} {{.level}} \"{{.msg}}\" ({{.duration}}ns)`",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Logs",
+      "type": "logs"
     }
   ],
   "preload": false,
@@ -550,7 +595,7 @@
             "$__all"
           ]
         },
-        "definition": "label_values(api_requests_total,Url)",
+        "definition": "label_values(requests_total{ServiceName=\"$service\"},Url)",
         "includeAll": true,
         "label": "Url",
         "multi": true,
@@ -558,7 +603,7 @@
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(api_requests_total,Url)",
+          "query": "label_values(requests_total{ServiceName=\"$service\"},Url)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
@@ -567,20 +612,17 @@
       },
       {
         "current": {
-          "text": "All",
-          "value": [
-            "$__all"
-          ]
+          "text": "gateway_service",
+          "value": "gateway_service"
         },
-        "definition": "label_values(api_requests_total,ServiceName)",
-        "includeAll": true,
+        "definition": "label_values(requests_total,ServiceName)",
+        "includeAll": false,
         "label": "Service",
-        "multi": true,
         "name": "service",
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(api_requests_total,ServiceName)",
+          "query": "label_values(requests_total,ServiceName)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
@@ -590,12 +632,12 @@
     ]
   },
   "time": {
-    "from": "now-1m",
+    "from": "now-30m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Domdeli Observabilit",
   "uid": "ad5f864",
-  "version": 32
+  "version": 1
 }

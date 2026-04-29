@@ -8,6 +8,8 @@ import (
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/response"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func WriteError(w http.ResponseWriter, msg string, status int) {
@@ -51,5 +53,42 @@ func HandelError(w http.ResponseWriter, err error) {
 		WriteError(w, "email is unverified", http.StatusForbidden)
 	default:
 		WriteError(w, "internal", http.StatusInternalServerError)
+	}
+}
+
+func HandelGRPCError(w http.ResponseWriter, err error) {
+	if err == nil {
+		return
+	}
+
+	st, ok := status.FromError(err)
+	if !ok {
+		WriteError(w, "internal", http.StatusInternalServerError)
+		return
+	}
+	msg := st.Message()
+	if msg == "" {
+		msg = "internal"
+	}
+
+	switch st.Code() {
+	case codes.InvalidArgument:
+		WriteError(w, msg, http.StatusBadRequest)
+	case codes.NotFound:
+		WriteError(w, msg, http.StatusNotFound)
+	case codes.AlreadyExists:
+		WriteError(w, msg, http.StatusConflict)
+	case codes.Unauthenticated:
+		WriteError(w, msg, http.StatusUnauthorized)
+	case codes.PermissionDenied:
+		WriteError(w, msg, http.StatusForbidden)
+	case codes.ResourceExhausted:
+		WriteError(w, msg, http.StatusTooManyRequests)
+	case codes.Unimplemented:
+		WriteError(w, msg, http.StatusNotImplemented)
+	case codes.Internal, codes.Unknown, codes.DataLoss:
+		WriteError(w, msg, http.StatusInternalServerError)
+	default:
+		WriteError(w, msg, http.StatusInternalServerError)
 	}
 }

@@ -9,17 +9,15 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/grpc/generated/auth"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/request"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	ctxLogger "github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
+	"google.golang.org/grpc"
 )
 
 type AuthHandler struct {
-	uc *auth.AuthUseCase
+	grpcClient auth.AuthServiceClient
 }
 
 type FormDataCredential struct {
@@ -40,12 +38,14 @@ type LoginResponse struct {
 	AccessTokenExp int    `json:"expire_at"`
 }
 
-func NewAuthHandler(uc *auth.AuthUseCase) *AuthHandler {
-	return &AuthHandler{uc: uc}
+func NewAuthHandler(grpcConn *grpc.ClientConn) *AuthHandler {
+	return &AuthHandler{
+		grpcClient: auth.NewAuthServiceClient(grpcConn),
+	}
 }
 
-func (h *AuthHandler) GetAuthMiddlewary() func(http.Handler) http.Handler {
-	return middleware.AuthMiddleware(h.uc)
+func (h AuthHandler) GetAuthMiddlewary() func(http.Handler) http.Handler {
+	return middleware.AuthMiddleware(h.grpcClient)
 }
 
 // RegisterUser
@@ -77,18 +77,20 @@ func (h AuthHandler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		utils.WriteError(w, "invalid form data", http.StatusBadRequest)
 		return
 	}
-	err = h.uc.RegisterUseCase(r.Context(), dto.CreateUserDTO{
+
+	resp, err := h.grpcClient.RegisterUser(r.Context(), &auth.RegisterUserRequest{
 		Email:     cred.Email,
 		Password:  cred.Password,
 		Phone:     cred.Phone,
-		LastName:  cred.LastName,
-		FirstName: cred.FirstName,
+		Firstname: cred.FirstName,
+		Lastname:  cred.LastName,
 	})
 	if err != nil {
-		log.Errorf("h.uc.RegisterUseCase: %s", err)
-		utils.HandelError(w, err)
+		log.Errorf("grpcClient.RegisterUser: %s", err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
+	log.Infof("RegisterUser response: %v", resp)
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -111,7 +113,6 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	var cred FormDataCredential
-
 	err := utils.ParseFormData(r, &cred)
 	log.Println(cred)
 	if err != nil {
@@ -119,21 +120,34 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		utils.WriteError(w, "invalid form data", http.StatusBadRequest)
 		return
 	}
-	accessCred, err := h.uc.LoginUseCase(r.Context(), cred.Email, cred.Password)
+
+	loginResp, err := h.grpcClient.LoginUser(r.Context(), &auth.LoginUserRequest{
+		Email:    cred.Email,
+		Password: cred.Password,
+	})
 	if err != nil {
-		log.Errorf("h.uc.LoginUseCase: %s", err)
-		utils.HandelError(w, err)
+		log.Errorf("grpcClient.LoginUser: %s", err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
+
 	resp := LoginResponse{
-		AccessToken:    accessCred.AccessToken,
-		AccessTokenExp: accessCred.AccessTokenExp,
+		AccessToken:    loginResp.AccessToken,
+		AccessTokenExp: int(loginResp.AccessTokenExp),
 	}
 
-	utils.SetRefreshCookie(w, accessCred)
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    loginResp.RefreshToken,
+		Path:     "/api/auth",
+		Domain:   config.Config.CORS.CookieHost,
+		MaxAge:   int(loginResp.RefreshTokenExp),
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+	})
 
 	utils.JSONResponse(w, http.StatusOK, &resp)
-
 }
 
 // RefreshToken
@@ -160,18 +174,31 @@ func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	refreshToken := cookie.Value
-	accessCred, err := h.uc.RefreshTokenUseCase(r.Context(), refreshToken)
+
+	loginResp, err := h.grpcClient.RefreshToken(r.Context(), &auth.RefreshTokenRequest{
+		RefreshToken: refreshToken,
+	})
 	if err != nil {
-		log.Errorf("h.uc.RefreshTokenUseCase: %s", err)
-		utils.HandelError(w, err)
+		log.Errorf("grpcClient.RefreshToken: %s", err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
+
 	resp := LoginResponse{
-		AccessToken:    accessCred.AccessToken,
-		AccessTokenExp: accessCred.AccessTokenExp,
+		AccessToken:    loginResp.AccessToken,
+		AccessTokenExp: int(loginResp.AccessTokenExp),
 	}
 
-	utils.SetRefreshCookie(w, accessCred)
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    loginResp.RefreshToken,
+		Path:     "/api/auth",
+		Domain:   config.Config.CORS.CookieHost,
+		MaxAge:   int(loginResp.RefreshTokenExp),
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+	})
 
 	utils.JSONResponse(w, http.StatusOK, &resp)
 }
@@ -202,19 +229,21 @@ func (h AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("refresh_token")
 	if err != nil {
 		log.Errorf("r.Cookie: %s", err)
-		utils.HandelError(w, entity.InvalidInput)
+		utils.WriteError(w, "invalid cookie", http.StatusBadRequest)
 		return
 	}
 	refreshToken := cookie.Value
-	err = h.uc.LogoutUseCase(r.Context(), dto.LogoutDTO{
-		RefreshToken: refreshToken,
+
+	_, err = h.grpcClient.Logout(r.Context(), &auth.LogoutRequest{
 		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	})
 	if err != nil {
-		log.Printf("h.uc.RefreshTokenUseCase: %s", err)
-		utils.HandelError(w, err)
+		log.Printf("grpcClient.Logout: %s", err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     "refresh_token",
 		Value:    "",
@@ -233,32 +262,53 @@ func (h AuthHandler) VKLogin(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.VKLogin"
 	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
-	var flow dto.OAuthCodeFlow
+	type VKLoginRequest struct {
+		Code         string `json:"code"`
+		DeviceID     string `json:"device_id"`
+		State        string `json:"state"`
+		CodeVerifier string `json:"code_verifier"`
+	}
+	var flow VKLoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&flow); err != nil {
 		log.Errorf("json.NewDecoder(r.Body).Decode(&flow): %s", err)
 		utils.WriteError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
-	if flow.Code == "" || flow.DeviceID == nil || flow.State == nil {
-		log.Errorf("flow.Code || flow.DeviceID || flow.State empty ")
+	if flow.Code == "" {
+		log.Errorf("flow.Code empty")
 		utils.WriteError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
-	accessCred, err := h.uc.LoginUserFromVKUseCase(r.Context(), flow)
+	loginResp, err := h.grpcClient.VKLogin(r.Context(), &auth.VKLoginRequest{
+		Code:         flow.Code,
+		DeviceId:     flow.DeviceID,
+		State:        flow.State,
+		CodeVerifier: flow.CodeVerifier,
+	})
 	if err != nil {
-		log.Errorf("login vk error: %v", err)
-		utils.HandelError(w, err)
+		log.Errorf("grpcClient.VKLogin: %v", err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
 
 	resp := LoginResponse{
-		AccessToken:    accessCred.AccessToken,
-		AccessTokenExp: accessCred.AccessTokenExp,
+		AccessToken:    loginResp.AccessToken,
+		AccessTokenExp: int(loginResp.AccessTokenExp),
 	}
 
-	utils.SetRefreshCookie(w, accessCred)
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    loginResp.RefreshToken,
+		Path:     "/api/auth",
+		Domain:   config.Config.CORS.CookieHost,
+		MaxAge:   int(loginResp.RefreshTokenExp),
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+	})
+
 	utils.JSONResponse(w, http.StatusOK, &resp)
 }
 
@@ -279,7 +329,13 @@ func (h AuthHandler) YandexLogin(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.YandexLogin"
 	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
-	var flow dto.OAuthCodeFlow
+	type YandexLoginRequest struct {
+		Code         string `json:"code"`
+		DeviceID     string `json:"device_id"`
+		State        string `json:"state"`
+		CodeVerifier string `json:"code_verifier"`
+	}
+	var flow YandexLoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&flow); err != nil {
 		log.Errorf("json.NewDecoder(r.Body).Decode(&flow): %s", err)
 		utils.WriteError(w, "invalid body", http.StatusBadRequest)
@@ -287,24 +343,39 @@ func (h AuthHandler) YandexLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if flow.Code == "" {
-		log.Errorf("flow.Code empty ")
+		log.Errorf("flow.Code empty")
 		utils.WriteError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
-	accessCred, err := h.uc.LoginUserFromYandexUseCase(r.Context(), flow)
+	loginResp, err := h.grpcClient.YandexLogin(r.Context(), &auth.YandexLoginRequest{
+		Code:         flow.Code,
+		DeviceId:     flow.DeviceID,
+		State:        flow.State,
+		CodeVerifier: flow.CodeVerifier,
+	})
 	if err != nil {
-		log.Errorf("login yandex error: %v", err)
-		utils.HandelError(w, err)
+		log.Errorf("grpcClient.YandexLogin: %v", err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
 
 	resp := LoginResponse{
-		AccessToken:    accessCred.AccessToken,
-		AccessTokenExp: accessCred.AccessTokenExp,
+		AccessToken:    loginResp.AccessToken,
+		AccessTokenExp: int(loginResp.AccessTokenExp),
 	}
 
-	utils.SetRefreshCookie(w, accessCred)
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refresh_token",
+		Value:    loginResp.RefreshToken,
+		Path:     "/api/auth",
+		Domain:   config.Config.CORS.CookieHost,
+		MaxAge:   int(loginResp.RefreshTokenExp),
+		HttpOnly: true,
+		Secure:   false,
+		SameSite: http.SameSiteLaxMode,
+	})
+
 	utils.JSONResponse(w, http.StatusOK, &resp)
 }
 
@@ -325,39 +396,42 @@ func (h AuthHandler) SendCodeOnEmail(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.SendCodeOnEmail"
 	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
-	var data request.UserEmail
+	type UserEmail struct {
+		Email string `json:"email"`
+	}
+	var data UserEmail
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		log.Errorf("decode: %v", err)
 		utils.WriteError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
-	sessionID, err := h.uc.SendRecoveryCode(r.Context(), data.Email)
+	sessionResp, err := h.grpcClient.SendCodeOnEmail(r.Context(), &auth.SendCodeOnEmailRequest{
+		Email: data.Email,
+	})
 	if err != nil {
-		log.Errorf("SendVerificationCode: %v", err)
-		utils.HandelError(w, err)
+		log.Errorf("grpcClient.SendCodeOnEmail: %v", err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
-	http.SetCookie(
-		w,
-		&http.Cookie{
-			Name:     "session_id",
-			Value:    sessionID,
-			Path:     "/api/auth",
-			HttpOnly: true,
-			Domain:   config.Config.CORS.CookieHost,
-			SameSite: http.SameSiteLaxMode,
-			Expires:  time.Now().Add(time.Duration(int(config.Config.JWT.RecoverExp) * int(time.Second))),
-			MaxAge:   int(config.Config.JWT.RecoverExp),
-		},
-	)
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_id",
+		Value:    sessionResp.SessionId,
+		Path:     "/api/auth",
+		HttpOnly: true,
+		Domain:   config.Config.CORS.CookieHost,
+		SameSite: http.SameSiteLaxMode,
+		Expires:  time.Now().Add(time.Duration(config.Config.JWT.RecoverExp) * time.Second),
+		MaxAge:   int(config.Config.JWT.RecoverExp),
+	})
 
 	utils.JSONResponse(w, http.StatusOK, map[string]string{
 		"status": "ok",
 	})
 }
 
-// SendCodeOnEmail
+// SendVerifyCodeOnEmail
 // @Summary       Send verify code to email
 // @Description   Generates recovery session, sends verification code to user's email and sets session_id cookie
 // @Tags          Auth
@@ -374,32 +448,35 @@ func (h AuthHandler) SendVerifyCodeOnEmail(w http.ResponseWriter, r *http.Reques
 	op := "AuthHandler.SendVerifyCodeOnEmail"
 	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
-	var data request.UserEmail
+	type UserEmail struct {
+		Email string `json:"email"`
+	}
+	var data UserEmail
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		log.Errorf("decode: %v", err)
 		utils.WriteError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
-	sessionID, err := h.uc.SendVerificationEmailCode(r.Context(), data.Email)
+	sessionResp, err := h.grpcClient.SendVerifyCodeOnEmail(r.Context(), &auth.SendVerifyCodeOnEmailRequest{
+		Email: data.Email,
+	})
 	if err != nil {
-		log.Errorf("SendVerificationCode: %v", err)
-		utils.HandelError(w, err)
+		log.Errorf("grpcClient.SendVerifyCodeOnEmail: %v", err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
-	http.SetCookie(
-		w,
-		&http.Cookie{
-			Name:     "session_id",
-			Value:    sessionID,
-			Path:     "/api/auth",
-			HttpOnly: true,
-			Domain:   config.Config.CORS.CookieHost,
-			SameSite: http.SameSiteLaxMode,
-			Expires:  time.Now().Add(time.Duration(int(config.Config.JWT.RecoverExp) * int(time.Second))),
-			MaxAge:   int(config.Config.JWT.RecoverExp),
-		},
-	)
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_id",
+		Value:    sessionResp.SessionId,
+		Path:     "/api/auth",
+		HttpOnly: true,
+		Domain:   config.Config.CORS.CookieHost,
+		SameSite: http.SameSiteLaxMode,
+		Expires:  time.Now().Add(time.Duration(config.Config.JWT.RecoverExp) * time.Second),
+		MaxAge:   int(config.Config.JWT.RecoverExp),
+	})
 
 	utils.JSONResponse(w, http.StatusOK, map[string]string{
 		"status": "ok",
@@ -436,17 +513,23 @@ func (h AuthHandler) VerifyUserEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var data request.VerifyCodeDTO
+	type VerifyCodeDTO struct {
+		Code string `json:"code"`
+	}
+	var data VerifyCodeDTO
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		log.Errorf("decode: %v", err)
 		utils.WriteError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
-	err = h.uc.VerifyUserEmail(r.Context(), sessionId, data.Code)
+	_, err = h.grpcClient.VerifyCode(r.Context(), &auth.VerifyCodeRequest{
+		SessionId: sessionId,
+		Code:      data.Code,
+	})
 	if err != nil {
-		log.Errorf("CheckRecoveryCode: %v", err)
-		utils.HandelError(w, err)
+		log.Errorf("grpcClient.VerifyCode: %v", err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
 
@@ -485,17 +568,23 @@ func (h AuthHandler) VerifyRecoveryCode(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	var data request.VerifyCodeDTO
+	type VerifyCodeDTO struct {
+		Code string `json:"code"`
+	}
+	var data VerifyCodeDTO
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		log.Errorf("decode: %v", err)
 		utils.WriteError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
-	err = h.uc.CheckRecoveryCode(r.Context(), sessionId, data.Code)
+	_, err = h.grpcClient.VerifyRecoveryCode(r.Context(), &auth.VerifyRecoveryCodeRequest{
+		SessionId: sessionId,
+		Code:      data.Code,
+	})
 	if err != nil {
-		log.Errorf("CheckRecoveryCode: %v", err)
-		utils.HandelError(w, err)
+		log.Errorf("grpcClient.VerifyRecoveryCode: %v", err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
 
@@ -504,6 +593,7 @@ func (h AuthHandler) VerifyRecoveryCode(w http.ResponseWriter, r *http.Request) 
 	})
 }
 
+// UpdatePassword
 // @Summary       Verify user email
 // @Description   Updates password using verified recovery session (session_id cookie required)
 // @Tags          Auth
@@ -519,6 +609,7 @@ func (h AuthHandler) VerifyRecoveryCode(w http.ResponseWriter, r *http.Request) 
 func (h AuthHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	op := "AuthHandler.UpdatePassword"
 	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
 	cookie, err := r.Cookie("session_id")
 	if err != nil {
 		log.Errorf("r.Cookie: %s", err)
@@ -532,17 +623,23 @@ func (h AuthHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var data request.UpdatePwdDTO
+	type UpdatePwdDTO struct {
+		Password string `json:"password"`
+	}
+	var data UpdatePwdDTO
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		log.Errorf("decode: %v", err)
 		utils.WriteError(w, "invalid body", http.StatusBadRequest)
 		return
 	}
 
-	err = h.uc.UpdateUserPassword(r.Context(), sessionId, data.Password)
+	_, err = h.grpcClient.UpdatePassword(r.Context(), &auth.UpdatePasswordRequest{
+		SessionId: sessionId,
+		Password:  data.Password,
+	})
 	if err != nil {
-		log.Errorf("UpdateUserPassword: %v", err)
-		utils.HandelError(w, err)
+		log.Errorf("grpcClient.UpdatePassword: %v", err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
 

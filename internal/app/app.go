@@ -21,20 +21,18 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/elasticsearch"
 	minioRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/minio"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/openrouter"
-	tokensRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/redis/tokens"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/smtp"
 	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
-	authUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
 	complexUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/complex"
 	posterUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
 	userUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/user"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/dsn"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/redis/go-redis/v9"
 
 	"github.com/gorilla/mux"
 )
@@ -42,7 +40,7 @@ import (
 func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	ai := openrouter.New(config.Config.OpenRouter.APIKey, config.Config.OpenRouter.Model)
 	dsn := dsn.BuildDSN(cfg.Postgres)
-	rdb := redis.NewClient(&redis.Options{Addr: fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port), Password: cfg.Redis.Password, DB: cfg.Redis.DB})
+	// rdb := redis.NewClient(&redis.Options{Addr: fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port), Password: cfg.Redis.Password, DB: cfg.Redis.DB})
 	minioClient, err := minio.New(cfg.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
 		Secure: false,
@@ -72,10 +70,7 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	if err != nil {
 		log.Fatalf("cannot create pgx pool: %v", err)
 	}
-	senderRepo := smtp.NewSMTPSender(config.Config.SMTP.Host, config.Config.SMTP.Port, config.Config.SMTP.Email, config.Config.SMTP.Pwd)
-
 	uow := uowSql.NewSQLStorage(pool)
-	tokenRepo := tokensRepo.NewTokenRepo(rdb)
 	fileRepo, err := minioRepo.NewFileRepo(minioClient, cfg.Bucket)
 	if err != nil {
 		log.Fatalf("cannot create file repo: %v", err)
@@ -84,8 +79,11 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	posterUC := posterUC.NewPosterUseCase(uow, fileRepo, esRepo, ai)
 	posterHandler := posterHandler.NewPosterHandler(posterUC)
 
-	authUC := authUC.NewAuthUseCase(uow, tokenRepo, senderRepo)
-	authHandler := authHandler.NewAuthHandler(authUC)
+	conn, err := grpc.NewClient(fmt.Sprintf("%s:%d", cfg.AuthService.Host, cfg.AuthService.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("cannot dial grpc server: %v", err)
+	}
+	authHandler := authHandler.NewAuthHandler(conn)
 
 	UtilityCompanyUC := complexUC.NewUtilityCompanyUseCase(uow.UtilityCompany())
 	utilityCompanyHandler := complexHandler.NewUtilityCompanyHandler(UtilityCompanyUC)

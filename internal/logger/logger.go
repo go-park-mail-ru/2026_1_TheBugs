@@ -8,14 +8,13 @@ import (
 	"github.com/yukitsune/lokirus"
 )
 
-func New() *logrus.Logger {
+func New(serviceName string) *logrus.Logger {
 	log := logrus.New()
 
 	log.SetOutput(os.Stdout)
 	log.SetFormatter(&logrus.JSONFormatter{})
 	log.SetLevel(getLogLevel())
 
-	serviceName := getEnv("SERVICE_NAME", "api")
 	lokiURL := getEnv("LOKI_URL", "http://localhost:3100")
 
 	if lokiURL != "" {

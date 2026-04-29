@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -12,6 +13,9 @@ import (
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
 	"github.com/shirou/gopsutil/v3/mem"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 var (
@@ -46,8 +50,8 @@ type MetricsMiddleware struct {
 	errors          *prometheus.CounterVec
 	durationNew     *prometheus.SummaryVec
 	name            string
-	cpuUsage        prometheus.Gauge
-	memoryUsage     prometheus.Gauge
+	cpuUsage        *prometheus.GaugeVec
+	memoryUsage     *prometheus.GaugeVec
 	diskUsage       *prometheus.GaugeVec
 	diskReadBytes   prometheus.Gauge
 	diskWriteBytes  prometheus.Gauge
@@ -98,18 +102,20 @@ func (m *MetricsMiddleware) Register(serviceName entity.ServiceType) {
 		labels,
 	)
 
-	m.cpuUsage = prometheus.NewGauge(
+	m.cpuUsage = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "cpu_usage_percent",
 			Help: "Current CPU usage in percent",
 		},
+		[]string{ServiceName},
 	)
 
-	m.memoryUsage = prometheus.NewGauge(
+	m.memoryUsage = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "memory_usage_bytes",
 			Help: "Current memory usage in bytes",
 		},
+		[]string{ServiceName},
 	)
 
 	m.diskUsage = prometheus.NewGaugeVec(
@@ -151,11 +157,11 @@ func (m *MetricsMiddleware) Register(serviceName entity.ServiceType) {
 func (m *MetricsMiddleware) collectSystemMetrics() {
 	for range m.collectorTicker.C {
 		if cpuPercent, err := cpu.Percent(time.Second, false); err == nil && len(cpuPercent) > 0 {
-			m.cpuUsage.Set(cpuPercent[0])
+			m.cpuUsage.WithLabelValues(m.name).Set(cpuPercent[0])
 		}
 
 		if memInfo, err := mem.VirtualMemory(); err == nil {
-			m.memoryUsage.Set(float64(memInfo.Used))
+			m.memoryUsage.WithLabelValues(m.name).Set(float64(memInfo.Used))
 		}
 
 		if partitions, err := disk.Partitions(false); err == nil {
@@ -222,4 +228,34 @@ func (m *MetricsMiddleware) MetricsHTTPMiddleware(next http.Handler) http.Handle
 			m.errors.With(labels).Inc()
 		}
 	})
+}
+
+func (m *MetricsMiddleware) MetricsGRPCInterceptor(
+	ctx context.Context,
+	req any,
+	info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler,
+) (any, error) {
+	start := time.Now()
+
+	res, err := handler(ctx, req)
+	st, _ := status.FromError(err)
+
+	tm := time.Since(start)
+
+	labels := prometheus.Labels{
+		ServiceName: m.name,
+		Method:      info.FullMethod,
+		URL:         info.FullMethod,
+		StatusCode:  fmt.Sprintf("%d", st.Code()),
+	}
+
+	m.metric.With(labels).Inc()
+	m.durations.With(labels).Observe(tm.Seconds())
+	m.durationNew.With(labels).Observe(tm.Seconds())
+
+	if st.Code() == codes.Internal || st.Code() == codes.Unknown || st.Code() == codes.Unavailable {
+		m.errors.With(labels).Inc()
+	}
+	return res, err
 }

@@ -4,12 +4,12 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/grpc/generated/auth"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 )
 
-func AuthMiddleware(uc *auth.AuthUseCase) func(http.Handler) http.Handler {
+func AuthMiddleware(uc auth.AuthServiceClient) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			op := "AuthMiddleware"
@@ -21,14 +21,14 @@ func AuthMiddleware(uc *auth.AuthUseCase) func(http.Handler) http.Handler {
 				utils.WriteError(w, "invalid access token", http.StatusUnauthorized)
 				return
 			}
-			claims, err := uc.ValidateAccessToken(r.Context(), accessToken)
+			resp, err := uc.CheckAccessToken(r.Context(), &auth.CheckAccessTokenRequest{AccessToken: accessToken})
 			if err != nil {
-				log.Errorf("uc.ValidateAccessToken: %s", err)
+				log.Errorf("uc.CheckAccessToken: %s", err)
 				utils.WriteError(w, "invalid access token", http.StatusUnauthorized)
 				return
 			}
-			log.Info(claims)
-			userID, err := strconv.Atoi(claims.Sub)
+			log.Info(resp)
+			userID, err := strconv.Atoi(resp.UserId)
 			if err != nil {
 				log.Errorf("strconv.Atoi: %s", err)
 				utils.WriteError(w, "invalid user ID", http.StatusUnauthorized)
