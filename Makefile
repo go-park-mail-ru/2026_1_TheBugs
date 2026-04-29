@@ -29,3 +29,8 @@ lint:
 
 format: 
 	gofmt -w .
+
+
+auth_proto:
+	mkdir -p internal/delivery/grpc/generated/auth
+	protoc --proto_path=proto --go_out=internal/delivery/grpc/generated/auth --go-grpc_out=internal/delivery/grpc/generated/auth --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative ./proto/auth.proto

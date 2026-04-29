@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package auth;
+option go_package = "./authpb";
+
+message RegisterUserRequest {
+  string email     = 1;
+  string password  = 2;
+  string phone     = 3;
+  string firstname = 4;
+  string lastname  = 5;
+}
+
+message LoginUserRequest {
+  string email    = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string access_token     = 1;
+  int64  access_token_exp = 2; 
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+message LogoutRequest {
+  string access_token  = 1;
+  string refresh_token = 2;
+}
+
+message SendCodeOnEmailRequest {
+  string email = 1;
+}
+
+message VerifyCodeRequest {
+  string session_id = 1;
+  string code       = 2;
+}
+
+message UpdatePasswordRequest {
+  string session_id = 1;
+  string password   = 2;
+}
+
+message GetCSRFTokenRequest {}
+
+message GetCSRFTokenResponse {
+  string csrf_token = 1;
+}
+
+
+service AuthService {
+  rpc RegisterUser(RegisterUserRequest) returns (LoginResponse);
+  rpc LoginUser(LoginUserRequest) returns (LoginResponse);
+  rpc RefreshToken(RefreshTokenRequest) returns (LoginResponse);
+  rpc Logout(LogoutRequest) returns (LoginResponse);
+  rpc SendCodeOnEmail(SendCodeOnEmailRequest) returns (LoginResponse);
+  rpc VerifyCode(VerifyCodeRequest) returns (LoginResponse);
+  rpc UpdatePassword(UpdatePasswordRequest) returns (LoginResponse);
+  rpc GetCSRFToken(GetCSRFTokenRequest) returns (GetCSRFTokenResponse);
+}
