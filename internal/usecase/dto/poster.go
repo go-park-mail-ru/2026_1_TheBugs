@@ -1,6 +1,8 @@
 package dto
 
 import (
+	"time"
+
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/geo"
@@ -321,4 +323,22 @@ func ClustersToGEOJsons(clusters []entity.ClusterPoint) []GeoJSONFeature {
 	}
 
 	return out
+}
+
+type PriceHistoryDTO struct {
+	Price     float64   `json:"price"`
+	ChangedAt time.Time `json:"changed_at"`
+}
+
+func PriceHistoryToPriceHistoryDTO(history []entity.PriceHistory) []PriceHistoryDTO {
+	result := make([]PriceHistoryDTO, 0, len(history))
+
+	for _, h := range history {
+		result = append(result, PriceHistoryDTO{
+			Price:     h.Price,
+			ChangedAt: h.ChangedAt,
+		})
+	}
+
+	return result
 }

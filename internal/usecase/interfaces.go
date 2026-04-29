@@ -66,8 +66,15 @@ type PosterRepo interface {
 	GetFavoritesFlatsByUserID(ctx context.Context, userID int) ([]entity.PosterFlat, error)
 	CountFavoritesByUserID(ctx context.Context, userID int) (int, error)
 	DeleteFavorite(ctx context.Context, userID int, posterID int) error
+	GetFavoritesCountByAlias(ctx context.Context, posterAlias string) (int, error)
+
 	AddView(ctx context.Context, userID int, posterID int)
 	GetViewsCount(ctx context.Context, posterID int) (int, error)
+
+	GetPriceHistoryByAlias(ctx context.Context, posterAlias string) ([]entity.PriceHistory, error)
+	AddPriceHistory(ctx context.Context, posterID int, price float64) error
+	GetLastPriceHistoryByPosterID(ctx context.Context, posterID int) (*entity.PriceHistory, error)
+	UpdateLastPriceHistory(ctx context.Context, historyID int, price float64) error
 }
 
 type AuthRepo interface {

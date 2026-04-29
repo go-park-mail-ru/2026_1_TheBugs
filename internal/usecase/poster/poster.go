@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"slices"
+	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
@@ -223,6 +224,11 @@ func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.Poste
 			return fmt.Errorf("uc.PosterRepo.Create: %w", err)
 		}
 
+		err = r.Posters().AddPriceHistory(ctx, posterID, post.Price)
+		if err != nil {
+			return fmt.Errorf("uc.PosterRepo.AddPriceHistory: %w", err)
+		}
+
 		flat.PropertyID = propertyID
 		err = r.Posters().InsertFlat(ctx, flat)
 		if err != nil {
@@ -390,6 +396,25 @@ func (uc *PosterUseCase) UpdateFlatPoster(ctx context.Context, alias string, pos
 	var createdPoster *dto.CreatedPoster
 
 	err = uc.uow.Do(ctx, func(r usecase.UnitOfWork) error {
+		lastHistory, err := r.Posters().GetLastPriceHistoryByPosterID(ctx, ids.PosterID)
+		if err != nil {
+			return fmt.Errorf("uc.PosterRepo.GetLastPriceHistoryByPosterID: %w", err)
+		}
+
+		if lastHistory.Price != post.Price {
+			if time.Since(lastHistory.ChangedAt) <= 24*time.Hour {
+				err = r.Posters().UpdateLastPriceHistory(ctx, lastHistory.ID, post.Price)
+				if err != nil {
+					return fmt.Errorf("uc.PosterRepo.UpdateLastPriceHistory: %w", err)
+				}
+			} else {
+				err = r.Posters().AddPriceHistory(ctx, ids.PosterID, post.Price)
+				if err != nil {
+					return fmt.Errorf("uc.PosterRepo.AddPriceHistory: %w", err)
+				}
+			}
+		}
+
 		err = r.Posters().Update(ctx, ids.PosterID, post)
 		if err != nil {
 			return fmt.Errorf("uc.PosterRepo.Update: %w", err)
@@ -630,6 +655,15 @@ func (uc *PosterUseCase) DeleteFavoritePoster(ctx context.Context, alias string,
 	return nil
 }
 
+func (uc *PosterUseCase) GetFavoritesCountPoster(ctx context.Context, posterAlias string) (int, error) {
+	count, err := uc.uow.Posters().GetFavoritesCountByAlias(ctx, posterAlias)
+	if err != nil {
+		return 0, fmt.Errorf("uc.PosterRepo.GetFavoritesCountByAlias: %w", err)
+	}
+
+	return count, nil
+}
+
 func (uc *PosterUseCase) GetViewsPoster(ctx context.Context, alias string) (int, error) {
 	poster, err := uc.uow.Posters().GetByAlias(ctx, alias, nil)
 	if err != nil {
@@ -666,4 +700,13 @@ func (uc *PosterUseCase) GenerateDescription(ctx context.Context, input dto.Gene
 		return "", fmt.Errorf("uc.agent.Chat: %w", err)
 	}
 	return res.Content, nil
+}
+
+func (uc *PosterUseCase) GetPriceHistoryPoster(ctx context.Context, posterAlias string) ([]dto.PriceHistoryDTO, error) {
+	history, err := uc.uow.Posters().GetPriceHistoryByAlias(ctx, posterAlias)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Posters().GetPriceHistoryByAlias: %w", err)
+	}
+
+	return dto.PriceHistoryToPriceHistoryDTO(history), nil
 }

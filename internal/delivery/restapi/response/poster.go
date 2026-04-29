@@ -27,3 +27,11 @@ type PosterViewsResponse struct {
 type GenerateDescriptionResponse struct {
 	Description string `json:"description"`
 }
+
+type PosterFavoritesCountResponse struct {
+	Count int `json:"favorites"`
+}
+
+type PriceHistoryResponse struct {
+	History []dto.PriceHistoryDTO `json:"history"`
+}
