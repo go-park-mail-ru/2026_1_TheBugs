@@ -10,7 +10,7 @@ type (
 type ServiceType string
 
 const (
-	GatewayService ServiceType = "gateway_service"
+	GatewayService ServiceType = "gateaway_service"
 	AuthService    ServiceType = "auth_service"
 	PosterService  ServiceType = "poster_service"
 	UserService    ServiceType = "user_service"
