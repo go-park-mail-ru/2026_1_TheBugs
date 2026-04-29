@@ -18,6 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
+  "id": 1,
   "links": [],
   "panels": [
     {
@@ -177,8 +178,8 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 13,
-        "w": 7,
+        "h": 9,
+        "w": 6,
         "x": 8,
         "y": 0
       },
@@ -242,9 +243,9 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 13,
-        "w": 7,
-        "x": 15,
+        "h": 9,
+        "w": 5,
+        "x": 14,
         "y": 0
       },
       "id": 4,
@@ -269,7 +270,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "(\r\n  sum(rate({\r\n    __name__=~\"(${service})_errors_total\",\r\n    Url=~\"$url\"\r\n  }[5m]))\r\n  /\r\n  sum(rate({\r\n    __name__=~\"(${service})_requests_total\",\r\n    Url=~\"$url\"\r\n  }[5m]))\r\n) * 100",
+          "expr": "(\r\n  sum(rate({\r\n    __name__=~\"${service}_errors_total\",\r\n    Url=~\"$url\"\r\n  }[5m]))\r\n  /\r\n  sum(rate({\r\n    __name__=~\"${service}_requests_total\",\r\n    Url=~\"$url\"\r\n  }[5m]))\r\n) * 100",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -343,6 +344,50 @@
     },
     {
       "datasource": {
+        "type": "loki",
+        "uid": "bfkcy0k0wapkwb"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 23,
+        "w": 11,
+        "x": 8,
+        "y": 9
+      },
+      "id": 8,
+      "options": {
+        "dedupStrategy": "none",
+        "enableInfiniteScrolling": false,
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": false,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "bfkcy0k0wapkwb"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "{service=~\"${service}\"}\r\n| json\r\n| line_format \"{{.method}} {{.path}} | {{.msg}} | request_id={{.request_id}}\"",
+          "queryType": "range",
+          "refId": "A"
+        }
+      ],
+      "title": "Logs",
+      "type": "logs"
+    },
+    {
+      "datasource": {
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
       },
@@ -405,10 +450,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 13,
-        "w": 14,
-        "x": 8,
-        "y": 13
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 14
       },
       "id": 1,
       "options": {
@@ -504,10 +549,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 12,
+        "h": 10,
         "w": 8,
         "x": 0,
-        "y": 14
+        "y": 22
       },
       "id": 3,
       "options": {
@@ -567,9 +612,11 @@
       },
       {
         "current": {
-          "text": "All",
+          "text": [
+            "api"
+          ],
           "value": [
-            "$__all"
+            "api"
           ]
         },
         "definition": "label_values(api_requests_total,ServiceName)",
@@ -586,16 +633,26 @@
         "refresh": 1,
         "regex": "",
         "type": "query"
+      },
+      {
+        "baseFilters": [],
+        "datasource": {
+          "type": "loki",
+          "uid": "bfkcy0k0wapkwb"
+        },
+        "filters": [],
+        "name": "Filters",
+        "type": "adhoc"
       }
     ]
   },
   "time": {
-    "from": "now-1m",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Domdeli Observabilit",
   "uid": "ad5f864",
-  "version": 32
+  "version": 1
 }

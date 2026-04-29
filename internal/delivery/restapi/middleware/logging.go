@@ -15,6 +15,10 @@ import (
 func LoggingMiddleware(logger *logrus.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/metrics" || r.URL.Path == "/health" {
+				next.ServeHTTP(w, r)
+				return
+			}
 			seed := rand.New(rand.NewSource(time.Now().UnixNano()))
 			reqId := fmt.Sprintf("%016x", seed.Int())[:10]
 			ctx := context.WithValue(r.Context(), entity.ReqID{}, reqId)
@@ -33,7 +37,7 @@ func LoggingMiddleware(logger *logrus.Logger) func(next http.Handler) http.Handl
 			startTime := time.Now()
 			defer func() {
 				duration := time.Since(startTime)
-				midLogger.WithField("duration", duration).Info("request end")
+				midLogger.WithField("duration_ms", duration/1000).Info("request end")
 			}()
 
 			next.ServeHTTP(w, r.WithContext(ctx))
