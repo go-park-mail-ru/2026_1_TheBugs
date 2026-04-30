@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package user;
+option go_package = "./user";
+
+message GetMeRequest {
+  int32 user_id = 1;
+}
+
+message GetMeResponse {
+  int32 id    = 1;
+  string email   = 2;
+  string phone   = 3;
+  string firstname = 4;
+  string lastname  = 5;
+  optional string avatar_url = 6;
+}
+
+message UploadFile {
+  string filename = 1;
+  string content_type = 2;
+  int64 size = 3;
+  bytes avatar = 4;
+}
+
+message UpdateProfileRequest {
+  int32 id = 1;
+  optional string phone = 2;
+  optional string firstname = 3;
+  optional string lastname = 4;
+  optional UploadFile file = 5;
+
+  
+}
+service UserService {
+  rpc GetMe(GetMeRequest) returns (GetMeResponse);
+  rpc UpdateProfile(UpdateProfileRequest) returns (GetMeResponse);
+}

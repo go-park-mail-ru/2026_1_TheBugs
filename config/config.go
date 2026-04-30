@@ -40,6 +40,7 @@ type (
 		OpenRouter  `yaml:"openrouter"`
 		Loki        `yaml:"loki"`
 		AuthService `yaml:"auth-service"`
+		UserService `yaml:"user-service"`
 	}
 	Redis struct {
 		Host     string `yaml:"host" env:"REDIS_HOST" env-default:"localhost"`
@@ -119,6 +120,10 @@ type (
 	AuthService struct {
 		Host string `yaml:"host" env:"AUTH_SRV_HOST" env-default:"localhost"`
 		Port int    `yaml:"port" env:"AUTH_SRV_PORT" env-default:"50051"`
+	}
+	UserService struct {
+		Host string `yaml:"host" env:"USER_SRV_HOST" env-default:"localhost"`
+		Port int    `yaml:"port" env:"USER_SRV_PORT" env-default:"50052"`
 	}
 )
 

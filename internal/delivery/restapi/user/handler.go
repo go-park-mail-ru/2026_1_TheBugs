@@ -1,21 +1,23 @@
 package user
 
 import (
+	"io"
 	"net/http"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/grpc/generated/user"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/user"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
+	"google.golang.org/grpc"
 )
 
 type UserHandler struct {
-	uc *user.UserUseCase
+	grpcClient user.UserServiceClient
 }
 
-func NewUserHandler(uc *user.UserUseCase) *UserHandler {
+func NewUserHandler(grpcConn *grpc.ClientConn) *UserHandler {
 	return &UserHandler{
-		uc: uc,
+		grpcClient: user.NewUserServiceClient(grpcConn),
 	}
 }
 
@@ -41,10 +43,12 @@ func (h *UserHandler) GetMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.uc.GetByID(r.Context(), userID)
+	user, err := h.grpcClient.GetMe(r.Context(), &user.GetMeRequest{
+		UserId: int32(userID),
+	})
 	if err != nil {
-		log.WithError(err).Error("h.uc.GetByID: failed to get user by ID")
-		utils.HandelError(w, err)
+		log.WithError(err).Error("h.grpcClient.GetMe: failed to get user by ID")
+		utils.HandelGRPCError(w, err)
 		return
 	}
 	utils.JSONResponse(w, http.StatusOK, user)
@@ -71,6 +75,7 @@ func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
 	var data dto.UpdateProfileRequest
+	var file *user.UploadFile
 
 	err := utils.ParseMultipartFormData(r, &data)
 	if err != nil {
@@ -88,6 +93,18 @@ func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 		}
 
 		data.Avatar = fileInput
+		raw, err := io.ReadAll(data.Avatar.File)
+		if err != nil {
+			log.WithError(err).Error("failed to read avatar file")
+			utils.WriteError(w, "failed to read avatar", http.StatusBadRequest)
+			return
+		}
+		file = &user.UploadFile{
+			Filename:    data.Avatar.Filename,
+			ContentType: data.Avatar.ContentType,
+			Size:        data.Avatar.Size,
+			Avatar:      raw,
+		}
 	}
 	userID, err := utils.GetUserID(r.Context())
 	if err != nil {
@@ -97,10 +114,16 @@ func (h *UserHandler) UpdateProfile(w http.ResponseWriter, r *http.Request) {
 	}
 	data.ID = userID
 
-	user, err := h.uc.UpdateProfile(r.Context(), data)
+	user, err := h.grpcClient.UpdateProfile(r.Context(), &user.UpdateProfileRequest{
+		Id:        int32(userID),
+		Firstname: data.FirstName,
+		Lastname:  data.LastName,
+		Phone:     data.Phone,
+		File:      file,
+	})
 	if err != nil {
-		log.WithError(err).Error("h.uc.UpdateProfile: failed to update user profile")
-		utils.HandelError(w, err)
+		log.WithError(err).Error("h.grpcClient.UpdateProfile: failed to update user profile")
+		utils.HandelGRPCError(w, err)
 		return
 	}
 
