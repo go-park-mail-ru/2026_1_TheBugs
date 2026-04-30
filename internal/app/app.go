@@ -22,7 +22,6 @@ import (
 	minioRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/minio"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/openrouter"
 	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
-	complexUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/complex"
 	posterUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -86,11 +85,13 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	if err != nil {
 		log.Fatalf("cannot dial grpc server: %v", err)
 	}
+	complexConn, err := grpc.NewClient(fmt.Sprintf("%s:%d", cfg.ComplexService.Host, cfg.ComplexService.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("cannot dial grpc server: %v", err)
+	}
 	authHandler := authHandler.NewAuthHandler(authConn)
 	userHandler := userHandler.NewUserHandler(userConn)
-
-	UtilityCompanyUC := complexUC.NewUtilityCompanyUseCase(uow.UtilityCompany())
-	utilityCompanyHandler := complexHandler.NewUtilityCompanyHandler(UtilityCompanyUC)
+	utilityCompanyHandler := complexHandler.NewUtilityCompanyHandler(complexConn)
 
 	r := mux.NewRouter()
 	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler, userHandler)

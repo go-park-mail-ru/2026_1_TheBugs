@@ -47,3 +47,7 @@ auth_proto:
 user_proto:
 	mkdir -p internal/delivery/grpc/generated/user
 	protoc --proto_path=proto --go_out=internal/delivery/grpc/generated/user --go-grpc_out=internal/delivery/grpc/generated/user --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative ./proto/user.proto
+
+complex_proto:
+	mkdir -p internal/delivery/grpc/generated/complex
+	protoc --proto_path=proto --go_out=internal/delivery/grpc/generated/complex --go-grpc_out=internal/delivery/grpc/generated/complex --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative ./proto/complex.proto

@@ -17,3 +17,8 @@ scrape_configs:
     static_configs:
       - targets: ['host.docker.internal:8002']
     metrics_path: 'metrics' 
+  
+  - job_name: 'complex_service'
+    static_configs:
+      - targets: ['host.docker.internal:8003']
+    metrics_path: 'metrics' 
