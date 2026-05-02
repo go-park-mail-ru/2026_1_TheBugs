@@ -49,7 +49,7 @@ func (h AuthHandler) GetAuthMiddlewary() func(http.Handler) http.Handler {
 }
 
 func (h *AuthHandler) GetUserIDMiddlewary() func(http.Handler) http.Handler {
-	return middleware.UserIDMiddleware(h.uc)
+	return middleware.UserIDMiddleware(h.grpcClient)
 }
 
 // RegisterUser

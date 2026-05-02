@@ -84,9 +84,9 @@ func (uc AuthUseCase) LoginUseCase(ctx context.Context, email string, passwod st
 		return &cred, entity.NotFoundError
 	}
 
-	if !user.IsVerified {
+	/*if !user.IsVerified {
 		return &cred, entity.UnverifiedUser
-	}
+	}*/
 
 	if user.HashedPassword == nil || user.Salt == nil {
 		return nil, entity.BadCredentials

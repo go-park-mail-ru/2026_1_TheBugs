@@ -41,7 +41,7 @@ func AuthMiddleware(uc auth.AuthServiceClient) func(http.Handler) http.Handler {
 	}
 }
 
-func UserIDMiddleware(uc *auth.AuthUseCase) func(http.Handler) http.Handler {
+func UserIDMiddleware(uc auth.AuthServiceClient) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			op := "UserIDMiddleware"
@@ -52,20 +52,25 @@ func UserIDMiddleware(uc *auth.AuthUseCase) func(http.Handler) http.Handler {
 				next.ServeHTTP(w, r)
 				return
 			}
-			claims, err := uc.ValidateAccessToken(r.Context(), accessToken)
+
+			resp, err := uc.CheckAccessToken(r.Context(), &auth.CheckAccessTokenRequest{
+				AccessToken: accessToken,
+			})
 			if err != nil {
 				next.ServeHTTP(w, r)
 				return
 			}
-			userID, err := strconv.Atoi(claims.Sub)
+
+			userID, err := strconv.Atoi(resp.UserId)
 			if err != nil {
 				next.ServeHTTP(w, r)
 				return
 			}
+
 			log.Info(userID)
+
 			ctx := utils.SetUserID(r.Context(), userID)
 			next.ServeHTTP(w, r.WithContext(ctx))
-			return
 		})
 	}
 }

@@ -178,7 +178,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Successful login, returns access token",
                         "schema": {
-                            "$ref": "#/definitions/auth.LoginResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2026_1_TheBugs_internal_delivery_restapi_auth.LoginResponse"
                         },
                         "headers": {
                             "Set-Cookie": {
@@ -456,7 +456,7 @@ const docTemplate = `{
                     "200": {
                         "description": "New access token, also updates refresh token cookie",
                         "schema": {
-                            "$ref": "#/definitions/auth.LoginResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2026_1_TheBugs_internal_delivery_restapi_auth.LoginResponse"
                         },
                         "headers": {
                             "Set-Cookie": {
@@ -596,7 +596,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Successful login, returns access token",
                         "schema": {
-                            "$ref": "#/definitions/auth.LoginResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2026_1_TheBugs_internal_delivery_restapi_auth.LoginResponse"
                         },
                         "headers": {
                             "Set-Cookie": {
@@ -1701,6 +1701,68 @@ const docTemplate = `{
             }
         },
         "/posters/{alias}/favorites": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "CSRFToken": []
+                    }
+                ],
+                "description": "Returns number of users who added poster to favorites",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posters"
+                ],
+                "summary": "Get poster favorites count",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Poster alias",
+                        "name": "alias",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -1786,70 +1848,6 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/posters/{alias}/favorites/count": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    },
-                    {
-                        "CSRFToken": []
-                    }
-                ],
-                "description": "Returns number of users who added poster to favorites",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "posters"
-                ],
-                "summary": "Get poster favorites count",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Poster alias",
-                        "name": "alias",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "integer"
-                            }
-                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -2304,17 +2302,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "auth.LoginResponse": {
-            "type": "object",
-            "properties": {
-                "access_token": {
-                    "type": "string"
-                },
-                "expire_at": {
-                    "type": "integer"
-                }
-            }
-        },
         "dto.CategoryDTO": {
             "type": "object",
             "properties": {
@@ -2727,6 +2714,17 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/dto.PhotoDTO"
                     }
+                }
+            }
+        },
+        "github_com_go-park-mail-ru_2026_1_TheBugs_internal_delivery_restapi_auth.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "expire_at": {
+                    "type": "integer"
                 }
             }
         },

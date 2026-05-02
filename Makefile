@@ -40,6 +40,9 @@ run_auth:
 run_user:
 	go run ./cmd/user	
 
+run_poster:
+	go run ./cmd/poster
+
 auth_proto:
 	mkdir -p internal/delivery/grpc/generated/auth
 	protoc --proto_path=proto --go_out=internal/delivery/grpc/generated/auth --go-grpc_out=internal/delivery/grpc/generated/auth --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative ./proto/auth.proto
@@ -47,3 +50,7 @@ auth_proto:
 user_proto:
 	mkdir -p internal/delivery/grpc/generated/user
 	protoc --proto_path=proto --go_out=internal/delivery/grpc/generated/user --go-grpc_out=internal/delivery/grpc/generated/user --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative ./proto/user.proto
+
+poster_proto:
+	mkdir -p internal/delivery/grpc/generated/poster
+	protoc --proto_path=proto --go_out=internal/delivery/grpc/generated/poster --go-grpc_out=internal/delivery/grpc/generated/poster --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative ./proto/poster.proto
