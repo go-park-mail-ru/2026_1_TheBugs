@@ -49,8 +49,8 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	}
 	authHandler := authHandler.NewAuthHandler(authConn)
 	userHandler := userHandler.NewUserHandler(userConn)
-	utilityCompanyHandler := complexHandler.NewUtilityCompanyHandler(complexConn)
 	posterHandler := posterHandler.NewPosterHandler(posterConn)
+	utilityCompanyHandler := complexHandler.NewUtilityCompanyHandler(complexConn)
 
 	r := mux.NewRouter()
 	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler, userHandler)
