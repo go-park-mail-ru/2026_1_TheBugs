@@ -15,25 +15,21 @@ import (
 	complexHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/complex"
 	posterHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
 	userHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
-	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/dsn"
-	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/gorilla/mux"
 )
 
 func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
-	dsn := dsn.BuildDSN(cfg.Postgres)
+	// dsn := dsn.BuildDSN(cfg.Postgres)
 	// rdb := redis.NewClient(&redis.Options{Addr: fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port), Password: cfg.Redis.Password, DB: cfg.Redis.DB})
-	pool, err := pgxpool.New(context.Background(), dsn)
-	if err != nil {
-		log.Fatalf("cannot create pgx pool: %v", err)
-	}
-	uow := uowSql.NewSQLStorage(pool)
+	// pool, err := pgxpool.New(context.Background(), dsn)
+	// if err != nil {
+	// 	log.Fatalf("cannot create pgx pool: %v", err)
+	// }
+	// uow := uowSql.NewSQLStorage(pool)
 
 	authConn, err := grpc.NewClient(fmt.Sprintf("%s:%d", cfg.AuthService.Host, cfg.AuthService.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -54,7 +50,7 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	authHandler := authHandler.NewAuthHandler(authConn)
 	userHandler := userHandler.NewUserHandler(userConn)
 	utilityCompanyHandler := complexHandler.NewUtilityCompanyHandler(complexConn)
-  posterHandler := posterHandler.NewPosterHandler(posterConn)
+	posterHandler := posterHandler.NewPosterHandler(posterConn)
 
 	r := mux.NewRouter()
 	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler, userHandler)
