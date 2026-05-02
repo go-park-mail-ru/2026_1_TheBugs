@@ -5,11 +5,11 @@ until curl -s http://localhost:9200/_cluster/health > /dev/null; do
   sleep 2
 done
 
-curl -X DELETE "localhost:9200/posters" -s > /dev/null || true
+curl -v -X DELETE "localhost:9200/posters" -s || true
 
-curl -X PUT "localhost:9200/posters" \
-  -H 'Content-Type: application/json' << 'EOF'
-{
+curl -v -X PUT "localhost:9200/posters" \
+  -H 'Content-Type: application/json' \
+  -d '{
   "settings": {
     "analysis": {
       "filter": {
@@ -28,16 +28,22 @@ curl -X PUT "localhost:9200/posters" \
   },
   "mappings": {
     "properties": {
+      "geo": { "type": "geo_point" },
       "description": {"type": "text", "analyzer": "russian_analyzer"},
+      "city": {"type": "text", "analyzer": "russian_analyzer"},
+      "station_name": {"type": "text", "analyzer": "russian_analyzer"},
+      "district": {"type": "text", "analyzer": "russian_analyzer"},
+      "address": {"type": "text", "analyzer": "russian_analyzer"},
+      "company_name": {"type": "text", "analyzer": "russian_analyzer"},
       "facilities": {
-        "type": "nested",
+        "type": "object",
         "properties": {
-          "name": {"type": "text", "analyzer": "russian_analyzer"}
+          "name": {"type": "text"},
+          "alias": {"type": "text"}
         }
       }
     }
   }
-}
-EOF
+}'
 
 echo "✅ Индекс posters создан!"

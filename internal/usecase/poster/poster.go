@@ -27,13 +27,15 @@ type PosterUseCase struct {
 	uow    usecase.UnitOfWork
 	file   usecase.FileRepo
 	search usecase.SearchRepo
+	agent  usecase.LLMAgent
 }
 
-func NewPosterUseCase(uow usecase.UnitOfWork, file usecase.FileRepo, search usecase.SearchRepo) *PosterUseCase {
+func NewPosterUseCase(uow usecase.UnitOfWork, file usecase.FileRepo, search usecase.SearchRepo, agent usecase.LLMAgent) *PosterUseCase {
 	return &PosterUseCase{
 		uow:    uow,
 		file:   file,
 		search: search,
+		agent:  agent,
 	}
 }
 
@@ -79,16 +81,16 @@ func (uc *PosterUseCase) SearchPostersUseCase(ctx context.Context, filters dto.P
 		log.Printf("uc.search.SearchPosters: %s", err)
 		return nil, err
 	}
-	ids := make([]int, 0, response.Len)
-	for _, p := range response.Posters {
-		ids = append(ids, p.ID)
-	}
-	posters, err := uc.uow.Posters().GetFlatsByIDs(ctx, ids)
-	if err != nil {
-		log.Printf("uc.uow.Posters().GetFlatsByIDs: %s", err)
-		return nil, err
-	}
-	response.Posters = dto.PostersToPostersDTO(posters)
+	// ids := make([]int, 0, response.Len)
+	// for _, p := range response.Posters {
+	// 	ids = append(ids, p.ID)
+	// }
+	// posters, err := uc.uow.Posters().GetFlatsByIDs(ctx, ids)
+	// if err != nil {
+	// 	log.Printf("uc.uow.Posters().GetFlatsByIDs: %s", err)
+	// 	return nil, err
+	// }
+	// response.Posters = dto.PostersToPostersDTO(posters)
 	return response, nil
 }
 
@@ -512,6 +514,10 @@ func (uc *PosterUseCase) DeleteFlatPoster(ctx context.Context, alias string, use
 		if err != nil {
 			return fmt.Errorf("delete building: %w", err)
 		}
+		err = uc.search.DeletePoster(ctx, ids.PosterID)
+		if err != nil {
+			return fmt.Errorf("uc.search.DeletePoster: %w", err)
+		}
 
 		deletedPoster = &dto.CreatedPoster{
 			ID:    ids.PosterID,
@@ -530,6 +536,42 @@ func (uc *PosterUseCase) DeleteFlatPoster(ctx context.Context, alias string, use
 	return deletedPoster, nil
 }
 
+func (uc *PosterUseCase) GetPostersByCoords(ctx context.Context, bounds dto.MapBounds, filters dto.PostersFiltersDTO) (*dto.GeoJSONFeatureResponse, error) {
+	filters.Offset = 0
+	filters.Limit = 100
+
+	if bounds.Zoom < 13 {
+		clusters, err := uc.search.GetClustersByMapBounds(ctx, bounds, filters)
+		if err != nil {
+			return nil, fmt.Errorf("uc.uow.Posters().GetClustersByCoords: %w", err)
+		}
+
+		return &dto.GeoJSONFeatureResponse{
+			Posters: dto.ClustersToGEOJsons(clusters),
+			Len:     len(clusters),
+		}, nil
+	}
+
+	posters, err := uc.search.GetPostersByMapBounds(ctx, bounds, filters)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Posters().GetPostersByCoords: %w", err)
+	}
+
+	return &dto.GeoJSONFeatureResponse{
+		Posters: dto.PostersToGEOJsons(posters),
+		Len:     len(posters),
+	}, nil
+}
+
+func (uc *PosterUseCase) GetPostersByRadius(ctx context.Context, point dto.GeographyDTO) ([]dto.MyPosterDTO, error) {
+	posters, err := uc.uow.Posters().GetPostersByRadius(ctx, point, 10)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Posters().GetPostersByRadius: %w", err)
+	}
+
+	return dto.MyPosterToMyPosterDTO(posters), nil
+}
+
 func (uc *PosterUseCase) AddViewPoster(ctx context.Context, alias string, userID int) error {
 	poster, err := uc.uow.Posters().GetByAlias(ctx, alias, nil)
 	if err != nil {
@@ -537,6 +579,53 @@ func (uc *PosterUseCase) AddViewPoster(ctx context.Context, alias string, userID
 	}
 
 	uc.uow.Posters().AddView(ctx, userID, poster.ID)
+
+	return nil
+}
+
+func (uc *PosterUseCase) AddFavoritePoster(ctx context.Context, alias string, userID int) error {
+	poster, err := uc.uow.Posters().GetByAlias(ctx, alias, nil)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Posters().GetByAlias: %w", err)
+	}
+
+	err = uc.uow.Posters().AddFavorite(ctx, userID, poster.ID)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Posters().AddFavorite: %w", err)
+	}
+
+	return nil
+}
+
+func (uc *PosterUseCase) GetFavoritesPoster(ctx context.Context, userID int) (*dto.PostersResponse, error) {
+	posters, err := uc.uow.Posters().GetFavoritesFlatsByUserID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Posters().GetFavoritesFlatsByUserID: %w", err)
+	}
+
+	len, err := uc.uow.Posters().CountFavoritesByUserID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Posters().СountFavoritesByUserID: %w", err)
+	}
+
+	response := dto.PostersResponse{
+		Posters: dto.PostersToPostersDTO(posters),
+		Len:     len,
+	}
+
+	return &response, nil
+}
+
+func (uc *PosterUseCase) DeleteFavoritePoster(ctx context.Context, alias string, userID int) error {
+	poster, err := uc.uow.Posters().GetByAlias(ctx, alias, nil)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Posters().GetByAlias: %w", err)
+	}
+
+	err = uc.uow.Posters().DeleteFavorite(ctx, userID, poster.ID)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Posters().DeleteFavorite: %w", err)
+	}
 
 	return nil
 }
@@ -553,4 +642,37 @@ func (uc *PosterUseCase) GetViewsPoster(ctx context.Context, alias string) (int,
 	}
 
 	return views, nil
+}
+
+func (uc *PosterUseCase) GenerateDescription(ctx context.Context, input dto.GenerateDescriptionDTO) (string, error) {
+	const systemPrompt = `
+	Ты — система генерации описаний недвижимости.
+
+	ОБЯЗАТЕЛЬНЫЕ ПРАВИЛА:
+	1. Пиши ТОЛЬКО на русском языке.
+	2. Запрещено использовать любые другие языки (включая английский, китайский и др.).
+	3. НЕ добавляй информацию, которой нет во входных данных.
+	4. НЕ используй форматирование (Markdown, списки, заголовки).
+	5. Текст должен быть одним абзацем.
+	6. Максимум 2000 символов.
+	7. Стиль: профессиональный, продающий, но без фантазий.
+
+	Если данных недостаточно — просто опиши только то, что есть, без догадок.
+	`
+
+	const prompt = `
+	ДАННЫЕ ОБЪЕКТА:
+	Тип: %s
+	Комнаты: %s
+	Площадь: %.2f кв.м
+	Особенности: %s
+
+	Сгенерируй описание объявления.
+	`
+
+	res, err := uc.agent.Chat(ctx, systemPrompt, fmt.Sprintf(prompt, input.Category, input.FlatCategory, input.Area, input.Features))
+	if err != nil {
+		return "", fmt.Errorf("uc.agent.Chat: %w", err)
+	}
+	return res.Content, nil
 }

@@ -19,6 +19,7 @@ type UserRepo interface {
 	GetByProvider(ctx context.Context, provider string, email string) (*entity.User, error)
 	UpdatePwd(ctx context.Context, email string, pwd string, salt string) error
 	GetByID(ctx context.Context, id int) (*dto.UserDTO, error)
+	VerifyEmail(ctx context.Context, email string) error
 	UpdateProfile(ctx context.Context, data dto.UpdateProfileDTO) (*dto.UserDTO, error)
 }
 
@@ -31,7 +32,10 @@ type PosterRepo interface {
 	GetFlatByPropetyID(ctx context.Context, propertyID int) (*entity.Flat, error)
 
 	GetByUserID(ctx context.Context, userID int) ([]entity.Poster, error)
+	GetClustersByMapBounds(ctx context.Context, coords dto.MapBounds) ([]entity.ClusterPoint, error)
 	GetMetroStationByRadius(ctx context.Context, buidingGeo dto.GeographyDTO, radius entity.Metre) ([]entity.MetroStation, error)
+	GetPostersByMapBounds(ctx context.Context, coords dto.MapBounds) ([]entity.AnyPoint, error)
+	GetPostersByRadius(ctx context.Context, point dto.GeographyDTO, radius entity.Metre) ([]entity.Poster, error)
 
 	CreateBuilding(ctx context.Context, poster *dto.PosterInput) (int, error)
 	CreateProperty(ctx context.Context, poster *dto.PosterInput, buildingID int) (int, error)
@@ -59,6 +63,10 @@ type PosterRepo interface {
 	DeleteProperty(ctx context.Context, propertyID int) error
 	DeleteBuilding(ctx context.Context, buildingID int) error
 
+	AddFavorite(ctx context.Context, userID int, posterID int) error
+	GetFavoritesFlatsByUserID(ctx context.Context, userID int) ([]entity.PosterFlat, error)
+	CountFavoritesByUserID(ctx context.Context, userID int) (int, error)
+	DeleteFavorite(ctx context.Context, userID int, posterID int) error
 	AddView(ctx context.Context, userID int, posterID int)
 	GetViewsCount(ctx context.Context, posterID int) (int, error)
 }
@@ -97,6 +105,8 @@ type Сache interface {
 type MailSender interface {
 	SendCode(ctx context.Context, to string, code string) error
 	SendAnswer(ctx context.Context, email string, orderID int, answer string) error
+	SendRecoveryCode(ctx context.Context, to string, code string) error
+	SendVerificationCode(ctx context.Context, to string, code string) error
 }
 
 type FileRepo interface {
@@ -107,6 +117,13 @@ type FileRepo interface {
 
 type SearchRepo interface {
 	SearchPosters(ctx context.Context, filters dto.PostersFiltersDTO) (*dto.PostersResponse, error)
+	GetClustersByMapBounds(ctx context.Context, coords dto.MapBounds, filters dto.PostersFiltersDTO) ([]entity.ClusterPoint, error)
+	GetPostersByMapBounds(ctx context.Context, coords dto.MapBounds, filters dto.PostersFiltersDTO) ([]entity.AnyPoint, error)
+	DeletePoster(ctx context.Context, posterID int) error
+}
+
+type LLMAgent interface {
+	Chat(ctx context.Context, systemPrompt string, userPrompt string) (*dto.ChatResult, error)
 }
 
 type SupportAgent interface {

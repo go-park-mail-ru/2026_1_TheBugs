@@ -180,6 +180,14 @@ type PosterInputFlatDTO struct {
 	Images   []PhotoInputDTO `schema:"-"`
 }
 
+type GenerateDescriptionDTO struct {
+	Category     string   `json:"category"`
+	Area         float64  `json:"area"`
+	FlatCategory string   `json:"flat_category"`
+	City         string   `json:"city"`
+	Features     []string `json:"features"`
+}
+
 func PosterInputFlatDTOtoPosterInput(poster *PosterInputFlatDTO) *PosterInput {
 	return &PosterInput{
 		UserID:      poster.UserID,
@@ -234,4 +242,83 @@ type PosterUpdateIDs struct {
 	PosterID   int
 	PropertyID int
 	BuildingID int
+}
+
+type Geometry struct {
+	Type        string    `json:"type"`
+	Coordinates []float64 `json:"coordinates"`
+}
+
+type GeoJSONFeature struct {
+	Type       string         `json:"type"`
+	Properties map[string]any `json:"propertiese"`
+	Geometry   Geometry       `json:"geometry"`
+}
+
+type GeoJSONFeatureResponse struct {
+	Posters []GeoJSONFeature `json:"features"`
+	Len     int              `json:"len"`
+}
+
+func PosterPointToGeoJSON(p entity.AnyPoint) GeoJSONFeature {
+	properties := map[string]any{
+		"id":    p.ID,
+		"group": p.Group,
+	}
+	if p.Group {
+		if p.Count != nil {
+			properties["count"] = *p.Count
+		}
+		if p.PriceMin != nil {
+			properties["priceMin"] = *p.PriceMin
+		}
+	} else {
+		if p.Price != nil {
+			properties["price"] = *p.Price
+		}
+		if p.Alias != nil {
+			properties["alias"] = *p.Alias
+		}
+	}
+
+	return GeoJSONFeature{
+		Type:       "Feature",
+		Properties: properties,
+		Geometry: struct {
+			Type        string    `json:"type"`
+			Coordinates []float64 `json:"coordinates"`
+		}{
+			Type:        "Point",
+			Coordinates: []float64{p.Lon, p.Lat},
+		},
+	}
+}
+
+func PostersToGEOJsons(p []entity.AnyPoint) []GeoJSONFeature {
+	res := make([]GeoJSONFeature, 0, len(p))
+	for _, e := range p {
+		res = append(res, PosterPointToGeoJSON(e))
+	}
+	return res
+}
+
+func ClustersToGEOJsons(clusters []entity.ClusterPoint) []GeoJSONFeature {
+	out := make([]GeoJSONFeature, 0, len(clusters))
+
+	for _, c := range clusters {
+		out = append(out, GeoJSONFeature{
+			Type: "Feature",
+			Geometry: Geometry{
+				Type:        "Point",
+				Coordinates: []float64{c.Lon, c.Lat},
+			},
+			Properties: map[string]any{
+				"id":      c.ID,
+				"count":   c.Count,
+				"cluster": true,
+			},
+		})
+	}
+
+	return out
 }

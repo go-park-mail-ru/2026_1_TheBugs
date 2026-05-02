@@ -90,12 +90,16 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		apiGroup.HandleFunc("/auth/recover", auth.SendCodeOnEmail).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.HandleFunc("/auth/recover/verify", auth.VerifyRecoveryCode).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.HandleFunc("/auth/recover/reset", auth.UpdatePassword).Methods(http.MethodPost, http.MethodOptions)
+		apiGroup.HandleFunc("/auth/email/verify", auth.VerifyUserEmail).Methods(http.MethodPost, http.MethodOptions)
+		apiGroup.HandleFunc("/auth/email", auth.SendVerifyCodeOnEmail).Methods(http.MethodPost, http.MethodOptions)
 
 		apiGroup.HandleFunc("/utility-companies/by-alias/{alias}", UtilityCompany.GetUtilityCompany).Methods(http.MethodGet)
 		apiGroup.HandleFunc("/utility-companies/developers", UtilityCompany.GetAllDevelopers).Methods(http.MethodGet)
 		apiGroup.HandleFunc("/utility-companies/", UtilityCompany.GetUtilityCompaniesByDeveloper).Methods(http.MethodGet)
 
 		apiGroup.HandleFunc("/posters/flats", post.GetFlatsAll).Methods(http.MethodGet)
+		apiGroup.HandleFunc("/posters/geo", post.GetFlatsMapAll).Methods(http.MethodGet, http.MethodOptions)
+		apiGroup.HandleFunc("/posters/by-point", post.GetPostersByPoint).Methods(http.MethodGet, http.MethodOptions)
 		apiGroup.HandleFunc("/posters/by-alias/{alias}", post.GetPoster).Methods(http.MethodGet)
 
 		apiGroup.Handle("/posters/me", AuthMiddlewary(http.HandlerFunc(post.GetPostersByUser))).Methods(http.MethodGet, http.MethodOptions)
@@ -103,6 +107,12 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		apiGroup.Handle("/posters/flat", AuthMiddlewary(http.HandlerFunc(post.CreateFlatPoster))).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.Handle("/posters/flat/{alias}", AuthMiddlewary(http.HandlerFunc(post.UpdateFlatPoster))).Methods(http.MethodPut, http.MethodOptions)
 		apiGroup.Handle("/posters/flat/{alias}", AuthMiddlewary(http.HandlerFunc(post.DeleteFlatPoster))).Methods(http.MethodDelete, http.MethodOptions)
+
+		apiGroup.Handle("/posters/{alias}/favorites", AuthMiddlewary(http.HandlerFunc(post.AddFavoritePoster))).Methods(http.MethodPost, http.MethodOptions)
+		apiGroup.Handle("/posters/favorites", AuthMiddlewary(http.HandlerFunc(post.GetFavoritesPoster))).Methods(http.MethodGet, http.MethodOptions)
+		apiGroup.Handle("/posters/{alias}/favorites", AuthMiddlewary(http.HandlerFunc(post.DeleteFavoritePoster))).Methods(http.MethodDelete, http.MethodOptions)
+		apiGroup.Handle("/posters/generate-description", AuthMiddlewary(http.HandlerFunc(post.GenerateDescription))).Methods(http.MethodPost, http.MethodOptions)
+
 		apiGroup.Handle("/posters/{alias}/views", AuthMiddlewary(http.HandlerFunc(post.AddViewPoster))).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.Handle("/posters/{alias}/views", http.HandlerFunc(post.GetViewsPoster)).Methods(http.MethodGet, http.MethodOptions)
 		apiGroup.Handle("/support/orders", http.HandlerFunc(order.CreateOrder)).Methods(http.MethodPost, http.MethodOptions)

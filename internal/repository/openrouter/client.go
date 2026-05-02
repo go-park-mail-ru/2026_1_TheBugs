@@ -2,7 +2,6 @@ package openrouter
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -50,10 +49,5 @@ func (c *OpenRouterClient) Chat(ctx context.Context, systemPrompt string, userPr
 		return nil, fmt.Errorf("empty assistant content")
 	}
 
-	var out dto.ChatResult
-	if err := json.Unmarshal([]byte(content), &out); err != nil {
-		return nil, err
-	}
-
-	return &out, nil
+	return &dto.ChatResult{Content: content}, nil
 }

@@ -107,7 +107,7 @@ type (
 	}
 	OpenRouter struct {
 		APIKey string `yaml:"api_key" env:"OPENROUTER_API_KEY" env-default:""`
-		Model  string `yaml:"model" env:"OPENROUTER_MODEL" env-default:"qwen/qwen3-vl-235b-a22b-instruct"`
+		Model  string `yaml:"model" env:"OPENROUTER_MODEL" env-default:"nvidia/nemotron-3-nano-30b-a3b:free"`
 	}
 )
 

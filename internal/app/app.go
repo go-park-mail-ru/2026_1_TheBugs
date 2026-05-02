@@ -83,7 +83,7 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 		log.Fatalf("cannot create file repo: %v", err)
 	}
 
-	posterUC := posterUC.NewPosterUseCase(uow, fileRepo, esRepo)
+	posterUC := posterUC.NewPosterUseCase(uow, fileRepo, esRepo, ai)
 	posterHandler := posterHandler.NewPosterHandler(posterUC)
 
 	authUC := authUC.NewAuthUseCase(uow, tokenRepo, senderRepo)

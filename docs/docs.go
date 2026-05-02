@@ -276,7 +276,7 @@ const docTemplate = `{
                 "tags": [
                     "Auth"
                 ],
-                "summary": "Update user password",
+                "summary": "Verify user email",
                 "parameters": [
                     {
                         "description": "New password",
@@ -433,6 +433,11 @@ const docTemplate = `{
         },
         "/auth/reg": {
             "post": {
+                "security": [
+                    {
+                        "CSRFToken": []
+                    }
+                ],
                 "description": "Register new user with email and password",
                 "consumes": [
                     "application/x-www-form-urlencoded"
@@ -641,6 +646,102 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/posters/by-point": {
+            "get": {
+                "description": "Returns posters by point",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posters"
+                ],
+                "summary": "Get list of posters by point",
+                "parameters": [
+                    {
+                        "type": "number",
+                        "format": "float32",
+                        "description": "Lat",
+                        "name": "lat",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "format": "float32",
+                        "description": "Lon",
+                        "name": "lon",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.MyPostersResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/posters/favorites": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "CSRFToken": []
+                    }
+                ],
+                "description": "Returns all favorite posters of the user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posters"
+                ],
+                "summary": "Get favorite posters",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PostersResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -1223,6 +1324,226 @@ const docTemplate = `{
                 }
             }
         },
+        "/posters/generate-description": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "CSRFToken": []
+                    }
+                ],
+                "description": "Returns description for poster by given parameters",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posters"
+                ],
+                "summary": "Generate poster description",
+                "parameters": [
+                    {
+                        "description": "Poster parameters",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.GenerateDescriptionDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.GenerateDescriptionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/posters/geo": {
+            "get": {
+                "description": "Returns filtered list of apartment posters on in JSONGeo notation",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posters"
+                ],
+                "summary": "Get list of posters JSONGeo",
+                "parameters": [
+                    {
+                        "type": "number",
+                        "format": "float32",
+                        "description": "South West Lat",
+                        "name": "sw_lat",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "format": "float32",
+                        "description": "South West Lon",
+                        "name": "sw_lon",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "format": "float32",
+                        "description": "North East Lat",
+                        "name": "ne_lat",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "format": "float32",
+                        "description": "North East Lon",
+                        "name": "ne_lon",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Map Zoom",
+                        "name": "zoom",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Full-text search",
+                        "name": "search_query",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Utility company alias",
+                        "name": "utility_company",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Category alias",
+                        "name": "category",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Exact room count",
+                        "name": "room_count",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Min price",
+                        "name": "min_price",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Max price",
+                        "name": "max_price",
+                        "in": "query"
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Facilities aliases",
+                        "name": "facilities",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Min area, sq.m",
+                        "name": "min_square",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Max area, sq.m",
+                        "name": "max_square",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Min floor",
+                        "name": "min_flat_floor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Max floor",
+                        "name": "max_flat_floor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Min building floors",
+                        "name": "min_building_floor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Max building floors",
+                        "name": "max_building_floor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Exclude 1st floor",
+                        "name": "not_first_floor",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Exclude last floor",
+                        "name": "not_last_floor",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GeoJSONFeatureResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/posters/me": {
             "get": {
                 "security": [
@@ -1293,6 +1614,120 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/response.PosterResponse"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/posters/{alias}/favorites": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "CSRFToken": []
+                    }
+                ],
+                "description": "Adds a poster to user's favorites",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posters"
+                ],
+                "summary": "Add poster to favorites",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Poster alias",
+                        "name": "alias",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "CSRFToken": []
+                    }
+                ],
+                "description": "Deletes a poster from user's favorites",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posters"
+                ],
+                "summary": "Remove poster from favorites",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Poster alias",
+                        "name": "alias",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -2127,6 +2562,67 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.GenerateDescriptionDTO": {
+            "type": "object",
+            "properties": {
+                "area": {
+                    "type": "number"
+                },
+                "category": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "features": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "flat_category": {
+                    "type": "string"
+                },
+                "flat_floor": {
+                    "type": "integer"
+                },
+                "flat_number": {
+                    "type": "integer"
+                },
+                "floor_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.GeoJSONFeature": {
+            "type": "object",
+            "properties": {
+                "geometry": {
+                    "$ref": "#/definitions/dto.Geometry"
+                },
+                "propertiese": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.GeoJSONFeatureResponse": {
+            "type": "object",
+            "properties": {
+                "features": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.GeoJSONFeature"
+                    }
+                },
+                "len": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.GeographyDTO": {
             "type": "object",
             "properties": {
@@ -2138,8 +2634,48 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.Geometry": {
+            "type": "object",
+            "properties": {
+                "coordinates": {
+                    "type": "array",
+                    "items": {
+                        "type": "number"
+                    }
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.HouseDTO": {
             "type": "object"
+        },
+        "dto.MyPosterDTO": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "alias": {
+                    "type": "string"
+                },
+                "area": {
+                    "type": "number"
+                },
+                "avatar_url": {
+                    "type": "string"
+                },
+                "category": {
+                    "$ref": "#/definitions/dto.CategoryDTO"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
         },
         "dto.OAuthCodeFlow": {
             "type": "object",
@@ -2500,6 +3036,28 @@ const docTemplate = `{
                 },
                 "error": {
                     "type": "string"
+                }
+            }
+        },
+        "response.GenerateDescriptionResponse": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.MyPostersResponse": {
+            "type": "object",
+            "properties": {
+                "len": {
+                    "type": "integer"
+                },
+                "posters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.MyPosterDTO"
+                    }
                 }
             }
         },

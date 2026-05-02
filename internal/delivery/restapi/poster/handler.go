@@ -1,7 +1,9 @@
 package poster
 
 import (
+	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/response"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
@@ -379,6 +381,44 @@ func (h *PosterHandler) DeleteFlatPoster(w http.ResponseWriter, r *http.Request)
 	utils.JSONResponse(w, http.StatusOK, response)
 }
 
+// @Summary Add poster to favorites
+// @Description Adds a poster to user's favorites
+// @Tags posters
+// @Produce json
+// @Security     BearerAuth
+// @Security     CSRFToken
+// @Param alias path string true "Poster alias"
+// @Success 200
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/{alias}/favorites [post]
+func (h *PosterHandler) AddFavoritePoster(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.AddFavoritePoster"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	userID, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.Errorf("utils.GetUserID: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+	alias, err := utils.ParseAliasFromRequest(r)
+	if err != nil {
+		log.Errorf("utils.ParseAliasFromRequest: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	err = h.uc.AddFavoritePoster(r.Context(), alias, userID)
+	if err != nil {
+		log.Errorf("h.uc.AddFavoritePoster: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+}
+
 // @Summary Add poster view
 // @Description Adds a view for a poster
 // @Tags posters
@@ -446,5 +486,195 @@ func (h *PosterHandler) GetViewsPoster(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusOK, views)
+	utils.JSONResponse(w, http.StatusOK, response.PosterViewsResponse{Views: views})
+}
+
+// @Summary Get favorite posters
+// @Description Returns all favorite posters of the user
+// @Tags posters
+// @Produce json
+// @Security     BearerAuth
+// @Security     CSRFToken
+// @Success 200 {object} dto.PostersResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/favorites [get]
+func (h *PosterHandler) GetFavoritesPoster(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GetFavoritesPoster"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	userID, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.Errorf("utils.GetUserID: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	posters, err := h.uc.GetFavoritesPoster(r.Context(), userID)
+	if err != nil {
+		log.Errorf("h.uc.GetFavoritesPoster: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, posters)
+}
+
+// @Summary Remove poster from favorites
+// @Description Deletes a poster from user's favorites
+// @Tags posters
+// @Produce json
+// @Security     BearerAuth
+// @Security     CSRFToken
+// @Param alias path string true "Poster alias"
+// @Success 200
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/{alias}/favorites [delete]
+func (h *PosterHandler) DeleteFavoritePoster(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.DeleteFavoritePoster"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	userID, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.Errorf("utils.GetUserID: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+	alias, err := utils.ParseAliasFromRequest(r)
+	if err != nil {
+		log.Errorf("utils.ParseAliasFromRequest: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	err = h.uc.DeleteFavoritePoster(r.Context(), alias, userID)
+	if err != nil {
+		log.Errorf("h.uc.DeleteFavoritePoster: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+}
+
+// @Summary Get list of posters JSONGeo
+// @Description Returns filtered list of apartment posters on in JSONGeo notation
+// @Tags posters
+// @Produce json
+// @Param sw_lat query float32 true "South West Lat"
+// @Param sw_lon query float32 true "South West Lon"
+// @Param ne_lat query float32 true "North East Lat"
+// @Param ne_lon query float32 true "North East Lon"
+// @Param zoom query int true "Map Zoom"
+// @Param search_query query string false "Full-text search"
+// @Param utility_company query string false "Utility company alias"
+// @Param category query string false "Category alias"
+// @Param room_count query int false "Exact room count"
+// @Param min_price query int false "Min price"
+// @Param max_price query int false "Max price"
+// @Param facilities query []string false "Facilities aliases"
+// @Param min_square query int false "Min area, sq.m"
+// @Param max_square query int false "Max area, sq.m"
+// @Param min_flat_floor query int false "Min floor"
+// @Param max_flat_floor query int false "Max floor"
+// @Param min_building_floor query int false "Min building floors"
+// @Param max_building_floor query int false "Max building floors"
+// @Param not_first_floor query boolean false "Exclude 1st floor" default(false)
+// @Param not_last_floor query boolean false "Exclude last floor" default(false)
+// @Success 200 {object} dto.GeoJSONFeatureResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/geo [get]
+func (h *PosterHandler) GetFlatsMapAll(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GetFlatsMapAll"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	bbox, err := utils.ParseMapFilters(r)
+	if err != nil {
+		log.Errorf("utils.ParseMapFilters: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+	params, err := utils.ParsePostersFilters(r)
+	if err != nil {
+		log.Errorf("utils.ParsePostersFilters: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	posters, err := h.uc.GetPostersByCoords(r.Context(), bbox, params)
+	if err != nil {
+		log.Errorf("h.uc.GetPostersByCoord: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, posters)
+}
+
+// @Summary Get list of posters by point
+// @Description Returns posters by point
+// @Tags posters
+// @Produce json
+// @Param lat query float32 true "Lat"
+// @Param lon query float32 true "Lon"
+// @Success 200 {object} response.MyPostersResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/by-point [get]
+func (h *PosterHandler) GetPostersByPoint(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GetFlatsMapAll"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+	q := r.URL.Query()
+	lat, err := strconv.ParseFloat(q.Get("lat"), 32)
+	if err != nil {
+		log.Errorf("strconv.ParseFloat(q.Get(lat): %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+	}
+	lon, err := strconv.ParseFloat(q.Get("lon"), 32)
+	if err != nil {
+		log.Errorf("strconv.ParseFloat(q.Get(lon): %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+	}
+
+	posters, err := h.uc.GetPostersByRadius(r.Context(), dto.GeographyDTO{Lat: lat, Lon: lon})
+	if err != nil {
+		log.Errorf("h.uc.GetPostersByRadius: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, response.MyPostersResponse{Posters: posters, Len: len(posters)})
+}
+
+// @Summary Generate poster description
+// @Description Returns description for poster by given parameters
+// @Tags posters
+// @Produce json
+// @Security     BearerAuth
+// @Security     CSRFToken
+// @Param input body dto.GenerateDescriptionDTO true "Poster parameters"
+// @Success 200 {object} response.GenerateDescriptionResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/generate-description [post]
+func (h *PosterHandler) GenerateDescription(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GenerateDescription"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+	var req dto.GenerateDescriptionDTO
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		log.Errorf("utils.ParseJSONBody: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+	description, err := h.uc.GenerateDescription(r.Context(), req)
+	if err != nil {
+		log.Errorf("h.uc.GenerateDescription: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+	utils.JSONResponse(w, http.StatusOK, response.GenerateDescriptionResponse{Description: description})
 }

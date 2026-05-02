@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), 
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), 
     salt TEXT, 
+    is_verified BOOLEAN NOT NULL DEFAULT FALSE,
     profile_id BIGINT NOT NULL, 
     is_admin BOOLEAN NOT NULL DEFAULT FALSE,
 
@@ -323,6 +324,7 @@ COMMENT ON TABLE handling_categories IS 'Фото обращения';
 
 CREATE INDEX idx_favorites_users_id ON favorites(user_id);
 
+CREATE INDEX idx_favorites_users_id ON favorites(user_id);
 CREATE INDEX idx_views_users_id ON views(user_id);
 
 CREATE INDEX idx_favorites_posters_id ON favorites(poster_id);

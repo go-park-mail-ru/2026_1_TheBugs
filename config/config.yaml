@@ -1,5 +1,6 @@
 
 app-env: dev
+service-name: gateaway_service
 
 server:
   host: localhost
@@ -56,3 +57,6 @@ minio:
 es:
   host: localhost
   port: 9200
+
+openrouter:
+  model: qwen/qwen-2.5-7b-instruct

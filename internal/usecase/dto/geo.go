@@ -9,6 +9,17 @@ type GeographyDTO struct {
 	Lon float64 `json:"lon" schema:"lon"`
 }
 
+type SouthWest = GeographyDTO
+type NorthEast = GeographyDTO
+type BBox struct {
+	SouthWest `json:"southWest"`
+	NorthEast `json:"northEast"`
+}
+type MapBounds struct {
+	BBox BBox `json:"bbox"`
+	Zoom int  `json:"zoom"`
+}
+
 func GeographyPointToGeographyDTO(point geo.GeographyPoint) GeographyDTO {
 	return GeographyDTO{
 		Lat: point.Lat,

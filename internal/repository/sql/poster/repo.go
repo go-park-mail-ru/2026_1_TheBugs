@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
@@ -724,6 +725,228 @@ func (r *PosterRepo) DeleteBuilding(ctx context.Context, buildingID int) error {
 	return nil
 }
 
+func (r *PosterRepo) GetPostersByMapBounds(ctx context.Context, coords dto.MapBounds) ([]entity.AnyPoint, error) {
+	sql := `
+		WITH filtered AS (
+		SELECT
+			p.id,
+			p.price,
+			p.alias,
+			b.geo::geometry AS geo,
+			ST_SnapToGrid(b.geo::geometry, $5, $5) AS cell
+		FROM posters p
+		JOIN property prop ON prop.id = p.property_id
+		JOIN property_categories pc ON pc.id = prop.category_id
+		JOIN buildings b ON b.id = prop.building_id
+		WHERE b.geo && ST_MakeEnvelope($1, $2, $3, $4, 4326)
+		AND p.deleted_at IS NULL
+	),
+	cell_stats AS (
+		SELECT
+			cell,
+			COUNT(*) AS cell_count,
+			MIN(price) AS price_min,
+			MAX(price) AS price_max,
+			MIN(id)::bigint AS min_id,
+			ST_Centroid(ST_Collect(geo)) AS centroid_geo
+		FROM filtered
+		GROUP BY cell
+	)
+	SELECT 
+		CASE 
+			WHEN cs.cell_count > 1 THEN ROW_NUMBER() OVER (ORDER BY cs.cell_count DESC)
+			ELSE cs.min_id 
+		END AS id,
+		
+		ST_Y(cs.centroid_geo) AS lat,
+		ST_X(cs.centroid_geo) AS lon,
+		
+		CASE WHEN cs.cell_count > 1 THEN cs.cell_count ELSE NULL END AS count,
+		CASE WHEN cs.cell_count > 1 THEN cs.price_min ELSE NULL END AS price_min,
+		CASE WHEN cs.cell_count > 1 THEN cs.price_max ELSE NULL END AS price_max,
+		
+		CASE WHEN cs.cell_count = 1 THEN f.price ELSE NULL END AS price,
+		CASE WHEN cs.cell_count = 1 THEN f.alias ELSE NULL END AS alias,
+		
+		CASE WHEN cs.cell_count > 1 THEN true ELSE false END AS cluster
+
+	FROM cell_stats cs
+	LEFT JOIN LATERAL (
+		SELECT price, alias 
+		FROM filtered f 
+		WHERE f.cell = cs.cell 
+		LIMIT 1
+	) f ON cs.cell_count = 1
+
+	ORDER BY 
+		CASE WHEN cs.cell_count > 1 THEN 0 ELSE 1 END,
+		cs.cell_count DESC NULLS LAST
+	LIMIT 50;
+			`
+	rows, err := r.pool.Query(ctx, sql, coords.BBox.SouthWest.Lon, coords.BBox.SouthWest.Lat, coords.BBox.NorthEast.Lon, coords.BBox.NorthEast.Lat, 0.001)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+	posters, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.AnyPoint])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+	return posters, nil
+
+}
+
+func gridSizeByZoom(zoom int) float64 {
+	return math.Pow(2, float64(12-zoom))*0.01 + 0.01
+}
+
+func (r *PosterRepo) GetPostersByRadius(ctx context.Context, point dto.GeographyDTO, radius entity.Metre) ([]entity.Poster, error) {
+	sql := `SELECT p.id, p.price, p.avatar_url,
+               b.address, prop.area, p.alias, pc.name as category_name, pc.alias as category_alias
+        FROM posters p
+        JOIN property prop ON prop.id = p.property_id
+        JOIN property_categories pc ON pc.id = prop.category_id
+        JOIN buildings b ON b.id = prop.building_id
+        WHERE ST_DWithin(b.geo, ST_GeogFromText($1), $2) AND p.deleted_at IS NULL
+        LIMIT 50;`
+
+	rows, err := r.pool.Query(ctx, sql, geo.GeographyPoint{Lat: point.Lat, Lon: point.Lon}, int(radius))
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+	posters, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.Poster])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+	return posters, nil
+}
+
+func (r *PosterRepo) GetClustersByMapBounds(ctx context.Context, coords dto.MapBounds) ([]entity.ClusterPoint, error) {
+	sql := `
+		WITH filtered AS (
+			SELECT
+				p.id,
+				p.price,
+				p.alias,
+				b.geo,
+				ST_SnapToGrid(b.geo::geometry, $5, $6) AS cell
+			FROM posters p
+			JOIN property prop ON prop.id = p.property_id
+			JOIN property_categories pc ON pc.id = prop.category_id
+			JOIN buildings b ON b.id = prop.building_id
+			WHERE b.geo && ST_MakeEnvelope($1, $2, $3, $4, 4326)
+			  AND p.deleted_at IS NULL
+		)
+		SELECT
+			ROW_NUMBER() OVER () AS id,
+			ST_Y(ST_Centroid(ST_Collect(geo::geometry))) AS lat,
+			ST_X(ST_Centroid(ST_Collect(geo::geometry))) AS lon,
+			COUNT(*) AS count,
+			MIN(price) AS price_min,
+			MAX(price) AS price_max
+		FROM filtered
+		GROUP BY cell
+		ORDER BY count DESC
+		LIMIT 50;
+	`
+
+	rows, err := r.pool.Query(
+		ctx,
+		sql,
+		coords.BBox.SouthWest.Lon,
+		coords.BBox.SouthWest.Lat,
+		coords.BBox.NorthEast.Lon,
+		coords.BBox.NorthEast.Lat,
+		gridSizeByZoom(coords.Zoom),
+		gridSizeByZoom(coords.Zoom),
+	)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+	defer rows.Close()
+
+	clusters, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.ClusterPoint])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return clusters, nil
+}
+func (r *PosterRepo) AddFavorite(ctx context.Context, userID int, posterID int) error {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.AddFavorite")
+	log.Info("start db add favorite")
+
+	query := `
+		INSERT INTO favorites (user_id, poster_id)
+		VALUES ($1, $2)
+	`
+
+	_, err := r.pool.Exec(ctx, query, userID, posterID)
+	if err != nil {
+		pgErr := repository.HandelPgErrors(err)
+
+		if errors.Is(pgErr, entity.AlredyExitError) {
+			return nil
+		}
+
+		return pgErr
+	}
+
+	return nil
+}
+
+func (r *PosterRepo) GetFavoritesFlatsByUserID(ctx context.Context, userID int) ([]entity.PosterFlat, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetFavoritesByUserID")
+	log.Info("start db get favorites")
+
+	query := `
+		SELECT p.id, p.price, p.avatar_url,
+			b.address, ms.station_name,
+			prop.area, p.alias, f.floor,
+			fc.name AS flat_category
+		FROM favorites fav
+		JOIN posters p ON p.id = fav.poster_id
+		JOIN property prop ON prop.id = p.property_id
+		JOIN buildings b ON b.id = prop.building_id
+		LEFT JOIN metro_stations ms ON ms.id = b.metro_station_id
+		LEFT JOIN flat f ON f.property_id = prop.id
+		LEFT JOIN flat_categories fc ON fc.id = f.category_id
+		WHERE fav.user_id = $1 AND p.deleted_at IS NULL
+	`
+
+	rows, err := r.pool.Query(ctx, query, userID)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	defer rows.Close()
+
+	posters, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.PosterFlat])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return posters, nil
+}
+
+func (r *PosterRepo) CountFavoritesByUserID(ctx context.Context, userID int) (int, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetFavoritesCountByUserID")
+	log.Info("start db get favorites count")
+
+	query := `
+		SELECT COUNT(*)
+		FROM favorites
+		WHERE user_id = $1
+	`
+
+	var count int
+	err := r.pool.QueryRow(ctx, query, userID).Scan(&count)
+	if err != nil {
+		return 0, repository.HandelPgErrors(err)
+	}
+
+	return count, nil
+}
+
 func (r *PosterRepo) AddView(ctx context.Context, userID int, posterID int) {
 	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.AddView")
 	log.Info("start db add view")
@@ -764,4 +987,21 @@ func (r *PosterRepo) GetViewsCount(ctx context.Context, posterID int) (int, erro
 	}
 
 	return count, nil
+}
+
+func (r *PosterRepo) DeleteFavorite(ctx context.Context, userID int, posterID int) error {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.DeleteFavorite")
+	log.Info("start db delete favorite")
+
+	query := `
+		DELETE FROM favorites
+		WHERE user_id = $1 AND poster_id = $2
+	`
+
+	_, err := r.pool.Exec(ctx, query, userID, posterID)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+
+	return nil
 }
