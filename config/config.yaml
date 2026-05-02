@@ -59,4 +59,4 @@ es:
   port: 9200
 
 openrouter:
-  model: qwen/qwen-2.5-7b-instruct
+  model: google/gemma-4-26b-a4b-it

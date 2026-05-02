@@ -1119,6 +1119,34 @@ func (m *MockMailSender) EXPECT() *MockMailSenderMockRecorder {
 	return m.recorder
 }
 
+// SendAnswer mocks base method.
+func (m *MockMailSender) SendAnswer(ctx context.Context, email string, orderID int, answer string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendAnswer", ctx, email, orderID, answer)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendAnswer indicates an expected call of SendAnswer.
+func (mr *MockMailSenderMockRecorder) SendAnswer(ctx, email, orderID, answer interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendAnswer", reflect.TypeOf((*MockMailSender)(nil).SendAnswer), ctx, email, orderID, answer)
+}
+
+// SendCode mocks base method.
+func (m *MockMailSender) SendCode(ctx context.Context, to, code string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendCode", ctx, to, code)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendCode indicates an expected call of SendCode.
+func (mr *MockMailSenderMockRecorder) SendCode(ctx, to, code interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendCode", reflect.TypeOf((*MockMailSender)(nil).SendCode), ctx, to, code)
+}
+
 // SendRecoveryCode mocks base method.
 func (m *MockMailSender) SendRecoveryCode(ctx context.Context, to, code string) error {
 	m.ctrl.T.Helper()
@@ -1295,6 +1323,44 @@ func (mr *MockSearchRepoMockRecorder) SearchPosters(ctx, filters interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchPosters", reflect.TypeOf((*MockSearchRepo)(nil).SearchPosters), ctx, filters)
 }
 
+// MockLLMAgent is a mock of LLMAgent interface.
+type MockLLMAgent struct {
+	ctrl     *gomock.Controller
+	recorder *MockLLMAgentMockRecorder
+}
+
+// MockLLMAgentMockRecorder is the mock recorder for MockLLMAgent.
+type MockLLMAgentMockRecorder struct {
+	mock *MockLLMAgent
+}
+
+// NewMockLLMAgent creates a new mock instance.
+func NewMockLLMAgent(ctrl *gomock.Controller) *MockLLMAgent {
+	mock := &MockLLMAgent{ctrl: ctrl}
+	mock.recorder = &MockLLMAgentMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockLLMAgent) EXPECT() *MockLLMAgentMockRecorder {
+	return m.recorder
+}
+
+// Chat mocks base method.
+func (m *MockLLMAgent) Chat(ctx context.Context, systemPrompt, userPrompt string) (*dto.ChatResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Chat", ctx, systemPrompt, userPrompt)
+	ret0, _ := ret[0].(*dto.ChatResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Chat indicates an expected call of Chat.
+func (mr *MockLLMAgentMockRecorder) Chat(ctx, systemPrompt, userPrompt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Chat", reflect.TypeOf((*MockLLMAgent)(nil).Chat), ctx, systemPrompt, userPrompt)
+}
+
 // MockSupportAgent is a mock of SupportAgent interface.
 type MockSupportAgent struct {
 	ctrl     *gomock.Controller
@@ -1369,6 +1435,20 @@ func (m *MockOrderRepo) Create(ctx context.Context, order *dto.Order) (int, erro
 func (mr *MockOrderRepoMockRecorder) Create(ctx, order interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockOrderRepo)(nil).Create), ctx, order)
+}
+
+// FinishOrder mocks base method.
+func (m *MockOrderRepo) FinishOrder(ctx context.Context, orderID, adminID int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "FinishOrder", ctx, orderID, adminID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// FinishOrder indicates an expected call of FinishOrder.
+func (mr *MockOrderRepoMockRecorder) FinishOrder(ctx, orderID, adminID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FinishOrder", reflect.TypeOf((*MockOrderRepo)(nil).FinishOrder), ctx, orderID, adminID)
 }
 
 // GetAll mocks base method.

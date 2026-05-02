@@ -103,7 +103,6 @@ type Сache interface {
 }
 
 type MailSender interface {
-	SendCode(ctx context.Context, to string, code string) error
 	SendAnswer(ctx context.Context, email string, orderID int, answer string) error
 	SendRecoveryCode(ctx context.Context, to string, code string) error
 	SendVerificationCode(ctx context.Context, to string, code string) error
@@ -123,10 +122,6 @@ type SearchRepo interface {
 }
 
 type LLMAgent interface {
-	Chat(ctx context.Context, systemPrompt string, userPrompt string) (*dto.ChatResult, error)
-}
-
-type SupportAgent interface {
 	Chat(ctx context.Context, systemPrompt string, userPrompt string) (*dto.ChatResult, error)
 }
 

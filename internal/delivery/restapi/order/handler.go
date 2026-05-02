@@ -2,7 +2,6 @@ package order
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
@@ -67,47 +66,6 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-}
-
-// @Summary Get support agent response
-// @Description Sends user prompt to support agent and returns AI response
-// @Tags support
-// @Accept mpfd
-// @Produce json
-// @Security BearerAuth
-// @Security CSRFToken
-// @Param user_prompt formData string true "User prompt"
-// @Success 200 {object} dto.ChatResult
-// @Failure 400 {object} response.ErrorResponse
-// @Failure 401 {object} response.ErrorResponse
-// @Failure 500 {object} response.ErrorResponse
-// @Router /support/agent-response [post]
-func (h *OrderHandler) GetSupportAgentResponse(w http.ResponseWriter, r *http.Request) {
-	op := "OrderHandler.GetSupportAgentResponse"
-	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
-
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
-		if err := r.ParseForm(); err != nil {
-			log.Errorf("r.ParseForm: %s", err)
-			utils.HandelError(w, entity.InvalidInput)
-			return
-		}
-	}
-
-	userPrompt := strings.TrimSpace(r.FormValue("user_prompt"))
-	if userPrompt == "" {
-		utils.HandelError(w, entity.InvalidInput)
-		return
-	}
-
-	resp, err := h.uc.GetSupportAgentResponse(r.Context(), userPrompt)
-	if err != nil {
-		log.Errorf("h.uc.GetSupportAgentResponse: %s", err)
-		utils.HandelError(w, err)
-		return
-	}
-
-	utils.JSONResponse(w, http.StatusOK, resp)
 }
 
 // @Summary Get user orders

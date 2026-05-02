@@ -323,8 +323,6 @@ CREATE TABLE IF NOT EXISTS handling_photos (
 COMMENT ON TABLE handling_categories IS 'Фото обращения';
 
 CREATE INDEX idx_favorites_users_id ON favorites(user_id);
-
-CREATE INDEX idx_favorites_users_id ON favorites(user_id);
 CREATE INDEX idx_views_users_id ON views(user_id);
 
 CREATE INDEX idx_favorites_posters_id ON favorites(poster_id);

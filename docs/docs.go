@@ -88,6 +88,126 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/email": {
+            "post": {
+                "security": [
+                    {
+                        "CSRFToken": []
+                    }
+                ],
+                "description": "Generates recovery session, sends verification code to user's email and sets session_id cookie",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Send verify code to email",
+                "parameters": [
+                    {
+                        "description": "User email",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.UserEmail"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        },
+                        "headers": {
+                            "Set-Cookie": {
+                                "type": "string",
+                                "description": "session_id=\u003cSESSION_ID\u003e; HttpOnly; Path=/api/auth; Max-Age=600"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ValidationErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/email/verify": {
+            "post": {
+                "security": [
+                    {
+                        "CSRFToken": []
+                    }
+                ],
+                "description": "Verifies code from email using session_id cookie and marks session as verified",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Verify user email from code",
+                "parameters": [
+                    {
+                        "description": "Verification code",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.VerifyCodeDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Status verified",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ValidationErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid code or session",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login": {
             "post": {
                 "security": [
@@ -434,6 +554,9 @@ const docTemplate = `{
         "/auth/reg": {
             "post": {
                 "security": [
+                    {
+                        "CSRFToken": []
+                    },
                     {
                         "CSRFToken": []
                     }
@@ -1859,64 +1982,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/support/agent-response": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    },
-                    {
-                        "CSRFToken": []
-                    }
-                ],
-                "description": "Sends user prompt to support agent and returns AI response",
-                "consumes": [
-                    "multipart/form-data"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "support"
-                ],
-                "summary": "Get support agent response",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User prompt",
-                        "name": "user_prompt",
-                        "in": "formData",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ChatResult"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/response.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/support/orders": {
             "get": {
                 "security": [
@@ -2489,26 +2554,6 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.ChatResult": {
-            "type": "object",
-            "properties": {
-                "answer": {
-                    "type": "string"
-                },
-                "missing_info": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "reason": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                }
-            }
-        },
         "dto.CreatedPoster": {
             "type": "object",
             "properties": {
@@ -2582,15 +2627,6 @@ const docTemplate = `{
                 },
                 "flat_category": {
                     "type": "string"
-                },
-                "flat_floor": {
-                    "type": "integer"
-                },
-                "flat_number": {
-                    "type": "integer"
-                },
-                "floor_count": {
-                    "type": "integer"
                 }
             }
         },

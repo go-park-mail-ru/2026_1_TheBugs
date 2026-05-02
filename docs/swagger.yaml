@@ -14,19 +14,6 @@ definitions:
       name:
         type: string
     type: object
-  dto.ChatResult:
-    properties:
-      answer:
-        type: string
-      missing_info:
-        items:
-          type: string
-        type: array
-      reason:
-        type: string
-      status:
-        type: string
-    type: object
   dto.CreatedPoster:
     properties:
       alias:
@@ -75,12 +62,6 @@ definitions:
         type: array
       flat_category:
         type: string
-      flat_floor:
-        type: integer
-      flat_number:
-        type: integer
-      floor_count:
-        type: integer
     type: object
   dto.GeoJSONFeature:
     properties:
@@ -462,6 +443,84 @@ paths:
       summary: Login admin user
       tags:
       - Auth
+  /auth/email:
+    post:
+      consumes:
+      - application/json
+      description: Generates recovery session, sends verification code to user's email
+        and sets session_id cookie
+      parameters:
+      - description: User email
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.UserEmail'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Status OK
+          headers:
+            Set-Cookie:
+              description: session_id=<SESSION_ID>; HttpOnly; Path=/api/auth; Max-Age=600
+              type: string
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ValidationErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - CSRFToken: []
+      summary: Send verify code to email
+      tags:
+      - Auth
+  /auth/email/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verifies code from email using session_id cookie and marks session
+        as verified
+      parameters:
+      - description: Verification code
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/request.VerifyCodeDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Status verified
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ValidationErrorResponse'
+        "401":
+          description: Invalid code or session
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - CSRFToken: []
+      summary: Verify user email from code
+      tags:
+      - Auth
   /auth/login:
     post:
       consumes:
@@ -732,6 +791,7 @@ paths:
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       security:
+      - CSRFToken: []
       - CSRFToken: []
       summary: Register new user
       tags:
@@ -1622,42 +1682,6 @@ paths:
       summary: Get list of user`s posters
       tags:
       - posters
-  /support/agent-response:
-    post:
-      consumes:
-      - multipart/form-data
-      description: Sends user prompt to support agent and returns AI response
-      parameters:
-      - description: User prompt
-        in: formData
-        name: user_prompt
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.ChatResult'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      - CSRFToken: []
-      summary: Get support agent response
-      tags:
-      - support
   /support/orders:
     get:
       description: Returns all support orders of authorized user
