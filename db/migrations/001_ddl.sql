@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS users (
     salt TEXT, 
     is_verified BOOLEAN NOT NULL DEFAULT FALSE,
     profile_id BIGINT NOT NULL, 
+    is_admin BOOLEAN NOT NULL DEFAULT FALSE,
 
     CONSTRAINT fk_profile FOREIGN KEY (profile_id) REFERENCES profiles(id), 
     CONSTRAINT email_check CHECK ( email ~ '^[^@]+@[^@]+\.[^@]+$' AND LENGTH(email)<= 255 ), 
@@ -263,11 +264,63 @@ CREATE TABLE IF NOT EXISTS views (
     poster_id BIGINT NOT NULL,
 
     CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id),
-    CONSTRAINT fk_poster FOREIGN KEY (poster_id) REFERENCES posters(id),
-    CONSTRAINT unique_user_poster_view UNIQUE (user_id, poster_id)
+    CONSTRAINT fk_poster FOREIGN KEY (poster_id) REFERENCES posters(id)
 );
 
 COMMENT ON TABLE views IS 'Просмотры';
+
+CREATE TYPE handling_status AS ENUM ('sent', 'in_progress', 'finished');
+
+CREATE TABLE IF NOT EXISTS handling_categories (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name TEXT NOT NULL,
+
+    CONSTRAINT handling_category_name_length_check CHECK (LENGTH(name) <= 100)
+);
+
+COMMENT ON TABLE handling_categories IS 'Категории обращений';
+
+
+CREATE TABLE IF NOT EXISTS handlings (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    user_id BIGINT NOT NULL,
+    category_id BIGINT NOT NULL,
+    description TEXT NOT NULL,
+    status handling_status NOT NULL DEFAULT 'sent',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    admin_id BIGINT,
+
+    CONSTRAINT fk_handling_user
+        FOREIGN KEY (user_id) REFERENCES users(id),
+
+    CONSTRAINT fk_handling_admin
+        FOREIGN KEY (admin_id) REFERENCES users(id),
+
+    CONSTRAINT fk_handling_category
+        FOREIGN KEY (category_id) REFERENCES handling_categories(id),
+
+    CONSTRAINT handling_description_length_check
+        CHECK (LENGTH(description) <= 3000)
+);
+
+COMMENT ON TABLE handling_categories IS 'Обращения';
+
+
+CREATE TABLE IF NOT EXISTS handling_photos (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    img_url TEXT,
+    sequence_order SMALLINT,
+    handling_id BIGINT NOT NULL,
+
+    CONSTRAINT fk_handling_photo_handling
+        FOREIGN KEY (handling_id) REFERENCES handlings(id),
+
+    CONSTRAINT handling_photo_sequence_order_check
+        CHECK (sequence_order >= 0 AND sequence_order <= 12)
+); 
+
+COMMENT ON TABLE handling_categories IS 'Фото обращения';
 
 CREATE TABLE IF NOT EXISTS price_history (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,

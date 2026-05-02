@@ -8,6 +8,7 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/auth"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/complex"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/order"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
 	"github.com/rs/cors"
@@ -44,7 +45,7 @@ import (
 
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
-func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHandler, post *poster.PosterHandler, UtilityCompany *complex.UtilityCompanyHandler, user *user.UserHandler) {
+func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHandler, post *poster.PosterHandler, UtilityCompany *complex.UtilityCompanyHandler, user *user.UserHandler, order *order.OrderHandler) {
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   config.Config.CORS.AllowedHosts,
@@ -64,7 +65,7 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 
 	// API Routers
 	apiGroup := app.PathPrefix("/api").Subrouter()
-	apiGroup.Use(middleware.CSRFMiddleware)
+	//apiGroup.Use(middleware.CSRFMiddleware)
 	apiGroup.Use(middleware.SecurityMiddleware)
 	apiGroup.Use(mux.CORSMethodMiddleware(apiGroup))
 
@@ -117,5 +118,9 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		apiGroup.Handle("/posters/{alias}/views", AuthMiddlewary(http.HandlerFunc(post.AddViewPoster))).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.Handle("/posters/{alias}/views", http.HandlerFunc(post.GetViewsPoster)).Methods(http.MethodGet, http.MethodOptions)
 		apiGroup.Handle("/posters/{alias}/price-history", http.HandlerFunc(post.GetPriceHistoryPoster)).Methods(http.MethodGet, http.MethodOptions)
+		apiGroup.Handle("/support/orders", http.HandlerFunc(order.CreateOrder)).Methods(http.MethodPost, http.MethodOptions)
+		apiGroup.Handle("/support/orders", AuthMiddlewary(http.HandlerFunc(order.GetOrders))).Methods(http.MethodGet, http.MethodOptions)
+		apiGroup.Handle("/support/orders/{id}", AuthMiddlewary(http.HandlerFunc(order.GetOrderByID))).Methods(http.MethodGet, http.MethodOptions)
+		apiGroup.Handle("/support/orders/{id}/answer", AuthMiddlewary(http.HandlerFunc(order.AnswerOrder))).Methods(http.MethodPost, http.MethodOptions)
 	} //alias
 }
