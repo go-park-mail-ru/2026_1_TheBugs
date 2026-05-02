@@ -105,7 +105,7 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		apiGroup.Handle("/posters/flat/{alias}", AuthMiddlewary(http.HandlerFunc(post.DeleteFlatPoster))).Methods(http.MethodDelete, http.MethodOptions)
 		apiGroup.Handle("/posters/{alias}/views", AuthMiddlewary(http.HandlerFunc(post.AddViewPoster))).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.Handle("/posters/{alias}/views", http.HandlerFunc(post.GetViewsPoster)).Methods(http.MethodGet, http.MethodOptions)
-		apiGroup.Handle("/support/orders", AuthMiddlewary(http.HandlerFunc(order.CreateOrder))).Methods(http.MethodPost, http.MethodOptions)
+		apiGroup.Handle("/support/orders", http.HandlerFunc(order.CreateOrder)).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.Handle("/support/agent-response", http.HandlerFunc(order.GetSupportAgentResponse)).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.Handle("/support/orders", AuthMiddlewary(http.HandlerFunc(order.GetOrders))).Methods(http.MethodGet, http.MethodOptions)
 		apiGroup.Handle("/support/orders/{id}", AuthMiddlewary(http.HandlerFunc(order.GetOrderByID))).Methods(http.MethodGet, http.MethodOptions)

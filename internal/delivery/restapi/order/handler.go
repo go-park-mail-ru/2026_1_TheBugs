@@ -43,17 +43,9 @@ func (h *OrderHandler) CreateOrder(w http.ResponseWriter, r *http.Request) {
 	op := "OrderHandler.CreateOrder"
 	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
-	userID, err := utils.GetUserID(r.Context())
-	if err != nil {
-		log.Errorf("utils.GetUserID: %s", err)
-		utils.HandelError(w, entity.InvalidInput)
-		return
-	}
-
 	var req dto.OrderDTO
 
-	req.UserID = userID
-	err = utils.ParseMultipartFormData(r, &req)
+	err := utils.ParseMultipartFormData(r, &req)
 	if err != nil {
 		log.Errorf("utils.ParseFormData: %s", err)
 		utils.HandelError(w, entity.InvalidInput)

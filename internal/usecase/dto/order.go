@@ -13,15 +13,15 @@ import (
 )
 
 type OrderDTO struct {
-	UserID      int             `schema:"-"`
+	Email       string          `schema:"email"`
 	CategoryID  int             `schema:"category_id"`
 	Description string          `schema:"description"`
 	Images      []PhotoInputDTO `schema:"-"`
 }
 
-func OrderDTOtoOrder(order *OrderDTO) *Order {
+func OrderDTOtoOrder(order *OrderDTO, userID int) *Order {
 	return &Order{
-		UserID:      order.UserID,
+		UserID:      userID,
 		CategoryID:  order.CategoryID,
 		Description: order.Description,
 		Images:      orderPhotosDTOtoPhotos(order),

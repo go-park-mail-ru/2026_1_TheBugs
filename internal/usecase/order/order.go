@@ -39,8 +39,14 @@ func (uc *OrderUseCase) CreateOrder(ctx context.Context, order *dto.OrderDTO) er
 		return fmt.Errorf("validator.ValidatePhotos: %w", err)
 	}
 	//validator.SanitizePosterInput(order)
+	user, err := uc.uow.Users().GetByEmail(ctx, order.Email)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Users().GetByEmail: %w", err)
+	}
+	//validator.SanitizePosterInput(order)
 
-	createOrder := dto.OrderDTOtoOrder(order)
+	createOrder := dto.OrderDTOtoOrder(order, user.ID)
+
 
 	dto.MakePhotoPathsForOrder(createOrder)
 
