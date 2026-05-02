@@ -54,3 +54,7 @@ user_proto:
 poster_proto:
 	mkdir -p internal/delivery/grpc/generated/poster
 	protoc --proto_path=proto --go_out=internal/delivery/grpc/generated/poster --go-grpc_out=internal/delivery/grpc/generated/poster --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative ./proto/poster.proto
+  
+complex_proto:
+	mkdir -p internal/delivery/grpc/generated/complex
+	protoc --proto_path=proto --go_out=internal/delivery/grpc/generated/complex --go-grpc_out=internal/delivery/grpc/generated/complex --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative ./proto/complex.proto

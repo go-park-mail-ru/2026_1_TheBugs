@@ -1,10 +1,10 @@
 
 app-env: dev
-service-name: user_service
+service-name: gateaway_service
 
 server:
   host: localhost
-  port: 8002
+  port: 8000
   write-timeout: 5s
   read-timeout: 5s
   idle-timeout: 20s

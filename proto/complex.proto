@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package complex;
+option go_package = "./complex";
+
+import "google/protobuf/empty.proto";
+
+
+message GetComplexRequest {
+  string alias = 1;
+}
+
+message GeoPoint {
+  double lat = 1;
+  double lon = 2;
+}
+
+message Photo{
+    string url = 1;
+    int32 order = 2;
+}
+
+message Developer{
+    int32 id = 1;
+    string developer_name = 2;
+    optional string avatar_url = 3;
+}
+
+message GetComplexResponse {
+    int32 id = 1;
+    string alias = 2;
+    string company_name = 3;
+    string description = 4;
+    GeoPoint geo = 5;
+    string address= 6;
+    optional string avatar_url = 7;
+    repeated Photo photos = 8;
+    Developer developer = 9;
+}
+
+message GetAllDevelopersResponse{
+    int32 length= 1;
+    repeated Developer developers = 2;
+}
+
+message GetComplexesByDeveloperIDRequest{
+    int32 developerID = 1;
+}
+
+message Complex{
+    int32 id = 1;
+    string alias = 2;
+    string company_name = 3;
+    optional string avatar_url = 4;
+}
+
+message GetComplexesByDeveloperIDResponse{
+    int32 length= 1;
+    repeated Complex complexes = 2;
+}
+
+service ComplexService {
+    rpc GetComplex(GetComplexRequest) returns (GetComplexResponse);
+    rpc GetAllDevelopers(google.protobuf.Empty) returns (GetAllDevelopersResponse);
+    rpc GetComplexesByDeveloperID(GetComplexesByDeveloperIDRequest) returns (GetComplexesByDeveloperIDResponse);
+}

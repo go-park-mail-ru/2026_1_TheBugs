@@ -42,6 +42,7 @@ type (
 		AuthService   `yaml:"auth-service"`
 		UserService   `yaml:"user-service"`
 		PosterService `yaml:"poster-service"`
+    ComplexService `yaml:"complex-service"`
 	}
 	Redis struct {
 		Host     string `yaml:"host" env:"REDIS_HOST" env-default:"localhost"`
@@ -129,6 +130,9 @@ type (
 	PosterService struct {
 		Host string `yaml:"host" env:"POSTER_SRV_HOST" env-default:"localhost"`
 		Port int    `yaml:"port" env:"POSTER_SRV_PORT" env-default:"50053"`
+	ComplexService struct {
+		Host string `yaml:"host" env:"COMPLEX_SRV_HOST" env-default:"localhost"`
+		Port int    `yaml:"port" env:"COMPLEX_SRV_PORT" env-default:"50053"`
 	}
 )
 

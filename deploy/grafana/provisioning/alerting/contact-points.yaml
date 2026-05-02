@@ -1,0 +1,16 @@
+apiVersion: 1
+contactPoints:
+    - orgId: 1
+      name: VK
+      receivers:
+        - uid: afkrnxb9iqha8a
+          type: webhook
+          settings:
+            headers:
+                content-type: application/x-www-form-urlencoded
+            httpMethod: POST
+            message: '{{ template "default.message" . }}'
+            payload:
+                template: user_id=442847474&random_id=0&message={{ template "default.message" . }}&group_id=229756912&access_token=vk1.a.e6hM6r2wUqxEof-EYM2NnR5aqTEHIfpyAtOXD7dzzw1L_LnJSMCd9XSvIb6M9stUYP-bkj0IbQqZJVwJHD2hwYt6kBKnQg0Z-0FmUP-H7HeAkj4lOkAHPcxxmzFzbrJlNifeZE_bMMvjpWi0e0t9W2Lw7nYQZEppPn9QfkzNa3ik-chtOM0F0tZoRpWTmzNpnE6kzevEPxzMZg8i-QjGaw&v=5.199
+            url: https://api.vk.com/method/messages.send
+          disableResolveMessage: false

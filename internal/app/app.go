@@ -16,7 +16,6 @@ import (
 	posterHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
 	userHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
 	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
-	complexUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/complex"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -48,12 +47,14 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	if err != nil {
 		log.Fatalf("cannot dial poster grpc server: %v", err)
 	}
+	complexConn, err := grpc.NewClient(fmt.Sprintf("%s:%d", cfg.ComplexService.Host, cfg.ComplexService.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("cannot dial grpc server: %v", err)
+	}
 	authHandler := authHandler.NewAuthHandler(authConn)
 	userHandler := userHandler.NewUserHandler(userConn)
-	posterHandler := posterHandler.NewPosterHandler(posterConn)
-
-	UtilityCompanyUC := complexUC.NewUtilityCompanyUseCase(uow.UtilityCompany())
-	utilityCompanyHandler := complexHandler.NewUtilityCompanyHandler(UtilityCompanyUC)
+	utilityCompanyHandler := complexHandler.NewUtilityCompanyHandler(complexConn)
+  posterHandler := posterHandler.NewPosterHandler(posterConn)
 
 	r := mux.NewRouter()
 	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler, userHandler)

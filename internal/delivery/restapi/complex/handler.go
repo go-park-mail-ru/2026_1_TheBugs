@@ -4,18 +4,20 @@ import (
 	"net/http"
 	"strconv"
 
+	complexGRPC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/grpc/generated/complex"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/response"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/complex"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
+	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type UtilityCompanyHandler struct {
-	uc *complex.UtilityCompanyUseCase
+	grpcClient complexGRPC.ComplexServiceClient
 }
 
-func NewUtilityCompanyHandler(uc *complex.UtilityCompanyUseCase) *UtilityCompanyHandler {
-	return &UtilityCompanyHandler{uc: uc}
+func NewUtilityCompanyHandler(client *grpc.ClientConn) *UtilityCompanyHandler {
+	return &UtilityCompanyHandler{grpcClient: complexGRPC.NewComplexServiceClient(client)}
 }
 
 // @Summary Get utility complex by alias
@@ -38,14 +40,14 @@ func (h *UtilityCompanyHandler) GetUtilityCompany(w http.ResponseWriter, r *http
 		utils.JSONResponse(w, http.StatusBadRequest, response.ErrorResponse{Error: "invalid alias"})
 		return
 	}
-	UtilityCompany, err := h.uc.GetUtilityCompany(r.Context(), alias)
+	company, err := h.grpcClient.GetComplex(r.Context(), &complexGRPC.GetComplexRequest{Alias: alias})
 	if err != nil {
-		log.Printf("h.uc.GetUtilityCompany: %v", err)
-		utils.HandelError(w, err)
+		log.Errorf("h.uc.GetUtilityCompany: %v", err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusOK, UtilityCompany)
+	utils.JSONResponse(w, http.StatusOK, response.MapGRPCComplexToDTO(company))
 
 }
 
@@ -62,19 +64,13 @@ func (h *UtilityCompanyHandler) GetUtilityCompany(w http.ResponseWriter, r *http
 func (h *UtilityCompanyHandler) GetAllDevelopers(w http.ResponseWriter, r *http.Request) {
 	op := "UtilityCompanyHandler.GetAllDevelopers"
 	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
-	developers, err := h.uc.GetAllDevelopers(r.Context())
+	res, err := h.grpcClient.GetAllDevelopers(r.Context(), &emptypb.Empty{})
 	if err != nil {
 		log.Printf("h.uc.GetAllDevelopers: %v", err)
 		utils.HandelError(w, err)
 		return
 	}
-
-	res := response.DevelopersResponse{
-		Len:        len(developers),
-		Developers: developers,
-	}
-
-	utils.JSONResponse(w, http.StatusOK, res)
+	utils.JSONResponse(w, http.StatusOK, response.MapGRPCDevelopersToDTO(res))
 
 }
 
@@ -107,18 +103,13 @@ func (h *UtilityCompanyHandler) GetUtilityCompaniesByDeveloper(w http.ResponseWr
 		return
 	}
 
-	comps, err := h.uc.GetAllByDeveloperID(r.Context(), developerID)
+	res, err := h.grpcClient.GetComplexesByDeveloperID(r.Context(), &complexGRPC.GetComplexesByDeveloperIDRequest{DeveloperID: int32(developerID)})
 	if err != nil {
 		log.Printf("h.uc.GetAllByDeveloperID: %v", err)
 		utils.HandelError(w, err)
 		return
 	}
 
-	res := response.CompaniesResponse{
-		Len:       len(comps),
-		Companies: comps,
-	}
-
-	utils.JSONResponse(w, http.StatusOK, res)
+	utils.JSONResponse(w, http.StatusOK, response.MapGRPCComplexesToDTO(res.Complexes))
 
 }
