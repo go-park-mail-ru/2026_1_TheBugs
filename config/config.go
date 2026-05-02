@@ -29,20 +29,20 @@ type (
 		AppEnv      string `yaml:"app-env" env:"APP_ENV" env-default:"dev"`
 		ServiceName string `yaml:"service-name" env:"SERVICE_NAME" env-default:"gateway"`
 		CORS
-		Server        `yaml:"server"`
-		Postgres      `yaml:"postgres"`
-		Redis         `yaml:"redis"`
-		JWT           `yaml:"jwt"`
-		OAuth         `yaml:"oauth"`
-		SMTP          `yaml:"smtp"`
-		Minio         `yaml:"minio"`
-		ES            `yaml:"es"`
-		OpenRouter    `yaml:"openrouter"`
-		Loki          `yaml:"loki"`
-		AuthService   `yaml:"auth-service"`
-		UserService   `yaml:"user-service"`
-		PosterService `yaml:"poster-service"`
-    ComplexService `yaml:"complex-service"`
+		Server         `yaml:"server"`
+		Postgres       `yaml:"postgres"`
+		Redis          `yaml:"redis"`
+		JWT            `yaml:"jwt"`
+		OAuth          `yaml:"oauth"`
+		SMTP           `yaml:"smtp"`
+		Minio          `yaml:"minio"`
+		ES             `yaml:"es"`
+		OpenRouter     `yaml:"openrouter"`
+		Loki           `yaml:"loki"`
+		AuthService    `yaml:"auth-service"`
+		UserService    `yaml:"user-service"`
+		PosterService  `yaml:"poster-service"`
+		ComplexService `yaml:"complex-service"`
 	}
 	Redis struct {
 		Host     string `yaml:"host" env:"REDIS_HOST" env-default:"localhost"`
@@ -130,6 +130,7 @@ type (
 	PosterService struct {
 		Host string `yaml:"host" env:"POSTER_SRV_HOST" env-default:"localhost"`
 		Port int    `yaml:"port" env:"POSTER_SRV_PORT" env-default:"50053"`
+	}
 	ComplexService struct {
 		Host string `yaml:"host" env:"COMPLEX_SRV_HOST" env-default:"localhost"`
 		Port int    `yaml:"port" env:"COMPLEX_SRV_PORT" env-default:"50053"`
