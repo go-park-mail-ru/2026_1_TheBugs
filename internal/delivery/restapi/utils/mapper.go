@@ -87,16 +87,96 @@ func MapProtoPosterToDTO(p *poster.Poster) *dto.PosterDTO {
 		return nil
 	}
 
-	return &dto.PosterDTO{
+	result := &dto.PosterDTO{
 		ID:          int(p.Id),
 		Alias:       p.Alias,
 		Price:       p.Price,
 		Description: p.Description,
 		Area:        p.Area,
 		Address:     p.Address,
+		District:    p.District,
+		Metro:       p.Metro,
 		City:        p.City,
 		FloorCount:  int(p.FloorCount),
 	}
+
+	if p.Category != nil {
+		result.Category = dto.CategoryDTO{
+			Alias: p.Category.Alias,
+			Name:  p.Category.Name,
+		}
+	}
+
+	if p.BuildingGeo != nil {
+		result.Geo = dto.GeographyDTO{
+			Lat: p.BuildingGeo.Lat,
+			Lon: p.BuildingGeo.Lon,
+		}
+	}
+
+	if p.MetroGeo != nil {
+		result.MetroGeo = &dto.GeographyDTO{
+			Lat: p.MetroGeo.Lat,
+			Lon: p.MetroGeo.Lon,
+		}
+	}
+
+	if p.Seller != nil {
+		result.Seller = dto.PosterSellerDTO{
+			SellerFirstName: p.Seller.FirstName,
+			SellerLastName:  p.Seller.LastName,
+			SellerPhone:     p.Seller.Phone,
+			SellerAvatarURL: p.Seller.AvatarUrl,
+		}
+	}
+
+	if p.Flat != nil {
+		result.Flat = &dto.FlatDTO{
+			FlatCategory: p.Flat.FlatCategory,
+			Number:       int(p.Flat.Number),
+			Floor:        int(p.Flat.Floor),
+			RoomCount:    int(p.Flat.RoomCount),
+		}
+	}
+
+	if p.House != nil {
+		result.House = &dto.HouseDTO{}
+	}
+
+	if p.Company != nil {
+		result.Company = &dto.UtilityCompanyCardDTO{
+			ID:          int(p.Company.Id),
+			CompanyName: p.Company.CompanyName,
+			AvatarURL:   p.Company.AvatarUrl,
+			Alias:       p.Company.Alias,
+		}
+	}
+
+	result.Images = make([]dto.PhotoDTO, 0, len(p.Images))
+	for _, img := range p.Images {
+		if img == nil {
+			continue
+		}
+
+		result.Images = append(result.Images, dto.PhotoDTO{
+			ImgURL: img.ImgUrl,
+			Order:  int(img.Order),
+		})
+	}
+
+	result.Facilities = make([]dto.FacilityDTO, 0, len(p.Facilities))
+	for _, f := range p.Facilities {
+		if f == nil {
+			continue
+		}
+
+		result.Facilities = append(result.Facilities, dto.FacilityDTO{
+			Alias: f.Alias,
+			Name:  f.Name,
+		})
+	}
+
+	return result
 }
 
 func MapProtoMyPostersToDTO(items []*poster.MyPoster) []dto.MyPosterDTO {
@@ -142,16 +222,28 @@ func MapMapBoundsDTOToProto(bounds dto.MapBounds) *poster.MapBounds {
 
 func MapGeoJSONResponseToDTO(resp *poster.GetPostersByCoordsResponse) *dto.GeoJSONFeatureResponse {
 	if resp == nil {
-		return &dto.GeoJSONFeatureResponse{}
+		return &dto.GeoJSONFeatureResponse{
+			Posters: make([]dto.GeoJSONFeature, 0),
+		}
 	}
 
 	result := &dto.GeoJSONFeatureResponse{
-		Len: int(resp.Len),
+		Len:     int(resp.Len),
+		Posters: make([]dto.GeoJSONFeature, 0, len(resp.Features)),
 	}
 
 	for _, f := range resp.Features {
 		if f == nil {
 			continue
+		}
+
+		properties := make(map[string]any, len(f.Properties))
+		for key, value := range f.Properties {
+			if value == nil {
+				continue
+			}
+
+			properties[key] = value.AsInterface()
 		}
 
 		geometry := dto.Geometry{}
@@ -164,25 +256,12 @@ func MapGeoJSONResponseToDTO(resp *poster.GetPostersByCoordsResponse) *dto.GeoJS
 
 		result.Posters = append(result.Posters, dto.GeoJSONFeature{
 			Type:       f.Type,
-			Properties: mapStringStringToMapStringAny(f.Properties),
+			Properties: properties,
 			Geometry:   geometry,
 		})
 	}
 
 	return result
-}
-
-func mapStringStringToMapStringAny(src map[string]string) map[string]any {
-	if src == nil {
-		return nil
-	}
-
-	dst := make(map[string]any, len(src))
-	for k, v := range src {
-		dst[k] = v
-	}
-
-	return dst
 }
 
 func MapProtoPriceHistoryToDTO(items []*poster.PriceHistory) []dto.PriceHistoryDTO {

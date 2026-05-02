@@ -3,6 +3,8 @@ syntax = "proto3";
 package poster;
 option go_package = "./poster";
 
+import "google/protobuf/struct.proto";
+
 message SearchPostersRequest {
   int32 limit = 1;
   int32 offset = 2;
@@ -221,7 +223,7 @@ message BBox {
 
 message GeoJSONFeature {
   string type = 1;
-  map<string, string> properties = 2;
+  map<string, google.protobuf.Value> properties = 2;
   Geometry geometry = 3;
 }
 

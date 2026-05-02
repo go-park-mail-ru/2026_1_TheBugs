@@ -2,7 +2,6 @@ package mapper
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"sort"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func PosterCardDTOToProto(p *dto.PosterCardDTO) *poster.PosterCard {
@@ -161,9 +161,14 @@ func GeoJSONFeatureDTOToProto(f *dto.GeoJSONFeature) *poster.GeoJSONFeature {
 		return nil
 	}
 
-	properties := make(map[string]string, len(f.Properties))
+	properties := make(map[string]*structpb.Value, len(f.Properties))
 	for key, value := range f.Properties {
-		properties[key] = fmt.Sprint(value)
+		protoValue, err := structpb.NewValue(value)
+		if err != nil {
+			continue
+		}
+
+		properties[key] = protoValue
 	}
 
 	return &poster.GeoJSONFeature{

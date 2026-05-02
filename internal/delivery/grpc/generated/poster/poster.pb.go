@@ -9,6 +9,7 @@ package poster
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
+	structpb "google.golang.org/protobuf/types/known/structpb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -2018,10 +2019,10 @@ func (x *BBox) GetNorthEast() *Geography {
 }
 
 type GeoJSONFeature struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Type          string                 `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
-	Properties    map[string]string      `protobuf:"bytes,2,rep,name=properties,proto3" json:"properties,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Geometry      *Geometry              `protobuf:"bytes,3,opt,name=geometry,proto3" json:"geometry,omitempty"`
+	state         protoimpl.MessageState     `protogen:"open.v1"`
+	Type          string                     `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	Properties    map[string]*structpb.Value `protobuf:"bytes,2,rep,name=properties,proto3" json:"properties,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Geometry      *Geometry                  `protobuf:"bytes,3,opt,name=geometry,proto3" json:"geometry,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -2063,7 +2064,7 @@ func (x *GeoJSONFeature) GetType() string {
 	return ""
 }
 
-func (x *GeoJSONFeature) GetProperties() map[string]string {
+func (x *GeoJSONFeature) GetProperties() map[string]*structpb.Value {
 	if x != nil {
 		return x.Properties
 	}
@@ -3303,7 +3304,7 @@ var File_poster_proto protoreflect.FileDescriptor
 
 const file_poster_proto_rawDesc = "" +
 	"\n" +
-	"\fposter.proto\x12\x06poster\"\xee\x06\n" +
+	"\fposter.proto\x12\x06poster\x1a\x1cgoogle/protobuf/struct.proto\"\xee\x06\n" +
 	"\x14SearchPostersRequest\x12\x14\n" +
 	"\x05limit\x18\x01 \x01(\x05R\x05limit\x12\x16\n" +
 	"\x06offset\x18\x02 \x01(\x05R\x06offset\x12&\n" +
@@ -3490,16 +3491,16 @@ const file_poster_proto_rawDesc = "" +
 	"\n" +
 	"south_west\x18\x01 \x01(\v2\x11.poster.GeographyR\tsouthWest\x120\n" +
 	"\n" +
-	"north_east\x18\x02 \x01(\v2\x11.poster.GeographyR\tnorthEast\"\xd9\x01\n" +
+	"north_east\x18\x02 \x01(\v2\x11.poster.GeographyR\tnorthEast\"\xf1\x01\n" +
 	"\x0eGeoJSONFeature\x12\x12\n" +
 	"\x04type\x18\x01 \x01(\tR\x04type\x12F\n" +
 	"\n" +
 	"properties\x18\x02 \x03(\v2&.poster.GeoJSONFeature.PropertiesEntryR\n" +
 	"properties\x12,\n" +
-	"\bgeometry\x18\x03 \x01(\v2\x10.poster.GeometryR\bgeometry\x1a=\n" +
+	"\bgeometry\x18\x03 \x01(\v2\x10.poster.GeometryR\bgeometry\x1aU\n" +
 	"\x0fPropertiesEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"@\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12,\n" +
+	"\x05value\x18\x02 \x01(\v2\x16.google.protobuf.ValueR\x05value:\x028\x01\"@\n" +
 	"\bGeometry\x12\x12\n" +
 	"\x04type\x18\x01 \x01(\tR\x04type\x12 \n" +
 	"\vcoordinates\x18\x02 \x03(\x01R\vcoordinates\"D\n" +
@@ -3678,6 +3679,7 @@ var file_poster_proto_goTypes = []any{
 	(*DeleteFlatPosterRequest)(nil),         // 51: poster.DeleteFlatPosterRequest
 	(*DeleteFlatPosterResponse)(nil),        // 52: poster.DeleteFlatPosterResponse
 	nil,                                     // 53: poster.GeoJSONFeature.PropertiesEntry
+	(*structpb.Value)(nil),                  // 54: google.protobuf.Value
 }
 var file_poster_proto_depIdxs = []int32{
 	1,  // 0: poster.SearchPostersResponse.posters:type_name -> poster.PosterCard
@@ -3713,43 +3715,44 @@ var file_poster_proto_depIdxs = []int32{
 	44, // 30: poster.UpdateFlatPosterRequest.photo_meta:type_name -> poster.FlatPosterPhotoMeta
 	46, // 31: poster.UpdateFlatPosterRequest.photo_chunk:type_name -> poster.PhotoChunk
 	43, // 32: poster.UpdateFlatPosterMeta.poster:type_name -> poster.FlatPosterMeta
-	0,  // 33: poster.PosterService.SearchPosters:input_type -> poster.SearchPostersRequest
-	3,  // 34: poster.PosterService.GetPosterByAlias:input_type -> poster.GetPosterByAliasRequest
-	14, // 35: poster.PosterService.GetPostersByUserID:input_type -> poster.GetPostersByUserIDRequest
-	17, // 36: poster.PosterService.AddViewPoster:input_type -> poster.AddViewPosterRequest
-	19, // 37: poster.PosterService.GetViewsPoster:input_type -> poster.GetViewsPosterRequest
-	21, // 38: poster.PosterService.AddFavoritePoster:input_type -> poster.AddFavoritePosterRequest
-	23, // 39: poster.PosterService.GetFavoritePosters:input_type -> poster.GetFavoritePostersRequest
-	25, // 40: poster.PosterService.DeleteFavoritePoster:input_type -> poster.DeleteFavoritePosterRequest
-	27, // 41: poster.PosterService.GetFavoritesCountPoster:input_type -> poster.GetFavoritesCountPosterRequest
-	29, // 42: poster.PosterService.GetPostersByCoords:input_type -> poster.GetPostersByCoordsRequest
-	35, // 43: poster.PosterService.GetPostersByRadius:input_type -> poster.GetPostersByRadiusRequest
-	37, // 44: poster.PosterService.GenerateDescription:input_type -> poster.GenerateDescriptionRequest
-	39, // 45: poster.PosterService.GetPriceHistoryPoster:input_type -> poster.GetPriceHistoryPosterRequest
-	42, // 46: poster.PosterService.CreateFlatPoster:input_type -> poster.CreateFlatPosterRequest
-	48, // 47: poster.PosterService.UpdateFlatPoster:input_type -> poster.UpdateFlatPosterRequest
-	51, // 48: poster.PosterService.DeleteFlatPoster:input_type -> poster.DeleteFlatPosterRequest
-	2,  // 49: poster.PosterService.SearchPosters:output_type -> poster.SearchPostersResponse
-	4,  // 50: poster.PosterService.GetPosterByAlias:output_type -> poster.GetPosterByAliasResponse
-	15, // 51: poster.PosterService.GetPostersByUserID:output_type -> poster.GetPostersByUserIDResponse
-	18, // 52: poster.PosterService.AddViewPoster:output_type -> poster.AddViewPosterResponse
-	20, // 53: poster.PosterService.GetViewsPoster:output_type -> poster.GetViewsPosterResponse
-	22, // 54: poster.PosterService.AddFavoritePoster:output_type -> poster.AddFavoritePosterResponse
-	24, // 55: poster.PosterService.GetFavoritePosters:output_type -> poster.GetFavoritePostersResponse
-	26, // 56: poster.PosterService.DeleteFavoritePoster:output_type -> poster.DeleteFavoritePosterResponse
-	28, // 57: poster.PosterService.GetFavoritesCountPoster:output_type -> poster.GetFavoritesCountPosterResponse
-	30, // 58: poster.PosterService.GetPostersByCoords:output_type -> poster.GetPostersByCoordsResponse
-	36, // 59: poster.PosterService.GetPostersByRadius:output_type -> poster.GetPostersByRadiusResponse
-	38, // 60: poster.PosterService.GenerateDescription:output_type -> poster.GenerateDescriptionResponse
-	40, // 61: poster.PosterService.GetPriceHistoryPoster:output_type -> poster.GetPriceHistoryPosterResponse
-	47, // 62: poster.PosterService.CreateFlatPoster:output_type -> poster.CreateFlatPosterResponse
-	50, // 63: poster.PosterService.UpdateFlatPoster:output_type -> poster.UpdateFlatPosterResponse
-	52, // 64: poster.PosterService.DeleteFlatPoster:output_type -> poster.DeleteFlatPosterResponse
-	49, // [49:65] is the sub-list for method output_type
-	33, // [33:49] is the sub-list for method input_type
-	33, // [33:33] is the sub-list for extension type_name
-	33, // [33:33] is the sub-list for extension extendee
-	0,  // [0:33] is the sub-list for field type_name
+	54, // 33: poster.GeoJSONFeature.PropertiesEntry.value:type_name -> google.protobuf.Value
+	0,  // 34: poster.PosterService.SearchPosters:input_type -> poster.SearchPostersRequest
+	3,  // 35: poster.PosterService.GetPosterByAlias:input_type -> poster.GetPosterByAliasRequest
+	14, // 36: poster.PosterService.GetPostersByUserID:input_type -> poster.GetPostersByUserIDRequest
+	17, // 37: poster.PosterService.AddViewPoster:input_type -> poster.AddViewPosterRequest
+	19, // 38: poster.PosterService.GetViewsPoster:input_type -> poster.GetViewsPosterRequest
+	21, // 39: poster.PosterService.AddFavoritePoster:input_type -> poster.AddFavoritePosterRequest
+	23, // 40: poster.PosterService.GetFavoritePosters:input_type -> poster.GetFavoritePostersRequest
+	25, // 41: poster.PosterService.DeleteFavoritePoster:input_type -> poster.DeleteFavoritePosterRequest
+	27, // 42: poster.PosterService.GetFavoritesCountPoster:input_type -> poster.GetFavoritesCountPosterRequest
+	29, // 43: poster.PosterService.GetPostersByCoords:input_type -> poster.GetPostersByCoordsRequest
+	35, // 44: poster.PosterService.GetPostersByRadius:input_type -> poster.GetPostersByRadiusRequest
+	37, // 45: poster.PosterService.GenerateDescription:input_type -> poster.GenerateDescriptionRequest
+	39, // 46: poster.PosterService.GetPriceHistoryPoster:input_type -> poster.GetPriceHistoryPosterRequest
+	42, // 47: poster.PosterService.CreateFlatPoster:input_type -> poster.CreateFlatPosterRequest
+	48, // 48: poster.PosterService.UpdateFlatPoster:input_type -> poster.UpdateFlatPosterRequest
+	51, // 49: poster.PosterService.DeleteFlatPoster:input_type -> poster.DeleteFlatPosterRequest
+	2,  // 50: poster.PosterService.SearchPosters:output_type -> poster.SearchPostersResponse
+	4,  // 51: poster.PosterService.GetPosterByAlias:output_type -> poster.GetPosterByAliasResponse
+	15, // 52: poster.PosterService.GetPostersByUserID:output_type -> poster.GetPostersByUserIDResponse
+	18, // 53: poster.PosterService.AddViewPoster:output_type -> poster.AddViewPosterResponse
+	20, // 54: poster.PosterService.GetViewsPoster:output_type -> poster.GetViewsPosterResponse
+	22, // 55: poster.PosterService.AddFavoritePoster:output_type -> poster.AddFavoritePosterResponse
+	24, // 56: poster.PosterService.GetFavoritePosters:output_type -> poster.GetFavoritePostersResponse
+	26, // 57: poster.PosterService.DeleteFavoritePoster:output_type -> poster.DeleteFavoritePosterResponse
+	28, // 58: poster.PosterService.GetFavoritesCountPoster:output_type -> poster.GetFavoritesCountPosterResponse
+	30, // 59: poster.PosterService.GetPostersByCoords:output_type -> poster.GetPostersByCoordsResponse
+	36, // 60: poster.PosterService.GetPostersByRadius:output_type -> poster.GetPostersByRadiusResponse
+	38, // 61: poster.PosterService.GenerateDescription:output_type -> poster.GenerateDescriptionResponse
+	40, // 62: poster.PosterService.GetPriceHistoryPoster:output_type -> poster.GetPriceHistoryPosterResponse
+	47, // 63: poster.PosterService.CreateFlatPoster:output_type -> poster.CreateFlatPosterResponse
+	50, // 64: poster.PosterService.UpdateFlatPoster:output_type -> poster.UpdateFlatPosterResponse
+	52, // 65: poster.PosterService.DeleteFlatPoster:output_type -> poster.DeleteFlatPosterResponse
+	50, // [50:66] is the sub-list for method output_type
+	34, // [34:50] is the sub-list for method input_type
+	34, // [34:34] is the sub-list for extension type_name
+	34, // [34:34] is the sub-list for extension extendee
+	0,  // [0:34] is the sub-list for field type_name
 }
 
 func init() { file_poster_proto_init() }
