@@ -13,6 +13,7 @@ import (
 
 type UserRepo interface {
 	GetByEmail(ctx context.Context, email string) (*entity.User, error)
+	GetByEmailSecurity(ctx context.Context, email string) (*entity.UserSecurity, error)
 	Create(ctx context.Context, dto dto.CreateUserDTO) (*entity.User, error)
 	CreateByProvider(ctx context.Context, dto dto.CreateUserByProviderDTO) (*entity.User, error)
 	GetByProvider(ctx context.Context, provider string, email string) (*entity.User, error)
@@ -87,6 +88,7 @@ type UnitOfWork interface {
 	Posters() PosterRepo
 	Autho() AuthRepo
 	UtilityCompany() UtilityCompanyRepo
+	Order() OrderRepo
 	Do(ctx context.Context, fn func(r UnitOfWork) error) error
 }
 
@@ -101,6 +103,8 @@ type Сache interface {
 }
 
 type MailSender interface {
+	SendCode(ctx context.Context, to string, code string) error
+	SendAnswer(ctx context.Context, email string, orderID int, answer string) error
 	SendRecoveryCode(ctx context.Context, to string, code string) error
 	SendVerificationCode(ctx context.Context, to string, code string) error
 }
@@ -120,4 +124,18 @@ type SearchRepo interface {
 
 type LLMAgent interface {
 	Chat(ctx context.Context, systemPrompt string, userPrompt string) (*dto.ChatResult, error)
+}
+
+type SupportAgent interface {
+	Chat(ctx context.Context, systemPrompt string, userPrompt string) (*dto.ChatResult, error)
+}
+
+type OrderRepo interface {
+	Create(ctx context.Context, order *dto.Order) (int, error)
+	InsertPhotos(ctx context.Context, orderID int, photos []dto.PhotoInput) error
+	GetByUserID(ctx context.Context, userID int) ([]entity.Order, error)
+	GetAll(ctx context.Context) ([]entity.Order, error)
+	GetByID(ctx context.Context, orderID int) (*entity.OrderFull, error)
+	GetOrderImages(ctx context.Context, id int) ([]entity.OrderPhoto, error)
+	FinishOrder(ctx context.Context, orderID int, adminID int) error
 }

@@ -14,12 +14,12 @@ var Config ProjectConfig
 var JWTKeys RSAKeys
 
 var DevCors = CORS{
-	AllowedHosts: []string{"http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:80", "http://localhost", "http://localhost:8000", "http://127.0.0.1:5500"},
+	AllowedHosts: []string{"http://localhost:5173", "http://localhost:81", "http://127.0.0.1:5173", "http://localhost:80", "http://localhost", "http://localhost:8000"},
 	CookieHost:   "localhost",
 	URL:          "http://localhost:8000",
 }
 var ProdCors = CORS{
-	AllowedHosts: []string{"http://dom-deli.ru:80", "http://dom-deli.ru", "https://dom-deli.ru"},
+	AllowedHosts: []string{"http://dom-deli.ru:80", "http://dom-deli.ru", "https://dom-deli.ru", "http://support.dom-deli.ru", "https://support.dom-deli.ru"},
 	CookieHost:   "dom-deli.ru",
 	URL:          "https://dom-deli.ru",
 }
