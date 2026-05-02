@@ -40,3 +40,32 @@ func AuthMiddleware(uc *auth.AuthUseCase) func(http.Handler) http.Handler {
 		})
 	}
 }
+
+func UserIDMiddleware(uc *auth.AuthUseCase) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			op := "UserIDMiddleware"
+			log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+			accessToken, err := utils.GetAccessToken(r)
+			if err != nil {
+				next.ServeHTTP(w, r)
+				return
+			}
+			claims, err := uc.ValidateAccessToken(r.Context(), accessToken)
+			if err != nil {
+				next.ServeHTTP(w, r)
+				return
+			}
+			userID, err := strconv.Atoi(claims.Sub)
+			if err != nil {
+				next.ServeHTTP(w, r)
+				return
+			}
+			log.Info(userID)
+			ctx := utils.SetUserID(r.Context(), userID)
+			next.ServeHTTP(w, r.WithContext(ctx))
+			return
+		})
+	}
+}

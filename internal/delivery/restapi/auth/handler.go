@@ -48,6 +48,10 @@ func (h *AuthHandler) GetAuthMiddlewary() func(http.Handler) http.Handler {
 	return middleware.AuthMiddleware(h.uc)
 }
 
+func (h *AuthHandler) GetUserIDMiddlewary() func(http.Handler) http.Handler {
+	return middleware.UserIDMiddleware(h.uc)
+}
+
 // RegisterUser
 // @Summary       Register new user
 // @Description   Register new user with email and password

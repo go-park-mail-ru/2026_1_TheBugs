@@ -1005,3 +1005,126 @@ func (r *PosterRepo) DeleteFavorite(ctx context.Context, userID int, posterID in
 
 	return nil
 }
+
+func (r *PosterRepo) GetFavoritesCountByAlias(ctx context.Context, posterAlias string) (int, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetFavoritesCountByAlias")
+	log.Info("start get count favorite")
+
+	query := `
+		SELECT COUNT(*)
+		FROM favorites f
+		JOIN posters p ON p.id = f.poster_id
+		WHERE p.alias = $1 AND p.deleted_at IS NULL;
+	`
+
+	var count int
+	err := r.pool.QueryRow(ctx, query, posterAlias).Scan(&count)
+	if err != nil {
+		return 0, repository.HandelPgErrors(err)
+	}
+
+	return count, nil
+}
+
+func (r *PosterRepo) IsFavoriteByAliasAndUserID(ctx context.Context, posterAlias string, userID int) (bool, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetFavoritesByAliasAndUserID")
+	log.Info("start get favorite by alias and user id")
+	query := `
+		SELECT COUNT(*)
+		FROM favorites f
+		JOIN posters p ON p.id = f.poster_id
+		WHERE p.alias = $1 AND f.user_id = $2 AND p.deleted_at IS NULL
+		LIMIT 1;
+	`
+
+	var count int
+	err := r.pool.QueryRow(ctx, query, posterAlias, userID).Scan(&count)
+	if err != nil {
+		return false, repository.HandelPgErrors(err)
+	}
+
+	return count > 0, nil
+}
+
+func (r *PosterRepo) GetPriceHistoryByAlias(ctx context.Context, posterAlias string) ([]entity.PriceHistory, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetPriceHistoryByAlias")
+	log.Info("start get price history")
+
+	query := `
+		SELECT ph.id, ph.price, ph.changed_at
+		FROM price_history ph
+		JOIN posters p ON p.id = ph.poster_id
+		WHERE p.alias = $1 AND p.deleted_at IS NULL
+		ORDER BY ph.changed_at DESC;
+	`
+
+	rows, err := r.pool.Query(ctx, query, posterAlias)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	history, err := pgx.CollectRows(rows, pgx.RowToStructByName[entity.PriceHistory])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return history, nil
+}
+
+func (r *PosterRepo) AddPriceHistory(ctx context.Context, posterID int, price float64) error {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.AddPriceHistory")
+	log.Info("start add price history")
+
+	query := `
+		INSERT INTO price_history (poster_id, price)
+		VALUES ($1, $2);
+	`
+
+	_, err := r.pool.Exec(ctx, query, posterID, price)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+
+	return nil
+}
+
+func (r *PosterRepo) GetLastPriceHistoryByPosterID(ctx context.Context, posterID int) (*entity.PriceHistory, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetLastPriceHistoryByPosterID")
+	log.Info("start get last price history")
+
+	query := `
+		SELECT id, price, changed_at
+		FROM price_history
+		WHERE poster_id = $1
+		ORDER BY changed_at DESC
+		LIMIT 1;
+	`
+
+	row := r.pool.QueryRow(ctx, query, posterID)
+
+	var history entity.PriceHistory
+	err := row.Scan(&history.ID, &history.Price, &history.ChangedAt)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return &history, nil
+}
+
+func (r *PosterRepo) UpdateLastPriceHistory(ctx context.Context, historyID int, price float64) error {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.UpdateLastPriceHistory")
+	log.Info("start update last price history")
+
+	query := `
+		UPDATE price_history
+		SET price = $1, changed_at = NOW()
+		WHERE id = $2;
+	`
+
+	_, err := r.pool.Exec(ctx, query, price, historyID)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+
+	return nil
+}

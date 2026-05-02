@@ -209,6 +209,20 @@ func (mr *MockPosterRepoMockRecorder) AddFavorite(ctx, userID, posterID interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddFavorite", reflect.TypeOf((*MockPosterRepo)(nil).AddFavorite), ctx, userID, posterID)
 }
 
+// AddPriceHistory mocks base method.
+func (m *MockPosterRepo) AddPriceHistory(ctx context.Context, posterID int, price float64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddPriceHistory", ctx, posterID, price)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddPriceHistory indicates an expected call of AddPriceHistory.
+func (mr *MockPosterRepoMockRecorder) AddPriceHistory(ctx, posterID, price interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddPriceHistory", reflect.TypeOf((*MockPosterRepo)(nil).AddPriceHistory), ctx, posterID, price)
+}
+
 // AddView mocks base method.
 func (m *MockPosterRepo) AddView(ctx context.Context, userID, posterID int) {
 	m.ctrl.T.Helper()
@@ -469,6 +483,21 @@ func (mr *MockPosterRepoMockRecorder) GetClustersByMapBounds(ctx, coords interfa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetClustersByMapBounds", reflect.TypeOf((*MockPosterRepo)(nil).GetClustersByMapBounds), ctx, coords)
 }
 
+// GetFavoritesCountByAlias mocks base method.
+func (m *MockPosterRepo) GetFavoritesCountByAlias(ctx context.Context, posterAlias string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFavoritesCountByAlias", ctx, posterAlias)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFavoritesCountByAlias indicates an expected call of GetFavoritesCountByAlias.
+func (mr *MockPosterRepoMockRecorder) GetFavoritesCountByAlias(ctx, posterAlias interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavoritesCountByAlias", reflect.TypeOf((*MockPosterRepo)(nil).GetFavoritesCountByAlias), ctx, posterAlias)
+}
+
 // GetFavoritesFlatsByUserID mocks base method.
 func (m *MockPosterRepo) GetFavoritesFlatsByUserID(ctx context.Context, userID int) ([]entity.PosterFlat, error) {
 	m.ctrl.T.Helper()
@@ -529,6 +558,21 @@ func (mr *MockPosterRepoMockRecorder) GetFlatsByIDs(ctx, ids interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFlatsByIDs", reflect.TypeOf((*MockPosterRepo)(nil).GetFlatsByIDs), ctx, ids)
 }
 
+// GetLastPriceHistoryByPosterID mocks base method.
+func (m *MockPosterRepo) GetLastPriceHistoryByPosterID(ctx context.Context, posterID int) (*entity.PriceHistory, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLastPriceHistoryByPosterID", ctx, posterID)
+	ret0, _ := ret[0].(*entity.PriceHistory)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetLastPriceHistoryByPosterID indicates an expected call of GetLastPriceHistoryByPosterID.
+func (mr *MockPosterRepoMockRecorder) GetLastPriceHistoryByPosterID(ctx, posterID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLastPriceHistoryByPosterID", reflect.TypeOf((*MockPosterRepo)(nil).GetLastPriceHistoryByPosterID), ctx, posterID)
+}
+
 // GetMetroStationByRadius mocks base method.
 func (m *MockPosterRepo) GetMetroStationByRadius(ctx context.Context, buidingGeo dto.GeographyDTO, radius entity.Metre) ([]entity.MetroStation, error) {
 	m.ctrl.T.Helper()
@@ -587,6 +631,21 @@ func (m *MockPosterRepo) GetPostersByRadius(ctx context.Context, point dto.Geogr
 func (mr *MockPosterRepoMockRecorder) GetPostersByRadius(ctx, point, radius interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostersByRadius", reflect.TypeOf((*MockPosterRepo)(nil).GetPostersByRadius), ctx, point, radius)
+}
+
+// GetPriceHistoryByAlias mocks base method.
+func (m *MockPosterRepo) GetPriceHistoryByAlias(ctx context.Context, posterAlias string) ([]entity.PriceHistory, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPriceHistoryByAlias", ctx, posterAlias)
+	ret0, _ := ret[0].([]entity.PriceHistory)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPriceHistoryByAlias indicates an expected call of GetPriceHistoryByAlias.
+func (mr *MockPosterRepoMockRecorder) GetPriceHistoryByAlias(ctx, posterAlias interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPriceHistoryByAlias", reflect.TypeOf((*MockPosterRepo)(nil).GetPriceHistoryByAlias), ctx, posterAlias)
 }
 
 // GetUpdateIDsByAlias mocks base method.
@@ -715,6 +774,20 @@ func (m *MockPosterRepo) UpdateFlat(ctx context.Context, flat *dto.FlatInput) er
 func (mr *MockPosterRepoMockRecorder) UpdateFlat(ctx, flat interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFlat", reflect.TypeOf((*MockPosterRepo)(nil).UpdateFlat), ctx, flat)
+}
+
+// UpdateLastPriceHistory mocks base method.
+func (m *MockPosterRepo) UpdateLastPriceHistory(ctx context.Context, historyID int, price float64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateLastPriceHistory", ctx, historyID, price)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateLastPriceHistory indicates an expected call of UpdateLastPriceHistory.
+func (mr *MockPosterRepoMockRecorder) UpdateLastPriceHistory(ctx, historyID, price interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateLastPriceHistory", reflect.TypeOf((*MockPosterRepo)(nil).UpdateLastPriceHistory), ctx, historyID, price)
 }
 
 // UpdateProperty mocks base method.
