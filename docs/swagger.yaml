@@ -912,42 +912,6 @@ paths:
       summary: Remove poster from favorites
       tags:
       - posters
-    post:
-      description: Adds a poster to user's favorites
-      parameters:
-      - description: Poster alias
-        in: path
-        name: alias
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - BearerAuth: []
-      - CSRFToken: []
-      summary: Add poster to favorites
-      tags:
-      - posters
-  /posters/{alias}/favorites/count:
     get:
       description: Returns number of users who added poster to favorites
       parameters:
@@ -985,6 +949,41 @@ paths:
       - BearerAuth: []
       - CSRFToken: []
       summary: Get poster favorites count
+      tags:
+      - posters
+    post:
+      description: Adds a poster to user's favorites
+      parameters:
+      - description: Poster alias
+        in: path
+        name: alias
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      - CSRFToken: []
+      summary: Add poster to favorites
       tags:
       - posters
   /posters/{alias}/price-history:
