@@ -1,12 +1,5 @@
 basePath: /api
 definitions:
-  auth.LoginResponse:
-    properties:
-      access_token:
-        type: string
-      expire_at:
-        type: integer
-    type: object
   dto.CategoryDTO:
     properties:
       alias:
@@ -62,12 +55,6 @@ definitions:
         type: array
       flat_category:
         type: string
-      flat_floor:
-        type: integer
-      flat_number:
-        type: integer
-      floor_count:
-        type: integer
     type: object
   dto.GeoJSONFeature:
     properties:
@@ -225,6 +212,13 @@ definitions:
           $ref: '#/definitions/dto.PosterCardDTO'
         type: array
     type: object
+  dto.PriceHistoryDTO:
+    properties:
+      date:
+        type: string
+      price:
+        type: number
+    type: object
   dto.UserDTO:
     properties:
       avatar_url:
@@ -275,6 +269,13 @@ definitions:
         items:
           $ref: '#/definitions/dto.PhotoDTO'
         type: array
+    type: object
+  github_com_go-park-mail-ru_2026_1_TheBugs_internal_delivery_restapi_auth.LoginResponse:
+    properties:
+      access_token:
+        type: string
+      expire_at:
+        type: integer
     type: object
   request.UpdatePwdDTO:
     properties:
@@ -344,6 +345,15 @@ definitions:
     properties:
       views:
         type: integer
+    type: object
+  response.PriceHistoryResponse:
+    properties:
+      count:
+        type: integer
+      history:
+        items:
+          $ref: '#/definitions/dto.PriceHistoryDTO'
+        type: array
     type: object
   response.ValidationErrorResponse:
     properties:
@@ -471,7 +481,7 @@ paths:
                 Max-Age=...
               type: string
           schema:
-            $ref: '#/definitions/auth.LoginResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2026_1_TheBugs_internal_delivery_restapi_auth.LoginResponse'
         "400":
           description: Bad Request
           schema:
@@ -651,7 +661,7 @@ paths:
                 Max-Age=...
               type: string
           schema:
-            $ref: '#/definitions/auth.LoginResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2026_1_TheBugs_internal_delivery_restapi_auth.LoginResponse'
         "400":
           description: Bad Request
           schema:
@@ -717,6 +727,7 @@ paths:
             $ref: '#/definitions/response.ErrorResponse'
       security:
       - CSRFToken: []
+      - CSRFToken: []
       summary: Register new user
       tags:
       - Auth
@@ -741,7 +752,7 @@ paths:
                 Max-Age=...
               type: string
           schema:
-            $ref: '#/definitions/auth.LoginResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2026_1_TheBugs_internal_delivery_restapi_auth.LoginResponse'
         "400":
           description: Bad Request
           schema:
@@ -820,6 +831,45 @@ paths:
       summary: Remove poster from favorites
       tags:
       - posters
+    get:
+      description: Returns number of users who added poster to favorites
+      parameters:
+      - description: Poster alias
+        in: path
+        name: alias
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: integer
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      - CSRFToken: []
+      summary: Get poster favorites count
+      tags:
+      - posters
     post:
       description: Adds a poster to user's favorites
       parameters:
@@ -853,6 +903,37 @@ paths:
       - BearerAuth: []
       - CSRFToken: []
       summary: Add poster to favorites
+      tags:
+      - posters
+  /posters/{alias}/price-history:
+    get:
+      description: Returns poster price history
+      parameters:
+      - description: Poster alias
+        in: path
+        name: alias
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.PriceHistoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get poster price history
       tags:
       - posters
   /posters/{alias}/views:

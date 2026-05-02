@@ -2,29 +2,20 @@ package app
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
-	es "github.com/elastic/go-elasticsearch/v9"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi"
 	authHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/auth"
 	complexHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/complex"
 	posterHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
 	userHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/elasticsearch"
-	minioRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/minio"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/openrouter"
 	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
-	posterUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
-	"github.com/minio/minio-go/v7"
-	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -36,46 +27,13 @@ import (
 )
 
 func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
-	ai := openrouter.New(config.Config.OpenRouter.APIKey, config.Config.OpenRouter.Model)
 	dsn := dsn.BuildDSN(cfg.Postgres)
 	// rdb := redis.NewClient(&redis.Options{Addr: fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port), Password: cfg.Redis.Password, DB: cfg.Redis.DB})
-	minioClient, err := minio.New(cfg.Endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
-		Secure: false,
-	})
-	escfg := es.Config{
-		Addresses: []string{
-			fmt.Sprintf("http://%s:%d", cfg.ES.Host, cfg.ES.Port),
-		},
-		Username: "foo",
-		Password: "bar",
-		Transport: &http.Transport{
-			MaxIdleConnsPerHost:   10,
-			ResponseHeaderTimeout: time.Second * 5,
-			DialContext:           (&net.Dialer{Timeout: time.Second * 5}).DialContext,
-			TLSClientConfig: &tls.Config{
-				MinVersion: tls.VersionTLS12,
-			},
-		},
-	}
-	esClient, err := es.NewClient(escfg)
-	if err != nil {
-		log.Fatalf("es.NewClient: %v", err)
-	}
-	esRepo := elasticsearch.NewESRepo(esClient)
-
 	pool, err := pgxpool.New(context.Background(), dsn)
 	if err != nil {
 		log.Fatalf("cannot create pgx pool: %v", err)
 	}
 	uow := uowSql.NewSQLStorage(pool)
-	fileRepo, err := minioRepo.NewFileRepo(minioClient, cfg.Bucket)
-	if err != nil {
-		log.Fatalf("cannot create file repo: %v", err)
-	}
-
-	posterUC := posterUC.NewPosterUseCase(uow, fileRepo, esRepo, ai)
-	posterHandler := posterHandler.NewPosterHandler(posterUC)
 
 	authConn, err := grpc.NewClient(fmt.Sprintf("%s:%d", cfg.AuthService.Host, cfg.AuthService.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -85,6 +43,10 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	if err != nil {
 		log.Fatalf("cannot dial grpc server: %v", err)
 	}
+	posterConn, err := grpc.NewClient(fmt.Sprintf("%s:%d", cfg.PosterService.Host, cfg.PosterService.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("cannot dial poster grpc server: %v", err)
+	}
 	complexConn, err := grpc.NewClient(fmt.Sprintf("%s:%d", cfg.ComplexService.Host, cfg.ComplexService.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("cannot dial grpc server: %v", err)
@@ -92,6 +54,7 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	authHandler := authHandler.NewAuthHandler(authConn)
 	userHandler := userHandler.NewUserHandler(userConn)
 	utilityCompanyHandler := complexHandler.NewUtilityCompanyHandler(complexConn)
+  posterHandler := posterHandler.NewPosterHandler(posterConn)
 
 	r := mux.NewRouter()
 	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler, userHandler)

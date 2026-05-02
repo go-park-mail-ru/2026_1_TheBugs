@@ -178,7 +178,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Successful login, returns access token",
                         "schema": {
-                            "$ref": "#/definitions/auth.LoginResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2026_1_TheBugs_internal_delivery_restapi_auth.LoginResponse"
                         },
                         "headers": {
                             "Set-Cookie": {
@@ -456,7 +456,7 @@ const docTemplate = `{
                     "200": {
                         "description": "New access token, also updates refresh token cookie",
                         "schema": {
-                            "$ref": "#/definitions/auth.LoginResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2026_1_TheBugs_internal_delivery_restapi_auth.LoginResponse"
                         },
                         "headers": {
                             "Set-Cookie": {
@@ -489,6 +489,9 @@ const docTemplate = `{
         "/auth/reg": {
             "post": {
                 "security": [
+                    {
+                        "CSRFToken": []
+                    },
                     {
                         "CSRFToken": []
                     }
@@ -593,7 +596,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Successful login, returns access token",
                         "schema": {
-                            "$ref": "#/definitions/auth.LoginResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2026_1_TheBugs_internal_delivery_restapi_auth.LoginResponse"
                         },
                         "headers": {
                             "Set-Cookie": {
@@ -1698,6 +1701,68 @@ const docTemplate = `{
             }
         },
         "/posters/{alias}/favorites": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "CSRFToken": []
+                    }
+                ],
+                "description": "Returns number of users who added poster to favorites",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posters"
+                ],
+                "summary": "Get poster favorites count",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Poster alias",
+                        "name": "alias",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "integer"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -1792,6 +1857,53 @@ const docTemplate = `{
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/posters/{alias}/price-history": {
+            "get": {
+                "description": "Returns poster price history",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "posters"
+                ],
+                "summary": "Get poster price history",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Poster alias",
+                        "name": "alias",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.PriceHistoryResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/response.ErrorResponse"
                         }
@@ -2190,17 +2302,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "auth.LoginResponse": {
-            "type": "object",
-            "properties": {
-                "access_token": {
-                    "type": "string"
-                },
-                "expire_at": {
-                    "type": "integer"
-                }
-            }
-        },
         "dto.CategoryDTO": {
             "type": "object",
             "properties": {
@@ -2285,15 +2386,6 @@ const docTemplate = `{
                 },
                 "flat_category": {
                     "type": "string"
-                },
-                "flat_floor": {
-                    "type": "integer"
-                },
-                "flat_number": {
-                    "type": "integer"
-                },
-                "floor_count": {
-                    "type": "integer"
                 }
             }
         },
@@ -2536,6 +2628,17 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.PriceHistoryDTO": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                }
+            }
+        },
         "dto.UserDTO": {
             "type": "object",
             "properties": {
@@ -2611,6 +2714,17 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/dto.PhotoDTO"
                     }
+                }
+            }
+        },
+        "github_com_go-park-mail-ru_2026_1_TheBugs_internal_delivery_restapi_auth.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "expire_at": {
+                    "type": "integer"
                 }
             }
         },
@@ -2720,6 +2834,20 @@ const docTemplate = `{
             "properties": {
                 "views": {
                     "type": "integer"
+                }
+            }
+        },
+        "response.PriceHistoryResponse": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "history": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.PriceHistoryDTO"
+                    }
                 }
             }
         },

@@ -5,24 +5,26 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/grpc/generated/poster"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/response"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
+	"github.com/samber/lo"
+	"google.golang.org/grpc"
 )
 
 const defaultLimit = "12"
 const defaultOffset = "0"
 
 type PosterHandler struct {
-	uc *poster.PosterUseCase
+	grpcClient poster.PosterServiceClient
 }
 
-func NewPosterHandler(uc *poster.PosterUseCase) *PosterHandler {
+func NewPosterHandler(grpcConn *grpc.ClientConn) *PosterHandler {
 	return &PosterHandler{
-		uc: uc,
+		grpcClient: poster.NewPosterServiceClient(grpcConn),
 	}
 }
 
@@ -62,15 +64,18 @@ func (h *PosterHandler) GetFlatsAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	posters, err := h.uc.SearchPostersUseCase(r.Context(), params)
+	req := utils.MapFiltersDTOToProto(params)
+
+	resp, err := h.grpcClient.SearchPosters(r.Context(), req)
 	if err != nil {
-		log.Errorf("h.uc.GetPostersUseCase: %s", err)
+		log.Errorf("h.grpcClient.SearchPosters: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusOK, posters)
+	result := utils.MapSearchPostersResponseToDTO(resp)
 
+	utils.JSONResponse(w, http.StatusOK, result)
 }
 
 // @Summary Get poster by alias
@@ -94,15 +99,17 @@ func (h *PosterHandler) GetPoster(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	poster, err := h.uc.GetPosterByAliasUseCase(r.Context(), alias, nil)
+	resp, err := h.grpcClient.GetPosterByAlias(r.Context(), &poster.GetPosterByAliasRequest{
+		PosterAlias: alias,
+	})
 	if err != nil {
-		log.Errorf("h.uc.GetPosterByAliasUseCase: %s", err)
+		log.Errorf("h.client.GetPosterByAlias: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
 
 	var response response.PosterResponse
-	response.Poster = poster
+	response.Poster = utils.MapProtoPosterToDTO(resp.Poster)
 
 	utils.JSONResponse(w, http.StatusOK, response)
 }
@@ -124,23 +131,28 @@ func (h *PosterHandler) GetPostersByUser(w http.ResponseWriter, r *http.Request)
 
 	userID, err := utils.GetUserID(r.Context())
 	if err != nil {
-		log.Errorf("h.uc.GetPosterByAliasUseCase: %s", err)
+		log.Errorf("utils.GetUserID: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
 
-	posters, err := h.uc.GetPosterByUserID(r.Context(), userID)
+	resp, err := h.grpcClient.GetPostersByUserID(r.Context(), &poster.GetPostersByUserIDRequest{
+		UserId: int64(userID),
+	})
 	if err != nil {
-		log.Errorf("h.uc.GetPosterByUserID: %s", err)
+		log.Errorf("h.grpcClient.GetPostersByUserID: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
+
+	posters := utils.MapProtoMyPostersToDTO(resp.Posters)
+
 	response := response.MyPostersResponse{
 		Posters: posters,
 		Len:     len(posters),
 	}
-	utils.JSONResponse(w, http.StatusOK, response)
 
+	utils.JSONResponse(w, http.StatusOK, response)
 }
 
 // @Summary Get list of user`s posters
@@ -166,23 +178,25 @@ func (h *PosterHandler) GetPostersByUserByAlias(w http.ResponseWriter, r *http.R
 
 	userID, err := utils.GetUserID(r.Context())
 	if err != nil {
-		log.Errorf("h.uc.GetPosterByAliasUseCase: %s", err)
+		log.Errorf("utils.GetUserID: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
 
-	poster, err := h.uc.GetPosterByAliasUseCase(r.Context(), alias, &userID)
+	resp, err := h.grpcClient.GetPosterByAlias(r.Context(), &poster.GetPosterByAliasRequest{
+		PosterAlias: alias,
+		UserId:      lo.ToPtr(int64(userID)),
+	})
 	if err != nil {
-		log.Errorf("h.uc.GetPosterByAliasUseCase: %s", err)
+		log.Errorf("h.grpcClient.GetPosterByAlias: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
 
 	var response response.PosterResponse
-	response.Poster = poster
+	response.Poster = utils.MapProtoPosterToDTO(resp.Poster)
 
 	utils.JSONResponse(w, http.StatusOK, response)
-
 }
 
 // @Summary Create flat poster
@@ -230,9 +244,10 @@ func (h *PosterHandler) CreateFlatPoster(w http.ResponseWriter, r *http.Request)
 	var req dto.PosterInputFlatDTO
 
 	req.UserID = userID
+
 	err = utils.ParseMultipartFormData(r, &req)
 	if err != nil {
-		log.Errorf("utils.ParseFormData: %s", err)
+		log.Errorf("utils.ParseMultipartFormData: %s", err)
 		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
@@ -244,17 +259,40 @@ func (h *PosterHandler) CreateFlatPoster(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	poster, err := h.uc.CreateFlatPoster(r.Context(), &req)
+	stream, err := h.grpcClient.CreateFlatPoster(r.Context())
 	if err != nil {
-		log.Errorf("h.uc.CreateFlatPoster: %s", err)
+		log.Errorf("h.grpcClient.CreateFlatPoster: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
 
-	var response response.CreatedPosterResponse
-	response.Poster = poster
+	err = utils.SendFlatPosterMeta(stream, &req)
+	if err != nil {
+		log.Errorf("sendFlatPosterMeta: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
 
-	utils.JSONResponse(w, http.StatusCreated, response)
+	err = utils.SendFlatPosterPhotos(stream, req.Images)
+	if err != nil {
+		log.Errorf("sendFlatPosterPhotos: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	resp, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Errorf("stream.CloseAndRecv: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusCreated, response.CreatedPosterResponse{
+		Poster: &dto.CreatedPoster{
+			ID:    int(resp.Id),
+			Alias: resp.Alias,
+		},
+	})
 }
 
 // @Summary Update flat poster
@@ -302,7 +340,7 @@ func (h *PosterHandler) UpdateFlatPoster(w http.ResponseWriter, r *http.Request)
 
 	alias, err := utils.ParseAliasFromRequest(r)
 	if err != nil {
-		log.Errorf("utils.ParseIDFromRequest: %s", err)
+		log.Errorf("utils.ParseAliasFromRequest: %s", err)
 		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
@@ -323,19 +361,41 @@ func (h *PosterHandler) UpdateFlatPoster(w http.ResponseWriter, r *http.Request)
 		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
-	log.Info(req.Images)
 
-	poster, err := h.uc.UpdateFlatPoster(r.Context(), alias, &req)
+	stream, err := h.grpcClient.UpdateFlatPoster(r.Context())
 	if err != nil {
-		log.Errorf("h.uc.UpdateFlatPoster: %s", err)
+		log.Errorf("h.grpcClient.UpdateFlatPoster: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
 
-	var response response.CreatedPosterResponse
-	response.Poster = poster
+	err = utils.SendUpdateFlatPosterMeta(stream, alias, &req)
+	if err != nil {
+		log.Errorf("utils.SendUpdateFlatPosterMeta: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
 
-	utils.JSONResponse(w, http.StatusCreated, response)
+	err = utils.SendUpdateFlatPosterPhotos(stream, req.Images)
+	if err != nil {
+		log.Errorf("utils.SendUpdateFlatPosterPhotos: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	resp, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Errorf("stream.CloseAndRecv: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, response.CreatedPosterResponse{
+		Poster: &dto.CreatedPoster{
+			ID:    int(resp.Id),
+			Alias: resp.Alias,
+		},
+	})
 }
 
 // @Summary Delete flat poster
@@ -361,6 +421,7 @@ func (h *PosterHandler) DeleteFlatPoster(w http.ResponseWriter, r *http.Request)
 		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
+
 	alias, err := utils.ParseAliasFromRequest(r)
 	if err != nil {
 		log.Errorf("utils.ParseAliasFromRequest: %s", err)
@@ -368,55 +429,22 @@ func (h *PosterHandler) DeleteFlatPoster(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	deletedPoster, err := h.uc.DeleteFlatPoster(r.Context(), alias, userID)
+	resp, err := h.grpcClient.DeleteFlatPoster(r.Context(), &poster.DeleteFlatPosterRequest{
+		Alias:  alias,
+		UserId: int64(userID),
+	})
 	if err != nil {
-		log.Errorf("h.uc.DeleteFlatPoster: %s", err)
+		log.Errorf("h.grpcClient.DeleteFlatPoster: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
 
-	var response response.CreatedPosterResponse
-	response.Poster = deletedPoster
-
-	utils.JSONResponse(w, http.StatusOK, response)
-}
-
-// @Summary Add poster to favorites
-// @Description Adds a poster to user's favorites
-// @Tags posters
-// @Produce json
-// @Security     BearerAuth
-// @Security     CSRFToken
-// @Param alias path string true "Poster alias"
-// @Success 200
-// @Failure 400 {object} response.ErrorResponse
-// @Failure 401 {object} response.ErrorResponse
-// @Failure 404 {object} response.ErrorResponse
-// @Failure 500 {object} response.ErrorResponse
-// @Router /posters/{alias}/favorites [post]
-func (h *PosterHandler) AddFavoritePoster(w http.ResponseWriter, r *http.Request) {
-	op := "PosterHandler.AddFavoritePoster"
-	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
-
-	userID, err := utils.GetUserID(r.Context())
-	if err != nil {
-		log.Errorf("utils.GetUserID: %s", err)
-		utils.HandelError(w, entity.InvalidInput)
-		return
-	}
-	alias, err := utils.ParseAliasFromRequest(r)
-	if err != nil {
-		log.Errorf("utils.ParseAliasFromRequest: %s", err)
-		utils.HandelError(w, entity.InvalidInput)
-		return
-	}
-
-	err = h.uc.AddFavoritePoster(r.Context(), alias, userID)
-	if err != nil {
-		log.Errorf("h.uc.AddFavoritePoster: %s", err)
-		utils.HandelError(w, err)
-		return
-	}
+	utils.JSONResponse(w, http.StatusOK, response.CreatedPosterResponse{
+		Poster: &dto.CreatedPoster{
+			ID:    int(resp.Id),
+			Alias: resp.Alias,
+		},
+	})
 }
 
 // @Summary Add poster view
@@ -450,12 +478,17 @@ func (h *PosterHandler) AddViewPoster(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.uc.AddViewPoster(r.Context(), alias, userID)
+	_, err = h.grpcClient.AddViewPoster(r.Context(), &poster.AddViewPosterRequest{
+		Alias:  alias,
+		UserId: int64(userID),
+	})
 	if err != nil {
-		log.Errorf("h.uc.AddViewPoster: %s", err)
+		log.Errorf("h.grpcClient.AddViewPoster: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // @Summary Get poster views
@@ -479,14 +512,62 @@ func (h *PosterHandler) GetViewsPoster(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	views, err := h.uc.GetViewsPoster(r.Context(), alias)
+	resp, err := h.grpcClient.GetViewsPoster(r.Context(), &poster.GetViewsPosterRequest{
+		Alias: alias,
+	})
 	if err != nil {
-		log.Errorf("h.uc.GetViewsPoster: %s", err)
+		log.Errorf("h.grpcClient.GetViewsPoster: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusOK, response.PosterViewsResponse{Views: views})
+	utils.JSONResponse(w, http.StatusOK, response.PosterViewsResponse{
+		Views: int(resp.Views),
+	})
+}
+
+// @Summary Add poster to favorites
+// @Description Adds a poster to user's favorites
+// @Tags posters
+// @Produce json
+// @Security     BearerAuth
+// @Security     CSRFToken
+// @Param alias path string true "Poster alias"
+// @Success 200
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/{alias}/favorites [post]
+func (h *PosterHandler) AddFavoritePoster(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.AddFavoritePoster"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	userID, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.Errorf("utils.GetUserID: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	alias, err := utils.ParseAliasFromRequest(r)
+	if err != nil {
+		log.Errorf("utils.ParseAliasFromRequest: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	_, err = h.grpcClient.AddFavoritePoster(r.Context(), &poster.AddFavoritePosterRequest{
+		Alias:  alias,
+		UserId: int64(userID),
+	})
+	if err != nil {
+		log.Errorf("h.grpcClient.AddFavoritePoster: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 // @Summary Get favorite posters
@@ -511,14 +592,21 @@ func (h *PosterHandler) GetFavoritesPoster(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	posters, err := h.uc.GetFavoritesPoster(r.Context(), userID)
+	resp, err := h.grpcClient.GetFavoritePosters(r.Context(), &poster.GetFavoritePostersRequest{
+		UserId: int64(userID),
+	})
 	if err != nil {
-		log.Errorf("h.uc.GetFavoritesPoster: %s", err)
+		log.Errorf("h.grpcClient.GetFavoritePosters: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusOK, posters)
+	result := utils.MapSearchPostersResponseToDTO(&poster.SearchPostersResponse{
+		Len:     resp.Len,
+		Posters: resp.Posters,
+	})
+
+	utils.JSONResponse(w, http.StatusOK, result)
 }
 
 // @Summary Remove poster from favorites
@@ -544,6 +632,7 @@ func (h *PosterHandler) DeleteFavoritePoster(w http.ResponseWriter, r *http.Requ
 		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
+
 	alias, err := utils.ParseAliasFromRequest(r)
 	if err != nil {
 		log.Errorf("utils.ParseAliasFromRequest: %s", err)
@@ -551,12 +640,66 @@ func (h *PosterHandler) DeleteFavoritePoster(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	err = h.uc.DeleteFavoritePoster(r.Context(), alias, userID)
+	_, err = h.grpcClient.DeleteFavoritePoster(r.Context(), &poster.DeleteFavoritePosterRequest{
+		Alias:  alias,
+		UserId: int64(userID),
+	})
 	if err != nil {
-		log.Errorf("h.uc.DeleteFavoritePoster: %s", err)
+		log.Errorf("h.grpcClient.DeleteFavoritePoster: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// @Summary Get poster favorites count
+// @Description Returns number of users who added poster to favorites
+// @Tags posters
+// @Produce json
+// @Security     BearerAuth
+// @Security     CSRFToken
+// @Param alias path string true "Poster alias"
+// @Success 200 {object} map[string]int
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/{alias}/favorites [get]
+func (h *PosterHandler) GetFavoritesCountPoster(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GetFavoritesCountPoster"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	var userID *int64
+
+	id, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.Infof("utils.GetUserID: %s", err)
+	} else {
+		userID = lo.ToPtr(int64(id))
+	}
+
+	alias, err := utils.ParseAliasFromRequest(r)
+	if err != nil {
+		log.Errorf("utils.ParseAliasFromRequest: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	resp, err := h.grpcClient.GetFavoritesCountPoster(r.Context(), &poster.GetFavoritesCountPosterRequest{
+		PosterAlias: alias,
+		UserId:      userID,
+	})
+	if err != nil {
+		log.Errorf("h.grpcClient.GetFavoritesCountPoster: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, response.PosterFavoritesCountResponse{
+		Count:      int(resp.Count),
+		IsFavorite: resp.IsFavorite,
+	})
 }
 
 // @Summary Get list of posters JSONGeo
@@ -597,6 +740,7 @@ func (h *PosterHandler) GetFlatsMapAll(w http.ResponseWriter, r *http.Request) {
 		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
+
 	params, err := utils.ParsePostersFilters(r)
 	if err != nil {
 		log.Errorf("utils.ParsePostersFilters: %s", err)
@@ -604,14 +748,17 @@ func (h *PosterHandler) GetFlatsMapAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	posters, err := h.uc.GetPostersByCoords(r.Context(), bbox, params)
+	resp, err := h.grpcClient.GetPostersByCoords(r.Context(), &poster.GetPostersByCoordsRequest{
+		Bounds:  utils.MapMapBoundsDTOToProto(bbox),
+		Filters: utils.MapFiltersDTOToProto(params),
+	})
 	if err != nil {
-		log.Errorf("h.uc.GetPostersByCoord: %s", err)
+		log.Errorf("h.grpcClient.GetPostersByCoords: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusOK, posters)
+	utils.JSONResponse(w, http.StatusOK, utils.MapGeoJSONResponseToDTO(resp))
 }
 
 // @Summary Get list of posters by point
@@ -625,28 +772,43 @@ func (h *PosterHandler) GetFlatsMapAll(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} response.ErrorResponse
 // @Router /posters/by-point [get]
 func (h *PosterHandler) GetPostersByPoint(w http.ResponseWriter, r *http.Request) {
-	op := "PosterHandler.GetFlatsMapAll"
+	op := "PosterHandler.GetPostersByPoint"
 	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
 	q := r.URL.Query()
-	lat, err := strconv.ParseFloat(q.Get("lat"), 32)
+
+	lat, err := strconv.ParseFloat(q.Get("lat"), 64)
 	if err != nil {
-		log.Errorf("strconv.ParseFloat(q.Get(lat): %s", err)
+		log.Errorf("strconv.ParseFloat(q.Get(lat)): %s", err)
 		utils.HandelError(w, entity.InvalidInput)
-	}
-	lon, err := strconv.ParseFloat(q.Get("lon"), 32)
-	if err != nil {
-		log.Errorf("strconv.ParseFloat(q.Get(lon): %s", err)
-		utils.HandelError(w, entity.InvalidInput)
+		return
 	}
 
-	posters, err := h.uc.GetPostersByRadius(r.Context(), dto.GeographyDTO{Lat: lat, Lon: lon})
+	lon, err := strconv.ParseFloat(q.Get("lon"), 64)
 	if err != nil {
-		log.Errorf("h.uc.GetPostersByRadius: %s", err)
+		log.Errorf("strconv.ParseFloat(q.Get(lon)): %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	resp, err := h.grpcClient.GetPostersByRadius(r.Context(), &poster.GetPostersByRadiusRequest{
+		Point: &poster.Geography{
+			Lat: lat,
+			Lon: lon,
+		},
+	})
+	if err != nil {
+		log.Errorf("h.grpcClient.GetPostersByRadius: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusOK, response.MyPostersResponse{Posters: posters, Len: len(posters)})
+	posters := utils.MapProtoMyPostersToDTO(resp.Posters)
+
+	utils.JSONResponse(w, http.StatusOK, response.MyPostersResponse{
+		Posters: posters,
+		Len:     len(posters),
+	})
 }
 
 // @Summary Generate poster description
@@ -663,18 +825,67 @@ func (h *PosterHandler) GetPostersByPoint(w http.ResponseWriter, r *http.Request
 func (h *PosterHandler) GenerateDescription(w http.ResponseWriter, r *http.Request) {
 	op := "PosterHandler.GenerateDescription"
 	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
 	var req dto.GenerateDescriptionDTO
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		log.Errorf("utils.ParseJSONBody: %s", err)
+		log.Errorf("json.NewDecoder.Decode: %s", err)
 		utils.HandelError(w, entity.InvalidInput)
 		return
 	}
-	description, err := h.uc.GenerateDescription(r.Context(), req)
+
+	resp, err := h.grpcClient.GenerateDescription(r.Context(), &poster.GenerateDescriptionRequest{
+		Category:     req.Category,
+		Area:         req.Area,
+		FlatCategory: req.FlatCategory,
+		City:         req.City,
+		Features:     req.Features,
+	})
 	if err != nil {
-		log.Errorf("h.uc.GenerateDescription: %s", err)
+		log.Errorf("h.grpcClient.GenerateDescription: %s", err)
 		utils.HandelError(w, err)
 		return
 	}
-	utils.JSONResponse(w, http.StatusOK, response.GenerateDescriptionResponse{Description: description})
+
+	utils.JSONResponse(w, http.StatusOK, response.GenerateDescriptionResponse{
+		Description: resp.Description,
+	})
+}
+
+// @Summary Get poster price history
+// @Description Returns poster price history
+// @Tags posters
+// @Produce json
+// @Param alias path string true "Poster alias"
+// @Success 200 {object} response.PriceHistoryResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/{alias}/price-history [get]
+func (h *PosterHandler) GetPriceHistoryPoster(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GetPriceHistoryPoster"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	alias, err := utils.ParseAliasFromRequest(r)
+	if err != nil {
+		log.Errorf("utils.ParseAliasFromRequest: %s", err)
+		utils.HandelError(w, entity.InvalidInput)
+		return
+	}
+
+	resp, err := h.grpcClient.GetPriceHistoryPoster(r.Context(), &poster.GetPriceHistoryPosterRequest{
+		PosterAlias: alias,
+	})
+	if err != nil {
+		log.Errorf("h.grpcClient.GetPriceHistoryPoster: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	history := utils.MapProtoPriceHistoryToDTO(resp.History)
+
+	utils.JSONResponse(w, http.StatusOK, response.PriceHistoryResponse{
+		History: history,
+		Count:   len(history),
+	})
 }
