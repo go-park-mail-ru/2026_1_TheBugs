@@ -15,7 +15,7 @@ import (
 func LoggingMiddleware(logger *logrus.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if r.Method == "/metrics" || r.Method == "/health" {
+			if r.URL.Path == "/metrics" || r.URL.Path == "/health" {
 				next.ServeHTTP(w, r)
 				return
 			}
