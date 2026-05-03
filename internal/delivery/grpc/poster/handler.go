@@ -13,7 +13,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type UseCase interface {
+type PostersUseCase interface {
 	SearchPostersUseCase(ctx context.Context, filters dto.PostersFiltersDTO) (*dto.PostersResponse, error)
 	GetPosterByAliasUseCase(ctx context.Context, alias string, userID *int) (*dto.PosterDTO, error)
 	GetPosterByUserID(ctx context.Context, userID int) ([]dto.MyPosterDTO, error)
@@ -40,10 +40,10 @@ type UseCase interface {
 
 type PosterServiceServer struct {
 	poster.UnimplementedPosterServiceServer
-	uc UseCase
+	uc PostersUseCase
 }
 
-func NewPosterServiceServer(uc UseCase) *PosterServiceServer {
+func NewPosterServiceServer(uc PostersUseCase) *PosterServiceServer {
 	return &PosterServiceServer{
 		uc: uc,
 	}
