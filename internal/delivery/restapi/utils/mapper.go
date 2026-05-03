@@ -50,12 +50,13 @@ func MapFiltersDTOToProto(params dto.PostersFiltersDTO) *poster.SearchPostersReq
 
 func MapSearchPostersResponseToDTO(resp *poster.SearchPostersResponse) *dto.PostersResponse {
 	if resp == nil {
-		return &dto.PostersResponse{}
+		return &dto.PostersResponse{Len: 0, Posters: []dto.PosterCardDTO{}}
 	}
 
 	result := &dto.PostersResponse{
 		Len: int(resp.Len),
 	}
+	list := make([]dto.PosterCardDTO, 0, len(resp.Posters))
 
 	for _, p := range resp.Posters {
 		card := dto.PosterCardDTO{
@@ -76,8 +77,9 @@ func MapSearchPostersResponseToDTO(resp *poster.SearchPostersResponse) *dto.Post
 			card.FlatCategory = p.FlatCategory
 		}
 
-		result.Posters = append(result.Posters, card)
+		list = append(list, card)
 	}
+	result.Posters = list
 
 	return result
 }
