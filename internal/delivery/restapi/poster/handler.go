@@ -69,7 +69,7 @@ func (h *PosterHandler) GetFlatsAll(w http.ResponseWriter, r *http.Request) {
 	resp, err := h.grpcClient.SearchPosters(r.Context(), req)
 	if err != nil {
 		log.Errorf("h.grpcClient.SearchPosters: %s", err)
-		utils.HandelError(w, err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
 
@@ -104,7 +104,7 @@ func (h *PosterHandler) GetPoster(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		log.Errorf("h.client.GetPosterByAlias: %s", err)
-		utils.HandelError(w, err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
 
@@ -141,7 +141,7 @@ func (h *PosterHandler) GetPostersByUser(w http.ResponseWriter, r *http.Request)
 	})
 	if err != nil {
 		log.Errorf("h.grpcClient.GetPostersByUserID: %s", err)
-		utils.HandelError(w, err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
 
@@ -189,7 +189,7 @@ func (h *PosterHandler) GetPostersByUserByAlias(w http.ResponseWriter, r *http.R
 	})
 	if err != nil {
 		log.Errorf("h.grpcClient.GetPosterByAlias: %s", err)
-		utils.HandelError(w, err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
 
@@ -262,7 +262,7 @@ func (h *PosterHandler) CreateFlatPoster(w http.ResponseWriter, r *http.Request)
 	stream, err := h.grpcClient.CreateFlatPoster(r.Context())
 	if err != nil {
 		log.Errorf("h.grpcClient.CreateFlatPoster: %s", err)
-		utils.HandelError(w, err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
 
@@ -386,7 +386,7 @@ func (h *PosterHandler) UpdateFlatPoster(w http.ResponseWriter, r *http.Request)
 	resp, err := stream.CloseAndRecv()
 	if err != nil {
 		log.Errorf("stream.CloseAndRecv: %s", err)
-		utils.HandelError(w, err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
 
@@ -435,7 +435,7 @@ func (h *PosterHandler) DeleteFlatPoster(w http.ResponseWriter, r *http.Request)
 	})
 	if err != nil {
 		log.Errorf("h.grpcClient.DeleteFlatPoster: %s", err)
-		utils.HandelError(w, err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
 
@@ -484,7 +484,7 @@ func (h *PosterHandler) AddViewPoster(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		log.Errorf("h.grpcClient.AddViewPoster: %s", err)
-		utils.HandelError(w, err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
 
@@ -517,7 +517,7 @@ func (h *PosterHandler) GetViewsPoster(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		log.Errorf("h.grpcClient.GetViewsPoster: %s", err)
-		utils.HandelError(w, err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
 
@@ -563,7 +563,7 @@ func (h *PosterHandler) AddFavoritePoster(w http.ResponseWriter, r *http.Request
 	})
 	if err != nil {
 		log.Errorf("h.grpcClient.AddFavoritePoster: %s", err)
-		utils.HandelError(w, err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
 
@@ -597,7 +597,7 @@ func (h *PosterHandler) GetFavoritesPoster(w http.ResponseWriter, r *http.Reques
 	})
 	if err != nil {
 		log.Errorf("h.grpcClient.GetFavoritePosters: %s", err)
-		utils.HandelError(w, err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
 
@@ -646,7 +646,7 @@ func (h *PosterHandler) DeleteFavoritePoster(w http.ResponseWriter, r *http.Requ
 	})
 	if err != nil {
 		log.Errorf("h.grpcClient.DeleteFavoritePoster: %s", err)
-		utils.HandelError(w, err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
 
@@ -692,7 +692,7 @@ func (h *PosterHandler) GetFavoritesCountPoster(w http.ResponseWriter, r *http.R
 	})
 	if err != nil {
 		log.Errorf("h.grpcClient.GetFavoritesCountPoster: %s", err)
-		utils.HandelError(w, err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
 
@@ -754,7 +754,7 @@ func (h *PosterHandler) GetFlatsMapAll(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		log.Errorf("h.grpcClient.GetPostersByCoords: %s", err)
-		utils.HandelError(w, err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
 
@@ -799,7 +799,7 @@ func (h *PosterHandler) GetPostersByPoint(w http.ResponseWriter, r *http.Request
 	})
 	if err != nil {
 		log.Errorf("h.grpcClient.GetPostersByRadius: %s", err)
-		utils.HandelError(w, err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
 
@@ -843,7 +843,7 @@ func (h *PosterHandler) GenerateDescription(w http.ResponseWriter, r *http.Reque
 	})
 	if err != nil {
 		log.Errorf("h.grpcClient.GenerateDescription: %s", err)
-		utils.HandelError(w, err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
 
@@ -878,7 +878,7 @@ func (h *PosterHandler) GetPriceHistoryPoster(w http.ResponseWriter, r *http.Req
 	})
 	if err != nil {
 		log.Errorf("h.grpcClient.GetPriceHistoryPoster: %s", err)
-		utils.HandelError(w, err)
+		utils.HandelGRPCError(w, err)
 		return
 	}
 
