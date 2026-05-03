@@ -3,38 +3,22 @@ package auth
 import (
 	"context"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/grpc/generated/auth"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/grpc/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
-	jwtUtils "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/jwt"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
 
-// UseCase defines the interface for auth use cases
-type UseCase interface {
-	RegisterUseCase(ctx context.Context, data dto.CreateUserDTO) error
-	LoginUseCase(ctx context.Context, email, password string) (*dto.UserAccessCredDTO, error)
-	RefreshTokenUseCase(ctx context.Context, refreshToken string) (*dto.UserAccessCredDTO, error)
-	LogoutUseCase(ctx context.Context, logoutCred dto.LogoutDTO) error
-	LoginUserFromVKUseCase(ctx context.Context, flow dto.OAuthCodeFlow) (*dto.UserAccessCredDTO, error)
-	LoginUserFromYandexUseCase(ctx context.Context, flow dto.OAuthCodeFlow) (*dto.UserAccessCredDTO, error)
-	SendRecoveryCode(ctx context.Context, email string) (string, error)
-	SendVerificationEmailCode(ctx context.Context, email string) (string, error)
-	VerifyUserEmail(ctx context.Context, sessionID string, code string) error
-	CheckRecoveryCode(ctx context.Context, sessionID string, code string) error
-	UpdateUserPassword(ctx context.Context, sessionID string, password string) error
-	ValidateAccessToken(ctx context.Context, accessToken string) (*jwtUtils.Claims, error)
-}
-
 type AuthServiceServer struct {
 	auth.UnimplementedAuthServiceServer
-	uc UseCase
+	uc delivery.AuthUseCase
 }
 
 // NewAuthServiceServer creates a new AuthServiceServer
-func NewAuthServiceServer(uc UseCase) *AuthServiceServer {
+func NewAuthServiceServer(uc delivery.AuthUseCase) *AuthServiceServer {
 	return &AuthServiceServer{
 		uc: uc,
 	}
