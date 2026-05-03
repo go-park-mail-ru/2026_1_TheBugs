@@ -42,7 +42,7 @@ func RunComplexService(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	uc := complexUC.NewUtilityCompanyUseCase(repo)
 
 	serverAddress := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
-	grpcAsddr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.UserService.Port)
+	grpcAsddr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.ComplexService.Port)
 
 	metrics := prom.NewMetricsMiddleware()
 	metrics.Register(entity.ServiceType(cfg.ServiceName))
