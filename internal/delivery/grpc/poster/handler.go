@@ -396,11 +396,6 @@ func (s *PosterServiceServer) GenerateDescription(ctx context.Context, req *post
 		return nil, status.Error(codes.InvalidArgument, "flat_category required")
 	}
 
-	if req.City == "" {
-		log.Error("missing required field: city")
-		return nil, status.Error(codes.InvalidArgument, "city required")
-	}
-
 	description, err := s.uc.GenerateDescription(ctx, dto.GenerateDescriptionDTO{
 		Category:     req.Category,
 		Area:         req.Area,

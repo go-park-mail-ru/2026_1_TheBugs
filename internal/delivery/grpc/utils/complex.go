@@ -19,6 +19,7 @@ func MapComplex(cmp *dto.UtilityCompanyDTO) *complex.GetComplexResponse {
 		},
 		Photos:    mapPhotos(cmp.Photos),
 		Developer: MapDeveloper(cmp.Developer),
+		Phone:     cmp.Phone,
 	}
 }
 

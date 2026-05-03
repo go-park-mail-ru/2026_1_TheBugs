@@ -36,6 +36,7 @@ message GetComplexResponse {
     optional string avatar_url = 7;
     repeated Photo photos = 8;
     Developer developer = 9;
+    string phone = 10;
 }
 
 message GetAllDevelopersResponse{
