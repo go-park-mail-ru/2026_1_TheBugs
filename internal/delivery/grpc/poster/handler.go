@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/grpc/generated/poster"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/grpc/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/grpc/utils/mapper"
@@ -13,37 +14,12 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type PostersUseCase interface {
-	SearchPostersUseCase(ctx context.Context, filters dto.PostersFiltersDTO) (*dto.PostersResponse, error)
-	GetPosterByAliasUseCase(ctx context.Context, alias string, userID *int) (*dto.PosterDTO, error)
-	GetPosterByUserID(ctx context.Context, userID int) ([]dto.MyPosterDTO, error)
-
-	AddViewPoster(ctx context.Context, alias string, userID int) error
-	GetViewsPoster(ctx context.Context, alias string) (int, error)
-
-	AddFavoritePoster(ctx context.Context, alias string, userID int) error
-	GetFavoritesPoster(ctx context.Context, userID int) (*dto.PostersResponse, error)
-	DeleteFavoritePoster(ctx context.Context, alias string, userID int) error
-	GetFavoritesCountPoster(ctx context.Context, posterAlias string, userID *int) (int, bool, error)
-
-	GetPostersByCoords(ctx context.Context, bounds dto.MapBounds, filters dto.PostersFiltersDTO) (*dto.GeoJSONFeatureResponse, error)
-	GetPostersByRadius(ctx context.Context, point dto.GeographyDTO) ([]dto.MyPosterDTO, error)
-
-	GenerateDescription(ctx context.Context, input dto.GenerateDescriptionDTO) (string, error)
-
-	GetPriceHistoryPoster(ctx context.Context, posterAlias string) ([]dto.PriceHistoryDTO, error)
-
-	CreateFlatPoster(ctx context.Context, poster *dto.PosterInputFlatDTO) (*dto.CreatedPoster, error)
-	UpdateFlatPoster(ctx context.Context, alias string, poster *dto.PosterInputFlatDTO) (*dto.CreatedPoster, error)
-	DeleteFlatPoster(ctx context.Context, alias string, userID int) (*dto.CreatedPoster, error)
-}
-
 type PosterServiceServer struct {
 	poster.UnimplementedPosterServiceServer
-	uc PostersUseCase
+	uc delivery.PostersUseCase
 }
 
-func NewPosterServiceServer(uc PostersUseCase) *PosterServiceServer {
+func NewPosterServiceServer(uc delivery.PostersUseCase) *PosterServiceServer {
 	return &PosterServiceServer{
 		uc: uc,
 	}
