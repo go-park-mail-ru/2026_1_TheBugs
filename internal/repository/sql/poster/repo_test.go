@@ -869,15 +869,12 @@ func TestInsertFacilitiesRepo(t *testing.T) {
 	inputPropertyID := 22
 	inputAliases := []string{"balcony", "parking"}
 
-	selectQuery := regexp.QuoteMeta(`
-		SELECT id
-		FROM facilities
-		WHERE alias = ANY($1::text[])
-	`)
-
 	insertQuery := regexp.QuoteMeta(`
-		INSERT INTO facility_property (property_id, facility_id)
-		VALUES ($1, $2)
+	INSERT INTO facility_property (property_id, facility_id)
+	SELECT $1, id 
+	FROM facilities 
+	WHERE alias = ANY($2::text[])
+	ON CONFLICT DO NOTHING;
 	`)
 
 	tests := []struct {
@@ -892,63 +889,19 @@ func TestInsertFacilitiesRepo(t *testing.T) {
 			propertyID: inputPropertyID,
 			aliases:    inputAliases,
 			setupMock: func(m pgxmock.PgxPoolIface) {
-				rows := pgxmock.NewRows([]string{"id"}).
-					AddRow(1).
-					AddRow(2)
-
-				m.ExpectQuery(selectQuery).
-					WithArgs(inputAliases).
-					WillReturnRows(rows)
-
 				m.ExpectExec(insertQuery).
-					WithArgs(inputPropertyID, 1).
-					WillReturnResult(pgxmock.NewResult("INSERT", 1))
-
-				m.ExpectExec(insertQuery).
-					WithArgs(inputPropertyID, 2).
-					WillReturnResult(pgxmock.NewResult("INSERT", 1))
+					WithArgs(inputPropertyID, inputAliases).
+					WillReturnResult(pgxmock.NewResult("INSERT", 2))
 			},
 			wantErr: nil,
 		},
 		{
-			name:       "select_error",
+			name:       "exec_error",
 			propertyID: inputPropertyID,
 			aliases:    inputAliases,
 			setupMock: func(m pgxmock.PgxPoolIface) {
-				m.ExpectQuery(selectQuery).
-					WithArgs(inputAliases).
-					WillReturnError(entity.ServiceError)
-			},
-			wantErr: entity.ServiceError,
-		},
-		{
-			name:       "collect_rows_error",
-			propertyID: inputPropertyID,
-			aliases:    inputAliases,
-			setupMock: func(m pgxmock.PgxPoolIface) {
-				rows := pgxmock.NewRows([]string{"id"}).
-					AddRow("bad-id")
-
-				m.ExpectQuery(selectQuery).
-					WithArgs(inputAliases).
-					WillReturnRows(rows)
-			},
-			wantErr: entity.ServiceError,
-		},
-		{
-			name:       "insert_error",
-			propertyID: inputPropertyID,
-			aliases:    inputAliases,
-			setupMock: func(m pgxmock.PgxPoolIface) {
-				rows := pgxmock.NewRows([]string{"id"}).
-					AddRow(1)
-
-				m.ExpectQuery(selectQuery).
-					WithArgs(inputAliases).
-					WillReturnRows(rows)
-
 				m.ExpectExec(insertQuery).
-					WithArgs(inputPropertyID, 1).
+					WithArgs(inputPropertyID, inputAliases).
 					WillReturnError(entity.ServiceError)
 			},
 			wantErr: entity.ServiceError,
@@ -2866,6 +2819,998 @@ func TestDeleteFavoriteRepo(t *testing.T) {
 			repo := NewPosterRepo(mock)
 
 			err = repo.DeleteFavorite(context.Background(), test.paramUser, test.paramPost)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}
+
+func TestGetPostersByMapBoundsRepo(t *testing.T) {
+	query := regexp.QuoteMeta(`
+		WITH filtered AS (
+		SELECT
+			p.id,
+			p.price,
+			p.alias,
+			b.geo::geometry AS geo,
+			ST_SnapToGrid(b.geo::geometry, $5, $5) AS cell
+		FROM posters p
+		JOIN property prop ON prop.id = p.property_id
+		JOIN property_categories pc ON pc.id = prop.category_id
+		JOIN buildings b ON b.id = prop.building_id
+		WHERE b.geo && ST_MakeEnvelope($1, $2, $3, $4, 4326)
+		AND p.deleted_at IS NULL
+	),
+	cell_stats AS (
+		SELECT
+			cell,
+			COUNT(*) AS cell_count,
+			MIN(price) AS price_min,
+			MAX(price) AS price_max,
+			MIN(id)::bigint AS min_id,
+			ST_Centroid(ST_Collect(geo)) AS centroid_geo
+		FROM filtered
+		GROUP BY cell
+	)
+	SELECT 
+		CASE 
+			WHEN cs.cell_count > 1 THEN ROW_NUMBER() OVER (ORDER BY cs.cell_count DESC)
+			ELSE cs.min_id 
+		END AS id,
+		
+		ST_Y(cs.centroid_geo) AS lat,
+		ST_X(cs.centroid_geo) AS lon,
+		
+		CASE WHEN cs.cell_count > 1 THEN cs.cell_count ELSE NULL END AS count,
+		CASE WHEN cs.cell_count > 1 THEN cs.price_min ELSE NULL END AS price_min,
+		CASE WHEN cs.cell_count > 1 THEN cs.price_max ELSE NULL END AS price_max,
+		
+		CASE WHEN cs.cell_count = 1 THEN f.price ELSE NULL END AS price,
+		CASE WHEN cs.cell_count = 1 THEN f.alias ELSE NULL END AS alias,
+		
+		CASE WHEN cs.cell_count > 1 THEN true ELSE false END AS cluster
+
+	FROM cell_stats cs
+	LEFT JOIN LATERAL (
+		SELECT price, alias 
+		FROM filtered f 
+		WHERE f.cell = cs.cell 
+		LIMIT 1
+	) f ON cs.cell_count = 1
+
+	ORDER BY 
+		CASE WHEN cs.cell_count > 1 THEN 0 ELSE 1 END,
+		cs.cell_count DESC NULLS LAST
+	LIMIT 50;
+	`)
+
+	coords := dto.MapBounds{
+		BBox: dto.BBox{
+			SouthWest: dto.GeographyDTO{Lat: 10, Lon: 20},
+			NorthEast: dto.GeographyDTO{Lat: 30, Lon: 40},
+		},
+	}
+
+	tests := []struct {
+		name      string
+		setupMock func(m pgxmock.PgxPoolIface)
+		want      []entity.AnyPoint
+		wantErr   error
+	}{
+		{
+			name: "ok_single_point",
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{
+					"id", "lat", "lon",
+					"count", "price_min",
+					"price", "alias", "cluster",
+				}).
+					AddRow(
+						int64(1),
+						55.75,
+						37.61,
+						nil,
+						nil,
+						lo.ToPtr(float64(100000)),
+						lo.ToPtr("alias-1"),
+						false,
+					)
+
+				m.ExpectQuery(query).
+					WithArgs(20.0, 10.0, 40.0, 30.0, 0.001).
+					WillReturnRows(rows)
+			},
+			want: []entity.AnyPoint{
+				{
+					ID:    1,
+					Lat:   55.75,
+					Lon:   37.61,
+					Price: lo.ToPtr(float64(100000)),
+					Alias: lo.ToPtr("alias-1"),
+					Group: false,
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "ok_cluster",
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{
+					"id", "lat", "lon",
+					"count", "price_min",
+					"price", "alias", "cluster",
+				}).
+					AddRow(
+						int64(1),
+						55.75,
+						37.61,
+						lo.ToPtr(int64(3)),
+						lo.ToPtr(float64(100000)),
+						nil,
+						nil,
+						true,
+					)
+
+				m.ExpectQuery(query).
+					WithArgs(20.0, 10.0, 40.0, 30.0, 0.001).
+					WillReturnRows(rows)
+			},
+			want: []entity.AnyPoint{
+				{
+					ID:       1,
+					Lat:      55.75,
+					Lon:      37.61,
+					Count:    lo.ToPtr(int64(3)),
+					PriceMin: lo.ToPtr(float64(100000)),
+					Group:    true,
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "query_error",
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectQuery(query).
+					WithArgs(20.0, 10.0, 40.0, 30.0, 0.001).
+					WillReturnError(errors.New("db error"))
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+		{
+			name: "collect_error",
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{
+					"id", "lat", "lon",
+					"count", "price_min",
+					"price", "alias", "cluster",
+				}).
+					AddRow(
+						"bad-id",
+						55.75,
+						37.61,
+						nil,
+						nil,
+						100000.0,
+						"alias-1",
+						false,
+					)
+
+				m.ExpectQuery(query).
+					WithArgs(20.0, 10.0, 40.0, 30.0, 0.001).
+					WillReturnRows(rows)
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mock, err := pgxmock.NewPool()
+			require.NoError(t, err)
+			defer mock.Close()
+
+			test.setupMock(mock)
+
+			repo := NewPosterRepo(mock)
+
+			got, err := repo.GetPostersByMapBounds(context.Background(), coords)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, test.want, got)
+			require.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}
+
+func TestGetPostersByRadiusRepo(t *testing.T) {
+	query := regexp.QuoteMeta(`SELECT p.id, p.price, p.avatar_url,
+               b.address, prop.area, p.alias, pc.name as category_name, pc.alias as category_alias
+        FROM posters p
+        JOIN property prop ON prop.id = p.property_id
+        JOIN property_categories pc ON pc.id = prop.category_id
+        JOIN buildings b ON b.id = prop.building_id
+        WHERE ST_DWithin(b.geo, ST_GeogFromText($1), $2) AND p.deleted_at IS NULL
+        LIMIT 50;`)
+
+	point := dto.GeographyDTO{
+		Lat: 55.7558,
+		Lon: 37.6173,
+	}
+	radius := entity.Metre(10)
+
+	avatar := "avatar.jpg"
+
+	tests := []struct {
+		name      string
+		setupMock func(m pgxmock.PgxPoolIface)
+		want      []entity.Poster
+		wantErr   error
+	}{
+		{
+			name: "ok",
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{
+					"id", "price", "avatar_url",
+					"address", "area", "alias",
+					"category_name", "category_alias",
+				}).
+					AddRow(
+						1,
+						100000.0,
+						&avatar,
+						"Arbatskaya 5k2",
+						96.4,
+						"kvartira-na-arbate",
+						"flat",
+						"flat",
+					)
+
+				m.ExpectQuery(query).
+					WithArgs(geo.GeographyPoint{Lat: point.Lat, Lon: point.Lon}, int(radius)).
+					WillReturnRows(rows)
+			},
+			want: []entity.Poster{
+				{
+					ID:            1,
+					Price:         100000,
+					AvatarURl:     &avatar,
+					Address:       "Arbatskaya 5k2",
+					Area:          96.4,
+					Alias:         "kvartira-na-arbate",
+					CategoryName:  "flat",
+					CategoryAlias: "flat",
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "empty",
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{
+					"id", "price", "avatar_url",
+					"address", "area", "alias",
+					"category_name", "category_alias",
+				})
+
+				m.ExpectQuery(query).
+					WithArgs(geo.GeographyPoint{Lat: point.Lat, Lon: point.Lon}, int(radius)).
+					WillReturnRows(rows)
+			},
+			want:    []entity.Poster{},
+			wantErr: nil,
+		},
+		{
+			name: "query_error",
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectQuery(query).
+					WithArgs(geo.GeographyPoint{Lat: point.Lat, Lon: point.Lon}, int(radius)).
+					WillReturnError(errors.New("db error"))
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+		{
+			name: "collect_error",
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{
+					"id", "price", "avatar_url",
+					"address", "area", "alias",
+					"category_name", "category_alias",
+				}).
+					AddRow(
+						"bad-id",
+						100000.0,
+						&avatar,
+						"Arbatskaya 5k2",
+						96.4,
+						"kvartira-na-arbate",
+						"flat",
+						"flat",
+					)
+
+				m.ExpectQuery(query).
+					WithArgs(geo.GeographyPoint{Lat: point.Lat, Lon: point.Lon}, int(radius)).
+					WillReturnRows(rows)
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mock, err := pgxmock.NewPool()
+			require.NoError(t, err)
+			defer mock.Close()
+
+			test.setupMock(mock)
+
+			repo := NewPosterRepo(mock)
+
+			got, err := repo.GetPostersByRadius(context.Background(), point, radius)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, test.want, got)
+			require.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}
+
+func TestGetClustersByMapBoundsRepo(t *testing.T) {
+	query := regexp.QuoteMeta(`
+		WITH filtered AS (
+			SELECT
+				p.id,
+				p.price,
+				p.alias,
+				b.geo,
+				ST_SnapToGrid(b.geo::geometry, $5, $6) AS cell
+			FROM posters p
+			JOIN property prop ON prop.id = p.property_id
+			JOIN property_categories pc ON pc.id = prop.category_id
+			JOIN buildings b ON b.id = prop.building_id
+			WHERE b.geo && ST_MakeEnvelope($1, $2, $3, $4, 4326)
+			  AND p.deleted_at IS NULL
+		)
+		SELECT
+			ROW_NUMBER() OVER () AS id,
+			ST_Y(ST_Centroid(ST_Collect(geo::geometry))) AS lat,
+			ST_X(ST_Centroid(ST_Collect(geo::geometry))) AS lon,
+			COUNT(*) AS count,
+			MIN(price) AS price_min,
+			MAX(price) AS price_max
+		FROM filtered
+		GROUP BY cell
+		ORDER BY count DESC
+		LIMIT 50;
+	`)
+
+	coords := dto.MapBounds{
+		BBox: dto.BBox{
+			SouthWest: dto.GeographyDTO{Lat: 10, Lon: 20},
+			NorthEast: dto.GeographyDTO{Lat: 30, Lon: 40},
+		},
+		Zoom: 10,
+	}
+
+	tests := []struct {
+		name      string
+		setupMock func(m pgxmock.PgxPoolIface)
+		want      []entity.ClusterPoint
+		wantErr   error
+	}{
+		{
+			name: "ok",
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{
+					"id", "lat", "lon", "count",
+				}).
+					AddRow(
+						int64(1),
+						55.75,
+						37.61,
+						int64(3),
+					)
+
+				m.ExpectQuery(query).
+					WithArgs(
+						20.0,
+						10.0,
+						40.0,
+						30.0,
+						gridSizeByZoom(coords.Zoom),
+						gridSizeByZoom(coords.Zoom),
+					).
+					WillReturnRows(rows)
+			},
+			want: []entity.ClusterPoint{
+				{
+					ID:    1,
+					Lat:   55.75,
+					Lon:   37.61,
+					Count: 3,
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "empty",
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{
+					"id", "lat", "lon", "count",
+				})
+
+				m.ExpectQuery(query).
+					WithArgs(
+						20.0,
+						10.0,
+						40.0,
+						30.0,
+						gridSizeByZoom(coords.Zoom),
+						gridSizeByZoom(coords.Zoom),
+					).
+					WillReturnRows(rows)
+			},
+			want:    []entity.ClusterPoint{},
+			wantErr: nil,
+		},
+		{
+			name: "query_error",
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectQuery(query).
+					WithArgs(
+						20.0,
+						10.0,
+						40.0,
+						30.0,
+						gridSizeByZoom(coords.Zoom),
+						gridSizeByZoom(coords.Zoom),
+					).
+					WillReturnError(errors.New("db error"))
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+		{
+			name: "collect_error",
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{
+					"id", "lat", "lon", "count",
+				}).
+					AddRow(
+						"bad-id",
+						55.75,
+						37.61,
+						int64(3),
+					)
+
+				m.ExpectQuery(query).
+					WithArgs(
+						20.0,
+						10.0,
+						40.0,
+						30.0,
+						gridSizeByZoom(coords.Zoom),
+						gridSizeByZoom(coords.Zoom),
+					).
+					WillReturnRows(rows)
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mock, err := pgxmock.NewPool()
+			require.NoError(t, err)
+			defer mock.Close()
+
+			test.setupMock(mock)
+
+			repo := NewPosterRepo(mock)
+
+			got, err := repo.GetClustersByMapBounds(context.Background(), coords)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, test.want, got)
+			require.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}
+
+func TestGetFavoritesCountByAliasRepo(t *testing.T) {
+	query := regexp.QuoteMeta(`
+		SELECT COUNT(*)
+		FROM favorites f
+		JOIN posters p ON p.id = f.poster_id
+		WHERE p.alias = $1 AND p.deleted_at IS NULL;
+	`)
+
+	alias := "kvartira-na-arbate"
+
+	tests := []struct {
+		name      string
+		alias     string
+		setupMock func(m pgxmock.PgxPoolIface)
+		want      int
+		wantErr   error
+	}{
+		{
+			name:  "ok",
+			alias: alias,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{"count"}).
+					AddRow(5)
+
+				m.ExpectQuery(query).
+					WithArgs(alias).
+					WillReturnRows(rows)
+			},
+			want:    5,
+			wantErr: nil,
+		},
+		{
+			name:  "not_found",
+			alias: alias,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{"count"})
+
+				m.ExpectQuery(query).
+					WithArgs(alias).
+					WillReturnRows(rows)
+			},
+			want:    0,
+			wantErr: entity.NotFoundError,
+		},
+		{
+			name:  "service_error",
+			alias: alias,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectQuery(query).
+					WithArgs(alias).
+					WillReturnError(errors.New("db error"))
+			},
+			want:    0,
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mock, err := pgxmock.NewPool()
+			require.NoError(t, err)
+			defer mock.Close()
+
+			test.setupMock(mock)
+
+			repo := NewPosterRepo(mock)
+
+			got, err := repo.GetFavoritesCountByAlias(context.Background(), test.alias)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, test.want, got)
+			require.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}
+
+func TestIsFavoriteByAliasAndUserIDRepo(t *testing.T) {
+	query := regexp.QuoteMeta(`
+		SELECT COUNT(*)
+		FROM favorites f
+		JOIN posters p ON p.id = f.poster_id
+		WHERE p.alias = $1 AND f.user_id = $2 AND p.deleted_at IS NULL
+		LIMIT 1;
+	`)
+
+	alias := "kvartira-na-arbate"
+	userID := 7
+
+	tests := []struct {
+		name      string
+		alias     string
+		userID    int
+		setupMock func(m pgxmock.PgxPoolIface)
+		want      bool
+		wantErr   error
+	}{
+		{
+			name:   "ok_true",
+			alias:  alias,
+			userID: userID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{"count"}).
+					AddRow(1)
+
+				m.ExpectQuery(query).
+					WithArgs(alias, userID).
+					WillReturnRows(rows)
+			},
+			want:    true,
+			wantErr: nil,
+		},
+		{
+			name:   "ok_false",
+			alias:  alias,
+			userID: userID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{"count"}).
+					AddRow(0)
+
+				m.ExpectQuery(query).
+					WithArgs(alias, userID).
+					WillReturnRows(rows)
+			},
+			want:    false,
+			wantErr: nil,
+		},
+		{
+			name:   "not_found",
+			alias:  alias,
+			userID: userID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{"count"})
+
+				m.ExpectQuery(query).
+					WithArgs(alias, userID).
+					WillReturnRows(rows)
+			},
+			want:    false,
+			wantErr: entity.NotFoundError,
+		},
+		{
+			name:   "service_error",
+			alias:  alias,
+			userID: userID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectQuery(query).
+					WithArgs(alias, userID).
+					WillReturnError(errors.New("db error"))
+			},
+			want:    false,
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mock, err := pgxmock.NewPool()
+			require.NoError(t, err)
+			defer mock.Close()
+
+			test.setupMock(mock)
+
+			repo := NewPosterRepo(mock)
+
+			got, err := repo.IsFavoriteByAliasAndUserID(context.Background(), test.alias, test.userID)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, test.want, got)
+			require.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}
+
+func TestGetPriceHistoryByAliasRepo(t *testing.T) {
+	query := regexp.QuoteMeta(`
+		SELECT ph.id, ph.price, ph.changed_at
+		FROM price_history ph
+		JOIN posters p ON p.id = ph.poster_id
+		WHERE p.alias = $1 AND p.deleted_at IS NULL
+		ORDER BY ph.changed_at DESC;
+	`)
+
+	alias := "kvartira-na-arbate"
+
+	t1 := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+	t2 := time.Date(2024, 2, 1, 0, 0, 0, 0, time.UTC)
+
+	tests := []struct {
+		name      string
+		alias     string
+		setupMock func(m pgxmock.PgxPoolIface)
+		want      []entity.PriceHistory
+		wantErr   error
+	}{
+		{
+			name:  "ok",
+			alias: alias,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{
+					"id", "price", "changed_at",
+				}).
+					AddRow(1, 120000.0, t2).
+					AddRow(2, 100000.0, t1)
+
+				m.ExpectQuery(query).
+					WithArgs(alias).
+					WillReturnRows(rows)
+			},
+			want: []entity.PriceHistory{
+				{ID: 1, Price: 120000, ChangedAt: t2},
+				{ID: 2, Price: 100000, ChangedAt: t1},
+			},
+			wantErr: nil,
+		},
+		{
+			name:  "empty",
+			alias: alias,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{
+					"id", "price", "changed_at",
+				})
+
+				m.ExpectQuery(query).
+					WithArgs(alias).
+					WillReturnRows(rows)
+			},
+			want:    []entity.PriceHistory{},
+			wantErr: nil,
+		},
+		{
+			name:  "query_error",
+			alias: alias,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectQuery(query).
+					WithArgs(alias).
+					WillReturnError(errors.New("db error"))
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+		{
+			name:  "collect_error",
+			alias: alias,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{
+					"id", "price", "changed_at",
+				}).
+					AddRow("bad-id", 120000.0, t2)
+
+				m.ExpectQuery(query).
+					WithArgs(alias).
+					WillReturnRows(rows)
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mock, err := pgxmock.NewPool()
+			require.NoError(t, err)
+			defer mock.Close()
+
+			test.setupMock(mock)
+
+			repo := NewPosterRepo(mock)
+
+			got, err := repo.GetPriceHistoryByAlias(context.Background(), test.alias)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, test.want, got)
+			require.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}
+
+func TestAddPriceHistoryRepo(t *testing.T) {
+	query := regexp.QuoteMeta(`
+		INSERT INTO price_history (poster_id, price)
+		VALUES ($1, $2);
+	`)
+
+	posterID := 33
+	price := 135000.0
+
+	tests := []struct {
+		name      string
+		setupMock func(m pgxmock.PgxPoolIface)
+		wantErr   error
+	}{
+		{
+			name: "ok",
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(posterID, price).
+					WillReturnResult(pgxmock.NewResult("INSERT", 1))
+			},
+			wantErr: nil,
+		},
+		{
+			name: "service_error",
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(posterID, price).
+					WillReturnError(errors.New("db error"))
+			},
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mock, err := pgxmock.NewPool()
+			require.NoError(t, err)
+			defer mock.Close()
+
+			test.setupMock(mock)
+
+			repo := NewPosterRepo(mock)
+
+			err = repo.AddPriceHistory(context.Background(), posterID, price)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}
+
+func TestGetLastPriceHistoryByPosterIDRepo(t *testing.T) {
+	query := regexp.QuoteMeta(`
+		SELECT id, price, changed_at
+		FROM price_history
+		WHERE poster_id = $1
+		ORDER BY changed_at DESC
+		LIMIT 1;
+	`)
+
+	posterID := 33
+	t1 := time.Date(2024, 3, 1, 0, 0, 0, 0, time.UTC)
+
+	tests := []struct {
+		name      string
+		setupMock func(m pgxmock.PgxPoolIface)
+		want      *entity.PriceHistory
+		wantErr   error
+	}{
+		{
+			name: "ok",
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{"id", "price", "changed_at"}).
+					AddRow(1, 150000.0, t1)
+
+				m.ExpectQuery(query).
+					WithArgs(posterID).
+					WillReturnRows(rows)
+			},
+			want: &entity.PriceHistory{
+				ID:        1,
+				Price:     150000,
+				ChangedAt: t1,
+			},
+			wantErr: nil,
+		},
+		{
+			name: "not_found",
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				rows := pgxmock.NewRows([]string{"id", "price", "changed_at"})
+
+				m.ExpectQuery(query).
+					WithArgs(posterID).
+					WillReturnRows(rows)
+			},
+			want:    nil,
+			wantErr: entity.NotFoundError,
+		},
+		{
+			name: "service_error",
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectQuery(query).
+					WithArgs(posterID).
+					WillReturnError(errors.New("db error"))
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mock, err := pgxmock.NewPool()
+			require.NoError(t, err)
+			defer mock.Close()
+
+			test.setupMock(mock)
+
+			repo := NewPosterRepo(mock)
+
+			got, err := repo.GetLastPriceHistoryByPosterID(context.Background(), posterID)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, test.want, got)
+			require.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}
+
+func TestUpdateLastPriceHistoryRepo(t *testing.T) {
+	query := regexp.QuoteMeta(`
+		UPDATE price_history
+		SET price = $1, changed_at = NOW()
+		WHERE id = $2;
+	`)
+
+	historyID := 1
+	price := 135000.0
+
+	tests := []struct {
+		name      string
+		setupMock func(m pgxmock.PgxPoolIface)
+		wantErr   error
+	}{
+		{
+			name: "ok",
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(price, historyID).
+					WillReturnResult(pgxmock.NewResult("UPDATE", 1))
+			},
+			wantErr: nil,
+		},
+		{
+			name: "service_error",
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(price, historyID).
+					WillReturnError(errors.New("db error"))
+			},
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mock, err := pgxmock.NewPool()
+			require.NoError(t, err)
+			defer mock.Close()
+
+			test.setupMock(mock)
+
+			repo := NewPosterRepo(mock)
+
+			err = repo.UpdateLastPriceHistory(context.Background(), historyID, price)
 			if test.wantErr != nil {
 				require.ErrorIs(t, err, test.wantErr)
 				return

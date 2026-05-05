@@ -263,3 +263,264 @@ func (mr *MockUserUseCaseMockRecorder) UpdateProfile(ctx, data interface{}) *gom
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateProfile", reflect.TypeOf((*MockUserUseCase)(nil).UpdateProfile), ctx, data)
 }
+
+// MockPostersUseCase is a mock of PostersUseCase interface.
+type MockPostersUseCase struct {
+	ctrl     *gomock.Controller
+	recorder *MockPostersUseCaseMockRecorder
+}
+
+// MockPostersUseCaseMockRecorder is the mock recorder for MockPostersUseCase.
+type MockPostersUseCaseMockRecorder struct {
+	mock *MockPostersUseCase
+}
+
+// NewMockPostersUseCase creates a new mock instance.
+func NewMockPostersUseCase(ctrl *gomock.Controller) *MockPostersUseCase {
+	mock := &MockPostersUseCase{ctrl: ctrl}
+	mock.recorder = &MockPostersUseCaseMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockPostersUseCase) EXPECT() *MockPostersUseCaseMockRecorder {
+	return m.recorder
+}
+
+// AddFavoritePoster mocks base method.
+func (m *MockPostersUseCase) AddFavoritePoster(ctx context.Context, alias string, userID int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddFavoritePoster", ctx, alias, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddFavoritePoster indicates an expected call of AddFavoritePoster.
+func (mr *MockPostersUseCaseMockRecorder) AddFavoritePoster(ctx, alias, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddFavoritePoster", reflect.TypeOf((*MockPostersUseCase)(nil).AddFavoritePoster), ctx, alias, userID)
+}
+
+// AddViewPoster mocks base method.
+func (m *MockPostersUseCase) AddViewPoster(ctx context.Context, alias string, userID int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddViewPoster", ctx, alias, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AddViewPoster indicates an expected call of AddViewPoster.
+func (mr *MockPostersUseCaseMockRecorder) AddViewPoster(ctx, alias, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddViewPoster", reflect.TypeOf((*MockPostersUseCase)(nil).AddViewPoster), ctx, alias, userID)
+}
+
+// CreateFlatPoster mocks base method.
+func (m *MockPostersUseCase) CreateFlatPoster(ctx context.Context, poster *dto.PosterInputFlatDTO) (*dto.CreatedPoster, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateFlatPoster", ctx, poster)
+	ret0, _ := ret[0].(*dto.CreatedPoster)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateFlatPoster indicates an expected call of CreateFlatPoster.
+func (mr *MockPostersUseCaseMockRecorder) CreateFlatPoster(ctx, poster interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFlatPoster", reflect.TypeOf((*MockPostersUseCase)(nil).CreateFlatPoster), ctx, poster)
+}
+
+// DeleteFavoritePoster mocks base method.
+func (m *MockPostersUseCase) DeleteFavoritePoster(ctx context.Context, alias string, userID int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteFavoritePoster", ctx, alias, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteFavoritePoster indicates an expected call of DeleteFavoritePoster.
+func (mr *MockPostersUseCaseMockRecorder) DeleteFavoritePoster(ctx, alias, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFavoritePoster", reflect.TypeOf((*MockPostersUseCase)(nil).DeleteFavoritePoster), ctx, alias, userID)
+}
+
+// DeleteFlatPoster mocks base method.
+func (m *MockPostersUseCase) DeleteFlatPoster(ctx context.Context, alias string, userID int) (*dto.CreatedPoster, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteFlatPoster", ctx, alias, userID)
+	ret0, _ := ret[0].(*dto.CreatedPoster)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteFlatPoster indicates an expected call of DeleteFlatPoster.
+func (mr *MockPostersUseCaseMockRecorder) DeleteFlatPoster(ctx, alias, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFlatPoster", reflect.TypeOf((*MockPostersUseCase)(nil).DeleteFlatPoster), ctx, alias, userID)
+}
+
+// GenerateDescription mocks base method.
+func (m *MockPostersUseCase) GenerateDescription(ctx context.Context, input dto.GenerateDescriptionDTO) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GenerateDescription", ctx, input)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GenerateDescription indicates an expected call of GenerateDescription.
+func (mr *MockPostersUseCaseMockRecorder) GenerateDescription(ctx, input interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateDescription", reflect.TypeOf((*MockPostersUseCase)(nil).GenerateDescription), ctx, input)
+}
+
+// GetFavoritesCountPoster mocks base method.
+func (m *MockPostersUseCase) GetFavoritesCountPoster(ctx context.Context, posterAlias string, userID *int) (int, bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFavoritesCountPoster", ctx, posterAlias, userID)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(bool)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetFavoritesCountPoster indicates an expected call of GetFavoritesCountPoster.
+func (mr *MockPostersUseCaseMockRecorder) GetFavoritesCountPoster(ctx, posterAlias, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavoritesCountPoster", reflect.TypeOf((*MockPostersUseCase)(nil).GetFavoritesCountPoster), ctx, posterAlias, userID)
+}
+
+// GetFavoritesPoster mocks base method.
+func (m *MockPostersUseCase) GetFavoritesPoster(ctx context.Context, userID int) (*dto.PostersResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFavoritesPoster", ctx, userID)
+	ret0, _ := ret[0].(*dto.PostersResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFavoritesPoster indicates an expected call of GetFavoritesPoster.
+func (mr *MockPostersUseCaseMockRecorder) GetFavoritesPoster(ctx, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavoritesPoster", reflect.TypeOf((*MockPostersUseCase)(nil).GetFavoritesPoster), ctx, userID)
+}
+
+// GetPosterByAliasUseCase mocks base method.
+func (m *MockPostersUseCase) GetPosterByAliasUseCase(ctx context.Context, alias string, userID *int) (*dto.PosterDTO, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPosterByAliasUseCase", ctx, alias, userID)
+	ret0, _ := ret[0].(*dto.PosterDTO)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPosterByAliasUseCase indicates an expected call of GetPosterByAliasUseCase.
+func (mr *MockPostersUseCaseMockRecorder) GetPosterByAliasUseCase(ctx, alias, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPosterByAliasUseCase", reflect.TypeOf((*MockPostersUseCase)(nil).GetPosterByAliasUseCase), ctx, alias, userID)
+}
+
+// GetPosterByUserID mocks base method.
+func (m *MockPostersUseCase) GetPosterByUserID(ctx context.Context, userID int) ([]dto.MyPosterDTO, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPosterByUserID", ctx, userID)
+	ret0, _ := ret[0].([]dto.MyPosterDTO)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPosterByUserID indicates an expected call of GetPosterByUserID.
+func (mr *MockPostersUseCaseMockRecorder) GetPosterByUserID(ctx, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPosterByUserID", reflect.TypeOf((*MockPostersUseCase)(nil).GetPosterByUserID), ctx, userID)
+}
+
+// GetPostersByCoords mocks base method.
+func (m *MockPostersUseCase) GetPostersByCoords(ctx context.Context, bounds dto.MapBounds, filters dto.PostersFiltersDTO) (*dto.GeoJSONFeatureResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPostersByCoords", ctx, bounds, filters)
+	ret0, _ := ret[0].(*dto.GeoJSONFeatureResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPostersByCoords indicates an expected call of GetPostersByCoords.
+func (mr *MockPostersUseCaseMockRecorder) GetPostersByCoords(ctx, bounds, filters interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostersByCoords", reflect.TypeOf((*MockPostersUseCase)(nil).GetPostersByCoords), ctx, bounds, filters)
+}
+
+// GetPostersByRadius mocks base method.
+func (m *MockPostersUseCase) GetPostersByRadius(ctx context.Context, point dto.GeographyDTO) ([]dto.MyPosterDTO, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPostersByRadius", ctx, point)
+	ret0, _ := ret[0].([]dto.MyPosterDTO)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPostersByRadius indicates an expected call of GetPostersByRadius.
+func (mr *MockPostersUseCaseMockRecorder) GetPostersByRadius(ctx, point interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostersByRadius", reflect.TypeOf((*MockPostersUseCase)(nil).GetPostersByRadius), ctx, point)
+}
+
+// GetPriceHistoryPoster mocks base method.
+func (m *MockPostersUseCase) GetPriceHistoryPoster(ctx context.Context, posterAlias string) ([]dto.PriceHistoryDTO, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPriceHistoryPoster", ctx, posterAlias)
+	ret0, _ := ret[0].([]dto.PriceHistoryDTO)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPriceHistoryPoster indicates an expected call of GetPriceHistoryPoster.
+func (mr *MockPostersUseCaseMockRecorder) GetPriceHistoryPoster(ctx, posterAlias interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPriceHistoryPoster", reflect.TypeOf((*MockPostersUseCase)(nil).GetPriceHistoryPoster), ctx, posterAlias)
+}
+
+// GetViewsPoster mocks base method.
+func (m *MockPostersUseCase) GetViewsPoster(ctx context.Context, alias string) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetViewsPoster", ctx, alias)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetViewsPoster indicates an expected call of GetViewsPoster.
+func (mr *MockPostersUseCaseMockRecorder) GetViewsPoster(ctx, alias interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetViewsPoster", reflect.TypeOf((*MockPostersUseCase)(nil).GetViewsPoster), ctx, alias)
+}
+
+// SearchPostersUseCase mocks base method.
+func (m *MockPostersUseCase) SearchPostersUseCase(ctx context.Context, filters dto.PostersFiltersDTO) (*dto.PostersResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchPostersUseCase", ctx, filters)
+	ret0, _ := ret[0].(*dto.PostersResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchPostersUseCase indicates an expected call of SearchPostersUseCase.
+func (mr *MockPostersUseCaseMockRecorder) SearchPostersUseCase(ctx, filters interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchPostersUseCase", reflect.TypeOf((*MockPostersUseCase)(nil).SearchPostersUseCase), ctx, filters)
+}
+
+// UpdateFlatPoster mocks base method.
+func (m *MockPostersUseCase) UpdateFlatPoster(ctx context.Context, alias string, poster *dto.PosterInputFlatDTO) (*dto.CreatedPoster, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateFlatPoster", ctx, alias, poster)
+	ret0, _ := ret[0].(*dto.CreatedPoster)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateFlatPoster indicates an expected call of UpdateFlatPoster.
+func (mr *MockPostersUseCaseMockRecorder) UpdateFlatPoster(ctx, alias, poster interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFlatPoster", reflect.TypeOf((*MockPostersUseCase)(nil).UpdateFlatPoster), ctx, alias, poster)
+}
