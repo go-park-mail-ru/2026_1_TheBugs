@@ -2463,7 +2463,7 @@ func TestGenerateDescription(t *testing.T) {
 					Chat(
 						ctx,
 						gomock.Any(),
-						"Сгенерируй описание для этого объекта недвижимости.",
+						gomock.Any(),
 					).
 					Return(mockResponse, nil).
 					Times(1)
@@ -2478,7 +2478,7 @@ func TestGenerateDescription(t *testing.T) {
 					Chat(
 						ctx,
 						gomock.Any(),
-						"Сгенерируй описание для этого объекта недвижимости.",
+						gomock.Any(),
 					).
 					Return(nil, entity.ServiceError).
 					Times(1)

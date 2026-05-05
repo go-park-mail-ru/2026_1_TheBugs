@@ -81,9 +81,10 @@ func (e *SMTPSender) SendVerificationCode(ctx context.Context, email, code strin
 	return nil
 }
 
-
 func (e *SMTPSender) SendAnswer(ctx context.Context, email string, orderID int, answer string) error {
 	from := config.Config.SMTP.Email
+	log := ctxLogger.GetLogger(ctx).WithField("method", "SendAnswer")
+	log.Infof("Sending verification code to %s from %s via %s", email, from, config.Config.SMTP.Host)
 
 	m := gomail.NewMessage()
 	m.SetHeader("From", fmt.Sprintf(`"DomDeli" <%s>`, from))

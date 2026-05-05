@@ -16,6 +16,13 @@ import (
 	orderHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/order"
 	posterHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
 	userHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
+	minioRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/minio"
+	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
+	orderUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/order"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/dsn"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -24,13 +31,24 @@ import (
 )
 
 func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
-	// dsn := dsn.BuildDSN(cfg.Postgres)
-	// rdb := redis.NewClient(&redis.Options{Addr: fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port), Password: cfg.Redis.Password, DB: cfg.Redis.DB})
-	// pool, err := pgxpool.New(context.Background(), dsn)
-	// if err != nil {
-	// 	log.Fatalf("cannot create pgx pool: %v", err)
-	// }
-	// uow := uowSql.NewSQLStorage(pool)
+	dsn := dsn.BuildDSN(cfg.Postgres)
+	pool, err := pgxpool.New(context.Background(), dsn)
+	if err != nil {
+		log.Fatalf("cannot create pgx pool: %v", err)
+	}
+	uow := uowSql.NewSQLStorage(pool)
+	minioClient, err := minio.New(cfg.Endpoint, &minio.Options{
+		Creds:  credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
+		Secure: false,
+	})
+	if err != nil {
+		log.Fatalf("cannot create minio client: %v", err)
+	}
+
+	fileRepo, err := minioRepo.NewFileRepo(minioClient, cfg.Bucket)
+	if err != nil {
+		log.Fatalf("cannot create file repo: %v", err)
+	}
 
 	authConn, err := grpc.NewClient(fmt.Sprintf("%s:%d", cfg.AuthService.Host, cfg.AuthService.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
