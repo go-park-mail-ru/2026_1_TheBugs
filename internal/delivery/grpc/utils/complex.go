@@ -6,6 +6,9 @@ import (
 )
 
 func MapComplex(cmp *dto.UtilityCompanyDTO) *complex.GetComplexResponse {
+	if cmp == nil {
+		return nil
+	}
 	return &complex.GetComplexResponse{
 		Id:          int32(cmp.ID),
 		Alias:       cmp.Alias,

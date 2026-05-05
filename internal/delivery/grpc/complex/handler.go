@@ -25,6 +25,9 @@ func (c *ComplexServiceServer) GetComplex(
 	ctx context.Context,
 	req *complex.GetComplexRequest,
 ) (*complex.GetComplexResponse, error) {
+	if req.Alias == "" {
+		return nil, status.Error(codes.InvalidArgument, "alias is required")
+	}
 
 	company, err := c.uc.GetUtilityCompany(ctx, req.Alias)
 	if err != nil {
@@ -55,7 +58,7 @@ func (c *ComplexServiceServer) GetComplexesByDeveloperID(
 	req *complex.GetComplexesByDeveloperIDRequest,
 ) (*complex.GetComplexesByDeveloperIDResponse, error) {
 
-	if req.DeveloperID == 0 {
+	if req.DeveloperID <= 0 {
 		return nil, status.Error(codes.InvalidArgument, "developer_id is required")
 	}
 
