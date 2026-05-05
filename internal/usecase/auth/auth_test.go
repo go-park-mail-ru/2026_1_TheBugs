@@ -128,6 +128,7 @@ func TestLoginUseCase(t *testing.T) {
 					Email:          "test@gmail.com",
 					HashedPassword: &hashed,
 					Salt:           &salt,
+					IsVerified:     true,
 				}
 
 				gomock.InOrder(
@@ -149,6 +150,7 @@ func TestLoginUseCase(t *testing.T) {
 					Email:          "test@gmail.com",
 					HashedPassword: &hashed,
 					Salt:           &salt,
+					IsVerified:     true,
 				}
 				userMock.EXPECT().GetByEmail(ctx, gomock.Any()).Return(&existingUser, nil)
 			},

@@ -13,7 +13,7 @@ import (
 )
 
 func TestGetUserByEmail(t *testing.T) {
-	query := regexp.QuoteMeta(`SELECT id, email, salt, hashed_password, provider FROM users WHERE email=$1`)
+	query := regexp.QuoteMeta(`SELECT id, email, salt, hashed_password, provider, is_verified FROM users WHERE email=$1`)
 	expectedUser := &entity.User{
 		ID:             1,
 		Email:          "test@mail.ru",
@@ -33,8 +33,8 @@ func TestGetUserByEmail(t *testing.T) {
 			email: "test@mail.ru",
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
-					"id", "email", "salt", "hashed_password", "provider",
-				}).AddRow(1, "test@mail.ru", lo.ToPtr("salt123"), lo.ToPtr("hash123"), nil)
+					"id", "email", "salt", "hashed_password", "provider", "is_verified",
+				}).AddRow(1, "test@mail.ru", lo.ToPtr("salt123"), lo.ToPtr("hash123"), nil, false)
 
 				m.ExpectQuery(query).WithArgs("test@mail.ru").WillReturnRows(rows)
 			},
@@ -46,7 +46,7 @@ func TestGetUserByEmail(t *testing.T) {
 			email: "missing@mail.ru",
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
-					"id", "email", "salt", "hashed_password", "provider",
+					"id", "email", "salt", "hashed_password", "provider", "is_verified",
 				})
 
 				m.ExpectQuery(query).WithArgs("missing@mail.ru").WillReturnRows(rows)
@@ -59,8 +59,8 @@ func TestGetUserByEmail(t *testing.T) {
 			email: "test@mail.ru",
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
-					"id", "email", "salt", "hashed_password", "provider",
-				}).AddRow("bad_id", "test@mail.ru", lo.ToPtr("salt123"), lo.ToPtr("hash123"), nil)
+					"id", "email", "salt", "hashed_password", "provider", "is_verified",
+				}).AddRow("bad_id", "test@mail.ru", lo.ToPtr("salt123"), lo.ToPtr("hash123"), nil, false)
 
 				m.ExpectQuery(query).WithArgs("test@mail.ru").WillReturnRows(rows)
 			},
@@ -296,7 +296,7 @@ func TestUpdateProfile(t *testing.T) {
 func TestCreateUser(t *testing.T) {
 	profileQuery := regexp.QuoteMeta(`INSERT INTO profiles (phone, first_name, last_name) VALUES ($1, $2, $3) RETURNING id`)
 	userQuery := regexp.QuoteMeta(`INSERT INTO users (email, hashed_password, salt, profile_id) VALUES ($1, $2, $3, $4) 
-			RETURNING id, email, hashed_password, salt, provider`)
+			RETURNING id, email, hashed_password, salt, provider, is_verified`)
 
 	phone := "123456"
 	firstName := "John"
@@ -333,8 +333,8 @@ func TestCreateUser(t *testing.T) {
 				m.ExpectQuery(profileQuery).WithArgs("123456", "John", "Doe").WillReturnRows(profileRows)
 
 				rows := pgxmock.NewRows([]string{
-					"id", "email", "hashed_password", "salt", "provider",
-				}).AddRow(1, "test@mail.ru", lo.ToPtr("hash123"), lo.ToPtr("salt123"), nil)
+					"id", "email", "hashed_password", "salt", "provider", "is_verified",
+				}).AddRow(1, "test@mail.ru", lo.ToPtr("hash123"), lo.ToPtr("salt123"), nil, false)
 
 				m.ExpectQuery(userQuery).WithArgs("test@mail.ru", "hash123", "salt123", 1).WillReturnRows(rows)
 			},
@@ -349,8 +349,8 @@ func TestCreateUser(t *testing.T) {
 				m.ExpectQuery(profileQuery).WithArgs("123456", "John", "Doe").WillReturnRows(profileRows)
 
 				rows := pgxmock.NewRows([]string{
-					"id", "email", "hashed_password", "salt", "provider",
-				}).AddRow("bad_id", "test@mail.ru", lo.ToPtr("hash123"), lo.ToPtr("salt123"), nil)
+					"id", "email", "hashed_password", "salt", "provider", "is_verified",
+				}).AddRow("bad_id", "test@mail.ru", lo.ToPtr("hash123"), lo.ToPtr("salt123"), nil, false)
 
 				m.ExpectQuery(userQuery).WithArgs("test@mail.ru", "hash123", "salt123", 1).WillReturnRows(rows)
 			},
@@ -384,8 +384,8 @@ func TestCreateUser(t *testing.T) {
 
 func TestCreateUserByProvider(t *testing.T) {
 	profileQuery := regexp.QuoteMeta(`INSERT INTO profiles (phone, first_name, last_name) VALUES ($1, $2, $3) RETURNING id`)
-	userQuery := regexp.QuoteMeta(`INSERT INTO users (email, provider, provider_id, profile_id) VALUES ($1, $2, $3, $4) 
-			RETURNING id, email, hashed_password, salt, provider`)
+	userQuery := regexp.QuoteMeta(`INSERT INTO users (email, provider, provider_id, profile_id, is_verified) VALUES ($1, $2, $3, $4, TRUE) 
+			RETURNING id, email, hashed_password, salt, provider, is_verified`)
 
 	phone := "123456"
 	firstName := "John"
@@ -425,8 +425,8 @@ func TestCreateUserByProvider(t *testing.T) {
 				m.ExpectQuery(profileQuery).WithArgs("123456", "John", "Doe").WillReturnRows(profileRows)
 
 				rows := pgxmock.NewRows([]string{
-					"id", "email", "hashed_password", "salt", "provider",
-				}).AddRow(1, "test@mail.ru", nil, nil, lo.ToPtr("provider"))
+					"id", "email", "hashed_password", "salt", "provider", "is_verified",
+				}).AddRow(1, "test@mail.ru", nil, nil, lo.ToPtr("provider"), false)
 
 				m.ExpectQuery(userQuery).WithArgs("test@mail.ru", provider, providerID, 1).WillReturnRows(rows)
 			},
@@ -441,8 +441,8 @@ func TestCreateUserByProvider(t *testing.T) {
 				m.ExpectQuery(profileQuery).WithArgs("123456", "John", "Doe").WillReturnRows(profileRows)
 
 				rows := pgxmock.NewRows([]string{
-					"id", "email", "hashed_password", "salt", "provider",
-				}).AddRow("bad_id", "test@mail.ru", nil, nil, lo.ToPtr("provider"))
+					"id", "email", "hashed_password", "salt", "provider", "is_verified",
+				}).AddRow("bad_id", "test@mail.ru", nil, nil, lo.ToPtr("provider"), false)
 
 				m.ExpectQuery(userQuery).WithArgs("test@mail.ru", provider, providerID, 1).WillReturnRows(rows)
 			},
@@ -475,7 +475,7 @@ func TestCreateUserByProvider(t *testing.T) {
 }
 
 func TestGetUserByProvider(t *testing.T) {
-	query := regexp.QuoteMeta(`SELECT id, email, salt, hashed_password, provider FROM users WHERE email=$1 AND provider=$2`)
+	query := regexp.QuoteMeta(`SELECT id, email, salt, hashed_password, provider, is_verified FROM users WHERE email=$1 AND provider=$2`)
 	provider := "provider"
 
 	expectedUser := &entity.User{
@@ -500,8 +500,8 @@ func TestGetUserByProvider(t *testing.T) {
 			email:    "test@mail.ru",
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
-					"id", "email", "salt", "hashed_password", "provider",
-				}).AddRow(1, "test@mail.ru", nil, nil, lo.ToPtr(provider))
+					"id", "email", "salt", "hashed_password", "provider", "is_verified",
+				}).AddRow(1, "test@mail.ru", nil, nil, lo.ToPtr(provider), false)
 
 				m.ExpectQuery(query).
 					WithArgs("test@mail.ru", provider).
@@ -516,7 +516,7 @@ func TestGetUserByProvider(t *testing.T) {
 			email:    "missing@mail.ru",
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
-					"id", "email", "salt", "hashed_password", "provider",
+					"id", "email", "salt", "hashed_password", "provider", "is_verified",
 				})
 
 				m.ExpectQuery(query).
@@ -532,8 +532,8 @@ func TestGetUserByProvider(t *testing.T) {
 			email:    "test@mail.ru",
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
-					"id", "email", "salt", "hashed_password", "provider",
-				}).AddRow("bad_id", "test@mail.ru", nil, nil, lo.ToPtr(provider))
+					"id", "email", "salt", "hashed_password", "provider", "is_verified",
+				}).AddRow("bad_id", "test@mail.ru", nil, nil, lo.ToPtr(provider), false)
 
 				m.ExpectQuery(query).
 					WithArgs("test@mail.ru", provider).
