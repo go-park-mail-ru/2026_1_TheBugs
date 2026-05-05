@@ -1,12 +1,5 @@
 basePath: /api
 definitions:
-  auth.LoginResponse:
-    properties:
-      access_token:
-        type: string
-      expire_at:
-        type: integer
-    type: object
   dto.CategoryDTO:
     properties:
       alias:
@@ -314,6 +307,13 @@ definitions:
           $ref: '#/definitions/dto.PhotoDTO'
         type: array
     type: object
+  github_com_go-park-mail-ru_2026_1_TheBugs_internal_delivery_restapi_auth.LoginResponse:
+    properties:
+      access_token:
+        type: string
+      expire_at:
+        type: integer
+    type: object
   request.UpdatePwdDTO:
     properties:
       password:
@@ -562,7 +562,7 @@ paths:
                 Max-Age=...
               type: string
           schema:
-            $ref: '#/definitions/auth.LoginResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2026_1_TheBugs_internal_delivery_restapi_auth.LoginResponse'
         "400":
           description: Bad Request
           schema:
@@ -742,7 +742,7 @@ paths:
                 Max-Age=...
               type: string
           schema:
-            $ref: '#/definitions/auth.LoginResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2026_1_TheBugs_internal_delivery_restapi_auth.LoginResponse'
         "400":
           description: Bad Request
           schema:
@@ -833,7 +833,7 @@ paths:
                 Max-Age=...
               type: string
           schema:
-            $ref: '#/definitions/auth.LoginResponse'
+            $ref: '#/definitions/github_com_go-park-mail-ru_2026_1_TheBugs_internal_delivery_restapi_auth.LoginResponse'
         "400":
           description: Bad Request
           schema:

@@ -1,3 +1,17 @@
+# server-env: &server-common
+#   environment:
+#     APP_ENV: dev
+#     SRV_HOST: 0.0.0.0
+#     PG_HOST: postgres
+#     PG_PORT: 5432
+#     REDIS_HOST: redis
+#     REDIS_PORT: 6379
+#     SMTP_PWD: ${SMTP_PWD}
+#     MINIO_ENDPOINT: minio:9000
+#     ES_HOST: elasticsearch
+#     OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+#     LOKI_URL: http://loki:3100
+
 services:
   postgres:
     image: postgis/postgis:16-3.4
@@ -69,8 +83,11 @@ services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
     environment:
-      discovery.type: single-node
-      xpack.security.enabled: "false"
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - http.cors.enabled=true
+      - http.cors.allow-origin="*"
+      - http.cors.allow-headers="*"
     ports:
       - "9200:9200"
     volumes:
@@ -104,3 +121,85 @@ services:
       - "8080:8080"
     depends_on:
       - postgres
+
+  elasticvue:
+    image: cars10/elasticvue:latest
+    container_name: elasticvue
+    ports:
+      - "8085:8080"
+    restart: unless-stopped
+
+
+  
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./deploy/grafana/provisioning:/etc/grafana/provisioning
+      - ./deploy/grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - prometheus
+      - loki
+
+  loki:
+    image: grafana/loki:3.0.0
+    command: ["-config.file=/etc/loki/config.yml"]
+    ports:
+      - "3100:3100" 
+    volumes:
+      - ./deploy/loki/loki-config.yml:/etc/loki/config.yml
+      - loki-data:/loki
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3100/ready"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  # auth_service:
+  #   build:
+  #     context: .
+  #     dockerfile: microservice/auth/Dockerfile
+  #   ports:
+  #   - "8001:8001"
+
+  #   volumes:
+  #     - ./backend/config/config.yaml:/app/config/config.yaml
+  #     - ./backend/private.pem:/app/private.pem
+  #     - ./backend/public.pem:/app/public.pem
+  #   <<: *server-common
+  #   environment:
+  #     SRV_PORT: 8001
+  #     SERVICE_NAME: auth_service
+
+  # gateaway_service:
+  #   build:
+  #     context: .
+  #     dockerfile: microservice/auth/Dockerfile
+  #   ports:
+  #   - "8000:8000"
+
+  #   volumes:
+  #     - ./backend/config/config.yaml:/app/config/config.yaml
+  #     - ./backend/private.pem:/app/private.pem
+  #     - ./backend/public.pem:/app/public.pem
+  #   <<: *server-common
+  #   environment:
+  #     SRV_PORT: 8000
+  #     SERVICE_NAME: gateaway_service
+
+
+volumes:
+  grafana_data:
+  loki-data:

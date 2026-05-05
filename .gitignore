@@ -36,3 +36,5 @@ go.work.sum
 .DS_Store
 
 share/
+
+deploy/grafana/data/

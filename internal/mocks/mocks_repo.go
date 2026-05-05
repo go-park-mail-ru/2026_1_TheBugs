@@ -734,6 +734,21 @@ func (mr *MockPosterRepoMockRecorder) InsertPhotos(ctx, posterID, photos interfa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertPhotos", reflect.TypeOf((*MockPosterRepo)(nil).InsertPhotos), ctx, posterID, photos)
 }
 
+// IsFavoriteByAliasAndUserID mocks base method.
+func (m *MockPosterRepo) IsFavoriteByAliasAndUserID(ctx context.Context, posterAlias string, userID int) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsFavoriteByAliasAndUserID", ctx, posterAlias, userID)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsFavoriteByAliasAndUserID indicates an expected call of IsFavoriteByAliasAndUserID.
+func (mr *MockPosterRepoMockRecorder) IsFavoriteByAliasAndUserID(ctx, posterAlias, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsFavoriteByAliasAndUserID", reflect.TypeOf((*MockPosterRepo)(nil).IsFavoriteByAliasAndUserID), ctx, posterAlias, userID)
+}
+
 // Update mocks base method.
 func (m *MockPosterRepo) Update(ctx context.Context, posterID int, poster *dto.PosterInput) error {
 	m.ctrl.T.Helper()

@@ -3,9 +3,9 @@ package smtp
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 	gomail "gopkg.in/gomail.v2"
 )
 
@@ -27,7 +27,8 @@ func NewSMTPSender(host string, port int, username, password string) *SMTPSender
 
 func (e *SMTPSender) SendRecoveryCode(ctx context.Context, email, code string) error {
 	from := config.Config.SMTP.Email
-
+	log := ctxLogger.GetLogger(ctx).WithField("method", "SendRecoveryCode")
+	log.Infof("Sending recovery code to %s from %s via %s", email, from, config.Config.SMTP.Host)
 	m := gomail.NewMessage()
 	m.SetHeader("From", fmt.Sprintf(`"DomDeli" <%s>`, from))
 	m.SetHeader("To", email)
@@ -41,19 +42,21 @@ func (e *SMTPSender) SendRecoveryCode(ctx context.Context, email, code string) e
 
 	dialer := gomail.NewDialer(e.host, e.port, e.username, e.password)
 
-	go func(ctx context.Context) {
+	go func() {
 		if err := dialer.DialAndSend(m); err != nil {
-			log.Printf("gomail send: %s", err)
+			log.Errorf("gomail send: %s", err)
+		} else {
+			log.Printf("✅ Code sent to %s", email)
 		}
-		log.Printf("✅ Code sent to %s", email)
-	}(ctx)
+	}()
 
 	return nil
 }
 
 func (e *SMTPSender) SendVerificationCode(ctx context.Context, email, code string) error {
 	from := config.Config.SMTP.Email
-
+	log := ctxLogger.GetLogger(ctx).WithField("method", "SendVerificationCode")
+	log.Infof("Sending verification code to %s from %s via %s", email, from, config.Config.SMTP.Host)
 	m := gomail.NewMessage()
 	m.SetHeader("From", fmt.Sprintf(`"DomDeli" <%s>`, from))
 	m.SetHeader("To", email)

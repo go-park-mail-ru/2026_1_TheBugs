@@ -1,0 +1,24 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'gateaway'
+    static_configs:
+      - targets: ['host.docker.internal:8000']
+    metrics_path: 'metrics'
+  
+  - job_name: 'auth_service'
+    static_configs:
+      - targets: ['host.docker.internal:8001']
+    metrics_path: 'metrics' 
+
+  - job_name: 'user_service'
+    static_configs:
+      - targets: ['host.docker.internal:8002']
+    metrics_path: 'metrics' 
+  
+  - job_name: 'complex_service'
+    static_configs:
+      - targets: ['host.docker.internal:8003']
+    metrics_path: 'metrics' 

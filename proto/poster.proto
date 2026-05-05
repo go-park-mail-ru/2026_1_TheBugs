@@ -1,0 +1,376 @@
+syntax = "proto3";
+
+package poster;
+option go_package = "./poster";
+
+import "google/protobuf/struct.proto";
+
+message SearchPostersRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+
+  optional string search_query = 3;
+  optional string utility_company = 4;
+  optional string category = 5;
+
+  optional int32 max_price = 6;
+  optional int32 min_price = 7;
+
+  optional int32 room_count = 8;
+
+  optional int32 max_square = 9;
+  optional int32 min_square = 10;
+
+  repeated string facilities = 11;
+
+  optional int32 max_flat_floor = 12;
+  optional int32 min_flat_floor = 13;
+
+  bool is_not_first_floor = 14;
+  bool is_not_last_floor = 15;
+
+  optional int32 max_building_floor = 16;
+  optional int32 min_building_floor = 17;
+}
+
+message PosterCard {
+  int64 id = 1;
+  string alias = 2;
+  double price = 3;
+
+  optional string image_url = 4;
+  string address = 5;
+  optional string metro = 6;
+
+  double area = 7;
+  optional string flat_category = 8;
+}
+
+message SearchPostersResponse {
+  int32 len = 1;
+  repeated PosterCard posters = 2;
+}
+
+message GetPosterByAliasRequest {
+  string poster_alias = 1;
+  optional int64 user_id = 2;
+}
+
+message GetPosterByAliasResponse {
+  Poster poster = 1;
+}
+
+message Poster {
+  int64 id = 1;
+  string alias = 2;
+  double price = 3;
+
+  Category category = 4;
+  string description = 5;
+  double area = 6;
+
+  Geography building_geo = 7;
+  string address = 8;
+  optional string district = 9;
+
+  optional string metro = 10;
+  optional Geography metro_geo = 11;
+
+  string city = 12;
+  int32 floor_count = 13;
+
+  repeated Photo images = 14;
+  PosterSeller seller = 15;
+
+  optional Flat flat = 16;
+  optional House house = 17;
+
+  repeated Facility facilities = 18;
+  optional UtilityCompanyCard company = 19;
+}
+
+message Category {
+  string alias = 1;
+  string name = 2;
+}
+
+message Geography {
+  double lat = 1;
+  double lon = 2;
+}
+
+message Photo {
+  string img_url = 1;
+  int32 order = 2;
+}
+
+message PosterSeller {
+  string first_name = 1;
+  string last_name = 2;
+  string phone = 3;
+  optional string avatar_url = 4;
+}
+
+message Flat {
+  string flat_category = 1;
+  int32 number = 2;
+  int32 floor = 3;
+  int32 room_count = 4;
+}
+
+message House {
+}
+
+message Facility {
+  string alias = 1;
+  string name = 2;
+}
+
+message UtilityCompanyCard {
+  int64 id = 1;
+  string company_name = 2;
+  optional string avatar_url = 3;
+  string alias = 4;
+}
+
+
+message GetPostersByUserIDRequest {
+  int64 user_id = 1;
+}
+
+message GetPostersByUserIDResponse {
+  repeated MyPoster posters = 1;
+}
+
+message MyPoster {
+  int64 id = 1;
+  string alias = 2;
+  string address = 3;
+  double area = 4;
+  double price = 5;
+
+  optional string avatar_url = 6;
+  Category category = 7;
+}
+
+message AddViewPosterRequest {
+  string alias = 1;
+  int64 user_id = 2;
+}
+
+message AddViewPosterResponse {}
+
+message GetViewsPosterRequest {
+  string alias = 1;
+}
+
+message GetViewsPosterResponse {
+  int32 views = 1;
+}
+
+message AddFavoritePosterRequest {
+  string alias = 1;
+  int64 user_id = 2;
+}
+
+message AddFavoritePosterResponse {}
+
+message GetFavoritePostersRequest {
+  int64 user_id = 1;
+}
+
+message GetFavoritePostersResponse {
+  int32 len = 1;
+  repeated PosterCard posters = 2;
+}
+
+message DeleteFavoritePosterRequest {
+  string alias = 1;
+  int64 user_id = 2;
+}
+
+message DeleteFavoritePosterResponse {}
+
+message GetFavoritesCountPosterRequest {
+  string poster_alias = 1;
+  optional int64 user_id = 2;
+}
+
+message GetFavoritesCountPosterResponse {
+  int32 count = 1;
+  bool is_favorite = 2;
+}
+
+message GetPostersByCoordsRequest {
+  MapBounds bounds = 1;
+  SearchPostersRequest filters = 2;
+}
+
+message GetPostersByCoordsResponse {
+  repeated GeoJSONFeature features = 1;
+  int32 len = 2;
+}
+
+message MapBounds {
+  BBox bbox = 1;
+  int32 zoom = 2;
+}
+
+message BBox {
+  Geography south_west = 1;
+  Geography north_east = 2;
+}
+
+message GeoJSONFeature {
+  string type = 1;
+  map<string, google.protobuf.Value> properties = 2;
+  Geometry geometry = 3;
+}
+
+message Geometry {
+  string type = 1;
+  repeated double coordinates = 2;
+}
+
+message GetPostersByRadiusRequest {
+  Geography point = 1;
+}
+
+message GetPostersByRadiusResponse {
+  repeated MyPoster posters = 1;
+}
+
+message GenerateDescriptionRequest {
+  string category = 1;
+  double area = 2;
+  string flat_category = 3;
+  string city = 4;
+  repeated string features = 5;
+}
+
+message GenerateDescriptionResponse {
+  string description = 1;
+}
+
+message GetPriceHistoryPosterRequest {
+  string poster_alias = 1;
+}
+
+message GetPriceHistoryPosterResponse {
+  repeated PriceHistory history = 1;
+}
+
+message PriceHistory {
+  string date = 1;
+  double price = 2;
+}
+
+message CreateFlatPosterRequest {
+  oneof payload {
+    FlatPosterMeta poster_meta = 1;
+    FlatPosterPhotoMeta photo_meta = 2;
+    PhotoChunk photo_chunk = 3;
+  }
+}
+
+message FlatPosterMeta {
+  int64 user_id = 1;
+
+  double price = 2;
+  string description = 3;
+  string category_alias = 4;
+  double area = 5;
+
+  double geo_lat = 6;
+  double geo_lon = 7;
+
+  int64 flat_category_id = 8;
+  optional int32 flat_number = 9;
+  int32 flat_floor = 10;
+
+  string address = 11;
+  string city = 12;
+  optional string district = 13;
+  int32 floor_count = 14;
+  optional int64 company_id = 15;
+
+  repeated string features = 16;
+}
+
+message FlatPosterPhotoMeta {
+  int32 order = 1;
+
+  oneof source {
+    FileInput file = 2;
+    string url = 3;
+  }
+}
+
+message FileInput {
+  string filename = 1;
+  int64 size = 2;
+  string content_type = 3;
+}
+
+message PhotoChunk {
+  int32 order = 1;
+  bytes data = 2;
+}
+
+message CreateFlatPosterResponse {
+  int64 id = 1;
+  string alias = 2;
+}
+
+message UpdateFlatPosterRequest {
+  oneof payload {
+    UpdateFlatPosterMeta poster_meta = 1;
+    FlatPosterPhotoMeta photo_meta = 2;
+    PhotoChunk photo_chunk = 3;
+  }
+}
+
+message UpdateFlatPosterMeta {
+  string alias = 1;
+  FlatPosterMeta poster = 2;
+}
+
+message UpdateFlatPosterResponse {
+  int64 id = 1;
+  string alias = 2;
+}
+
+message DeleteFlatPosterRequest {
+  string alias = 1;
+  int64 user_id = 2;
+}
+
+message DeleteFlatPosterResponse {
+  int64 id = 1;
+  string alias = 2;
+}
+
+service PosterService {
+  rpc SearchPosters (SearchPostersRequest) returns (SearchPostersResponse);
+  rpc GetPosterByAlias (GetPosterByAliasRequest) returns (GetPosterByAliasResponse);
+  rpc GetPostersByUserID (GetPostersByUserIDRequest) returns (GetPostersByUserIDResponse);
+
+  rpc AddViewPoster (AddViewPosterRequest) returns (AddViewPosterResponse);
+  rpc GetViewsPoster (GetViewsPosterRequest) returns (GetViewsPosterResponse);
+
+  rpc AddFavoritePoster (AddFavoritePosterRequest) returns (AddFavoritePosterResponse);
+  rpc GetFavoritePosters (GetFavoritePostersRequest) returns (GetFavoritePostersResponse);
+  rpc DeleteFavoritePoster (DeleteFavoritePosterRequest) returns (DeleteFavoritePosterResponse);
+  rpc GetFavoritesCountPoster (GetFavoritesCountPosterRequest) returns (GetFavoritesCountPosterResponse);
+
+  rpc GetPostersByCoords (GetPostersByCoordsRequest) returns (GetPostersByCoordsResponse);
+  rpc GetPostersByRadius (GetPostersByRadiusRequest) returns (GetPostersByRadiusResponse);
+
+  rpc GenerateDescription (GenerateDescriptionRequest) returns (GenerateDescriptionResponse);
+
+  rpc GetPriceHistoryPoster (GetPriceHistoryPosterRequest) returns (GetPriceHistoryPosterResponse);
+
+  rpc CreateFlatPoster (stream CreateFlatPosterRequest) returns (CreateFlatPosterResponse);
+  rpc UpdateFlatPoster (stream UpdateFlatPosterRequest) returns (UpdateFlatPosterResponse);
+  rpc DeleteFlatPoster (DeleteFlatPosterRequest) returns (DeleteFlatPosterResponse);
+}

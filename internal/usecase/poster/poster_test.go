@@ -5,6 +5,7 @@ import (
 	"io"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
@@ -155,29 +156,17 @@ func TestSearchPostersUseCase(t *testing.T) {
 
 	existingSearchResponse := &dto.PostersResponse{
 		Posters: []dto.PosterCardDTO{
-			{ID: 1},
-			{ID: 2},
-			{ID: 3},
+			{ID: 1, Price: 11111, Address: "street_1"},
+			{ID: 2, Price: 22222, Address: "street_2"},
+			{ID: 3, Price: 33333, Address: "street_3"},
 		},
 		Len: 3,
-	}
-
-	existingPosterFlats := []entity.PosterFlat{
-		{ID: 1, Price: 11111, Address: "street_1"},
-		{ID: 2, Price: 22222, Address: "street_2"},
-		{ID: 3, Price: 33333, Address: "street_3"},
-	}
-
-	expectedDTO := []dto.PosterCardDTO{
-		{ID: 1, Price: 11111, Address: "street_1"},
-		{ID: 2, Price: 22222, Address: "street_2"},
-		{ID: 3, Price: 33333, Address: "street_3"},
 	}
 
 	tests := []struct {
 		name      string
 		params    dto.PostersFiltersDTO
-		setupMock func(searchMock *mocks.MockSearchRepo, uowMock *mocks.MockUnitOfWork)
+		setupMock func(searchMock *mocks.MockSearchRepo)
 		want      *dto.PostersResponse
 		wantErr   error
 	}{
@@ -187,20 +176,16 @@ func TestSearchPostersUseCase(t *testing.T) {
 				Limit:  12,
 				Offset: 0,
 			},
-			setupMock: func(searchMock *mocks.MockSearchRepo, uowMock *mocks.MockUnitOfWork) {
-				searchMock.EXPECT().SearchPosters(ctx, dto.PostersFiltersDTO{
-					Limit:  12,
-					Offset: 0,
-				}).Return(existingSearchResponse, nil).Times(1)
-
-				mockPosterRepo := mocks.NewMockPosterRepo(gomock.NewController(t))
-				uowMock.EXPECT().Posters().Return(mockPosterRepo).Times(1)
-				mockPosterRepo.EXPECT().GetFlatsByIDs(ctx, []int{1, 2, 3}).Return(existingPosterFlats, nil).Times(1)
+			setupMock: func(searchMock *mocks.MockSearchRepo) {
+				searchMock.EXPECT().
+					SearchPosters(ctx, dto.PostersFiltersDTO{
+						Limit:  12,
+						Offset: 0,
+					}).
+					Return(existingSearchResponse, nil).
+					Times(1)
 			},
-			want: &dto.PostersResponse{
-				Posters: expectedDTO,
-				Len:     3,
-			},
+			want:    existingSearchResponse,
 			wantErr: nil,
 		},
 		{
@@ -229,20 +214,16 @@ func TestSearchPostersUseCase(t *testing.T) {
 				Limit:  MaxPostersLimit + 1,
 				Offset: 0,
 			},
-			setupMock: func(searchMock *mocks.MockSearchRepo, uowMock *mocks.MockUnitOfWork) {
-				searchMock.EXPECT().SearchPosters(ctx, dto.PostersFiltersDTO{
-					Limit:  MaxPostersLimit,
-					Offset: 0,
-				}).Return(existingSearchResponse, nil).Times(1)
-
-				mockPosterRepo := mocks.NewMockPosterRepo(gomock.NewController(t))
-				uowMock.EXPECT().Posters().Return(mockPosterRepo).Times(1)
-				mockPosterRepo.EXPECT().GetFlatsByIDs(ctx, []int{1, 2, 3}).Return(existingPosterFlats, nil).Times(1)
+			setupMock: func(searchMock *mocks.MockSearchRepo) {
+				searchMock.EXPECT().
+					SearchPosters(ctx, dto.PostersFiltersDTO{
+						Limit:  MaxPostersLimit,
+						Offset: 0,
+					}).
+					Return(existingSearchResponse, nil).
+					Times(1)
 			},
-			want: &dto.PostersResponse{
-				Posters: expectedDTO,
-				Len:     3,
-			},
+			want:    existingSearchResponse,
 			wantErr: nil,
 		},
 		{
@@ -251,30 +232,14 @@ func TestSearchPostersUseCase(t *testing.T) {
 				Limit:  12,
 				Offset: 0,
 			},
-			setupMock: func(searchMock *mocks.MockSearchRepo, uowMock *mocks.MockUnitOfWork) {
-				searchMock.EXPECT().SearchPosters(ctx, dto.PostersFiltersDTO{
-					Limit:  12,
-					Offset: 0,
-				}).Return(nil, entity.NotFoundError).Times(1)
-			},
-			want:    nil,
-			wantErr: entity.NotFoundError,
-		},
-		{
-			name: "GetFlatsByIDs error",
-			params: dto.PostersFiltersDTO{
-				Limit:  12,
-				Offset: 0,
-			},
-			setupMock: func(searchMock *mocks.MockSearchRepo, uowMock *mocks.MockUnitOfWork) {
-				searchMock.EXPECT().SearchPosters(ctx, dto.PostersFiltersDTO{
-					Limit:  12,
-					Offset: 0,
-				}).Return(existingSearchResponse, nil).Times(1)
-
-				mockPosterRepo := mocks.NewMockPosterRepo(gomock.NewController(t))
-				uowMock.EXPECT().Posters().Return(mockPosterRepo).Times(1)
-				mockPosterRepo.EXPECT().GetFlatsByIDs(ctx, []int{1, 2, 3}).Return(nil, entity.NotFoundError).Times(1)
+			setupMock: func(searchMock *mocks.MockSearchRepo) {
+				searchMock.EXPECT().
+					SearchPosters(ctx, dto.PostersFiltersDTO{
+						Limit:  12,
+						Offset: 0,
+					}).
+					Return(nil, entity.NotFoundError).
+					Times(1)
 			},
 			want:    nil,
 			wantErr: entity.NotFoundError,
@@ -285,16 +250,19 @@ func TestSearchPostersUseCase(t *testing.T) {
 				Limit:  12,
 				Offset: 0,
 			},
-			setupMock: func(searchMock *mocks.MockSearchRepo, uowMock *mocks.MockUnitOfWork) {
-				emptyResponse := &dto.PostersResponse{Posters: []dto.PosterCardDTO{}, Len: 0}
-				searchMock.EXPECT().SearchPosters(ctx, dto.PostersFiltersDTO{
-					Limit:  12,
-					Offset: 0,
-				}).Return(emptyResponse, nil).Times(1)
+			setupMock: func(searchMock *mocks.MockSearchRepo) {
+				emptyResponse := &dto.PostersResponse{
+					Posters: []dto.PosterCardDTO{},
+					Len:     0,
+				}
 
-				mockPosterRepo := mocks.NewMockPosterRepo(gomock.NewController(t))
-				uowMock.EXPECT().Posters().Return(mockPosterRepo).Times(1)
-				mockPosterRepo.EXPECT().GetFlatsByIDs(ctx, []int{}).Return([]entity.PosterFlat{}, nil).Times(1)
+				searchMock.EXPECT().
+					SearchPosters(ctx, dto.PostersFiltersDTO{
+						Limit:  12,
+						Offset: 0,
+					}).
+					Return(emptyResponse, nil).
+					Times(1)
 			},
 			want: &dto.PostersResponse{
 				Posters: []dto.PosterCardDTO{},
@@ -320,7 +288,7 @@ func TestSearchPostersUseCase(t *testing.T) {
 			}
 
 			if test.setupMock != nil {
-				test.setupMock(mockSearch, mockUOW)
+				test.setupMock(mockSearch)
 			}
 
 			got, err := uc.SearchPostersUseCase(ctx, test.params)
@@ -823,6 +791,11 @@ func TestCreateFlatPoster(t *testing.T) {
 					Times(1)
 
 				repo.EXPECT().
+					AddPriceHistory(ctx, 33, float64(135000)).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
 					InsertFlat(ctx, gomock.Any()).
 					Return(nil).
 					Times(1)
@@ -893,6 +866,11 @@ func TestCreateFlatPoster(t *testing.T) {
 				repo.EXPECT().
 					Create(ctx, gomock.Any(), 22).
 					Return(33, nil).
+					Times(1)
+
+				repo.EXPECT().
+					AddPriceHistory(ctx, 33, float64(135000)).
+					Return(nil).
 					Times(1)
 
 				repo.EXPECT().
@@ -1117,6 +1095,20 @@ func TestUpdateFlatPoster(t *testing.T) {
 					Times(1)
 
 				repo.EXPECT().
+					GetLastPriceHistoryByPosterID(ctx, 33).
+					Return(&entity.PriceHistory{
+						ID:        1,
+						Price:     float64(100000),
+						ChangedAt: time.Now().Add(-25 * time.Hour),
+					}, nil).
+					Times(1)
+
+				repo.EXPECT().
+					AddPriceHistory(ctx, 33, float64(135000)).
+					Return(nil).
+					Times(1)
+
+				repo.EXPECT().
 					Update(ctx, 33, gomock.Any()).
 					Return(nil).
 					Times(1)
@@ -1201,6 +1193,20 @@ func TestUpdateFlatPoster(t *testing.T) {
 					DoAndReturn(func(_ context.Context, fn func(r usecase.UnitOfWork) error) error {
 						return fn(uow)
 					}).
+					Times(1)
+
+				repo.EXPECT().
+					GetLastPriceHistoryByPosterID(ctx, 33).
+					Return(&entity.PriceHistory{
+						ID:        1,
+						Price:     float64(100000),
+						ChangedAt: time.Now().Add(-25 * time.Hour),
+					}, nil).
+					Times(1)
+
+				repo.EXPECT().
+					AddPriceHistory(ctx, 33, float64(135000)).
+					Return(nil).
 					Times(1)
 
 				repo.EXPECT().Update(ctx, 33, gomock.Any()).Return(nil).Times(1)
@@ -1340,6 +1346,20 @@ func TestUpdateFlatPoster(t *testing.T) {
 					}).
 					Times(1)
 
+				repo.EXPECT().
+					GetLastPriceHistoryByPosterID(ctx, 33).
+					Return(&entity.PriceHistory{
+						ID:        1,
+						Price:     float64(100000),
+						ChangedAt: time.Now().Add(-25 * time.Hour),
+					}, nil).
+					Times(1)
+
+				repo.EXPECT().
+					AddPriceHistory(ctx, 33, float64(135000)).
+					Return(nil).
+					Times(1)
+
 				repo.EXPECT().Update(ctx, 33, gomock.Any()).Return(nil).Times(1)
 				repo.EXPECT().UpdateProperty(ctx, 22, gomock.Any()).Return(nil).Times(1)
 				repo.EXPECT().UpdateBuilding(ctx, 11, gomock.Any()).Return(nil).Times(1)
@@ -1419,7 +1439,7 @@ func TestDeleteFlatPoster(t *testing.T) {
 		name      string
 		alias     string
 		userID    int
-		setupMock func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo)
+		setupMock func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo, search *mocks.MockSearchRepo)
 		want      *dto.CreatedPoster
 		wantErr   error
 	}{
@@ -1427,7 +1447,7 @@ func TestDeleteFlatPoster(t *testing.T) {
 			name:   "OK",
 			alias:  alias,
 			userID: userID,
-			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo, search *mocks.MockSearchRepo) {
 				repo.EXPECT().
 					GetUpdateIDsByAlias(ctx, alias).
 					Return(ids, nil).
@@ -1484,6 +1504,11 @@ func TestDeleteFlatPoster(t *testing.T) {
 					Delete(ctx, "poster/img/flat/old2.jpg").
 					Return(nil).
 					Times(1)
+
+				search.EXPECT().
+					DeletePoster(ctx, 33).
+					Return(nil).
+					Times(1)
 			},
 			want: &dto.CreatedPoster{
 				ID:    33,
@@ -1495,7 +1520,7 @@ func TestDeleteFlatPoster(t *testing.T) {
 			name:   "OKWithoutPhotos",
 			alias:  alias,
 			userID: userID,
-			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo, search *mocks.MockSearchRepo) {
 				repo.EXPECT().
 					GetUpdateIDsByAlias(ctx, alias).
 					Return(ids, nil).
@@ -1537,6 +1562,11 @@ func TestDeleteFlatPoster(t *testing.T) {
 					DeleteBuilding(ctx, 11).
 					Return(nil).
 					Times(1)
+
+				search.EXPECT().
+					DeletePoster(ctx, 33).
+					Return(nil).
+					Times(1)
 			},
 			want: &dto.CreatedPoster{
 				ID:    33,
@@ -1548,7 +1578,7 @@ func TestDeleteFlatPoster(t *testing.T) {
 			name:   "GetUpdateIDsError",
 			alias:  alias,
 			userID: userID,
-			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo, search *mocks.MockSearchRepo) {
 				repo.EXPECT().
 					GetUpdateIDsByAlias(ctx, alias).
 					Return(nil, entity.ServiceError).
@@ -1561,7 +1591,7 @@ func TestDeleteFlatPoster(t *testing.T) {
 			name:   "NotOwner",
 			alias:  alias,
 			userID: userID,
-			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo, search *mocks.MockSearchRepo) {
 				repo.EXPECT().
 					GetUpdateIDsByAlias(ctx, alias).
 					Return(&dto.PosterUpdateIDs{
@@ -1579,7 +1609,7 @@ func TestDeleteFlatPoster(t *testing.T) {
 			name:   "GetPhotoPathsError",
 			alias:  alias,
 			userID: userID,
-			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo, search *mocks.MockSearchRepo) {
 				repo.EXPECT().
 					GetUpdateIDsByAlias(ctx, alias).
 					Return(ids, nil).
@@ -1597,7 +1627,7 @@ func TestDeleteFlatPoster(t *testing.T) {
 			name:   "DeletePhotosError",
 			alias:  alias,
 			userID: userID,
-			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo, search *mocks.MockSearchRepo) {
 				repo.EXPECT().
 					GetUpdateIDsByAlias(ctx, alias).
 					Return(ids, nil).
@@ -1627,7 +1657,7 @@ func TestDeleteFlatPoster(t *testing.T) {
 			name:   "DeleteFacilitiesError",
 			alias:  alias,
 			userID: userID,
-			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo, search *mocks.MockSearchRepo) {
 				repo.EXPECT().
 					GetUpdateIDsByAlias(ctx, alias).
 					Return(ids, nil).
@@ -1662,7 +1692,7 @@ func TestDeleteFlatPoster(t *testing.T) {
 			name:   "DeletePosterError",
 			alias:  alias,
 			userID: userID,
-			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo) {
+			setupMock: func(repo *mocks.MockPosterRepo, uow *mocks.MockUnitOfWork, file *mocks.MockFileRepo, search *mocks.MockSearchRepo) {
 				repo.EXPECT().
 					GetUpdateIDsByAlias(ctx, alias).
 					Return(ids, nil).
@@ -1708,6 +1738,7 @@ func TestDeleteFlatPoster(t *testing.T) {
 			mockRepo := mocks.NewMockPosterRepo(ctrl)
 			mockUOW := mocks.NewMockUnitOfWork(ctrl)
 			mockFile := mocks.NewMockFileRepo(ctrl)
+			mockSearch := mocks.NewMockSearchRepo(ctrl)
 
 			mockUOW.EXPECT().
 				Posters().
@@ -1715,10 +1746,10 @@ func TestDeleteFlatPoster(t *testing.T) {
 				AnyTimes()
 
 			if test.setupMock != nil {
-				test.setupMock(mockRepo, mockUOW, mockFile)
+				test.setupMock(mockRepo, mockUOW, mockFile, mockSearch)
 			}
 
-			uc := NewPosterUseCase(mockUOW, mockFile, nil, nil)
+			uc := NewPosterUseCase(mockUOW, mockFile, mockSearch, nil)
 
 			res, err := uc.DeleteFlatPoster(ctx, test.alias, test.userID)
 
@@ -2189,6 +2220,405 @@ func TestDeleteFavoritePoster(t *testing.T) {
 			}
 
 			require.NoError(t, err)
+		})
+	}
+}
+
+func TestGetPostersByCoords(t *testing.T) {
+	ctx := context.Background()
+
+	boundsLowZoom := dto.MapBounds{
+		Zoom: 10,
+	}
+
+	boundsHighZoom := dto.MapBounds{
+		Zoom: 15,
+	}
+
+	filters := dto.PostersFiltersDTO{}
+
+	clusters := []entity.ClusterPoint{
+		{Count: 2, Lat: 55.7, Lon: 37.6},
+		{Count: 3, Lat: 55.8, Lon: 37.7},
+	}
+
+	posters := []entity.AnyPoint{
+		{
+			ID:  1,
+			Lat: 55.7,
+			Lon: 37.6,
+		},
+		{
+			ID:  2,
+			Lat: 55.8,
+			Lon: 37.7,
+		},
+	}
+
+	tests := []struct {
+		name      string
+		bounds    dto.MapBounds
+		setupMock func(search *mocks.MockSearchRepo)
+		wantLen   int
+		wantErr   error
+	}{
+		{
+			name:   "OK clusters (zoom < 13)",
+			bounds: boundsLowZoom,
+			setupMock: func(search *mocks.MockSearchRepo) {
+				search.EXPECT().
+					GetClustersByMapBounds(ctx, boundsLowZoom, gomock.Any()).
+					Return(clusters, nil).
+					Times(1)
+			},
+			wantLen: len(clusters),
+			wantErr: nil,
+		},
+		{
+			name:   "OK posters (zoom >= 13)",
+			bounds: boundsHighZoom,
+			setupMock: func(search *mocks.MockSearchRepo) {
+				search.EXPECT().
+					GetPostersByMapBounds(ctx, boundsHighZoom, gomock.Any()).
+					Return(posters, nil).
+					Times(1)
+			},
+			wantLen: len(posters),
+			wantErr: nil,
+		},
+		{
+			name:   "Clusters error",
+			bounds: boundsLowZoom,
+			setupMock: func(search *mocks.MockSearchRepo) {
+				search.EXPECT().
+					GetClustersByMapBounds(ctx, boundsLowZoom, gomock.Any()).
+					Return(nil, entity.ServiceError).
+					Times(1)
+			},
+			wantLen: 0,
+			wantErr: entity.ServiceError,
+		},
+		{
+			name:   "Posters error",
+			bounds: boundsHighZoom,
+			setupMock: func(search *mocks.MockSearchRepo) {
+				search.EXPECT().
+					GetPostersByMapBounds(ctx, boundsHighZoom, gomock.Any()).
+					Return(nil, entity.ServiceError).
+					Times(1)
+			},
+			wantLen: 0,
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockSearch := mocks.NewMockSearchRepo(ctrl)
+			mockUOW := mocks.NewMockUnitOfWork(ctrl)
+			mockFile := mocks.NewMockFileRepo(ctrl)
+
+			if test.setupMock != nil {
+				test.setupMock(mockSearch)
+			}
+
+			uc := NewPosterUseCase(mockUOW, mockFile, mockSearch, nil)
+
+			got, err := uc.GetPostersByCoords(ctx, test.bounds, filters)
+
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, got)
+			require.Equal(t, test.wantLen, got.Len)
+		})
+	}
+}
+
+func TestGetPostersByRadius(t *testing.T) {
+	ctx := context.Background()
+
+	point := dto.GeographyDTO{
+		Lat: 55.7558,
+		Lon: 37.6173,
+	}
+
+	existingPosters := []entity.Poster{
+		{
+			ID:      1,
+			Alias:   "flat-1",
+			Address: "street_1",
+			Area:    50,
+			Price:   11111,
+		},
+		{
+			ID:      2,
+			Alias:   "flat-2",
+			Address: "street_2",
+			Area:    60,
+			Price:   22222,
+		},
+	}
+
+	tests := []struct {
+		name      string
+		setupMock func(repo *mocks.MockPosterRepo)
+		wantLen   int
+		wantErr   error
+	}{
+		{
+			name: "OK",
+			setupMock: func(repo *mocks.MockPosterRepo) {
+				repo.EXPECT().
+					GetPostersByRadius(ctx, point, entity.Metre(10)).
+					Return(existingPosters, nil).
+					Times(1)
+			},
+			wantLen: len(existingPosters),
+			wantErr: nil,
+		},
+		{
+			name: "RepoError",
+			setupMock: func(repo *mocks.MockPosterRepo) {
+				repo.EXPECT().
+					GetPostersByRadius(ctx, point, entity.Metre(10)).
+					Return(nil, entity.ServiceError).
+					Times(1)
+			},
+			wantLen: 0,
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepo := mocks.NewMockPosterRepo(ctrl)
+			mockUOW := mocks.NewMockUnitOfWork(ctrl)
+			mockFile := mocks.NewMockFileRepo(ctrl)
+
+			mockUOW.EXPECT().
+				Posters().
+				Return(mockRepo).
+				AnyTimes()
+
+			if test.setupMock != nil {
+				test.setupMock(mockRepo)
+			}
+
+			uc := NewPosterUseCase(mockUOW, mockFile, nil, nil)
+
+			got, err := uc.GetPostersByRadius(ctx, point)
+
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Len(t, got, test.wantLen)
+
+			for i, p := range got {
+				require.Equal(t, existingPosters[i].ID, p.ID)
+				require.Equal(t, existingPosters[i].Address, p.Address)
+				require.Equal(t, existingPosters[i].Price, p.Price)
+				require.Equal(t, existingPosters[i].Area, p.Area)
+			}
+		})
+	}
+}
+
+func TestGenerateDescription(t *testing.T) {
+	ctx := context.Background()
+
+	input := dto.GenerateDescriptionDTO{
+		Category:     "квартира",
+		FlatCategory: "2-комнатная",
+		Area:         50.5,
+		Features:     []string{"балкон", "парковка"},
+	}
+
+	mockResponse := &dto.ChatResult{
+		Content: "Отличная квартира с балконом и парковкой.",
+	}
+
+	tests := []struct {
+		name      string
+		setupMock func(agent *mocks.MockLLMAgent)
+		want      string
+		wantErr   error
+	}{
+		{
+			name: "OK",
+			setupMock: func(agent *mocks.MockLLMAgent) {
+				agent.EXPECT().
+					Chat(
+						ctx,
+						gomock.Any(),
+						"Сгенерируй описание для этого объекта недвижимости.",
+					).
+					Return(mockResponse, nil).
+					Times(1)
+			},
+			want:    mockResponse.Content,
+			wantErr: nil,
+		},
+		{
+			name: "AgentError",
+			setupMock: func(agent *mocks.MockLLMAgent) {
+				agent.EXPECT().
+					Chat(
+						ctx,
+						gomock.Any(),
+						"Сгенерируй описание для этого объекта недвижимости.",
+					).
+					Return(nil, entity.ServiceError).
+					Times(1)
+			},
+			want:    "",
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockAgent := mocks.NewMockLLMAgent(ctrl)
+			mockUOW := mocks.NewMockUnitOfWork(ctrl)
+			mockFile := mocks.NewMockFileRepo(ctrl)
+
+			if test.setupMock != nil {
+				test.setupMock(mockAgent)
+			}
+
+			uc := &PosterUseCase{
+				agent: mockAgent,
+				uow:   mockUOW,
+				file:  mockFile,
+			}
+
+			res, err := uc.GenerateDescription(ctx, input)
+
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, test.want, res)
+		})
+	}
+}
+
+func TestGetPriceHistoryPoster(t *testing.T) {
+	ctx := context.Background()
+	alias := "kvartira-na-arbate"
+
+	t1 := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+	t2 := time.Date(2024, 2, 1, 0, 0, 0, 0, time.UTC)
+	t3 := time.Date(2024, 3, 1, 0, 0, 0, 0, time.UTC)
+
+	existingHistory := []entity.PriceHistory{
+		{ID: 1, Price: 100000, ChangedAt: t1},
+		{ID: 2, Price: 110000, ChangedAt: t2},
+		{ID: 3, Price: 120000, ChangedAt: t3},
+	}
+
+	expectedDTO := []dto.PriceHistoryDTO{
+		{Date: t1.Format("2006-01-02"), Price: 100000},
+		{Date: t2.Format("2006-01-02"), Price: 110000},
+		{Date: t3.Format("2006-01-02"), Price: 120000},
+	}
+
+	tests := []struct {
+		name      string
+		alias     string
+		setupMock func(repo *mocks.MockPosterRepo)
+		want      []dto.PriceHistoryDTO
+		wantErr   error
+	}{
+		{
+			name:  "OK",
+			alias: alias,
+			setupMock: func(repo *mocks.MockPosterRepo) {
+				repo.EXPECT().
+					GetPriceHistoryByAlias(ctx, alias).
+					Return(existingHistory, nil).
+					Times(1)
+			},
+			want:    expectedDTO,
+			wantErr: nil,
+		},
+		{
+			name:  "RepoError",
+			alias: alias,
+			setupMock: func(repo *mocks.MockPosterRepo) {
+				repo.EXPECT().
+					GetPriceHistoryByAlias(ctx, alias).
+					Return(nil, entity.ServiceError).
+					Times(1)
+			},
+			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+		{
+			name:  "EmptyHistory",
+			alias: alias,
+			setupMock: func(repo *mocks.MockPosterRepo) {
+				repo.EXPECT().
+					GetPriceHistoryByAlias(ctx, alias).
+					Return([]entity.PriceHistory{}, nil).
+					Times(1)
+			},
+			want:    []dto.PriceHistoryDTO{},
+			wantErr: nil,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepo := mocks.NewMockPosterRepo(ctrl)
+			mockUOW := mocks.NewMockUnitOfWork(ctrl)
+			mockFile := mocks.NewMockFileRepo(ctrl)
+
+			mockUOW.EXPECT().
+				Posters().
+				Return(mockRepo).
+				AnyTimes()
+
+			if test.setupMock != nil {
+				test.setupMock(mockRepo)
+			}
+
+			uc := NewPosterUseCase(mockUOW, mockFile, nil, nil)
+
+			got, err := uc.GetPriceHistoryPoster(ctx, test.alias)
+
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, len(test.want), len(got))
+
+			for i := range test.want {
+				require.Equal(t, test.want[i].Price, got[i].Price)
+				require.Equal(t, test.want[i].Date, got[i].Date)
+			}
 		})
 	}
 }

@@ -26,17 +26,23 @@ var ProdCors = CORS{
 
 type (
 	ProjectConfig struct {
-		AppEnv string `yaml:"app-env" env:"APP_ENV" env-default:"dev"`
+		AppEnv      string `yaml:"app-env" env:"APP_ENV" env-default:"dev"`
+		ServiceName string `yaml:"service-name" env:"SERVICE_NAME" env-default:"gateway"`
 		CORS
-		Server     `yaml:"server"`
-		Postgres   `yaml:"postgres"`
-		Redis      `yaml:"redis"`
-		JWT        `yaml:"jwt"`
-		OAuth      `yaml:"oauth"`
-		SMTP       `yaml:"smtp"`
-		Minio      `yaml:"minio"`
-		ES         `yaml:"es"`
-		OpenRouter `yaml:"openrouter"`
+		Server         `yaml:"server"`
+		Postgres       `yaml:"postgres"`
+		Redis          `yaml:"redis"`
+		JWT            `yaml:"jwt"`
+		OAuth          `yaml:"oauth"`
+		SMTP           `yaml:"smtp"`
+		Minio          `yaml:"minio"`
+		ES             `yaml:"es"`
+		OpenRouter     `yaml:"openrouter"`
+		Loki           `yaml:"loki"`
+		AuthService    `yaml:"auth-service"`
+		UserService    `yaml:"user-service"`
+		PosterService  `yaml:"poster-service"`
+		ComplexService `yaml:"complex-service"`
 	}
 	Redis struct {
 		Host     string `yaml:"host" env:"REDIS_HOST" env-default:"localhost"`
@@ -109,6 +115,26 @@ type (
 		APIKey string `yaml:"api_key" env:"OPENROUTER_API_KEY" env-default:""`
 		Model  string `yaml:"model" env:"OPENROUTER_MODEL" env-default:"nvidia/nemotron-3-nano-30b-a3b:free"`
 	}
+	Loki struct {
+		URL string `yaml:"url" env:"LOKI_URL" env-default:"http://localhost:3100"`
+	}
+
+	AuthService struct {
+		Host string `yaml:"host" env:"AUTH_SRV_HOST" env-default:"localhost"`
+		Port int    `yaml:"port" env:"AUTH_SRV_PORT" env-default:"50051"`
+	}
+	UserService struct {
+		Host string `yaml:"host" env:"USER_SRV_HOST" env-default:"localhost"`
+		Port int    `yaml:"port" env:"USER_SRV_PORT" env-default:"50052"`
+	}
+	PosterService struct {
+		Host string `yaml:"host" env:"POSTER_SRV_HOST" env-default:"localhost"`
+		Port int    `yaml:"port" env:"POSTER_SRV_PORT" env-default:"50054"`
+	}
+	ComplexService struct {
+		Host string `yaml:"host" env:"COMPLEX_SRV_HOST" env-default:"localhost"`
+		Port int    `yaml:"port" env:"COMPLEX_SRV_PORT" env-default:"50053"`
+	}
 )
 
 func Read(log *logrus.Logger) error {
@@ -116,6 +142,8 @@ func Read(log *logrus.Logger) error {
 	// c:/Users/Артемий/OneDrive/Desktop/code/2026_1_TheBugs/ этот оставил для дебага у вас будет свой
 	if err := godotenv.Load(".env"); err != nil {
 		log.Warnf("No .env file found: %v", err)
+	} else {
+		log.Info(".env file loaded successfully")
 	}
 	if err = cleanenv.ReadConfig("config/config.yaml", &Config); err != nil {
 		return fmt.Errorf("error while reading application configuration: %w", err)
@@ -124,14 +152,16 @@ func Read(log *logrus.Logger) error {
 	if err = cleanenv.ReadEnv(&Config); err != nil {
 		return fmt.Errorf("error creating configuration object: %w", err)
 	}
-	JWTKeys.PrivateKey, err = LoadPrivateKey(Config.JWT.PrivateKeySource)
-	if err != nil {
-		return fmt.Errorf("error load private key: %w", err)
-	}
+	if Config.ServiceName == "auth_service" || Config.AppEnv == "dev" {
+		JWTKeys.PrivateKey, err = LoadPrivateKey(Config.JWT.PrivateKeySource)
+		if err != nil {
+			return fmt.Errorf("error load private key: %w", err)
+		}
 
-	JWTKeys.PublicKey, err = LoadPublicKey(Config.JWT.PublicKeySource)
-	if err != nil {
-		return fmt.Errorf("error load public key: %w", err)
+		JWTKeys.PublicKey, err = LoadPublicKey(Config.JWT.PublicKeySource)
+		if err != nil {
+			return fmt.Errorf("error load public key: %w", err)
+		}
 	}
 	if Config.AppEnv == "dev" {
 		Config.CORS = DevCors

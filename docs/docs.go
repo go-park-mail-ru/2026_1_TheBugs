@@ -243,7 +243,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Successful login, returns access token",
                         "schema": {
-                            "$ref": "#/definitions/auth.LoginResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2026_1_TheBugs_internal_delivery_restapi_auth.LoginResponse"
                         },
                         "headers": {
                             "Set-Cookie": {
@@ -521,7 +521,7 @@ const docTemplate = `{
                     "200": {
                         "description": "New access token, also updates refresh token cookie",
                         "schema": {
-                            "$ref": "#/definitions/auth.LoginResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2026_1_TheBugs_internal_delivery_restapi_auth.LoginResponse"
                         },
                         "headers": {
                             "Set-Cookie": {
@@ -661,7 +661,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Successful login, returns access token",
                         "schema": {
-                            "$ref": "#/definitions/auth.LoginResponse"
+                            "$ref": "#/definitions/github_com_go-park-mail-ru_2026_1_TheBugs_internal_delivery_restapi_auth.LoginResponse"
                         },
                         "headers": {
                             "Set-Cookie": {
@@ -2641,17 +2641,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "auth.LoginResponse": {
-            "type": "object",
-            "properties": {
-                "access_token": {
-                    "type": "string"
-                },
-                "expire_at": {
-                    "type": "integer"
-                }
-            }
-        },
         "dto.CategoryDTO": {
             "type": "object",
             "properties": {
@@ -3121,6 +3110,17 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/dto.PhotoDTO"
                     }
+                }
+            }
+        },
+        "github_com_go-park-mail-ru_2026_1_TheBugs_internal_delivery_restapi_auth.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "expire_at": {
+                    "type": "integer"
                 }
             }
         },

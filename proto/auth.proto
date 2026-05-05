@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+package auth;
+option go_package = "./auth";
+
+message RegisterUserRequest {
+  string email     = 1;
+  string password  = 2;
+  string phone     = 3;
+  string firstname = 4;
+  string lastname  = 5;
+}
+
+message LoginUserRequest {
+  string email    = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string access_token     = 1;
+  int64  access_token_exp = 2;
+  string refresh_token    = 3;
+  int64  refresh_token_exp = 4;
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+message LogoutRequest {
+  string access_token  = 1;
+  string refresh_token = 2;
+}
+
+message SendCodeOnEmailRequest {
+  string email = 1;
+}
+
+message SendVerifyCodeOnEmailRequest {
+  string email = 1;
+}
+
+message VerifyCodeRequest {
+  string session_id = 1;
+  string code       = 2;
+}
+
+message VerifyRecoveryCodeRequest {
+  string session_id = 1;
+  string code       = 2;
+}
+
+message UpdatePasswordRequest {
+  string session_id = 1;
+  string password   = 2;
+}
+
+message VKLoginRequest {
+  string code           = 1;
+  string device_id      = 2;
+  string state          = 3;
+  string code_verifier  = 4;
+}
+
+message YandexLoginRequest {
+  string code           = 1;
+  string device_id      = 2;
+  string state          = 3;
+  string code_verifier  = 4;
+}
+
+message SessionResponse {
+  string session_id = 1;
+}
+
+message StatusResponse {
+  string status = 1;
+}
+
+message CheckAccessTokenRequest {
+  string access_token = 1;
+}
+
+message CheckAccessTokenResponse {
+  string user_id = 1;
+}
+
+
+service AuthService {
+  rpc RegisterUser(RegisterUserRequest) returns (StatusResponse);
+  rpc LoginUser(LoginUserRequest) returns (LoginResponse);
+  rpc RefreshToken(RefreshTokenRequest) returns (LoginResponse);
+  rpc Logout(LogoutRequest) returns (StatusResponse);
+  rpc VKLogin(VKLoginRequest) returns (LoginResponse);
+  rpc YandexLogin(YandexLoginRequest) returns (LoginResponse);
+  rpc SendCodeOnEmail(SendCodeOnEmailRequest) returns (SessionResponse);
+  rpc SendVerifyCodeOnEmail(SendVerifyCodeOnEmailRequest) returns (SessionResponse);
+  rpc VerifyCode(VerifyCodeRequest) returns (StatusResponse);
+  rpc VerifyRecoveryCode(VerifyRecoveryCodeRequest) returns (StatusResponse);
+  rpc UpdatePassword(UpdatePasswordRequest) returns (StatusResponse);
+  rpc CheckAccessToken(CheckAccessTokenRequest) returns (CheckAccessTokenResponse);
+}

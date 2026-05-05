@@ -1,6 +1,8 @@
 package dto
 
-import "github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+import (
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+)
 
 type DeveloperDTO struct {
 	DeveloperID   int     `json:"developer_id"`
