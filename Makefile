@@ -62,3 +62,4 @@ complex_proto:
 grpc_mock:
 	mockgen -destination internal/mocks/grpc_client/mock_auth_client.go -package grpc_client github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/grpc/generated/auth AuthServiceClient
 	mockgen -destination internal/mocks/grpc_client/mock_user_client.go -package grpc_client github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/grpc/generated/user UserServiceClient
+	mockgen -destination internal/mocks/grpc_client/mock_complex_client.go -package grpc_client github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/grpc/generated/complex ComplexServiceClient
