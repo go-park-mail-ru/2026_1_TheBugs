@@ -10,7 +10,12 @@ test:
 
 coverage:
 	go clean -testcache
-	-go test ./... -coverprofile cover.out -covermode=count 
+	-go test ./internal/delivery/... ./internal/re -coverprofile cover.out -covermode=count 
+	go tool cover -func cover.out
+
+coverage-win:
+	$pkgs = go list ./... | Where-Object { $_ -notmatch '/docs|/utils|/config|/cmd|/generated|/app|/entity|/mocks|/dto|/metrics|/logger|/middleware|/response|/request' }
+	go test $pkgs -coverprofile cover.out -covermode=count
 	go tool cover -func cover.out
 
 swag:
