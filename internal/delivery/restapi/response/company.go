@@ -29,6 +29,7 @@ func MapGRPCComplexToDTO(grpcComplex *complex.GetComplexResponse) *dto.UtilityCo
 		},
 		Photos:    mapGRPCPhotosToDTO(grpcComplex.Photos),
 		Developer: MapGRPCDeveloperToDTO(grpcComplex.Developer),
+		Phone:     grpcComplex.Phone,
 	}
 }
 

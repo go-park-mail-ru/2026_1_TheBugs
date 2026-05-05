@@ -241,6 +241,7 @@ type GetComplexResponse struct {
 	AvatarUrl     *string                `protobuf:"bytes,7,opt,name=avatar_url,json=avatarUrl,proto3,oneof" json:"avatar_url,omitempty"`
 	Photos        []*Photo               `protobuf:"bytes,8,rep,name=photos,proto3" json:"photos,omitempty"`
 	Developer     *Developer             `protobuf:"bytes,9,opt,name=developer,proto3" json:"developer,omitempty"`
+	Phone         string                 `protobuf:"bytes,10,opt,name=phone,proto3" json:"phone,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -336,6 +337,13 @@ func (x *GetComplexResponse) GetDeveloper() *Developer {
 		return x.Developer
 	}
 	return nil
+}
+
+func (x *GetComplexResponse) GetPhone() string {
+	if x != nil {
+		return x.Phone
+	}
+	return ""
 }
 
 type GetAllDevelopersResponse struct {
@@ -572,7 +580,7 @@ const file_complex_proto_rawDesc = "" +
 	"\x0edeveloper_name\x18\x02 \x01(\tR\rdeveloperName\x12\"\n" +
 	"\n" +
 	"avatar_url\x18\x03 \x01(\tH\x00R\tavatarUrl\x88\x01\x01B\r\n" +
-	"\v_avatar_url\"\xcb\x02\n" +
+	"\v_avatar_url\"\xe1\x02\n" +
 	"\x12GetComplexResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x14\n" +
 	"\x05alias\x18\x02 \x01(\tR\x05alias\x12!\n" +
@@ -583,7 +591,9 @@ const file_complex_proto_rawDesc = "" +
 	"\n" +
 	"avatar_url\x18\a \x01(\tH\x00R\tavatarUrl\x88\x01\x01\x12&\n" +
 	"\x06photos\x18\b \x03(\v2\x0e.complex.PhotoR\x06photos\x120\n" +
-	"\tdeveloper\x18\t \x01(\v2\x12.complex.DeveloperR\tdeveloperB\r\n" +
+	"\tdeveloper\x18\t \x01(\v2\x12.complex.DeveloperR\tdeveloper\x12\x14\n" +
+	"\x05phone\x18\n" +
+	" \x01(\tR\x05phoneB\r\n" +
 	"\v_avatar_url\"f\n" +
 	"\x18GetAllDevelopersResponse\x12\x16\n" +
 	"\x06length\x18\x01 \x01(\x05R\x06length\x122\n" +

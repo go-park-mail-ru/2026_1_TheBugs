@@ -58,3 +58,8 @@ poster_proto:
 complex_proto:
 	mkdir -p internal/delivery/grpc/generated/complex
 	protoc --proto_path=proto --go_out=internal/delivery/grpc/generated/complex --go-grpc_out=internal/delivery/grpc/generated/complex --go-grpc_opt=paths=source_relative --go_opt=paths=source_relative ./proto/complex.proto
+
+grpc_mock:
+	mockgen -destination internal/mocks/grpc_client/mock_auth_client.go -package grpc_client github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/grpc/generated/auth AuthServiceClient
+	mockgen -destination internal/mocks/grpc_client/mock_user_client.go -package grpc_client github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/grpc/generated/user UserServiceClient
+	mockgen -destination internal/mocks/grpc_client/mock_complex_client.go -package grpc_client github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/grpc/generated/complex ComplexServiceClient

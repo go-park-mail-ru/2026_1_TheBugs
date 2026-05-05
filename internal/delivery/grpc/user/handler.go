@@ -5,18 +5,18 @@ import (
 	"context"
 	"io"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/grpc/generated/user"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/grpc/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
-	userUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/user"
 )
 
 type UserServiceServer struct {
 	user.UnimplementedUserServiceServer
-	uc *userUC.UserUseCase
+	uc delivery.UserUseCase
 }
 
-func NewUserServiceServer(uc *userUC.UserUseCase) *UserServiceServer {
+func NewUserServiceServer(uc delivery.UserUseCase) *UserServiceServer {
 	return &UserServiceServer{
 		uc: uc,
 	}

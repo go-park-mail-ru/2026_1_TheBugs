@@ -129,7 +129,7 @@ type (
 	}
 	PosterService struct {
 		Host string `yaml:"host" env:"POSTER_SRV_HOST" env-default:"localhost"`
-		Port int    `yaml:"port" env:"POSTER_SRV_PORT" env-default:"50053"`
+		Port int    `yaml:"port" env:"POSTER_SRV_PORT" env-default:"50054"`
 	}
 	ComplexService struct {
 		Host string `yaml:"host" env:"COMPLEX_SRV_HOST" env-default:"localhost"`

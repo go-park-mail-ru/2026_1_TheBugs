@@ -83,8 +83,11 @@ services:
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
     environment:
-      discovery.type: single-node
-      xpack.security.enabled: "false"
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - http.cors.enabled=true
+      - http.cors.allow-origin="*"
+      - http.cors.allow-headers="*"
     ports:
       - "9200:9200"
     volumes:
@@ -118,6 +121,13 @@ services:
       - "8080:8080"
     depends_on:
       - postgres
+
+  elasticvue:
+    image: cars10/elasticvue:latest
+    container_name: elasticvue
+    ports:
+      - "8085:8080"
+    restart: unless-stopped
 
 
   
