@@ -392,4 +392,16 @@ INSERT INTO facility_property (property_id, facility_id) VALUES
     (10, (SELECT id FROM facilities WHERE alias='stove')),
     (10, (SELECT id FROM facilities WHERE alias='parking'));
 
+INSERT INTO handling_categories (name) VALUES
+('Ошибка входа'),
+('Сброс пароля'),
+('Не приходит письмо'),
+('Ошибка создания'),
+('Проблема фото'),
+('Ошибка удаления'),
+('Медленная загрузка'),
+('Лаги сайта'),
+('Ошибка интерфейса'),
+('Не работает кнопка');
+
  ANALYSE;

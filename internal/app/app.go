@@ -13,6 +13,7 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi"
 	authHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/auth"
 	complexHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/complex"
+	orderHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/order"
 	posterHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
 	userHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
 	"github.com/sirupsen/logrus"
@@ -52,8 +53,11 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	posterHandler := posterHandler.NewPosterHandler(posterConn)
 	utilityCompanyHandler := complexHandler.NewUtilityCompanyHandler(complexConn)
 
+	orderUC := orderUC.NewOrderUseCase(uow, fileRepo)
+	orderHandler := orderHandler.NewOrderHandler(orderUC)
+
 	r := mux.NewRouter()
-	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler, userHandler)
+	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler, userHandler, orderHandler)
 	serverAddress := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	srv := &http.Server{
 		Handler:      r,
