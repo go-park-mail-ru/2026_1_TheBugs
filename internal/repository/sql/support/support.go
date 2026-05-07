@@ -1,4 +1,4 @@
-package order
+package support
 
 import (
 	"context"
@@ -13,18 +13,18 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-type OrderRepo struct {
+type SupportRepo struct {
 	pool repository.DB
 }
 
-func NewOrderRepo(pool repository.DB) *OrderRepo {
-	return &OrderRepo{
+func NewSupportRepo(pool repository.DB) *SupportRepo {
+	return &SupportRepo{
 		pool: pool,
 	}
 }
 
-func (r *OrderRepo) Create(ctx context.Context, order *dto.Order) (int, error) {
-	log := ctxLogger.GetLogger(ctx).WithField("op", "OrderRepo.Create")
+func (r *SupportRepo) Create(ctx context.Context, order *dto.Order) (int, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "SupportRepo.Create")
 	log.Info("start db query")
 
 	query := `
@@ -47,7 +47,7 @@ func (r *OrderRepo) Create(ctx context.Context, order *dto.Order) (int, error) {
 	return handlingID, nil
 }
 
-func (r *OrderRepo) InsertPhotos(ctx context.Context, orderID int, photos []dto.PhotoInput) error {
+func (r *SupportRepo) InsertPhotos(ctx context.Context, orderID int, photos []dto.PhotoInput) error {
 	log := ctxLogger.GetLogger(ctx).WithField("op", "HandlingRepo.InsertPhotos")
 	log.Info("start db query")
 
@@ -76,8 +76,8 @@ func (r *OrderRepo) InsertPhotos(ctx context.Context, orderID int, photos []dto.
 	return nil
 }
 
-func (r *OrderRepo) GetByUserID(ctx context.Context, userID int) ([]entity.Order, error) {
-	log := ctxLogger.GetLogger(ctx).WithField("op", "OrderRepo.GetByUserID")
+func (r *SupportRepo) GetByUserID(ctx context.Context, userID int) ([]entity.Order, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "SupportRepo.GetByUserID")
 	log.Info("start db query")
 
 	query := `
@@ -123,8 +123,8 @@ func (r *OrderRepo) GetByUserID(ctx context.Context, userID int) ([]entity.Order
 	return orders, nil
 }
 
-func (r *OrderRepo) GetAll(ctx context.Context) ([]entity.Order, error) {
-	log := ctxLogger.GetLogger(ctx).WithField("op", "OrderRepo.GetAll")
+func (r *SupportRepo) GetAll(ctx context.Context) ([]entity.Order, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "SupportRepo.GetAll")
 	log.Info("start db query")
 
 	query := `
@@ -169,8 +169,8 @@ func (r *OrderRepo) GetAll(ctx context.Context) ([]entity.Order, error) {
 	return orders, nil
 }
 
-func (r *OrderRepo) GetByID(ctx context.Context, orderID int) (*entity.OrderFull, error) {
-	log := ctxLogger.GetLogger(ctx).WithField("op", "OrderRepo.GetByID")
+func (r *SupportRepo) GetByID(ctx context.Context, orderID int) (*entity.OrderFull, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "SupportRepo.GetByID")
 	log.Info("start db query")
 
 	query := `
@@ -203,7 +203,7 @@ func (r *OrderRepo) GetByID(ctx context.Context, orderID int) (*entity.OrderFull
 	return &order, nil
 }
 
-func (r *OrderRepo) GetOrderImages(ctx context.Context, id int) ([]entity.OrderPhoto, error) {
+func (r *SupportRepo) GetOrderImages(ctx context.Context, id int) ([]entity.OrderPhoto, error) {
 	query := `
 		SELECT hp.img_url, hp.sequence_order AS "order"
 		FROM handling_photos hp
@@ -226,7 +226,7 @@ func (r *OrderRepo) GetOrderImages(ctx context.Context, id int) ([]entity.OrderP
 	return images, rows.Err()
 }
 
-func (r *OrderRepo) FinishOrder(ctx context.Context, orderID int, adminID int) error {
+func (r *SupportRepo) FinishOrder(ctx context.Context, orderID int, adminID int) error {
 	query := `
 		UPDATE handlings
 		SET status = 'finished',
