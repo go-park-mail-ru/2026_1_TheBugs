@@ -29,14 +29,16 @@ type PosterUseCase struct {
 	file   usecase.FileRepo
 	search usecase.SearchRepo
 	agent  usecase.LLMAgent
+	maps   usecase.StreetMapProvider
 }
 
-func NewPosterUseCase(uow usecase.UnitOfWork, file usecase.FileRepo, search usecase.SearchRepo, agent usecase.LLMAgent) *PosterUseCase {
+func NewPosterUseCase(uow usecase.UnitOfWork, file usecase.FileRepo, search usecase.SearchRepo, agent usecase.LLMAgent, maps usecase.StreetMapProvider) *PosterUseCase {
 	return &PosterUseCase{
 		uow:    uow,
 		file:   file,
 		search: search,
 		agent:  agent,
+		maps:   maps,
 	}
 }
 
@@ -151,15 +153,15 @@ func (uc *PosterUseCase) GetMetroStationsByRadius(ctx context.Context, coords dt
 func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.PosterInputFlatDTO) (*dto.CreatedPoster, error) {
 	var createdPoster *dto.CreatedPoster
 
-	err := validator.ValidatePosterBase(poster)
-	if err != nil {
-		return nil, fmt.Errorf("validator.ValidatePosterBase: %w", err)
-	}
+	// err := validator.ValidatePosterBase(poster)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("validator.ValidatePosterBase: %w", err)
+	// }
 
-	err = validator.ValidatePhotos(poster.Images)
-	if err != nil {
-		return nil, fmt.Errorf("validator.ValidatePhotos: %w", err)
-	}
+	// err = validator.ValidatePhotos(poster.Images)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("validator.ValidatePhotos: %w", err)
+	// }
 	validator.SanitizePosterInput(poster)
 
 	post := dto.PosterInputFlatDTOtoPosterInput(poster)
@@ -184,9 +186,25 @@ func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.Poste
 	if err != nil {
 		return nil, fmt.Errorf("uc.uow.Posters().GetMetroStationByRadius: %s", err)
 	}
+
 	if len(stations) > 0 {
 		station := stations[0].ID
 		post.MetroStationID = &station
+	} else {
+		stations, err = uc.maps.GetMetroStationByRadius(ctx, dto.GeographyDTO(post.Geo), MetroRadius)
+		if err != nil {
+			return nil, fmt.Errorf("uc.maps.GetMetroStationByRadius: %s", err)
+		}
+		if len(stations) > 0 {
+			newSt, err := uc.uow.Posters().CreateMetroStation(ctx, stations[0].StationName, dto.GeographyDTO(stations[0].StationGEO))
+			if err != nil {
+				return nil, fmt.Errorf("uc.uow.Posters().CreateMetroStation: %s", err)
+			}
+			if newSt != nil {
+				station := newSt.ID
+				post.MetroStationID = &station
+			}
+		}
 	}
 
 	flat := dto.PosterInputFlatDTOtoFlatInput(poster)
@@ -235,13 +253,13 @@ func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.Poste
 			return fmt.Errorf("uc.PosterRepo.InsertFlat: %w", err)
 		}
 
-		for _, photoPoster := range post.Images {
-			key, err := uc.uploadPhoto(ctx, photoPoster)
-			if err != nil {
-				return fmt.Errorf("uc.uploadPhoto: %w", err)
-			}
-			keys = append(keys, key)
-		}
+		// for _, photoPoster := range post.Images {
+		// 	key, err := uc.uploadPhoto(ctx, photoPoster)
+		// 	if err != nil {
+		// 		return fmt.Errorf("uc.uploadPhoto: %w", err)
+		// 	}
+		// 	keys = append(keys, key)
+		// }
 
 		err = r.Posters().InsertPhotos(ctx, posterID, post.Images)
 		if err != nil {
@@ -357,6 +375,21 @@ func (uc *PosterUseCase) UpdateFlatPoster(ctx context.Context, alias string, pos
 	if len(stations) > 0 {
 		station := stations[0].ID
 		post.MetroStationID = &station
+	} else {
+		stations, err = uc.maps.GetMetroStationByRadius(ctx, dto.GeographyDTO(post.Geo), MetroRadius)
+		if err != nil {
+			return nil, fmt.Errorf("uc.maps.GetMetroStationByRadius: %s", err)
+		}
+		if len(stations) > 0 {
+			newSt, err := uc.uow.Posters().CreateMetroStation(ctx, stations[0].StationName, dto.GeographyDTO(stations[0].StationGEO))
+			if err != nil {
+				return nil, fmt.Errorf("uc.uow.Posters().CreateMetroStation: %s", err)
+			}
+			if newSt != nil {
+				station := newSt.ID
+				post.MetroStationID = &station
+			}
+		}
 	}
 
 	flat.PropertyID = ids.PropertyID
