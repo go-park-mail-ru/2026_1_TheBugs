@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/auth"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/complex"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
@@ -48,7 +49,7 @@ import (
 
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
-func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHandler, post *poster.PosterHandler, UtilityCompany *complex.UtilityCompanyHandler, user *user.UserHandler, order *order.OrderHandler) {
+func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHandler, post *poster.PosterHandler, UtilityCompany *complex.UtilityCompanyHandler, user *user.UserHandler, order *order.OrderHandler, rps delivery.RateLimitUseCase) {
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   config.Config.CORS.AllowedHosts,
@@ -80,6 +81,7 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		apiGroup.HandleFunc("/csrf-token", auth.GetCSRFToken).Methods(http.MethodGet)
 
 		AuthMiddlewary := auth.GetAuthMiddlewary()
+		RateLimitMiddlewary := middleware.RateLimitMiddleware(rps)
 		UserIDMiddleware := auth.GetUserIDMiddlewary()
 		apiGroup.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 			_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
@@ -112,15 +114,15 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 
 		apiGroup.Handle("/posters/me", AuthMiddlewary(http.HandlerFunc(post.GetPostersByUser))).Methods(http.MethodGet, http.MethodOptions)
 		apiGroup.Handle("/posters/me/{alias}", AuthMiddlewary(http.HandlerFunc(post.GetPostersByUserByAlias))).Methods(http.MethodGet, http.MethodOptions)
-		apiGroup.Handle("/posters/flat", AuthMiddlewary(http.HandlerFunc(post.CreateFlatPoster))).Methods(http.MethodPost, http.MethodOptions)
-		apiGroup.Handle("/posters/flat/{alias}", AuthMiddlewary(http.HandlerFunc(post.UpdateFlatPoster))).Methods(http.MethodPut, http.MethodOptions)
+		apiGroup.Handle("/posters/flat", RateLimitMiddlewary(10)(AuthMiddlewary(http.HandlerFunc(post.CreateFlatPoster)))).Methods(http.MethodPost, http.MethodOptions)
+		apiGroup.Handle("/posters/flat/{alias}", RateLimitMiddlewary(10)(AuthMiddlewary(http.HandlerFunc(post.UpdateFlatPoster)))).Methods(http.MethodPut, http.MethodOptions)
 		apiGroup.Handle("/posters/flat/{alias}", AuthMiddlewary(http.HandlerFunc(post.DeleteFlatPoster))).Methods(http.MethodDelete, http.MethodOptions)
 
 		apiGroup.Handle("/posters/{alias}/favorites", AuthMiddlewary(http.HandlerFunc(post.AddFavoritePoster))).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.Handle("/posters/favorites", AuthMiddlewary(http.HandlerFunc(post.GetFavoritesPoster))).Methods(http.MethodGet, http.MethodOptions)
 		apiGroup.Handle("/posters/{alias}/favorites", AuthMiddlewary(http.HandlerFunc(post.DeleteFavoritePoster))).Methods(http.MethodDelete, http.MethodOptions)
 		apiGroup.Handle("/posters/{alias}/favorites", UserIDMiddleware(http.HandlerFunc(post.GetFavoritesCountPoster))).Methods(http.MethodGet, http.MethodOptions)
-		apiGroup.Handle("/posters/generate-description", AuthMiddlewary(http.HandlerFunc(post.GenerateDescription))).Methods(http.MethodPost, http.MethodOptions)
+		apiGroup.Handle("/posters/generate-description", RateLimitMiddlewary(10)(AuthMiddlewary(http.HandlerFunc(post.GenerateDescription)))).Methods(http.MethodPost, http.MethodOptions)
 
 		apiGroup.Handle("/posters/{alias}/views", AuthMiddlewary(http.HandlerFunc(post.AddViewPoster))).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.Handle("/posters/{alias}/views", http.HandlerFunc(post.GetViewsPoster)).Methods(http.MethodGet, http.MethodOptions)

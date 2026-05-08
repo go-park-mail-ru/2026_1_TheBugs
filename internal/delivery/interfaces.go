@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	jwtUtils "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/jwt"
@@ -52,4 +53,8 @@ type PostersUseCase interface {
 	CreateFlatPoster(ctx context.Context, poster *dto.PosterInputFlatDTO) (*dto.CreatedPoster, error)
 	UpdateFlatPoster(ctx context.Context, alias string, poster *dto.PosterInputFlatDTO) (*dto.CreatedPoster, error)
 	DeleteFlatPoster(ctx context.Context, alias string, userID int) (*dto.CreatedPoster, error)
+}
+
+type RateLimitUseCase interface {
+	CheckIPLimit(ctx context.Context, ip string, limit int, ttl time.Duration) (bool, error)
 }
