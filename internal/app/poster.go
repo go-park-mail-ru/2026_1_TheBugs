@@ -46,7 +46,7 @@ func RunPosterService(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	uow := uowSql.NewSQLStorage(pool)
 
 	minioClient, err := minio.New(cfg.Endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
+		Creds:  credentials.NewStaticV4(cfg.Minio.AccessKey, cfg.Minio.SecretKey, ""),
 		Secure: false,
 	})
 	if err != nil {

@@ -15,10 +15,12 @@ import (
 	complexHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/complex"
 	orderHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/order"
 	posterHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
+	promHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/promotion"
 	userHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
 	minioRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/minio"
 	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
 	orderUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/order"
+	promUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/promotion"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/dsn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/minio/minio-go/v7"
@@ -38,7 +40,7 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	}
 	uow := uowSql.NewSQLStorage(pool)
 	minioClient, err := minio.New(cfg.Endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
+		Creds:  credentials.NewStaticV4(cfg.Minio.AccessKey, cfg.Minio.SecretKey, ""),
 		Secure: false,
 	})
 	if err != nil {
@@ -52,19 +54,19 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 
 	authConn, err := grpc.NewClient(fmt.Sprintf("%s:%d", cfg.AuthService.Host, cfg.AuthService.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("cannot dial grpc server: %v", err)
+		logger.Errorf("cannot dial grpc server: %v", err)
 	}
 	userConn, err := grpc.NewClient(fmt.Sprintf("%s:%d", cfg.UserService.Host, cfg.UserService.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("cannot dial grpc server: %v", err)
+		logger.Errorf("cannot dial grpc server: %v", err)
 	}
 	posterConn, err := grpc.NewClient(fmt.Sprintf("%s:%d", cfg.PosterService.Host, cfg.PosterService.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("cannot dial poster grpc server: %v", err)
+		logger.Errorf("cannot dial poster grpc server: %v", err)
 	}
 	complexConn, err := grpc.NewClient(fmt.Sprintf("%s:%d", cfg.ComplexService.Host, cfg.ComplexService.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		log.Fatalf("cannot dial grpc server: %v", err)
+		logger.Errorf("cannot dial grpc server: %v", err)
 	}
 	authHandler := authHandler.NewAuthHandler(authConn)
 	userHandler := userHandler.NewUserHandler(userConn)
@@ -74,8 +76,11 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	orderUC := orderUC.NewOrderUseCase(uow, fileRepo)
 	orderHandler := orderHandler.NewOrderHandler(orderUC)
 
+	promotionUC := promUC.NewPromotionUseCase(uow)
+	promotionHandler := promHandler.NewPromotionHandler(promotionUC)
+
 	r := mux.NewRouter()
-	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler, userHandler, orderHandler)
+	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler, userHandler, orderHandler, promotionHandler)
 	serverAddress := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	srv := &http.Server{
 		Handler:      r,

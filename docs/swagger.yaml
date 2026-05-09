@@ -158,6 +158,13 @@ definitions:
           $ref: '#/definitions/dto.OrderPreviewDTO'
         type: array
     type: object
+  dto.PaymentDTO:
+    properties:
+      confirmation_url:
+        type: string
+      payment_id:
+        type: string
+    type: object
   dto.PhotoDTO:
     properties:
       img_url:
@@ -314,6 +321,23 @@ definitions:
       expire_at:
         type: integer
     type: object
+  promotion.CheckPaymentRequest:
+    properties:
+      payment_id:
+        type: string
+    type: object
+  promotion.CheckPaymentResponse:
+    properties:
+      payment_status:
+        type: string
+    type: object
+  promotion.CreatePaymentRequest:
+    properties:
+      poster_id:
+        type: integer
+      promotion_code:
+        type: string
+    type: object
   request.UpdatePwdDTO:
     properties:
       password:
@@ -415,50 +439,6 @@ info:
   title: DomDeli API
   version: "1.0"
 paths:
-  /auth/admin/login:
-    post:
-      consumes:
-      - application/x-www-form-urlencoded
-      description: Authenticate admin user and return access token + set refresh token
-        cookie
-      parameters:
-      - description: User email
-        in: formData
-        name: email
-        required: true
-        type: string
-      - description: User password
-        in: formData
-        name: password
-        required: true
-        type: string
-      responses:
-        "200":
-          description: Successful login, returns access token
-          headers:
-            Set-Cookie:
-              description: refresh_token=<NEW_REFRESH_TOKEN>; HttpOnly; Path=/api/auth/refresh;
-                Max-Age=...
-              type: string
-          schema:
-            $ref: '#/definitions/auth.LoginResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/response.ValidationErrorResponse'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.ErrorResponse'
-      security:
-      - CSRFToken: []
-      summary: Login admin user
-      tags:
-      - Auth
   /auth/email:
     post:
       consumes:
@@ -1768,6 +1748,89 @@ paths:
       summary: Get list of user`s posters
       tags:
       - posters
+  /promotions/payment:
+    post:
+      consumes:
+      - application/json
+      description: Creates YooKassa payment and returns confirmation URL
+      parameters:
+      - description: Create payment request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/promotion.CreatePaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PaymentDTO'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Create promotion payment
+      tags:
+      - promotion
+  /promotions/status:
+    post:
+      consumes:
+      - application/json
+      description: YooKassa check status
+      parameters:
+      - description: Create payment request
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/promotion.CheckPaymentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/promotion.CheckPaymentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: YooKassa check status
+      tags:
+      - promotion
+  /promotions/webhooks/yookassa:
+    post:
+      consumes:
+      - application/json
+      description: Handles YooKassa payment events
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: YooKassa webhook
+      tags:
+      - promotion
   /support/orders:
     get:
       description: Returns all support orders of authorized user

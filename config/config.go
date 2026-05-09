@@ -43,6 +43,7 @@ type (
 		UserService    `yaml:"user-service"`
 		PosterService  `yaml:"poster-service"`
 		ComplexService `yaml:"complex-service"`
+		Yookassa       `yaml:"yookassa"`
 	}
 	Redis struct {
 		Host     string `yaml:"host" env:"REDIS_HOST" env-default:"localhost"`
@@ -134,6 +135,11 @@ type (
 	ComplexService struct {
 		Host string `yaml:"host" env:"COMPLEX_SRV_HOST" env-default:"localhost"`
 		Port int    `yaml:"port" env:"COMPLEX_SRV_PORT" env-default:"50053"`
+	}
+	Yookassa struct {
+		AccountID   string `yaml:"account_id" env:"YOOKASSA_ACCOUNT_ID" env-default:"1351858"`
+		SecretKey   string `yaml:"secret_key" env:"YOOKASSA_SECRET_KEY" env-default:""`
+		RedirectURL string `yaml:"redirect_url" env:"YOOKASSA_REDIRECT_URL" env-default:"http://localhost:5173"`
 	}
 )
 

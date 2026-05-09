@@ -1032,6 +1032,20 @@ func (mr *MockUnitOfWorkMockRecorder) Posters() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Posters", reflect.TypeOf((*MockUnitOfWork)(nil).Posters))
 }
 
+// Promotion mocks base method.
+func (m *MockUnitOfWork) Promotion() usecase.PromotionRepo {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Promotion")
+	ret0, _ := ret[0].(usecase.PromotionRepo)
+	return ret0
+}
+
+// Promotion indicates an expected call of Promotion.
+func (mr *MockUnitOfWorkMockRecorder) Promotion() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Promotion", reflect.TypeOf((*MockUnitOfWork)(nil).Promotion))
+}
+
 // Users mocks base method.
 func (m *MockUnitOfWork) Users() usecase.UserRepo {
 	m.ctrl.T.Helper()
@@ -1219,20 +1233,6 @@ func (m *MockMailSender) SendAnswer(ctx context.Context, email string, orderID i
 func (mr *MockMailSenderMockRecorder) SendAnswer(ctx, email, orderID, answer interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendAnswer", reflect.TypeOf((*MockMailSender)(nil).SendAnswer), ctx, email, orderID, answer)
-}
-
-// SendCode mocks base method.
-func (m *MockMailSender) SendCode(ctx context.Context, to, code string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendCode", ctx, to, code)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// SendCode indicates an expected call of SendCode.
-func (mr *MockMailSenderMockRecorder) SendCode(ctx, to, code interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendCode", reflect.TypeOf((*MockMailSender)(nil).SendCode), ctx, to, code)
 }
 
 // SendRecoveryCode mocks base method.
@@ -1449,44 +1449,6 @@ func (mr *MockLLMAgentMockRecorder) Chat(ctx, systemPrompt, userPrompt interface
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Chat", reflect.TypeOf((*MockLLMAgent)(nil).Chat), ctx, systemPrompt, userPrompt)
 }
 
-// MockSupportAgent is a mock of SupportAgent interface.
-type MockSupportAgent struct {
-	ctrl     *gomock.Controller
-	recorder *MockSupportAgentMockRecorder
-}
-
-// MockSupportAgentMockRecorder is the mock recorder for MockSupportAgent.
-type MockSupportAgentMockRecorder struct {
-	mock *MockSupportAgent
-}
-
-// NewMockSupportAgent creates a new mock instance.
-func NewMockSupportAgent(ctrl *gomock.Controller) *MockSupportAgent {
-	mock := &MockSupportAgent{ctrl: ctrl}
-	mock.recorder = &MockSupportAgentMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockSupportAgent) EXPECT() *MockSupportAgentMockRecorder {
-	return m.recorder
-}
-
-// Chat mocks base method.
-func (m *MockSupportAgent) Chat(ctx context.Context, systemPrompt, userPrompt string) (*dto.ChatResult, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Chat", ctx, systemPrompt, userPrompt)
-	ret0, _ := ret[0].(*dto.ChatResult)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Chat indicates an expected call of Chat.
-func (mr *MockSupportAgentMockRecorder) Chat(ctx, systemPrompt, userPrompt interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Chat", reflect.TypeOf((*MockSupportAgent)(nil).Chat), ctx, systemPrompt, userPrompt)
-}
-
 // MockOrderRepo is a mock of OrderRepo interface.
 type MockOrderRepo struct {
 	ctrl     *gomock.Controller
@@ -1611,4 +1573,86 @@ func (m *MockOrderRepo) InsertPhotos(ctx context.Context, orderID int, photos []
 func (mr *MockOrderRepoMockRecorder) InsertPhotos(ctx, orderID, photos interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertPhotos", reflect.TypeOf((*MockOrderRepo)(nil).InsertPhotos), ctx, orderID, photos)
+}
+
+// MockPromotionRepo is a mock of PromotionRepo interface.
+type MockPromotionRepo struct {
+	ctrl     *gomock.Controller
+	recorder *MockPromotionRepoMockRecorder
+}
+
+// MockPromotionRepoMockRecorder is the mock recorder for MockPromotionRepo.
+type MockPromotionRepoMockRecorder struct {
+	mock *MockPromotionRepo
+}
+
+// NewMockPromotionRepo creates a new mock instance.
+func NewMockPromotionRepo(ctrl *gomock.Controller) *MockPromotionRepo {
+	mock := &MockPromotionRepo{ctrl: ctrl}
+	mock.recorder = &MockPromotionRepoMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockPromotionRepo) EXPECT() *MockPromotionRepoMockRecorder {
+	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockPromotionRepo) Create(ctx context.Context, data dto.CreatePromotionDTO) (int, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", ctx, data)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockPromotionRepoMockRecorder) Create(ctx, data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockPromotionRepo)(nil).Create), ctx, data)
+}
+
+// GetByCode mocks base method.
+func (m *MockPromotionRepo) GetByCode(ctx context.Context, code string) (*entity.Promotion, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByCode", ctx, code)
+	ret0, _ := ret[0].(*entity.Promotion)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByCode indicates an expected call of GetByCode.
+func (mr *MockPromotionRepoMockRecorder) GetByCode(ctx, code interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByCode", reflect.TypeOf((*MockPromotionRepo)(nil).GetByCode), ctx, code)
+}
+
+// GetByPaymentID mocks base method.
+func (m *MockPromotionRepo) GetByPaymentID(ctx context.Context, paymentID string) (*entity.PosterPromotion, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByPaymentID", ctx, paymentID)
+	ret0, _ := ret[0].(*entity.PosterPromotion)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByPaymentID indicates an expected call of GetByPaymentID.
+func (mr *MockPromotionRepoMockRecorder) GetByPaymentID(ctx, paymentID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByPaymentID", reflect.TypeOf((*MockPromotionRepo)(nil).GetByPaymentID), ctx, paymentID)
+}
+
+// UpdateStatus mocks base method.
+func (m *MockPromotionRepo) UpdateStatus(ctx context.Context, paymentID, status string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateStatus", ctx, paymentID, status)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateStatus indicates an expected call of UpdateStatus.
+func (mr *MockPromotionRepoMockRecorder) UpdateStatus(ctx, paymentID, status interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStatus", reflect.TypeOf((*MockPromotionRepo)(nil).UpdateStatus), ctx, paymentID, status)
 }

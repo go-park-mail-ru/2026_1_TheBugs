@@ -97,6 +97,7 @@ type UnitOfWork interface {
 	Autho() AuthRepo
 	UtilityCompany() UtilityCompanyRepo
 	Order() OrderRepo
+	Promotion() PromotionRepo
 	Do(ctx context.Context, fn func(r UnitOfWork) error) error
 }
 
@@ -141,4 +142,13 @@ type OrderRepo interface {
 	GetByID(ctx context.Context, orderID int) (*entity.OrderFull, error)
 	GetOrderImages(ctx context.Context, id int) ([]entity.OrderPhoto, error)
 	FinishOrder(ctx context.Context, orderID int, adminID int) error
+}
+
+type PromotionRepo interface {
+	Create(ctx context.Context, data dto.CreatePromotionDTO) (int, error)
+	UpdateStatus(ctx context.Context, paymentID string, status string) error
+	GetByCode(ctx context.Context, code string) (*entity.Promotion, error)
+	Activate(ctx context.Context, paymentID string, startAt time.Time) error
+	GetByPaymentID(ctx context.Context, paymentID string) (*entity.PosterPromotion, error)
+	GetActiveByPosterID(ctx context.Context, posterID int) (*entity.PosterPromotion, error)
 }

@@ -5,6 +5,8 @@ import (
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	jwtUtils "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/jwt"
+	yoopayment "github.com/rvinnie/yookassa-sdk-go/yookassa/payment"
+	yoowebhook "github.com/rvinnie/yookassa-sdk-go/yookassa/webhook"
 )
 
 //go:generate mockgen -source=interfaces.go -destination=../mocks/mocks_uc.go -package=mocks
@@ -52,4 +54,10 @@ type PostersUseCase interface {
 	CreateFlatPoster(ctx context.Context, poster *dto.PosterInputFlatDTO) (*dto.CreatedPoster, error)
 	UpdateFlatPoster(ctx context.Context, alias string, poster *dto.PosterInputFlatDTO) (*dto.CreatedPoster, error)
 	DeleteFlatPoster(ctx context.Context, alias string, userID int) (*dto.CreatedPoster, error)
+}
+
+type PromotionUseCase interface {
+	CreatePaymentOrder(ctx context.Context, promotionCode string, posterID int, userID int) (*dto.PaymentDTO, error)
+	ActivatePromotion(ctx context.Context, data yoowebhook.WebhookEvent[yoopayment.Payment]) error
+	CheckPaymentStatus(ctx context.Context, userID int, paymentID string) (yoopayment.Status, error)
 }
