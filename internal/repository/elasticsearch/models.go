@@ -15,12 +15,15 @@ type ESResponse[T any] struct {
 type Query struct {
 	Bool BoolQuery `json:"bool"`
 }
-type SearchQuery struct {
+type ScoreQuery struct {
+	FunctionScore FunctionScoreQuery `json:"function_score"`
+}
+type SearchQuery[T any] struct {
 	Size           int            `json:"size,omitempty"`
 	From           int            `json:"from,omitempty"`
 	TrackTotalHits any            `json:"track_total_hits"`
 	MinScore       float32        `json:"min_score"`
-	Query          Query          `json:"query"`
+	Query          T              `json:"query"`
 	Sourse         map[string]any `json:"_source,omitempty"`
 	Aggs           map[string]any `json:"aggs,omitempty"`
 }
@@ -54,3 +57,13 @@ type ScriptQuery struct {
 type RangeQuery struct {
 	Range map[string]map[string]int `json:"range"`
 }
+
+type FunctionScoreQuery struct {
+	Query     Query       `json:"query"`
+	Functions []ScoreFunc `json:"functions"`
+	ScoreMode string      `json:"score_mode,omitempty"`
+	BoostMode string      `json:"boost_mode,omitempty"`
+	Boost     float32     `json:"boost,omitempty"`
+}
+
+type ScoreFunc map[string]any

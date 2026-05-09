@@ -1074,31 +1074,31 @@ func (mr *MockUnitOfWorkMockRecorder) UtilityCompany() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UtilityCompany", reflect.TypeOf((*MockUnitOfWork)(nil).UtilityCompany))
 }
 
-// MockСache is a mock of Сache interface.
-type MockСache struct {
+// MockSessionRepo is a mock of SessionRepo interface.
+type MockSessionRepo struct {
 	ctrl     *gomock.Controller
-	recorder *MockСacheMockRecorder
+	recorder *MockSessionRepoMockRecorder
 }
 
-// MockСacheMockRecorder is the mock recorder for MockСache.
-type MockСacheMockRecorder struct {
-	mock *MockСache
+// MockSessionRepoMockRecorder is the mock recorder for MockSessionRepo.
+type MockSessionRepoMockRecorder struct {
+	mock *MockSessionRepo
 }
 
-// NewMockСache creates a new mock instance.
-func NewMockСache(ctrl *gomock.Controller) *MockСache {
-	mock := &MockСache{ctrl: ctrl}
-	mock.recorder = &MockСacheMockRecorder{mock}
+// NewMockSessionRepo creates a new mock instance.
+func NewMockSessionRepo(ctrl *gomock.Controller) *MockSessionRepo {
+	mock := &MockSessionRepo{ctrl: ctrl}
+	mock.recorder = &MockSessionRepoMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockСache) EXPECT() *MockСacheMockRecorder {
+func (m *MockSessionRepo) EXPECT() *MockSessionRepoMockRecorder {
 	return m.recorder
 }
 
 // CreateRecoverSession mocks base method.
-func (m *MockСache) CreateRecoverSession(ctx context.Context, sessionID string, data entity.RecoverSession, ttl time.Duration) error {
+func (m *MockSessionRepo) CreateRecoverSession(ctx context.Context, sessionID string, data entity.RecoverSession, ttl time.Duration) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateRecoverSession", ctx, sessionID, data, ttl)
 	ret0, _ := ret[0].(error)
@@ -1106,13 +1106,13 @@ func (m *MockСache) CreateRecoverSession(ctx context.Context, sessionID string,
 }
 
 // CreateRecoverSession indicates an expected call of CreateRecoverSession.
-func (mr *MockСacheMockRecorder) CreateRecoverSession(ctx, sessionID, data, ttl interface{}) *gomock.Call {
+func (mr *MockSessionRepoMockRecorder) CreateRecoverSession(ctx, sessionID, data, ttl interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRecoverSession", reflect.TypeOf((*MockСache)(nil).CreateRecoverSession), ctx, sessionID, data, ttl)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRecoverSession", reflect.TypeOf((*MockSessionRepo)(nil).CreateRecoverSession), ctx, sessionID, data, ttl)
 }
 
 // DeleteRecoverSession mocks base method.
-func (m *MockСache) DeleteRecoverSession(ctx context.Context, sessionID string) error {
+func (m *MockSessionRepo) DeleteRecoverSession(ctx context.Context, sessionID string) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteRecoverSession", ctx, sessionID)
 	ret0, _ := ret[0].(error)
@@ -1120,13 +1120,13 @@ func (m *MockСache) DeleteRecoverSession(ctx context.Context, sessionID string)
 }
 
 // DeleteRecoverSession indicates an expected call of DeleteRecoverSession.
-func (mr *MockСacheMockRecorder) DeleteRecoverSession(ctx, sessionID interface{}) *gomock.Call {
+func (mr *MockSessionRepoMockRecorder) DeleteRecoverSession(ctx, sessionID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRecoverSession", reflect.TypeOf((*MockСache)(nil).DeleteRecoverSession), ctx, sessionID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRecoverSession", reflect.TypeOf((*MockSessionRepo)(nil).DeleteRecoverSession), ctx, sessionID)
 }
 
 // GetRecoverSession mocks base method.
-func (m *MockСache) GetRecoverSession(ctx context.Context, sessionID string) (*entity.RecoverSession, error) {
+func (m *MockSessionRepo) GetRecoverSession(ctx context.Context, sessionID string) (*entity.RecoverSession, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetRecoverSession", ctx, sessionID)
 	ret0, _ := ret[0].(*entity.RecoverSession)
@@ -1135,13 +1135,13 @@ func (m *MockСache) GetRecoverSession(ctx context.Context, sessionID string) (*
 }
 
 // GetRecoverSession indicates an expected call of GetRecoverSession.
-func (mr *MockСacheMockRecorder) GetRecoverSession(ctx, sessionID interface{}) *gomock.Call {
+func (mr *MockSessionRepoMockRecorder) GetRecoverSession(ctx, sessionID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRecoverSession", reflect.TypeOf((*MockСache)(nil).GetRecoverSession), ctx, sessionID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRecoverSession", reflect.TypeOf((*MockSessionRepo)(nil).GetRecoverSession), ctx, sessionID)
 }
 
 // IncrementRecoverAttempts mocks base method.
-func (m *MockСache) IncrementRecoverAttempts(ctx context.Context, sessionID string) (int64, error) {
+func (m *MockSessionRepo) IncrementRecoverAttempts(ctx context.Context, sessionID string) (int64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IncrementRecoverAttempts", ctx, sessionID)
 	ret0, _ := ret[0].(int64)
@@ -1150,13 +1150,13 @@ func (m *MockСache) IncrementRecoverAttempts(ctx context.Context, sessionID str
 }
 
 // IncrementRecoverAttempts indicates an expected call of IncrementRecoverAttempts.
-func (mr *MockСacheMockRecorder) IncrementRecoverAttempts(ctx, sessionID interface{}) *gomock.Call {
+func (mr *MockSessionRepoMockRecorder) IncrementRecoverAttempts(ctx, sessionID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncrementRecoverAttempts", reflect.TypeOf((*MockСache)(nil).IncrementRecoverAttempts), ctx, sessionID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IncrementRecoverAttempts", reflect.TypeOf((*MockSessionRepo)(nil).IncrementRecoverAttempts), ctx, sessionID)
 }
 
 // IsBlacklisted mocks base method.
-func (m *MockСache) IsBlacklisted(ctx context.Context, val string) (bool, error) {
+func (m *MockSessionRepo) IsBlacklisted(ctx context.Context, val string) (bool, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsBlacklisted", ctx, val)
 	ret0, _ := ret[0].(bool)
@@ -1165,13 +1165,13 @@ func (m *MockСache) IsBlacklisted(ctx context.Context, val string) (bool, error
 }
 
 // IsBlacklisted indicates an expected call of IsBlacklisted.
-func (mr *MockСacheMockRecorder) IsBlacklisted(ctx, val interface{}) *gomock.Call {
+func (mr *MockSessionRepoMockRecorder) IsBlacklisted(ctx, val interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsBlacklisted", reflect.TypeOf((*MockСache)(nil).IsBlacklisted), ctx, val)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsBlacklisted", reflect.TypeOf((*MockSessionRepo)(nil).IsBlacklisted), ctx, val)
 }
 
 // SetBlacklist mocks base method.
-func (m *MockСache) SetBlacklist(ctx context.Context, val string, ttl time.Duration) error {
+func (m *MockSessionRepo) SetBlacklist(ctx context.Context, val string, ttl time.Duration) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetBlacklist", ctx, val, ttl)
 	ret0, _ := ret[0].(error)
@@ -1179,13 +1179,13 @@ func (m *MockСache) SetBlacklist(ctx context.Context, val string, ttl time.Dura
 }
 
 // SetBlacklist indicates an expected call of SetBlacklist.
-func (mr *MockСacheMockRecorder) SetBlacklist(ctx, val, ttl interface{}) *gomock.Call {
+func (mr *MockSessionRepoMockRecorder) SetBlacklist(ctx, val, ttl interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetBlacklist", reflect.TypeOf((*MockСache)(nil).SetBlacklist), ctx, val, ttl)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetBlacklist", reflect.TypeOf((*MockSessionRepo)(nil).SetBlacklist), ctx, val, ttl)
 }
 
 // SetRecoverVerified mocks base method.
-func (m *MockСache) SetRecoverVerified(ctx context.Context, sessionID string, verified bool) error {
+func (m *MockSessionRepo) SetRecoverVerified(ctx context.Context, sessionID string, verified bool) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetRecoverVerified", ctx, sessionID, verified)
 	ret0, _ := ret[0].(error)
@@ -1193,9 +1193,75 @@ func (m *MockСache) SetRecoverVerified(ctx context.Context, sessionID string, v
 }
 
 // SetRecoverVerified indicates an expected call of SetRecoverVerified.
-func (mr *MockСacheMockRecorder) SetRecoverVerified(ctx, sessionID, verified interface{}) *gomock.Call {
+func (mr *MockSessionRepoMockRecorder) SetRecoverVerified(ctx, sessionID, verified interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetRecoverVerified", reflect.TypeOf((*MockСache)(nil).SetRecoverVerified), ctx, sessionID, verified)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetRecoverVerified", reflect.TypeOf((*MockSessionRepo)(nil).SetRecoverVerified), ctx, sessionID, verified)
+}
+
+// MockCache is a mock of Cache interface.
+type MockCache struct {
+	ctrl     *gomock.Controller
+	recorder *MockCacheMockRecorder
+}
+
+// MockCacheMockRecorder is the mock recorder for MockCache.
+type MockCacheMockRecorder struct {
+	mock *MockCache
+}
+
+// NewMockCache creates a new mock instance.
+func NewMockCache(ctrl *gomock.Controller) *MockCache {
+	mock := &MockCache{ctrl: ctrl}
+	mock.recorder = &MockCacheMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockCache) EXPECT() *MockCacheMockRecorder {
+	return m.recorder
+}
+
+// Delete mocks base method.
+func (m *MockCache) Delete(ctx context.Context, key string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", ctx, key)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockCacheMockRecorder) Delete(ctx, key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockCache)(nil).Delete), ctx, key)
+}
+
+// Get mocks base method.
+func (m *MockCache) Get(ctx context.Context, key string) ([]byte, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", ctx, key)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockCacheMockRecorder) Get(ctx, key interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockCache)(nil).Get), ctx, key)
+}
+
+// Set mocks base method.
+func (m *MockCache) Set(ctx context.Context, key string, value []byte, ttl time.Duration) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Set", ctx, key, value, ttl)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Set indicates an expected call of Set.
+func (mr *MockCacheMockRecorder) Set(ctx, key, value, ttl interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockCache)(nil).Set), ctx, key, value, ttl)
 }
 
 // MockMailSender is a mock of MailSender interface.
@@ -1598,6 +1664,20 @@ func (m *MockPromotionRepo) EXPECT() *MockPromotionRepoMockRecorder {
 	return m.recorder
 }
 
+// Activate mocks base method.
+func (m *MockPromotionRepo) Activate(ctx context.Context, paymentID string, startAt time.Time) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Activate", ctx, paymentID, startAt)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Activate indicates an expected call of Activate.
+func (mr *MockPromotionRepoMockRecorder) Activate(ctx, paymentID, startAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Activate", reflect.TypeOf((*MockPromotionRepo)(nil).Activate), ctx, paymentID, startAt)
+}
+
 // Create mocks base method.
 func (m *MockPromotionRepo) Create(ctx context.Context, data dto.CreatePromotionDTO) (int, error) {
 	m.ctrl.T.Helper()
@@ -1611,6 +1691,21 @@ func (m *MockPromotionRepo) Create(ctx context.Context, data dto.CreatePromotion
 func (mr *MockPromotionRepoMockRecorder) Create(ctx, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockPromotionRepo)(nil).Create), ctx, data)
+}
+
+// GetActiveByPosterID mocks base method.
+func (m *MockPromotionRepo) GetActiveByPosterID(ctx context.Context, posterID int) (*entity.PosterPromotion, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetActiveByPosterID", ctx, posterID)
+	ret0, _ := ret[0].(*entity.PosterPromotion)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetActiveByPosterID indicates an expected call of GetActiveByPosterID.
+func (mr *MockPromotionRepoMockRecorder) GetActiveByPosterID(ctx, posterID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetActiveByPosterID", reflect.TypeOf((*MockPromotionRepo)(nil).GetActiveByPosterID), ctx, posterID)
 }
 
 // GetByCode mocks base method.

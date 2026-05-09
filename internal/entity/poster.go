@@ -7,15 +7,16 @@ import (
 )
 
 type PosterFlat struct {
-	ID           int     `db:"id" json:"id"`
-	Price        float64 `db:"price" json:"price"`
-	ImgURL       *string `db:"avatar_url" json:"avatar_url"`
-	Address      string  `db:"address" json:"address"`
-	Metro        *string `db:"station_name" json:"station_name"`
-	Area         float64 `db:"area" json:"area"`
-	Alias        string  `db:"alias" json:"alias"`
-	Floor        *int    `db:"floor" json:"floor"`
-	FlatCategory *string `db:"flat_category" json:"flat_category"`
+	ID                 int     `db:"id" json:"id"`
+	Price              float64 `db:"price" json:"price"`
+	ImgURL             *string `db:"avatar_url" json:"avatar_url"`
+	Address            string  `db:"address" json:"address"`
+	Metro              *string `db:"station_name" json:"station_name"`
+	Area               float64 `db:"area" json:"area"`
+	Alias              string  `db:"alias" json:"alias"`
+	Floor              *int    `db:"floor" json:"floor"`
+	FlatCategory       *string `db:"flat_category" json:"flat_category"`
+	HasActivePromotion bool    `db:"-" json:"has_active_promotion"`
 }
 
 type Poster struct {

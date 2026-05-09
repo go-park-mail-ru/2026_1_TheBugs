@@ -101,7 +101,7 @@ type UnitOfWork interface {
 	Do(ctx context.Context, fn func(r UnitOfWork) error) error
 }
 
-type Сache interface {
+type SessionRepo interface {
 	SetBlacklist(ctx context.Context, val string, ttl time.Duration) error
 	IsBlacklisted(ctx context.Context, val string) (bool, error)
 	CreateRecoverSession(ctx context.Context, sessionID string, data entity.RecoverSession, ttl time.Duration) error
@@ -109,6 +109,12 @@ type Сache interface {
 	DeleteRecoverSession(ctx context.Context, sessionID string) error
 	IncrementRecoverAttempts(ctx context.Context, sessionID string) (int64, error)
 	SetRecoverVerified(ctx context.Context, sessionID string, verified bool) error
+}
+
+type Cache interface {
+	Get(ctx context.Context, key string) ([]byte, error)
+	Set(ctx context.Context, key string, value []byte, ttl time.Duration) error
+	Delete(ctx context.Context, key string) error
 }
 
 type MailSender interface {

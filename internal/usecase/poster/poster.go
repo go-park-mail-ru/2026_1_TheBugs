@@ -2,6 +2,7 @@ package poster
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -14,6 +15,8 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/validator"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/alias"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/cache"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/photo"
 )
 
@@ -22,6 +25,7 @@ const (
 	PropertyFlat    = "flat"
 	PropertyHouse   = "house"
 	MetroRadius     = 2500
+	DefaultCacheTTL = 5 * time.Minute
 )
 
 type PosterUseCase struct {
@@ -29,14 +33,16 @@ type PosterUseCase struct {
 	file   usecase.FileRepo
 	search usecase.SearchRepo
 	agent  usecase.LLMAgent
+	cache  usecase.Cache
 }
 
-func NewPosterUseCase(uow usecase.UnitOfWork, file usecase.FileRepo, search usecase.SearchRepo, agent usecase.LLMAgent) *PosterUseCase {
+func NewPosterUseCase(uow usecase.UnitOfWork, file usecase.FileRepo, search usecase.SearchRepo, agent usecase.LLMAgent, cache usecase.Cache) *PosterUseCase {
 	return &PosterUseCase{
 		uow:    uow,
 		file:   file,
 		search: search,
 		agent:  agent,
+		cache:  cache,
 	}
 }
 
@@ -68,6 +74,7 @@ func (uc *PosterUseCase) GetPostersUseCase(ctx context.Context, filters dto.Post
 }
 
 func (uc *PosterUseCase) SearchPostersUseCase(ctx context.Context, filters dto.PostersFiltersDTO) (*dto.PostersResponse, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "SearchPostersUseCase")
 	if filters.Limit <= 0 || filters.Offset < 0 {
 		return nil, entity.InvalidInput
 	}
@@ -75,12 +82,36 @@ func (uc *PosterUseCase) SearchPostersUseCase(ctx context.Context, filters dto.P
 	if filters.Limit > MaxPostersLimit {
 		filters.Limit = MaxPostersLimit
 	}
+	hash, err := cache.GenerateCacheKey(filters)
+	if err != nil {
+		return nil, fmt.Errorf("cache.GenerateCacheKey: %w", err)
+	}
+
+	cacheKey := fmt.Sprintf("posters:filters:%s", hash)
+	data, err := uc.cache.Get(ctx, cacheKey)
+	if err == nil {
+		var cachedPoster dto.PostersResponse
+		if err := json.Unmarshal(data, &cachedPoster); err != nil {
+			return nil, fmt.Errorf("json.Unmarshal(data, posterDTO): %w", err)
+		}
+		log.Info("cache hit")
+		return &cachedPoster, nil
+	}
+	log.Info("cache miss")
 	log.Println(filters)
 
 	response, err := uc.search.SearchPosters(ctx, filters)
 	if err != nil {
 		log.Printf("uc.search.SearchPosters: %s", err)
 		return nil, err
+	}
+	data, err = json.Marshal(response)
+	if err != nil {
+		return nil, fmt.Errorf("json.Marshal(posterDTO): %w", err)
+	}
+	err = uc.cache.Set(ctx, cacheKey, data, DefaultCacheTTL)
+	if err != nil {
+		return nil, fmt.Errorf("uc.cache.Set: %w", err)
 	}
 	// ids := make([]int, 0, response.Len)
 	// for _, p := range response.Posters {
@@ -97,14 +128,24 @@ func (uc *PosterUseCase) SearchPostersUseCase(ctx context.Context, filters dto.P
 
 func (uc *PosterUseCase) GetPosterByAliasUseCase(ctx context.Context, posterAlias string, userID *int) (*dto.PosterDTO, error) {
 	var posterDTO *dto.PosterDTO
+	log := ctxLogger.GetLogger(ctx).WithField("op", "GetPosterByAliasUseCase")
+	cacheKey := fmt.Sprintf("posters:%s", posterAlias)
+	data, err := uc.cache.Get(ctx, cacheKey)
+	if err == nil {
+		var cachedPoster dto.PosterDTO
+		if err := json.Unmarshal(data, &cachedPoster); err != nil {
+			return nil, fmt.Errorf("json.Unmarshal(data, posterDTO): %w", err)
+		}
+		log.Info("cache hit")
+		return &cachedPoster, nil
+	}
+	log.Info("cache miss")
 
 	poster, err := uc.uow.Posters().GetByAlias(ctx, posterAlias, userID)
 	if err != nil {
 		return nil, fmt.Errorf("uc.PosterRepo.GetByAlias: %w", err)
 	}
-
 	posterDTO = dto.PosterToPosterDTO(poster)
-	log.Println(poster, posterDTO)
 
 	switch poster.CategoryAlias {
 	case PropertyFlat:
@@ -123,6 +164,15 @@ func (uc *PosterUseCase) GetPosterByAliasUseCase(ctx context.Context, posterAlia
 	}
 
 	dto.MakeUrlsFromPaths(posterDTO, config.Config.PublicHost, config.Config.Bucket)
+
+	data, err = json.Marshal(posterDTO)
+	if err != nil {
+		return nil, fmt.Errorf("json.Marshal(posterDTO): %w", err)
+	}
+	err = uc.cache.Set(ctx, cacheKey, data, DefaultCacheTTL)
+	if err != nil {
+		return nil, fmt.Errorf("uc.cache.Set: %w", err)
+	}
 
 	return posterDTO, nil
 }
@@ -486,6 +536,8 @@ func (uc *PosterUseCase) UpdateFlatPoster(ctx context.Context, alias string, pos
 		}
 
 	}
+	cacheKey := fmt.Sprintf("posters:%s", alias)
+	uc.cache.Delete(ctx, cacheKey)
 
 	return createdPoster, nil
 }
@@ -557,6 +609,8 @@ func (uc *PosterUseCase) DeleteFlatPoster(ctx context.Context, alias string, use
 	if len(oldKeys) > 0 {
 		_ = uc.cleanUploadedFiles(ctx, oldKeys)
 	}
+	cacheKey := fmt.Sprintf("posters:%s", alias)
+	uc.cache.Delete(ctx, cacheKey)
 
 	return deletedPoster, nil
 }

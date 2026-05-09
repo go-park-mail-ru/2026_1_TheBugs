@@ -60,11 +60,12 @@ func MapSearchPostersResponseToDTO(resp *poster.SearchPostersResponse) *dto.Post
 
 	for _, p := range resp.Posters {
 		card := dto.PosterCardDTO{
-			ID:      int(p.Id),
-			Alias:   p.Alias,
-			Price:   p.Price,
-			Address: p.Address,
-			Area:    p.Area,
+			ID:                 int(p.Id),
+			Alias:              p.Alias,
+			Price:              p.Price,
+			Address:            p.Address,
+			Area:               p.Area,
+			HasActivePromotion: p.HasActivePromotion,
 		}
 
 		if p.ImageUrl != nil {

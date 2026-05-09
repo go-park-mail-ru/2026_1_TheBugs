@@ -13,14 +13,15 @@ type CategoryDTO struct {
 }
 
 type PosterCardDTO struct {
-	ID           int     `json:"id"`
-	Alias        string  `json:"alias"`
-	Price        float64 `json:"price"`
-	ImgURL       *string `json:"imageUrl"`
-	Address      string  `json:"address"`
-	Metro        *string `json:"metro"`
-	Area         float64 `json:"area"`
-	FlatCategory *string `json:"flat_category"`
+	ID                 int     `json:"id"`
+	Alias              string  `json:"alias"`
+	Price              float64 `json:"price"`
+	ImgURL             *string `json:"imageUrl"`
+	Address            string  `json:"address"`
+	Metro              *string `json:"metro"`
+	Area               float64 `json:"area"`
+	FlatCategory       *string `json:"flat_category"`
+	HasActivePromotion bool    `json:"has_active_promotion"`
 	// Rating  *float64 `json:"rating"`
 	// Beds    *int     `json:"beds"`
 }
@@ -69,8 +70,9 @@ func PostersToPostersDTO(posters []entity.PosterFlat) []PosterCardDTO {
 			Area:    poster.Area,
 			// Rating:  &rating,
 			// Beds:    &count,
-			Alias:        poster.Alias,
-			FlatCategory: poster.FlatCategory,
+			HasActivePromotion: poster.HasActivePromotion,
+			Alias:              poster.Alias,
+			FlatCategory:       poster.FlatCategory,
 		}
 
 		listPosters = append(listPosters, posterDTO)

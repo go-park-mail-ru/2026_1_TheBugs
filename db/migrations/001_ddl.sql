@@ -460,3 +460,19 @@ CREATE OR REPLACE FUNCTION get_explain_rows(p_sql text)
  END;
  $BODY$ LANGUAGE plpgsql;
 
+-- Триггерная функция
+CREATE OR REPLACE FUNCTION update_poster_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE posters 
+    SET updated_at = NOW() 
+    WHERE id = NEW.poster_id;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER trg_update_poster_on_promo_change
+AFTER INSERT OR UPDATE OR DELETE ON posters_promotions
+FOR EACH ROW
+EXECUTE FUNCTION update_poster_timestamp();

@@ -23,6 +23,7 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/elasticsearch"
 	minioRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/minio"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/openrouter"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/redis/cache"
 	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
 	posterUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/dsn"
@@ -31,6 +32,7 @@ import (
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 )
@@ -42,6 +44,8 @@ func RunPosterService(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	if err != nil {
 		log.Fatalf("cannot create pgx pool: %v", err)
 	}
+	rdb := redis.NewClient(&redis.Options{Addr: fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port), Password: cfg.Redis.Password, DB: cfg.Redis.DB})
+	cacheRepo := cache.NewRedisCache(rdb)
 
 	uow := uowSql.NewSQLStorage(pool)
 
@@ -82,7 +86,7 @@ func RunPosterService(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	esRepo := elasticsearch.NewESRepo(esClient)
 	ai := openrouter.New(config.Config.OpenRouter.APIKey, config.Config.OpenRouter.Model)
 
-	posterUC := posterUC.NewPosterUseCase(uow, fileRepo, esRepo, ai)
+	posterUC := posterUC.NewPosterUseCase(uow, fileRepo, esRepo, ai, cacheRepo)
 
 	app := mux.NewRouter()
 
