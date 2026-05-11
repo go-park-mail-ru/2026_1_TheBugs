@@ -43,6 +43,8 @@ type CheckPaymentResponse struct {
 // @Success 200 {object} dto.PaymentDTO
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
+// @Security     BearerAuth
+// @Security     CSRFToken
 // @Router /promotions/payment [post]
 func (h *PromotionHandler) CreatePayment(w http.ResponseWriter, r *http.Request) {
 	op := "PromotionHandler.CreatePayment"
@@ -113,8 +115,10 @@ func (h *PromotionHandler) YooKassaWebhook(w http.ResponseWriter, r *http.Reques
 // @Success 200 {object} CheckPaymentResponse
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 500 {object} response.ErrorResponse
+// @Security     BearerAuth
+// @Security     CSRFToken
 // @Router /promotions/status [post]
-func (h *PromotionHandler) CheckPaymentStautes(w http.ResponseWriter, r *http.Request) {
+func (h *PromotionHandler) CheckPaymentStatus(w http.ResponseWriter, r *http.Request) {
 	op := "PromotionHandler.CheckPaymentStautes"
 	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
 
@@ -138,4 +142,36 @@ func (h *PromotionHandler) CheckPaymentStautes(w http.ResponseWriter, r *http.Re
 	}
 
 	utils.JSONResponse(w, http.StatusOK, CheckPaymentResponse{Stutus: string(status)})
+}
+
+// @Summary Get user`s promotions
+// @Description Get user`s promotions
+// @Tags promotion
+// @Accept json
+// @Produce json
+// @Success 200 {object} dto.UserPromotionsDTO
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Security     BearerAuth
+// @Security     CSRFToken
+// @Router /promotions/me [get]
+func (h *PromotionHandler) GetUserPromotions(w http.ResponseWriter, r *http.Request) {
+	op := "PromotionHandler.GetUserPromotions"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	userID, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.Errorf("utils.GetUserID: %s", err)
+		utils.HandelError(w, err)
+		return
+	}
+
+	resp, err := h.usecase.GetPromotionByUserID(r.Context(), userID)
+	if err != nil {
+		log.Errorf("h.usecase.ActivatePromotion: %s", err)
+		utils.HandelError(w, entity.ServiceError)
+		return
+	}
+
+	utils.JSONResponse(w, http.StatusOK, resp)
 }

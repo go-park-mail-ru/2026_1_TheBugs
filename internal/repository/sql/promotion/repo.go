@@ -116,3 +116,22 @@ func (r *PromotionRepo) Activate(ctx context.Context, paymentID string, startAt 
 
 	return nil
 }
+
+func (r *PromotionRepo) GetByUserID(ctx context.Context, userID int) ([]dto.UserPromotionDTO, error) {
+	sql := `
+		SELECT p.poster_id, p.promotion_id,
+               p.status, p.ends_at
+        FROM posters_promotions p
+		WHERE p.user_id = $1 AND status = 'active'
+		LIMIT 1;
+	`
+	rows, err := r.pool.Query(ctx, sql, userID)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+	proms, err := pgx.CollectRows(rows, pgx.RowToStructByName[dto.UserPromotionDTO])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+	return proms, nil
+}

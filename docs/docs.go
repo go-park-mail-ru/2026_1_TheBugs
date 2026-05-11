@@ -2026,8 +2026,59 @@ const docTemplate = `{
                 }
             }
         },
+        "/promotions/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "CSRFToken": []
+                    }
+                ],
+                "description": "Get user` + "`" + `s promotions",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "promotion"
+                ],
+                "summary": "Get user` + "`" + `s promotions",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserPromotionsDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/response.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/promotions/payment": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "CSRFToken": []
+                    }
+                ],
                 "description": "Creates YooKassa payment and returns confirmation URL",
                 "consumes": [
                     "application/json"
@@ -2074,6 +2125,14 @@ const docTemplate = `{
         },
         "/promotions/status": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    },
+                    {
+                        "CSRFToken": []
+                    }
+                ],
                 "description": "YooKassa check status",
                 "consumes": [
                     "application/json"
@@ -2984,6 +3043,9 @@ const docTemplate = `{
                 "flat_category": {
                     "type": "string"
                 },
+                "has_active_promotion": {
+                    "type": "boolean"
+                },
                 "id": {
                     "type": "integer"
                 },
@@ -3128,6 +3190,37 @@ const docTemplate = `{
                 },
                 "phone": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.UserPromotionDTO": {
+            "type": "object",
+            "properties": {
+                "ends_at": {
+                    "type": "string"
+                },
+                "poster_id": {
+                    "type": "integer"
+                },
+                "promotion_id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UserPromotionsDTO": {
+            "type": "object",
+            "properties": {
+                "lenght": {
+                    "type": "integer"
+                },
+                "promotions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.UserPromotionDTO"
+                    }
                 }
             }
         },

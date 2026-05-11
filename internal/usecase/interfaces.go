@@ -157,4 +157,5 @@ type PromotionRepo interface {
 	Activate(ctx context.Context, paymentID string, startAt time.Time) error
 	GetByPaymentID(ctx context.Context, paymentID string) (*entity.PosterPromotion, error)
 	GetActiveByPosterID(ctx context.Context, posterID int) (*entity.PosterPromotion, error)
+	GetByUserID(ctx context.Context, userID int) ([]dto.UserPromotionDTO, error)
 }

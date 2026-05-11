@@ -115,3 +115,12 @@ func (uc *PromotionUseCase) CheckPaymentStatus(ctx context.Context, userID int, 
 	return p.Status, nil
 
 }
+
+func (uc *PromotionUseCase) GetPromotionByUserID(ctx context.Context, userID int) (*dto.UserPromotionsDTO, error) {
+	promos, err := uc.uow.Promotion().GetByUserID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Promotion().GetByUserID: %w", err)
+	}
+	return &dto.UserPromotionsDTO{Lenght: len(promos), Promotions: promos}, nil
+
+}

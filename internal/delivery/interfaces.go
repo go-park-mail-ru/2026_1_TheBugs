@@ -60,4 +60,5 @@ type PromotionUseCase interface {
 	CreatePaymentOrder(ctx context.Context, promotionCode string, posterID int, userID int) (*dto.PaymentDTO, error)
 	ActivatePromotion(ctx context.Context, data yoowebhook.WebhookEvent[yoopayment.Payment]) error
 	CheckPaymentStatus(ctx context.Context, userID int, paymentID string) (yoopayment.Status, error)
+	GetPromotionByUserID(ctx context.Context, userID int) (*dto.UserPromotionsDTO, error)
 }
