@@ -122,7 +122,7 @@ func (uc AuthUseCase) LoginAdminUseCase(ctx context.Context, email string, passw
 	if err := validator.ValidateCred(email, passwod); err != nil {
 		return &cred, err
 	}
-	user, err := uc.uow.Users().GetByEmailSecurity(ctx, email)
+	user, err := uc.uow.Users().GetByEmail(ctx, email)
 
 	if err != nil {
 		return &cred, entity.NotFoundError

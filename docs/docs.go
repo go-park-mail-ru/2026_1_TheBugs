@@ -2355,7 +2355,7 @@ const docTemplate = `{
                         "CSRFToken": []
                     }
                 ],
-                "description": "Returns full support order info by id",
+                "description": "Returns full order info by id",
                 "produces": [
                     "application/json"
                 ],
@@ -2422,7 +2422,7 @@ const docTemplate = `{
                         "CSRFToken": []
                     }
                 ],
-                "description": "Sends support answer to user email",
+                "description": "Sends order answer to user email",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -2430,7 +2430,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "support"
+                    "order"
                 ],
                 "summary": "Answer order",
                 "parameters": [
@@ -2443,7 +2443,7 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Support answer",
+                        "description": "Order answer",
                         "name": "answer",
                         "in": "formData",
                         "required": true

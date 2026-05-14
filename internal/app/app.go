@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,14 +12,15 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi"
 	authHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/auth"
 	complexHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/complex"
-	orderHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/order"
 	posterHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
 	promHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/promotion"
+	supportHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/support"
 	userHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
 	minioRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/minio"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/smtp"
 	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
-	orderUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/order"
 	promUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/promotion"
+	supportUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/support"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/dsn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/minio/minio-go/v7"
@@ -36,20 +36,21 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	dsn := dsn.BuildDSN(cfg.Postgres)
 	pool, err := pgxpool.New(context.Background(), dsn)
 	if err != nil {
-		log.Fatalf("cannot create pgx pool: %v", err)
+		logger.Fatalf("cannot create pgx pool: %v", err)
 	}
 	uow := uowSql.NewSQLStorage(pool)
 	minioClient, err := minio.New(cfg.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(cfg.Minio.AccessKey, cfg.Minio.SecretKey, ""),
 		Secure: false,
 	})
+	senderRepo := smtp.NewSMTPSender(config.Config.SMTP.Host, config.Config.SMTP.Port, config.Config.SMTP.Email, config.Config.SMTP.Pwd)
 	if err != nil {
-		log.Fatalf("cannot create minio client: %v", err)
+		logger.Fatalf("cannot create minio client: %v", err)
 	}
 
 	fileRepo, err := minioRepo.NewFileRepo(minioClient, cfg.Bucket)
 	if err != nil {
-		log.Fatalf("cannot create file repo: %v", err)
+		logger.Fatalf("cannot create file repo: %v", err)
 	}
 
 	authConn, err := grpc.NewClient(fmt.Sprintf("%s:%d", cfg.AuthService.Host, cfg.AuthService.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -73,14 +74,14 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	posterHandler := posterHandler.NewPosterHandler(posterConn)
 	utilityCompanyHandler := complexHandler.NewUtilityCompanyHandler(complexConn)
 
-	orderUC := orderUC.NewOrderUseCase(uow, fileRepo)
-	orderHandler := orderHandler.NewOrderHandler(orderUC)
+	supportUC := supportUC.NewSupportUseCase(uow, fileRepo, senderRepo)
+	supportHandler := supportHandler.NewSupportHandler(supportUC)
 
 	promotionUC := promUC.NewPromotionUseCase(uow)
 	promotionHandler := promHandler.NewPromotionHandler(promotionUC)
 
 	r := mux.NewRouter()
-	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler, userHandler, orderHandler, promotionHandler)
+	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler, userHandler, supportHandler, promotionHandler)
 	serverAddress := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	srv := &http.Server{
 		Handler:      r,

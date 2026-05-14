@@ -2349,7 +2349,7 @@
                         "CSRFToken": []
                     }
                 ],
-                "description": "Returns full support order info by id",
+                "description": "Returns full order info by id",
                 "produces": [
                     "application/json"
                 ],
@@ -2416,7 +2416,7 @@
                         "CSRFToken": []
                     }
                 ],
-                "description": "Sends support answer to user email",
+                "description": "Sends order answer to user email",
                 "consumes": [
                     "multipart/form-data"
                 ],
@@ -2424,7 +2424,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "support"
+                    "order"
                 ],
                 "summary": "Answer order",
                 "parameters": [
@@ -2437,7 +2437,7 @@
                     },
                     {
                         "type": "string",
-                        "description": "Support answer",
+                        "description": "Order answer",
                         "name": "answer",
                         "in": "formData",
                         "required": true

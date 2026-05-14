@@ -1,4 +1,4 @@
-package order
+package support
 
 import (
 	"context"
@@ -13,20 +13,21 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/photo"
 )
 
-type OrderUseCase struct {
+type SupportUseCase struct {
 	uow    usecase.UnitOfWork
 	file   usecase.FileRepo
 	sender usecase.MailSender
 }
 
-func NewOrderUseCase(uow usecase.UnitOfWork, file usecase.FileRepo) *OrderUseCase {
-	return &OrderUseCase{
-		uow:  uow,
-		file: file,
+func NewSupportUseCase(uow usecase.UnitOfWork, file usecase.FileRepo, sender usecase.MailSender) *SupportUseCase {
+	return &SupportUseCase{
+		uow:    uow,
+		file:   file,
+		sender: sender,
 	}
 }
 
-func (uc *OrderUseCase) CreateOrder(ctx context.Context, order *dto.OrderDTO) error {
+func (uc *SupportUseCase) CreateOrder(ctx context.Context, order *dto.OrderDTO) error {
 	/*err := validator.ValidatePosterBase(poster)
 	if err != nil {
 		return nil, fmt.Errorf("validator.ValidatePosterBase: %w", err)
@@ -51,7 +52,7 @@ func (uc *OrderUseCase) CreateOrder(ctx context.Context, order *dto.OrderDTO) er
 
 	err = uc.uow.Do(ctx, func(r usecase.UnitOfWork) error {
 
-		orderID, err := r.Order().Create(ctx, createOrder)
+		orderID, err := r.Support().Create(ctx, createOrder)
 		if err != nil {
 			return fmt.Errorf("uc.PosterRepo.Create: %w", err)
 		}
@@ -64,7 +65,7 @@ func (uc *OrderUseCase) CreateOrder(ctx context.Context, order *dto.OrderDTO) er
 			keys = append(keys, key)
 		}
 
-		err = r.Order().InsertPhotos(ctx, orderID, createOrder.Images)
+		err = r.Support().InsertPhotos(ctx, orderID, createOrder.Images)
 		if err != nil {
 			return fmt.Errorf("uc.PosterRepo.InsertPhotos: %w", err)
 		}
@@ -84,7 +85,7 @@ func (uc *OrderUseCase) CreateOrder(ctx context.Context, order *dto.OrderDTO) er
 	return nil
 }
 
-func (uc *OrderUseCase) cleanUploadedFiles(ctx context.Context, keys []string) error {
+func (uc *SupportUseCase) cleanUploadedFiles(ctx context.Context, keys []string) error {
 	var resultErr error
 	for _, key := range keys {
 		err := uc.file.Delete(ctx, key)
@@ -96,7 +97,7 @@ func (uc *OrderUseCase) cleanUploadedFiles(ctx context.Context, keys []string) e
 	return resultErr
 }
 
-func (uc *OrderUseCase) uploadPhoto(ctx context.Context, photoPoster dto.PhotoInput) (string, error) {
+func (uc *SupportUseCase) uploadPhoto(ctx context.Context, photoPoster dto.PhotoInput) (string, error) {
 	file := photoPoster.FileHeader.File
 	defer file.Close()
 
@@ -117,25 +118,20 @@ func (uc *OrderUseCase) uploadPhoto(ctx context.Context, photoPoster dto.PhotoIn
 	return key, nil
 }
 
-func (uc *OrderUseCase) GetUserOrders(ctx context.Context, userID int) (*dto.OrdersResponse, error) {
-	user, err := uc.uow.Users().GetByID(ctx, userID)
+func (uc *SupportUseCase) GetUserOrders(ctx context.Context, userID int) (*dto.OrdersResponse, error) {
+	user, err := uc.uow.Users().GetAdminByID(ctx, userID)
 	if err != nil {
-		return nil, fmt.Errorf("uc.uow.Users().GetByID: %w", err)
-	}
-
-	superUser, err := uc.uow.Users().GetByEmailSecurity(ctx, user.Email)
-	if err != nil {
-		return nil, fmt.Errorf("uc.uow.Users().GetByEmailSecurity: %w", err)
+		return nil, fmt.Errorf("uc.uow.Users().GetAdminByID: %w", err)
 	}
 
 	var orders []entity.Order
-	if superUser.IsAdmin {
-		orders, err = uc.uow.Order().GetAll(ctx)
+	if user.IsAdmin {
+		orders, err = uc.uow.Support().GetAll(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("uc.uow.Order().GetAll: %w", err)
 		}
 	} else {
-		orders, err = uc.uow.Order().GetByUserID(ctx, userID)
+		orders, err = uc.uow.Support().GetByUserID(ctx, userID)
 		if err != nil {
 			return nil, err
 		}
@@ -151,29 +147,27 @@ func (uc *OrderUseCase) GetUserOrders(ctx context.Context, userID int) (*dto.Ord
 	return response, nil
 }
 
-func (uc *OrderUseCase) GetOrderByID(ctx context.Context, userID int, orderID int) (*dto.OrderFullDTO, error) {
-	user, err := uc.uow.Users().GetByID(ctx, userID)
+func (uc *SupportUseCase) GetOrderByID(ctx context.Context, userID int, orderID int) (*dto.OrderFullDTO, error) {
+	user, err := uc.uow.Users().GetAdminByID(ctx, userID)
 	if err != nil {
-		return nil, fmt.Errorf("uc.uow.Users().GetByID: %w", err)
+		return nil, fmt.Errorf("uc.uow.Users().GetByEmail: %w", err)
+	}
+	if !user.IsAdmin {
+		return nil, fmt.Errorf("is Not Admin: %w", entity.BadCredentials)
 	}
 
-	superUser, err := uc.uow.Users().GetByEmailSecurity(ctx, user.Email)
-	if err != nil {
-		return nil, fmt.Errorf("uc.uow.Users().GetByEmailSecurity: %w", err)
-	}
-
-	order, err := uc.uow.Order().GetByID(ctx, orderID)
+	order, err := uc.uow.Support().GetByID(ctx, orderID)
 	if err != nil {
 		return nil, fmt.Errorf("uc.uow.Order().GetByID: %w", err)
 	}
 
-	if !superUser.IsAdmin && order.UserID != userID {
+	if !user.IsAdmin && order.UserID != userID {
 		return nil, entity.ServiceError
 	}
 
-	photos, err := uc.uow.Order().GetOrderImages(ctx, orderID)
+	photos, err := uc.uow.Support().GetOrderImages(ctx, orderID)
 	if err != nil {
-		return nil, fmt.Errorf("uc.uow.Order().GetPhotosByOrderID: %w", err)
+		return nil, fmt.Errorf("uc.uow.Support().GetPhotosByOrderID: %w", err)
 	}
 
 	order.Photos = photos
@@ -184,37 +178,33 @@ func (uc *OrderUseCase) GetOrderByID(ctx context.Context, userID int, orderID in
 	return orderDTO, nil
 }
 
-func (uc *OrderUseCase) AnswerOrder(ctx context.Context, adminID int, orderID int, answer string) error {
-	admin, err := uc.uow.Users().GetByID(ctx, adminID)
+func (uc *SupportUseCase) AnswerOrder(ctx context.Context, adminID int, orderID int, answer string) error {
+
+	user, err := uc.uow.Users().GetAdminByID(ctx, adminID)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Users().GetAdminByEmail: %w", err)
+	}
+
+	if !user.IsAdmin {
+		return fmt.Errorf("is Not Admin: %w", entity.BadCredentials)
+	}
+
+	order, err := uc.uow.Support().GetByID(ctx, orderID)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Support().GetByID: %w", err)
+	}
+
+	client, err := uc.uow.Users().GetByID(ctx, order.UserID)
 	if err != nil {
 		return fmt.Errorf("uc.uow.Users().GetByID: %w", err)
 	}
 
-	superUser, err := uc.uow.Users().GetByEmailSecurity(ctx, admin.Email)
-	if err != nil {
-		return fmt.Errorf("uc.uow.Users().GetByEmailSecurity: %w", err)
-	}
-
-	if !superUser.IsAdmin {
-		return entity.ServiceError
-	}
-
-	order, err := uc.uow.Order().GetByID(ctx, orderID)
-	if err != nil {
-		return fmt.Errorf("uc.uow.Order().GetByID: %w", err)
-	}
-
-	user, err := uc.uow.Users().GetByID(ctx, order.UserID)
-	if err != nil {
-		return fmt.Errorf("uc.uow.Users().GetByID: %w", err)
-	}
-
-	err = uc.sender.SendAnswer(ctx, user.Email, orderID, answer)
+	err = uc.sender.SendAnswer(ctx, client.Email, orderID, answer)
 	if err != nil {
 		return fmt.Errorf("uc.sender.SendAnswer: %w", err)
 	}
 
-	err = uc.uow.Order().FinishOrder(ctx, orderID, adminID)
+	err = uc.uow.Support().FinishOrder(ctx, orderID, adminID)
 	if err != nil {
 		return fmt.Errorf("uc.uow.Order().FinishOrder: %w", err)
 	}

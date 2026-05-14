@@ -1971,7 +1971,7 @@ paths:
       - handlings
   /support/orders/{id}:
     get:
-      description: Returns full support order info by id
+      description: Returns full order info by id
       parameters:
       - description: Order ID
         in: path
@@ -2015,14 +2015,14 @@ paths:
     post:
       consumes:
       - multipart/form-data
-      description: Sends support answer to user email
+      description: Sends order answer to user email
       parameters:
       - description: Order ID
         in: path
         name: id
         required: true
         type: integer
-      - description: Support answer
+      - description: Order answer
         in: formData
         name: answer
         required: true
@@ -2057,7 +2057,7 @@ paths:
       - CSRFToken: []
       summary: Answer order
       tags:
-      - support
+      - order
   /user/me:
     get:
       description: Returns user details
