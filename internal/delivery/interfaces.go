@@ -24,6 +24,7 @@ type AuthUseCase interface {
 	CheckRecoveryCode(ctx context.Context, sessionID string, code string) error
 	UpdateUserPassword(ctx context.Context, sessionID string, password string) error
 	ValidateAccessToken(ctx context.Context, accessToken string) (*jwtUtils.Claims, error)
+	LoginAdminUseCase(ctx context.Context, email string, passwod string) (*dto.UserAccessCredDTO, error)
 }
 
 type UserUseCase interface {
