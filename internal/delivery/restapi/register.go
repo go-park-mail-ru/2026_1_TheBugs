@@ -137,6 +137,6 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		apiGroup.Handle("/promotions/payment", AuthMiddlewary(http.HandlerFunc(payment.CreatePayment))).Methods(http.MethodPost, http.MethodOptions)
 		//apiGroup.Handle("/promotions/webhooks/yookassa", middleware.IPFilterMiddleware(http.HandlerFunc(payment.YooKassaWebhook), middleware.AllowYookassaIPs)).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.Handle("/promotions/status", AuthMiddlewary(http.HandlerFunc(payment.CheckPaymentStatus))).Methods(http.MethodPost, http.MethodOptions)
-		apiGroup.Handle("/promotions/me", AuthMiddlewary(http.HandlerFunc(payment.GetUserPromotions))).Methods(http.MethodGet)
+		apiGroup.Handle("/promotions/me", AuthMiddlewary(http.HandlerFunc(payment.GetUserPromotions))).Methods(http.MethodGet, http.MethodOptions)
 	} //alias
 }

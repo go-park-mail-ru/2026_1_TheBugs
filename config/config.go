@@ -139,7 +139,7 @@ type (
 	Yookassa struct {
 		AccountID   string `yaml:"account_id" env:"YOOKASSA_ACCOUNT_ID" env-default:"1351858"`
 		SecretKey   string `yaml:"secret_key" env:"YOOKASSA_SECRET_KEY" env-default:""`
-		RedirectURL string `yaml:"redirect_url" env:"YOOKASSA_REDIRECT_URL" env-default:"http://localhost:5173"`
+		RedirectURL string `yaml:"redirect_url" env:"YOOKASSA_REDIRECT_URL" env-default:"http://localhost:5173/promotions/waiting"`
 	}
 )
 
