@@ -89,6 +89,15 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		apiGroup.Handle("/user/me", AuthMiddlewary(http.HandlerFunc(user.GetMe))).Methods(http.MethodGet, http.MethodOptions)
 		apiGroup.Handle("/user/me/profile", AuthMiddlewary(http.HandlerFunc(user.UpdateProfile))).Methods(http.MethodPut, http.MethodOptions)
 
+		apiGroup.Handle("/user/me/roommate-form", AuthMiddlewary(http.HandlerFunc(user.CreateRoommateForm))).Methods(http.MethodPost, http.MethodOptions)
+		apiGroup.Handle("/user/me/roommate-form", AuthMiddlewary(http.HandlerFunc(user.GetRoommateForm))).Methods(http.MethodGet, http.MethodOptions)
+		apiGroup.Handle("/user/me/roommate-form", AuthMiddlewary(http.HandlerFunc(user.UpdateRoommateForm))).Methods(http.MethodPut, http.MethodOptions)
+		apiGroup.Handle("/user/{id}", AuthMiddlewary(http.HandlerFunc(user.GetRoommateUser))).Methods(http.MethodGet, http.MethodOptions)
+		apiGroup.Handle("/user/{id}/match", AuthMiddlewary(http.HandlerFunc(user.AddRoommateMatch))).Methods(http.MethodPost, http.MethodOptions)
+		apiGroup.Handle("/user/{id}/contacts", AuthMiddlewary(http.HandlerFunc(user.GetRoommateContacts))).Methods(http.MethodGet, http.MethodOptions)
+		apiGroup.Handle("/user/me/roommate-matches/incoming", AuthMiddlewary(http.HandlerFunc(user.GetIncomingRoommateMatches))).Methods(http.MethodGet, http.MethodOptions)
+		apiGroup.Handle("/user/me/roommate-matches/matched", AuthMiddlewary(http.HandlerFunc(user.GetMatchedRoommateMatches))).Methods(http.MethodGet, http.MethodOptions)
+
 		apiGroup.HandleFunc("/auth/login", auth.LoginUser).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.HandleFunc("/auth/reg", auth.RegisterUser).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.HandleFunc("/auth/logout", auth.Logout).Methods(http.MethodPost, http.MethodOptions)
@@ -125,9 +134,14 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		apiGroup.Handle("/posters/{alias}/views", AuthMiddlewary(http.HandlerFunc(post.AddViewPoster))).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.Handle("/posters/{alias}/views", http.HandlerFunc(post.GetViewsPoster)).Methods(http.MethodGet, http.MethodOptions)
 		apiGroup.Handle("/posters/{alias}/price-history", http.HandlerFunc(post.GetPriceHistoryPoster)).Methods(http.MethodGet, http.MethodOptions)
+
+		apiGroup.Handle("/posters/{alias}/roommates", http.HandlerFunc(post.GetPosterRoommates)).Methods(http.MethodGet, http.MethodOptions)
+		apiGroup.Handle("/posters/{alias}/roommates", AuthMiddlewary(http.HandlerFunc(post.AddPosterRoommate))).Methods(http.MethodPost, http.MethodOptions)
+
 		apiGroup.Handle("/support/orders", http.HandlerFunc(support.CreateOrder)).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.Handle("/support/orders", AuthMiddlewary(http.HandlerFunc(support.GetOrders))).Methods(http.MethodGet, http.MethodOptions)
 		apiGroup.Handle("/support/orders/{id}", AuthMiddlewary(http.HandlerFunc(support.GetOrderByID))).Methods(http.MethodGet, http.MethodOptions)
 		apiGroup.Handle("/support/orders/{id}/answer", AuthMiddlewary(http.HandlerFunc(support.AnswerOrder))).Methods(http.MethodPost, http.MethodOptions)
+
 	} //alias
 }

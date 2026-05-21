@@ -36,6 +36,86 @@ func (m *MockUserServiceClient) EXPECT() *MockUserServiceClientMockRecorder {
 	return m.recorder
 }
 
+// AddRoommateMatch mocks base method.
+func (m *MockUserServiceClient) AddRoommateMatch(arg0 context.Context, arg1 *user.AddRoommateMatchRequest, arg2 ...grpc.CallOption) (*user.AddRoommateMatchResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "AddRoommateMatch", varargs...)
+	ret0, _ := ret[0].(*user.AddRoommateMatchResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddRoommateMatch indicates an expected call of AddRoommateMatch.
+func (mr *MockUserServiceClientMockRecorder) AddRoommateMatch(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddRoommateMatch", reflect.TypeOf((*MockUserServiceClient)(nil).AddRoommateMatch), varargs...)
+}
+
+// CreateRoommateForm mocks base method.
+func (m *MockUserServiceClient) CreateRoommateForm(arg0 context.Context, arg1 *user.CreateRoommateFormRequest, arg2 ...grpc.CallOption) (*user.CreateRoommateFormResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CreateRoommateForm", varargs...)
+	ret0, _ := ret[0].(*user.CreateRoommateFormResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateRoommateForm indicates an expected call of CreateRoommateForm.
+func (mr *MockUserServiceClientMockRecorder) CreateRoommateForm(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRoommateForm", reflect.TypeOf((*MockUserServiceClient)(nil).CreateRoommateForm), varargs...)
+}
+
+// GetIncomingRoommateMatches mocks base method.
+func (m *MockUserServiceClient) GetIncomingRoommateMatches(arg0 context.Context, arg1 *user.GetIncomingRoommateMatchesRequest, arg2 ...grpc.CallOption) (*user.GetIncomingRoommateMatchesResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetIncomingRoommateMatches", varargs...)
+	ret0, _ := ret[0].(*user.GetIncomingRoommateMatchesResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetIncomingRoommateMatches indicates an expected call of GetIncomingRoommateMatches.
+func (mr *MockUserServiceClientMockRecorder) GetIncomingRoommateMatches(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetIncomingRoommateMatches", reflect.TypeOf((*MockUserServiceClient)(nil).GetIncomingRoommateMatches), varargs...)
+}
+
+// GetMatchedRoommateMatches mocks base method.
+func (m *MockUserServiceClient) GetMatchedRoommateMatches(arg0 context.Context, arg1 *user.GetMatchedRoommateMatchesRequest, arg2 ...grpc.CallOption) (*user.GetMatchedRoommateMatchesResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetMatchedRoommateMatches", varargs...)
+	ret0, _ := ret[0].(*user.GetMatchedRoommateMatchesResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMatchedRoommateMatches indicates an expected call of GetMatchedRoommateMatches.
+func (mr *MockUserServiceClientMockRecorder) GetMatchedRoommateMatches(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMatchedRoommateMatches", reflect.TypeOf((*MockUserServiceClient)(nil).GetMatchedRoommateMatches), varargs...)
+}
+
 // GetMe mocks base method.
 func (m *MockUserServiceClient) GetMe(arg0 context.Context, arg1 *user.GetMeRequest, arg2 ...grpc.CallOption) (*user.GetMeResponse, error) {
 	m.ctrl.T.Helper()
@@ -56,6 +136,66 @@ func (mr *MockUserServiceClientMockRecorder) GetMe(arg0, arg1 interface{}, arg2 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMe", reflect.TypeOf((*MockUserServiceClient)(nil).GetMe), varargs...)
 }
 
+// GetRoommateContacts mocks base method.
+func (m *MockUserServiceClient) GetRoommateContacts(arg0 context.Context, arg1 *user.GetRoommateContactsRequest, arg2 ...grpc.CallOption) (*user.GetRoommateContactsResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetRoommateContacts", varargs...)
+	ret0, _ := ret[0].(*user.GetRoommateContactsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRoommateContacts indicates an expected call of GetRoommateContacts.
+func (mr *MockUserServiceClientMockRecorder) GetRoommateContacts(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoommateContacts", reflect.TypeOf((*MockUserServiceClient)(nil).GetRoommateContacts), varargs...)
+}
+
+// GetRoommateForm mocks base method.
+func (m *MockUserServiceClient) GetRoommateForm(arg0 context.Context, arg1 *user.GetRoommateFormRequest, arg2 ...grpc.CallOption) (*user.GetRoommateFormResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetRoommateForm", varargs...)
+	ret0, _ := ret[0].(*user.GetRoommateFormResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRoommateForm indicates an expected call of GetRoommateForm.
+func (mr *MockUserServiceClientMockRecorder) GetRoommateForm(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoommateForm", reflect.TypeOf((*MockUserServiceClient)(nil).GetRoommateForm), varargs...)
+}
+
+// GetRoommateUser mocks base method.
+func (m *MockUserServiceClient) GetRoommateUser(arg0 context.Context, arg1 *user.GetRoommateUserRequest, arg2 ...grpc.CallOption) (*user.GetRoommateUserResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetRoommateUser", varargs...)
+	ret0, _ := ret[0].(*user.GetRoommateUserResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRoommateUser indicates an expected call of GetRoommateUser.
+func (mr *MockUserServiceClientMockRecorder) GetRoommateUser(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoommateUser", reflect.TypeOf((*MockUserServiceClient)(nil).GetRoommateUser), varargs...)
+}
+
 // UpdateProfile mocks base method.
 func (m *MockUserServiceClient) UpdateProfile(arg0 context.Context, arg1 *user.UpdateProfileRequest, arg2 ...grpc.CallOption) (*user.GetMeResponse, error) {
 	m.ctrl.T.Helper()
@@ -74,4 +214,24 @@ func (mr *MockUserServiceClientMockRecorder) UpdateProfile(arg0, arg1 interface{
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{arg0, arg1}, arg2...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateProfile", reflect.TypeOf((*MockUserServiceClient)(nil).UpdateProfile), varargs...)
+}
+
+// UpdateRoommateForm mocks base method.
+func (m *MockUserServiceClient) UpdateRoommateForm(arg0 context.Context, arg1 *user.UpdateRoommateFormRequest, arg2 ...grpc.CallOption) (*user.UpdateRoommateFormResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateRoommateForm", varargs...)
+	ret0, _ := ret[0].(*user.UpdateRoommateFormResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateRoommateForm indicates an expected call of UpdateRoommateForm.
+func (mr *MockUserServiceClientMockRecorder) UpdateRoommateForm(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateRoommateForm", reflect.TypeOf((*MockUserServiceClient)(nil).UpdateRoommateForm), varargs...)
 }

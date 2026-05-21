@@ -563,3 +563,55 @@ func (s *PosterServiceServer) DeleteFlatPoster(ctx context.Context, req *poster.
 		Alias: deletedPoster.Alias,
 	}, nil
 }
+
+func (s *PosterServiceServer) GetPosterRoommates(ctx context.Context, req *poster.GetPosterRoommatesRequest) (*poster.GetPosterRoommatesResponse, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("method", "GetPosterRoommates")
+
+	if req.Alias == "" {
+		log.Error("missing required field: alias")
+		return nil, status.Error(codes.InvalidArgument, "alias required")
+	}
+
+	users, err := s.uc.GetPosterRoommates(ctx, req.Alias)
+	if err != nil {
+		log.Errorf("s.uc.GetPosterRoommates: %s", err)
+		return nil, utils.TranslateDomainsError(err)
+	}
+
+	respUsers := make([]*poster.RoommateUser, 0, len(users))
+	for _, user := range users {
+		respUsers = append(respUsers, &poster.RoommateUser{
+			Id:        int64(user.ID),
+			FirstName: user.FirstName,
+			LastName:  user.LastName,
+			AvatarUrl: user.AvatarURL,
+		})
+	}
+
+	return &poster.GetPosterRoommatesResponse{
+		Users: respUsers,
+		Total: int32(len(respUsers)),
+	}, nil
+}
+
+func (s *PosterServiceServer) AddPosterRoommate(ctx context.Context, req *poster.AddPosterRoommateRequest) (*poster.AddPosterRoommateResponse, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("method", "AddPosterRoommate")
+
+	if req.Alias == "" {
+		log.Error("missing required field: alias")
+		return nil, status.Error(codes.InvalidArgument, "alias required")
+	}
+
+	if req.UserId <= 0 {
+		log.Error("invalid field: user_id")
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+
+	err := s.uc.AddPosterRoommate(ctx, req.Alias, int(req.UserId))
+	if err != nil {
+		log.Errorf("s.uc.AddPosterRoommate: %s", err)
+		return nil, utils.TranslateDomainsError(err)
+	}
+
+	return &poster.AddPosterRoommateResponse{}, nil
+}

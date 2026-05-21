@@ -350,6 +350,31 @@ message DeleteFlatPosterResponse {
   string alias = 2;
 }
 
+message RoommateUser {
+  int64 id = 1;
+  string first_name = 2;
+  string last_name = 3;
+  optional string avatar_url = 4;
+}
+
+message GetPosterRoommatesRequest {
+  string alias = 1;
+}
+
+message GetPosterRoommatesResponse {
+  repeated RoommateUser users = 1;
+  int32 total = 2;
+}
+
+message AddPosterRoommateRequest {
+  string alias = 1;
+  int64 user_id = 2;
+}
+
+message AddPosterRoommateResponse {}
+
+
+
 service PosterService {
   rpc SearchPosters (SearchPostersRequest) returns (SearchPostersResponse);
   rpc GetPosterByAlias (GetPosterByAliasRequest) returns (GetPosterByAliasResponse);
@@ -373,4 +398,7 @@ service PosterService {
   rpc CreateFlatPoster (stream CreateFlatPosterRequest) returns (CreateFlatPosterResponse);
   rpc UpdateFlatPoster (stream UpdateFlatPosterRequest) returns (UpdateFlatPosterResponse);
   rpc DeleteFlatPoster (DeleteFlatPosterRequest) returns (DeleteFlatPosterResponse);
+
+  rpc GetPosterRoommates (GetPosterRoommatesRequest) returns (GetPosterRoommatesResponse);
+  rpc AddPosterRoommate(AddPosterRoommateRequest) returns (AddPosterRoommateResponse);
 }

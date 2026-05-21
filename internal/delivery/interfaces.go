@@ -27,6 +27,15 @@ type AuthUseCase interface {
 type UserUseCase interface {
 	GetByID(ctx context.Context, userID int) (*dto.UserDTO, error)
 	UpdateProfile(ctx context.Context, data dto.UpdateProfileRequest) (*dto.UserDTO, error)
+
+	GetRoommateUser(ctx context.Context, userID int) (*dto.RoommateUserProfileDTO, error)
+	AddRoommateMatch(ctx context.Context, fromUserID int, toUserID int) error
+	GetRoommateContacts(ctx context.Context, fromUserID int, toUserID int) (*dto.RoommateContactsDTO, error)
+	CreateRoommateForm(ctx context.Context, data dto.CreateRoommateFormRequest) error
+	GetRoommateForm(ctx context.Context, userID int) (*dto.RoommateFormDTO, error)
+	UpdateRoommateForm(ctx context.Context, data dto.CreateRoommateFormRequest) error
+	GetIncomingRoommateMatches(ctx context.Context, userID int) (*dto.RoommateMatchesResponse, error)
+	GetMatchedRoommateMatches(ctx context.Context, userID int) (*dto.RoommateMatchesResponse, error)
 }
 
 type PostersUseCase interface {
@@ -52,4 +61,7 @@ type PostersUseCase interface {
 	CreateFlatPoster(ctx context.Context, poster *dto.PosterInputFlatDTO) (*dto.CreatedPoster, error)
 	UpdateFlatPoster(ctx context.Context, alias string, poster *dto.PosterInputFlatDTO) (*dto.CreatedPoster, error)
 	DeleteFlatPoster(ctx context.Context, alias string, userID int) (*dto.CreatedPoster, error)
+
+	GetPosterRoommates(ctx context.Context, alias string) ([]dto.RoommateUserDTO, error)
+	AddPosterRoommate(ctx context.Context, alias string, userID int) error
 }

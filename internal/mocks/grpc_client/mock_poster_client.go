@@ -56,6 +56,26 @@ func (mr *MockPosterServiceClientMockRecorder) AddFavoritePoster(arg0, arg1 inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddFavoritePoster", reflect.TypeOf((*MockPosterServiceClient)(nil).AddFavoritePoster), varargs...)
 }
 
+// AddPosterRoommate mocks base method.
+func (m *MockPosterServiceClient) AddPosterRoommate(arg0 context.Context, arg1 *poster.AddPosterRoommateRequest, arg2 ...grpc.CallOption) (*poster.AddPosterRoommateResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "AddPosterRoommate", varargs...)
+	ret0, _ := ret[0].(*poster.AddPosterRoommateResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddPosterRoommate indicates an expected call of AddPosterRoommate.
+func (mr *MockPosterServiceClientMockRecorder) AddPosterRoommate(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddPosterRoommate", reflect.TypeOf((*MockPosterServiceClient)(nil).AddPosterRoommate), varargs...)
+}
+
 // AddViewPoster mocks base method.
 func (m *MockPosterServiceClient) AddViewPoster(arg0 context.Context, arg1 *poster.AddViewPosterRequest, arg2 ...grpc.CallOption) (*poster.AddViewPosterResponse, error) {
 	m.ctrl.T.Helper()
@@ -78,9 +98,18 @@ func (mr *MockPosterServiceClientMockRecorder) AddViewPoster(arg0, arg1 interfac
 
 // CreateFlatPoster mocks base method.
 func (m *MockPosterServiceClient) CreateFlatPoster(arg0 context.Context, arg1 ...grpc.CallOption) (grpc.ClientStreamingClient[poster.CreateFlatPosterRequest, poster.CreateFlatPosterResponse], error) {
-	panic("CreateFlatPoster is not used in REST handler tests")
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0}
+	for _, a := range arg1 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CreateFlatPoster", varargs...)
+	ret0, _ := ret[0].(grpc.ClientStreamingClient[poster.CreateFlatPosterRequest, poster.CreateFlatPosterResponse])
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
+// CreateFlatPoster indicates an expected call of CreateFlatPoster.
 func (mr *MockPosterServiceClientMockRecorder) CreateFlatPoster(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{arg0}, arg1...)
@@ -207,6 +236,26 @@ func (mr *MockPosterServiceClientMockRecorder) GetPosterByAlias(arg0, arg1 inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPosterByAlias", reflect.TypeOf((*MockPosterServiceClient)(nil).GetPosterByAlias), varargs...)
 }
 
+// GetPosterRoommates mocks base method.
+func (m *MockPosterServiceClient) GetPosterRoommates(arg0 context.Context, arg1 *poster.GetPosterRoommatesRequest, arg2 ...grpc.CallOption) (*poster.GetPosterRoommatesResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetPosterRoommates", varargs...)
+	ret0, _ := ret[0].(*poster.GetPosterRoommatesResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPosterRoommates indicates an expected call of GetPosterRoommates.
+func (mr *MockPosterServiceClientMockRecorder) GetPosterRoommates(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPosterRoommates", reflect.TypeOf((*MockPosterServiceClient)(nil).GetPosterRoommates), varargs...)
+}
+
 // GetPostersByCoords mocks base method.
 func (m *MockPosterServiceClient) GetPostersByCoords(arg0 context.Context, arg1 *poster.GetPostersByCoordsRequest, arg2 ...grpc.CallOption) (*poster.GetPostersByCoordsResponse, error) {
 	m.ctrl.T.Helper()
@@ -327,10 +376,20 @@ func (mr *MockPosterServiceClientMockRecorder) SearchPosters(arg0, arg1 interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchPosters", reflect.TypeOf((*MockPosterServiceClient)(nil).SearchPosters), varargs...)
 }
 
+// UpdateFlatPoster mocks base method.
 func (m *MockPosterServiceClient) UpdateFlatPoster(arg0 context.Context, arg1 ...grpc.CallOption) (grpc.ClientStreamingClient[poster.UpdateFlatPosterRequest, poster.UpdateFlatPosterResponse], error) {
-	panic("UpdateFlatPoster is not used in REST handler tests")
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0}
+	for _, a := range arg1 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdateFlatPoster", varargs...)
+	ret0, _ := ret[0].(grpc.ClientStreamingClient[poster.UpdateFlatPosterRequest, poster.UpdateFlatPosterResponse])
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
+// UpdateFlatPoster indicates an expected call of UpdateFlatPoster.
 func (mr *MockPosterServiceClientMockRecorder) UpdateFlatPoster(arg0 interface{}, arg1 ...interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{arg0}, arg1...)

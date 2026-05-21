@@ -1523,3 +1523,203 @@ func TestPosterHandler_GetPriceHistoryPoster(t *testing.T) {
 		})
 	}
 }
+
+func TestPosterHandler_GetPosterRoommates(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockClient := grpc_client.NewMockPosterServiceClient(ctrl)
+
+	handler := PosterHandler{grpcClient: mockClient}
+
+	tests := []struct {
+		name           string
+		alias          string
+		setupMock      func()
+		expectedStatus int
+		checkBody      bool
+	}{
+		{
+			name:  "success",
+			alias: "flat-1",
+			setupMock: func() {
+				mockClient.EXPECT().
+					GetPosterRoommates(gomock.Any(), &poster.GetPosterRoommatesRequest{
+						Alias: "flat-1",
+					}).
+					Return(&poster.GetPosterRoommatesResponse{
+						Users: []*poster.RoommateUser{
+							{
+								Id:        1,
+								FirstName: "Ivan",
+								LastName:  "Ivanov",
+								AvatarUrl: strPtr("avatar.jpg"),
+							},
+						},
+						Total: 1,
+					}, nil)
+			},
+			expectedStatus: http.StatusOK,
+			checkBody:      true,
+		},
+		{
+			name:           "invalid alias",
+			alias:          "",
+			setupMock:      nil,
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:  "grpc not found",
+			alias: "unknown",
+			setupMock: func() {
+				mockClient.EXPECT().
+					GetPosterRoommates(gomock.Any(), gomock.Any()).
+					Return(nil, status.Error(codes.NotFound, "not found"))
+			},
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			name:  "grpc internal error",
+			alias: "flat-1",
+			setupMock: func() {
+				mockClient.EXPECT().
+					GetPosterRoommates(gomock.Any(), gomock.Any()).
+					Return(nil, status.Error(codes.Internal, "internal error"))
+			},
+			expectedStatus: http.StatusInternalServerError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if test.setupMock != nil {
+				test.setupMock()
+			}
+
+			req := httptest.NewRequest(http.MethodGet, "/posters/"+test.alias+"/roommates", nil)
+			req = mux.SetURLVars(req, map[string]string{
+				"alias": test.alias,
+			})
+			rec := httptest.NewRecorder()
+
+			handler.GetPosterRoommates(rec, req)
+
+			require.Equal(t, test.expectedStatus, rec.Code)
+
+			if test.checkBody {
+				var resp map[string]interface{}
+				err := json.Unmarshal(rec.Body.Bytes(), &resp)
+				require.NoError(t, err)
+
+				require.Equal(t, float64(1), resp["len"])
+
+				users := resp["users"].([]interface{})
+				userObj := users[0].(map[string]interface{})
+				require.Equal(t, float64(1), userObj["id"])
+				require.Equal(t, "Ivan", userObj["first_name"])
+				require.Equal(t, "Ivanov", userObj["last_name"])
+				require.Equal(t, "avatar.jpg", userObj["avatar_url"])
+			}
+		})
+	}
+}
+
+func TestPosterHandler_AddPosterRoommate(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockClient := grpc_client.NewMockPosterServiceClient(ctrl)
+
+	handler := PosterHandler{grpcClient: mockClient}
+
+	tests := []struct {
+		name           string
+		alias          string
+		userID         int
+		setupMock      func()
+		expectedStatus int
+	}{
+		{
+			name:   "success",
+			alias:  "flat-1",
+			userID: 10,
+			setupMock: func() {
+				mockClient.EXPECT().
+					AddPosterRoommate(gomock.Any(), &poster.AddPosterRoommateRequest{
+						Alias:  "flat-1",
+						UserId: 10,
+					}).
+					Return(&poster.AddPosterRoommateResponse{}, nil)
+			},
+			expectedStatus: http.StatusNoContent,
+		},
+		{
+			name:           "invalid alias",
+			alias:          "",
+			userID:         10,
+			setupMock:      nil,
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:           "missing user id",
+			alias:          "flat-1",
+			userID:         0,
+			setupMock:      nil,
+			expectedStatus: http.StatusUnauthorized,
+		},
+		{
+			name:   "grpc not found",
+			alias:  "unknown",
+			userID: 10,
+			setupMock: func() {
+				mockClient.EXPECT().
+					AddPosterRoommate(gomock.Any(), gomock.Any()).
+					Return(nil, status.Error(codes.NotFound, "not found"))
+			},
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			name:   "grpc invalid argument",
+			alias:  "flat-1",
+			userID: 10,
+			setupMock: func() {
+				mockClient.EXPECT().
+					AddPosterRoommate(gomock.Any(), gomock.Any()).
+					Return(nil, status.Error(codes.InvalidArgument, "roommate form required"))
+			},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:   "grpc internal error",
+			alias:  "flat-1",
+			userID: 10,
+			setupMock: func() {
+				mockClient.EXPECT().
+					AddPosterRoommate(gomock.Any(), gomock.Any()).
+					Return(nil, status.Error(codes.Internal, "internal error"))
+			},
+			expectedStatus: http.StatusInternalServerError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if test.setupMock != nil {
+				test.setupMock()
+			}
+
+			req := httptest.NewRequest(http.MethodPost, "/posters/"+test.alias+"/roommates", nil)
+			req = mux.SetURLVars(req, map[string]string{
+				"alias": test.alias,
+			})
+			if test.userID != 0 {
+				req = req.WithContext(utils.SetUserID(req.Context(), test.userID))
+			}
+			rec := httptest.NewRecorder()
+
+			handler.AddPosterRoommate(rec, req)
+
+			require.Equal(t, test.expectedStatus, rec.Code)
+		})
+	}
+}

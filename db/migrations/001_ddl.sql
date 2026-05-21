@@ -335,6 +335,92 @@ CREATE TABLE IF NOT EXISTS price_history (
 
 COMMENT ON TABLE price_history IS 'История цены';
 
+
+CREATE TYPE gender AS ENUM ('male', 'female');
+
+CREATE TABLE IF NOT EXISTS roommate_forms(
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    user_id BIGINT NOT NULL UNIQUE,
+    gender TEXT NOT NULL,
+    birthday DATE NOT NULL,
+    description TEXT,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT roommate_gender_check CHECK (gender IN ('male', 'female')),
+    CONSTRAINT roommate_description_length_check CHECK ( LENGTH(description) <= 3000 )
+);
+
+COMMENT ON TABLE roommate_forms IS 'Анкета сожителя';
+
+
+CREATE TABLE IF NOT EXISTS roommate_tags(
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    name TEXT NOT NULL,
+    alias TEXT UNIQUE NOT NULL,
+
+    CONSTRAINT roommate_tags_name_length_check CHECK ( LENGTH(name) <= 30 ),
+    CONSTRAINT roommate_tags_alias_length_check CHECK ( LENGTH(alias) <= 50 )
+);
+
+COMMENT ON TABLE roommate_tags IS 'Теги сожителя';
+
+
+CREATE TABLE IF NOT EXISTS roommate_form_tags(
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    roommate_form_id BIGINT,
+    roommate_tag_id BIGINT,
+
+    CONSTRAINT fk_roommate_form_id FOREIGN KEY (roommate_form_id) REFERENCES roommate_forms(id),
+    CONSTRAINT fk_roommate_tag_id FOREIGN KEY (roommate_tag_id) REFERENCES roommate_tags(id),
+    CONSTRAINT unique_roommate_form_tag_ids UNIQUE (roommate_form_id, roommate_tag_id)
+);
+
+COMMENT ON TABLE roommate_form_tags IS 'Теги-Анкета сожителя';
+
+
+CREATE TABLE IF NOT EXISTS poster_roommates(
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    poster_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT fk_poster_id FOREIGN KEY (poster_id) REFERENCES posters(id),
+    CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT unique_poster_roommate UNIQUE (poster_id, user_id)
+);
+
+COMMENT ON TABLE poster_roommates IS 'Желающие на сожительство в объявлении';
+
+CREATE TABLE IF NOT EXISTS roommate_matches(
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    from_user_id BIGINT NOT NULL,
+    to_user_id BIGINT NOT NULL,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT fk_from_user_id FOREIGN KEY (from_user_id) REFERENCES users(id),
+    CONSTRAINT fk_to_user_id FOREIGN KEY (to_user_id) REFERENCES users(id),
+    CONSTRAINT unique_roommate_match UNIQUE (from_user_id, to_user_id),
+    CONSTRAINT no_self_roommate_match CHECK (from_user_id <> to_user_id)
+);
+
+COMMENT ON TABLE roommate_matches IS 'Симпатии пользователей для сожительства';
+
+
+CREATE INDEX idx_roommate_forms_user_id ON roommate_forms(user_id);
+
+CREATE INDEX idx_roommate_form_tags_roommate_form_id ON roommate_form_tags(roommate_form_id);
+CREATE INDEX idx_roommate_form_tags_roommate_tag_id ON roommate_form_tags(roommate_tag_id);
+
+CREATE INDEX idx_poster_roommates_poster_id ON poster_roommates(poster_id);
+CREATE INDEX idx_poster_roommates_user_id ON poster_roommates(user_id);
+
+CREATE INDEX idx_roommate_matches_from_user_id ON roommate_matches(from_user_id);
+CREATE INDEX idx_roommate_matches_to_user_id ON roommate_matches(to_user_id);
 CREATE INDEX price_history_poster_id ON price_history(poster_id);
 
 CREATE INDEX idx_price_history_changed_at ON price_history(changed_at);

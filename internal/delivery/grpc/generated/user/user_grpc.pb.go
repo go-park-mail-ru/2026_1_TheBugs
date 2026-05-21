@@ -19,8 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	UserService_GetMe_FullMethodName         = "/user.UserService/GetMe"
-	UserService_UpdateProfile_FullMethodName = "/user.UserService/UpdateProfile"
+	UserService_GetMe_FullMethodName                      = "/user.UserService/GetMe"
+	UserService_UpdateProfile_FullMethodName              = "/user.UserService/UpdateProfile"
+	UserService_GetRoommateUser_FullMethodName            = "/user.UserService/GetRoommateUser"
+	UserService_AddRoommateMatch_FullMethodName           = "/user.UserService/AddRoommateMatch"
+	UserService_GetRoommateContacts_FullMethodName        = "/user.UserService/GetRoommateContacts"
+	UserService_CreateRoommateForm_FullMethodName         = "/user.UserService/CreateRoommateForm"
+	UserService_GetRoommateForm_FullMethodName            = "/user.UserService/GetRoommateForm"
+	UserService_UpdateRoommateForm_FullMethodName         = "/user.UserService/UpdateRoommateForm"
+	UserService_GetIncomingRoommateMatches_FullMethodName = "/user.UserService/GetIncomingRoommateMatches"
+	UserService_GetMatchedRoommateMatches_FullMethodName  = "/user.UserService/GetMatchedRoommateMatches"
 )
 
 // UserServiceClient is the client API for UserService service.
@@ -29,6 +37,14 @@ const (
 type UserServiceClient interface {
 	GetMe(ctx context.Context, in *GetMeRequest, opts ...grpc.CallOption) (*GetMeResponse, error)
 	UpdateProfile(ctx context.Context, in *UpdateProfileRequest, opts ...grpc.CallOption) (*GetMeResponse, error)
+	GetRoommateUser(ctx context.Context, in *GetRoommateUserRequest, opts ...grpc.CallOption) (*GetRoommateUserResponse, error)
+	AddRoommateMatch(ctx context.Context, in *AddRoommateMatchRequest, opts ...grpc.CallOption) (*AddRoommateMatchResponse, error)
+	GetRoommateContacts(ctx context.Context, in *GetRoommateContactsRequest, opts ...grpc.CallOption) (*GetRoommateContactsResponse, error)
+	CreateRoommateForm(ctx context.Context, in *CreateRoommateFormRequest, opts ...grpc.CallOption) (*CreateRoommateFormResponse, error)
+	GetRoommateForm(ctx context.Context, in *GetRoommateFormRequest, opts ...grpc.CallOption) (*GetRoommateFormResponse, error)
+	UpdateRoommateForm(ctx context.Context, in *UpdateRoommateFormRequest, opts ...grpc.CallOption) (*UpdateRoommateFormResponse, error)
+	GetIncomingRoommateMatches(ctx context.Context, in *GetIncomingRoommateMatchesRequest, opts ...grpc.CallOption) (*GetIncomingRoommateMatchesResponse, error)
+	GetMatchedRoommateMatches(ctx context.Context, in *GetMatchedRoommateMatchesRequest, opts ...grpc.CallOption) (*GetMatchedRoommateMatchesResponse, error)
 }
 
 type userServiceClient struct {
@@ -59,12 +75,100 @@ func (c *userServiceClient) UpdateProfile(ctx context.Context, in *UpdateProfile
 	return out, nil
 }
 
+func (c *userServiceClient) GetRoommateUser(ctx context.Context, in *GetRoommateUserRequest, opts ...grpc.CallOption) (*GetRoommateUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRoommateUserResponse)
+	err := c.cc.Invoke(ctx, UserService_GetRoommateUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) AddRoommateMatch(ctx context.Context, in *AddRoommateMatchRequest, opts ...grpc.CallOption) (*AddRoommateMatchResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AddRoommateMatchResponse)
+	err := c.cc.Invoke(ctx, UserService_AddRoommateMatch_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetRoommateContacts(ctx context.Context, in *GetRoommateContactsRequest, opts ...grpc.CallOption) (*GetRoommateContactsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRoommateContactsResponse)
+	err := c.cc.Invoke(ctx, UserService_GetRoommateContacts_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) CreateRoommateForm(ctx context.Context, in *CreateRoommateFormRequest, opts ...grpc.CallOption) (*CreateRoommateFormResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateRoommateFormResponse)
+	err := c.cc.Invoke(ctx, UserService_CreateRoommateForm_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetRoommateForm(ctx context.Context, in *GetRoommateFormRequest, opts ...grpc.CallOption) (*GetRoommateFormResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRoommateFormResponse)
+	err := c.cc.Invoke(ctx, UserService_GetRoommateForm_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) UpdateRoommateForm(ctx context.Context, in *UpdateRoommateFormRequest, opts ...grpc.CallOption) (*UpdateRoommateFormResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UpdateRoommateFormResponse)
+	err := c.cc.Invoke(ctx, UserService_UpdateRoommateForm_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetIncomingRoommateMatches(ctx context.Context, in *GetIncomingRoommateMatchesRequest, opts ...grpc.CallOption) (*GetIncomingRoommateMatchesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetIncomingRoommateMatchesResponse)
+	err := c.cc.Invoke(ctx, UserService_GetIncomingRoommateMatches_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *userServiceClient) GetMatchedRoommateMatches(ctx context.Context, in *GetMatchedRoommateMatchesRequest, opts ...grpc.CallOption) (*GetMatchedRoommateMatchesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMatchedRoommateMatchesResponse)
+	err := c.cc.Invoke(ctx, UserService_GetMatchedRoommateMatches_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // UserServiceServer is the server API for UserService service.
 // All implementations must embed UnimplementedUserServiceServer
 // for forward compatibility.
 type UserServiceServer interface {
 	GetMe(context.Context, *GetMeRequest) (*GetMeResponse, error)
 	UpdateProfile(context.Context, *UpdateProfileRequest) (*GetMeResponse, error)
+	GetRoommateUser(context.Context, *GetRoommateUserRequest) (*GetRoommateUserResponse, error)
+	AddRoommateMatch(context.Context, *AddRoommateMatchRequest) (*AddRoommateMatchResponse, error)
+	GetRoommateContacts(context.Context, *GetRoommateContactsRequest) (*GetRoommateContactsResponse, error)
+	CreateRoommateForm(context.Context, *CreateRoommateFormRequest) (*CreateRoommateFormResponse, error)
+	GetRoommateForm(context.Context, *GetRoommateFormRequest) (*GetRoommateFormResponse, error)
+	UpdateRoommateForm(context.Context, *UpdateRoommateFormRequest) (*UpdateRoommateFormResponse, error)
+	GetIncomingRoommateMatches(context.Context, *GetIncomingRoommateMatchesRequest) (*GetIncomingRoommateMatchesResponse, error)
+	GetMatchedRoommateMatches(context.Context, *GetMatchedRoommateMatchesRequest) (*GetMatchedRoommateMatchesResponse, error)
 	mustEmbedUnimplementedUserServiceServer()
 }
 
@@ -80,6 +184,30 @@ func (UnimplementedUserServiceServer) GetMe(context.Context, *GetMeRequest) (*Ge
 }
 func (UnimplementedUserServiceServer) UpdateProfile(context.Context, *UpdateProfileRequest) (*GetMeResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateProfile not implemented")
+}
+func (UnimplementedUserServiceServer) GetRoommateUser(context.Context, *GetRoommateUserRequest) (*GetRoommateUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetRoommateUser not implemented")
+}
+func (UnimplementedUserServiceServer) AddRoommateMatch(context.Context, *AddRoommateMatchRequest) (*AddRoommateMatchResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AddRoommateMatch not implemented")
+}
+func (UnimplementedUserServiceServer) GetRoommateContacts(context.Context, *GetRoommateContactsRequest) (*GetRoommateContactsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetRoommateContacts not implemented")
+}
+func (UnimplementedUserServiceServer) CreateRoommateForm(context.Context, *CreateRoommateFormRequest) (*CreateRoommateFormResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateRoommateForm not implemented")
+}
+func (UnimplementedUserServiceServer) GetRoommateForm(context.Context, *GetRoommateFormRequest) (*GetRoommateFormResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetRoommateForm not implemented")
+}
+func (UnimplementedUserServiceServer) UpdateRoommateForm(context.Context, *UpdateRoommateFormRequest) (*UpdateRoommateFormResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateRoommateForm not implemented")
+}
+func (UnimplementedUserServiceServer) GetIncomingRoommateMatches(context.Context, *GetIncomingRoommateMatchesRequest) (*GetIncomingRoommateMatchesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetIncomingRoommateMatches not implemented")
+}
+func (UnimplementedUserServiceServer) GetMatchedRoommateMatches(context.Context, *GetMatchedRoommateMatchesRequest) (*GetMatchedRoommateMatchesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMatchedRoommateMatches not implemented")
 }
 func (UnimplementedUserServiceServer) mustEmbedUnimplementedUserServiceServer() {}
 func (UnimplementedUserServiceServer) testEmbeddedByValue()                     {}
@@ -138,6 +266,150 @@ func _UserService_UpdateProfile_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _UserService_GetRoommateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRoommateUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetRoommateUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetRoommateUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetRoommateUser(ctx, req.(*GetRoommateUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_AddRoommateMatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddRoommateMatchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).AddRoommateMatch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_AddRoommateMatch_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).AddRoommateMatch(ctx, req.(*AddRoommateMatchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetRoommateContacts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRoommateContactsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetRoommateContacts(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetRoommateContacts_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetRoommateContacts(ctx, req.(*GetRoommateContactsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_CreateRoommateForm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateRoommateFormRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).CreateRoommateForm(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_CreateRoommateForm_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).CreateRoommateForm(ctx, req.(*CreateRoommateFormRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetRoommateForm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRoommateFormRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetRoommateForm(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetRoommateForm_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetRoommateForm(ctx, req.(*GetRoommateFormRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_UpdateRoommateForm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateRoommateFormRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).UpdateRoommateForm(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_UpdateRoommateForm_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).UpdateRoommateForm(ctx, req.(*UpdateRoommateFormRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetIncomingRoommateMatches_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetIncomingRoommateMatchesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetIncomingRoommateMatches(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetIncomingRoommateMatches_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetIncomingRoommateMatches(ctx, req.(*GetIncomingRoommateMatchesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _UserService_GetMatchedRoommateMatches_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMatchedRoommateMatchesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(UserServiceServer).GetMatchedRoommateMatches(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: UserService_GetMatchedRoommateMatches_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(UserServiceServer).GetMatchedRoommateMatches(ctx, req.(*GetMatchedRoommateMatchesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // UserService_ServiceDesc is the grpc.ServiceDesc for UserService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -152,6 +424,38 @@ var UserService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateProfile",
 			Handler:    _UserService_UpdateProfile_Handler,
+		},
+		{
+			MethodName: "GetRoommateUser",
+			Handler:    _UserService_GetRoommateUser_Handler,
+		},
+		{
+			MethodName: "AddRoommateMatch",
+			Handler:    _UserService_AddRoommateMatch_Handler,
+		},
+		{
+			MethodName: "GetRoommateContacts",
+			Handler:    _UserService_GetRoommateContacts_Handler,
+		},
+		{
+			MethodName: "CreateRoommateForm",
+			Handler:    _UserService_CreateRoommateForm_Handler,
+		},
+		{
+			MethodName: "GetRoommateForm",
+			Handler:    _UserService_GetRoommateForm_Handler,
+		},
+		{
+			MethodName: "UpdateRoommateForm",
+			Handler:    _UserService_UpdateRoommateForm_Handler,
+		},
+		{
+			MethodName: "GetIncomingRoommateMatches",
+			Handler:    _UserService_GetIncomingRoommateMatches_Handler,
+		},
+		{
+			MethodName: "GetMatchedRoommateMatches",
+			Handler:    _UserService_GetMatchedRoommateMatches_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

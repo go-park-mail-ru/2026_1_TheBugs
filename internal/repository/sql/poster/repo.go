@@ -1128,3 +1128,109 @@ func (r *PosterRepo) UpdateLastPriceHistory(ctx context.Context, historyID int, 
 
 	return nil
 }
+
+func (r *PosterRepo) GetPosterRoommates(ctx context.Context, posterAlias string) ([]dto.RoommateUserDTO, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetPosterRoommates")
+	log.Info("start db query")
+
+	query := `
+		SELECT u.id, pr.first_name, pr.last_name, pr.avatar_url
+		FROM poster_roommates rm
+		JOIN posters p ON p.id = rm.poster_id
+		JOIN users u ON u.id = rm.user_id
+		JOIN profiles pr ON pr.id = u.profile_id
+		WHERE p.alias = $1 AND p.deleted_at IS NULL
+		ORDER BY rm.created_at DESC;
+	`
+
+	rows, err := r.pool.Query(ctx, query, posterAlias)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+	defer rows.Close()
+
+	users, err := pgx.CollectRows(rows, pgx.RowToStructByName[dto.RoommateUserDTO])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return users, nil
+}
+
+func (r *PosterRepo) HasRoommateForm(ctx context.Context, userID int) (bool, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.HasRoommateForm")
+	log.Info("start db check roommate form")
+
+	query := `
+		SELECT COUNT(*)
+		FROM roommate_forms
+		WHERE user_id = $1
+	`
+
+	var count int
+	err := r.pool.QueryRow(ctx, query, userID).Scan(&count)
+	if err != nil {
+		return false, repository.HandelPgErrors(err)
+	}
+
+	return count > 0, nil
+}
+
+func (r *PosterRepo) AddPosterRoommate(ctx context.Context, alias string, userID int) error {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.AddPosterRoommate")
+	log.Info("start db add poster roommate")
+
+	query := `
+		INSERT INTO poster_roommates (poster_id, user_id)
+		SELECT p.id, $2
+		FROM posters p
+		WHERE p.alias = $1 AND p.deleted_at IS NULL
+	`
+
+	_, err := r.pool.Exec(ctx, query, alias, userID)
+	if err != nil {
+		pgErr := repository.HandelPgErrors(err)
+
+		if errors.Is(pgErr, entity.AlredyExitError) {
+			return nil
+		}
+
+		return pgErr
+	}
+
+	return nil
+}
+
+func (r *PosterRepo) GetRoommatePoster(ctx context.Context, userID int) (*entity.PosterFlat, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetRoommatePoster")
+	log.Info("start db query")
+
+	query := `
+		SELECT p.id, p.price, p.avatar_url,
+			   b.address, m.station_name, prop.area, f.floor, p.alias, fc.name AS flat_category
+		FROM poster_roommates pr
+		JOIN posters p ON p.id = pr.poster_id
+		JOIN property prop ON prop.id = p.property_id
+		JOIN property_categories pc ON pc.id = prop.category_id
+		JOIN buildings b ON b.id = prop.building_id
+		LEFT JOIN metro_stations m ON b.metro_station_id = m.id
+		LEFT JOIN flat f ON f.property_id = prop.id
+		LEFT JOIN flat_categories fc ON fc.id = f.category_id
+		WHERE pr.user_id = $1 AND p.deleted_at IS NULL
+		ORDER BY pr.created_at DESC
+		LIMIT 1
+	`
+
+	rows, err := r.pool.Query(ctx, query, userID)
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+	defer rows.Close()
+
+	poster, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[entity.PosterFlat])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return &poster, nil
+}
