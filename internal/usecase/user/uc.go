@@ -103,6 +103,7 @@ func (uc *UserUseCase) GetRoommateUser(ctx context.Context, userID int) (*dto.Ro
 	return dto.RoommateUserToDTO(user, tags), nil
 }
 
+// FIXME: Переделать логику, добавить логику определения типа матча( входящий / исходящий), чтобы сообщения на почту отличались ( вас хотят добавить / вас приняли ...)
 func (uc *UserUseCase) AddRoommateMatch(ctx context.Context, fromUserID int, toUserID int) error {
 	op := "UserUseCase.AddRoommateMatch"
 	log := ctxLogger.GetLogger(ctx).WithField("op", op)
@@ -110,34 +111,47 @@ func (uc *UserUseCase) AddRoommateMatch(ctx context.Context, fromUserID int, toU
 	if fromUserID == toUserID {
 		return entity.InvalidInput
 	}
+	var toContacts *dto.RoommateContactsDTO
+	var fromUser *dto.UserDTO
+	var poster *entity.PosterFlat
+	err := uc.uow.Do(ctx, func(r usecase.UnitOfWork) error {
+		_, err := r.Users().GetRoommateUser(ctx, fromUserID)
+		if err != nil {
+			return fmt.Errorf(" r.Posters().GetRoommateUser: %w", err)
+		}
 
-	err := uc.uow.Users().AddRoommateMatch(ctx, fromUserID, toUserID)
-	if err != nil {
-		return fmt.Errorf("uc.uow.Users().AddRoommateMatch: %w", err)
-	}
+		err = r.Users().AddRoommateMatch(ctx, fromUserID, toUserID)
+		if err != nil {
+			return fmt.Errorf("r.Users().AddRoommateMatch: %w", err)
+		}
 
-	toContacts, err := uc.uow.Users().GetRoommateContacts(ctx, toUserID)
-	if err != nil {
-		return fmt.Errorf("uc.uow.Users().GetRoommateContacts: %w", err)
-	}
+		toContacts, err = r.Users().GetRoommateContacts(ctx, toUserID)
+		if err != nil {
+			return fmt.Errorf("r.Users().GetRoommateContacts: %w", err)
+		}
 
-	fromUser, err := uc.uow.Users().GetByID(ctx, fromUserID)
-	if err != nil {
-		return fmt.Errorf("uc.uow.Users().GetByID: %w", err)
-	}
+		fromUser, err = r.Users().GetByID(ctx, fromUserID)
+		if err != nil {
+			return fmt.Errorf("r.Users().GetByID: %w", err)
+		}
 
-	poster, err := uc.uow.Posters().GetRoommatePoster(ctx, fromUserID)
+		poster, err = r.Posters().GetRoommatePoster(ctx, toUserID) //FIXME: а если постеров несколько?
+		if err != nil {
+			return fmt.Errorf("r.Posters().GetRoommatePoster: %w", err)
+		}
+		return nil
+	})
 	if err != nil {
-		return fmt.Errorf("uc.uow.Posters().GetRoommatePoster: %w", err)
+		return fmt.Errorf("uc.uow.Do: %w", err)
 	}
 
 	if uc.sender != nil {
-		if err := uc.sender.SendRoommateMatch(
+		if err := uc.sender.SendRoommateMatch( //FIXME: лучше передавать дто
 			ctx,
 			toContacts.Email,
 			fromUser.FirstName,
 			fromUser.LastName,
-			poster.Address,
+			poster.Address, //FIXME: лучше здесь создавать ссылку на объявление (front_url + poster_alias) и передавать её
 		); err != nil {
 			log.Errorf("uc.sender.SendRoommateMatch: %v", err)
 		}
@@ -149,44 +163,56 @@ func (uc *UserUseCase) AddRoommateMatch(ctx context.Context, fromUserID int, toU
 func (uc *UserUseCase) GetRoommateContacts(ctx context.Context, fromUserID int, toUserID int) (*dto.RoommateContactsDTO, error) {
 	op := "UserUseCase.GetRoommateContacts"
 	log := ctxLogger.GetLogger(ctx).WithField("op", op)
+	var fromContacts *dto.RoommateContactsDTO
+	var toContacts *dto.RoommateContactsDTO
+	var fromUser *dto.UserDTO
+	var toUser *dto.UserDTO
+	var poster *entity.PosterFlat
+	err := uc.uow.Do(ctx, func(r usecase.UnitOfWork) error {
+		if fromUserID == toUserID {
+			return fmt.Errorf("fromUserID == toUserID: %w", entity.InvalidInput)
+		}
 
-	if fromUserID == toUserID {
-		return nil, entity.InvalidInput
-	}
+		isMatched, err := r.Users().IsRoommateMatch(ctx, fromUserID, toUserID)
+		if err != nil {
+			return fmt.Errorf("r.Users().IsRoommateMatch: %w", err)
+		}
 
-	isMatched, err := uc.uow.Users().IsRoommateMatch(ctx, fromUserID, toUserID)
+		if !isMatched {
+			return fmt.Errorf("!isMatched: %w", entity.NotFoundError)
+		}
+
+		fromContacts, err = r.Users().GetRoommateContacts(ctx, fromUserID)
+		if err != nil {
+			return fmt.Errorf("r.Users().GetRoommateContacts: %w", err)
+		}
+
+		toContacts, err = r.Users().GetRoommateContacts(ctx, toUserID)
+		if err != nil {
+			return fmt.Errorf("r.Users().GetRoommateContacts: %w", err)
+		}
+
+		fromUser, err = r.Users().GetByID(ctx, fromUserID)
+		if err != nil {
+			return fmt.Errorf("r.Users().GetByID: %w", err)
+		}
+
+		toUser, err = r.Users().GetByID(ctx, toUserID)
+		if err != nil {
+			return fmt.Errorf("r.Users().GetByID: %w", err)
+		}
+
+		poster, err = r.Posters().GetRoommatePoster(ctx, fromUserID)
+		if err != nil {
+			return fmt.Errorf("r.Posters().GetRoommatePoster: %w", err)
+		}
+		return nil
+
+	})
 	if err != nil {
-		return nil, fmt.Errorf("uc.uow.Users().IsRoommateMatch: %w", err)
+		return nil, fmt.Errorf("uc.uow.Do: %w", err)
 	}
-
-	if !isMatched {
-		return nil, entity.NotFoundError
-	}
-
-	fromContacts, err := uc.uow.Users().GetRoommateContacts(ctx, fromUserID)
-	if err != nil {
-		return nil, fmt.Errorf("uc.uow.Users().GetRoommateContacts: %w", err)
-	}
-
-	toContacts, err := uc.uow.Users().GetRoommateContacts(ctx, toUserID)
-	if err != nil {
-		return nil, fmt.Errorf("uc.uow.Users().GetRoommateContacts: %w", err)
-	}
-
-	fromUser, err := uc.uow.Users().GetByID(ctx, fromUserID)
-	if err != nil {
-		return nil, fmt.Errorf("uc.uow.Users().GetByID: %w", err)
-	}
-
-	toUser, err := uc.uow.Users().GetByID(ctx, toUserID)
-	if err != nil {
-		return nil, fmt.Errorf("uc.uow.Users().GetByID: %w", err)
-	}
-
-	poster, err := uc.uow.Posters().GetRoommatePoster(ctx, fromUserID)
-	if err != nil {
-		return nil, fmt.Errorf("uc.uow.Posters().GetRoommatePoster: %w", err)
-	}
+	// FIXME: не нужно посылать письма каждый раз когда запрашиваются контакты тк они будут запрашиваться часто (нужно делать это один раз в AddRoommateMatch когда взаимный матч)
 
 	if uc.sender != nil {
 		if err := uc.sender.SendRoommateContactsForRequester(
@@ -223,7 +249,7 @@ func (uc *UserUseCase) CreateRoommateForm(ctx context.Context, data dto.CreateRo
 	}
 
 	if data.Gender != "male" && data.Gender != "female" {
-		return entity.InvalidInput
+		return &entity.ValidationError{Err: entity.InvalidInput, Field: "gender", Details: "only male or female"}
 	}
 
 	if data.Birthday == "" {

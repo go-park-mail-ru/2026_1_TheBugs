@@ -9,6 +9,7 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/grpc/generated/user"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/grpc/utils"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -25,8 +26,11 @@ func NewUserServiceServer(uc delivery.UserUseCase) *UserServiceServer {
 }
 
 func (s *UserServiceServer) GetMe(ctx context.Context, req *user.GetMeRequest) (*user.GetMeResponse, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("method", "GetMe")
+
 	userDTO, err := s.uc.GetByID(ctx, int(req.UserId))
 	if err != nil {
+		log.Errorf("s.uc.GetByID: %s", err)
 		return nil, utils.TranslateDomainsError(err)
 	}
 
@@ -44,6 +48,7 @@ func (s *UserServiceServer) UpdateProfile(
 	ctx context.Context,
 	req *user.UpdateProfileRequest,
 ) (*user.GetMeResponse, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("method", "UpdateProfile")
 
 	var fileInput *dto.FileInput
 	if req.File != nil {
@@ -63,6 +68,7 @@ func (s *UserServiceServer) UpdateProfile(
 		Avatar:    fileInput,
 	})
 	if err != nil {
+		log.Errorf("s.uc.UpdateProfile: %s", err)
 		return nil, utils.TranslateDomainsError(err)
 	}
 
@@ -77,8 +83,11 @@ func (s *UserServiceServer) UpdateProfile(
 }
 
 func (s *UserServiceServer) GetRoommateUser(ctx context.Context, req *user.GetRoommateUserRequest) (*user.GetRoommateUserResponse, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("method", "GetRoommateUser")
+
 	roommateUser, err := s.uc.GetRoommateUser(ctx, int(req.UserId))
 	if err != nil {
+		log.Errorf("s.uc.GetRoommateUser: %s", err)
 		return nil, utils.TranslateDomainsError(err)
 	}
 
@@ -102,16 +111,21 @@ func (s *UserServiceServer) GetRoommateUser(ctx context.Context, req *user.GetRo
 }
 
 func (s *UserServiceServer) AddRoommateMatch(ctx context.Context, req *user.AddRoommateMatchRequest) (*user.AddRoommateMatchResponse, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("method", "AddRoommateMatch")
+
 	if req.FromUserId <= 0 {
+		log.Error("invalid from_user_id")
 		return nil, status.Error(codes.InvalidArgument, "invalid from_user_id")
 	}
 
 	if req.ToUserId <= 0 {
+		log.Error("invalid to_user_id")
 		return nil, status.Error(codes.InvalidArgument, "invalid to_user_id")
 	}
 
 	err := s.uc.AddRoommateMatch(ctx, int(req.FromUserId), int(req.ToUserId))
 	if err != nil {
+		log.Errorf("s.uc.AddRoommateMatch: %s", err)
 		return nil, utils.TranslateDomainsError(err)
 	}
 
@@ -119,16 +133,21 @@ func (s *UserServiceServer) AddRoommateMatch(ctx context.Context, req *user.AddR
 }
 
 func (s *UserServiceServer) GetRoommateContacts(ctx context.Context, req *user.GetRoommateContactsRequest) (*user.GetRoommateContactsResponse, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("method", "GetRoommateContacts")
+
 	if req.FromUserId <= 0 {
+		log.Error("invalid from_user_id")
 		return nil, status.Error(codes.InvalidArgument, "invalid from_user_id")
 	}
 
 	if req.ToUserId <= 0 {
+		log.Error("invalid to_user_id")
 		return nil, status.Error(codes.InvalidArgument, "invalid to_user_id")
 	}
 
 	contacts, err := s.uc.GetRoommateContacts(ctx, int(req.FromUserId), int(req.ToUserId))
 	if err != nil {
+		log.Errorf("s.uc.GetRoommateContacts: %s", err)
 		return nil, utils.TranslateDomainsError(err)
 	}
 
@@ -139,19 +158,25 @@ func (s *UserServiceServer) GetRoommateContacts(ctx context.Context, req *user.G
 }
 
 func (s *UserServiceServer) CreateRoommateForm(ctx context.Context, req *user.CreateRoommateFormRequest) (*user.CreateRoommateFormResponse, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("method", "CreateRoommateForm")
+
 	if req.UserId <= 0 {
+		log.Error("invalid user_id")
 		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
 	}
 
 	if req.Gender == "" {
+		log.Error("gender required")
 		return nil, status.Error(codes.InvalidArgument, "gender required")
 	}
 
 	if req.Birthday == "" {
+		log.Error("birthday required")
 		return nil, status.Error(codes.InvalidArgument, "birthday required")
 	}
 
 	if req.Description == "" {
+		log.Error("description required")
 		return nil, status.Error(codes.InvalidArgument, "description required")
 	}
 
@@ -163,6 +188,7 @@ func (s *UserServiceServer) CreateRoommateForm(ctx context.Context, req *user.Cr
 		Tags:        req.Tags,
 	})
 	if err != nil {
+		log.Errorf("s.uc.CreateRoommateForm: %s", err)
 		return nil, utils.TranslateDomainsError(err)
 	}
 
@@ -170,13 +196,16 @@ func (s *UserServiceServer) CreateRoommateForm(ctx context.Context, req *user.Cr
 }
 
 func (s *UserServiceServer) GetRoommateForm(ctx context.Context, req *user.GetRoommateFormRequest) (*user.GetRoommateFormResponse, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("method", "GetRoommateForm")
 
 	if req.UserId <= 0 {
+		log.Error("invalid user_id")
 		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
 	}
 
 	form, err := s.uc.GetRoommateForm(ctx, int(req.UserId))
 	if err != nil {
+		log.Errorf("s.uc.GetRoommateForm: %s", err)
 		return nil, utils.TranslateDomainsError(err)
 	}
 
@@ -189,19 +218,25 @@ func (s *UserServiceServer) GetRoommateForm(ctx context.Context, req *user.GetRo
 }
 
 func (s *UserServiceServer) UpdateRoommateForm(ctx context.Context, req *user.UpdateRoommateFormRequest) (*user.UpdateRoommateFormResponse, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("method", "UpdateRoommateForm")
+
 	if req.UserId <= 0 {
+		log.Error("invalid user_id")
 		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
 	}
 
 	if req.Gender == "" {
+		log.Error("gender required")
 		return nil, status.Error(codes.InvalidArgument, "gender required")
 	}
 
 	if req.Birthday == "" {
+		log.Error("birthday required")
 		return nil, status.Error(codes.InvalidArgument, "birthday required")
 	}
 
 	if req.Description == "" {
+		log.Error("description required")
 		return nil, status.Error(codes.InvalidArgument, "description required")
 	}
 
@@ -213,6 +248,7 @@ func (s *UserServiceServer) UpdateRoommateForm(ctx context.Context, req *user.Up
 		Tags:        req.Tags,
 	})
 	if err != nil {
+		log.Errorf("s.uc.UpdateRoommateForm: %s", err)
 		return nil, utils.TranslateDomainsError(err)
 	}
 
@@ -223,12 +259,16 @@ func (s *UserServiceServer) GetIncomingRoommateMatches(
 	ctx context.Context,
 	req *user.GetIncomingRoommateMatchesRequest,
 ) (*user.GetIncomingRoommateMatchesResponse, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("method", "GetIncomingRoommateMatches")
+
 	if req.UserId <= 0 {
+		log.Error("invalid user_id")
 		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
 	}
 
 	resp, err := s.uc.GetIncomingRoommateMatches(ctx, int(req.UserId))
 	if err != nil {
+		log.Errorf("s.uc.GetIncomingRoommateMatches: %s", err)
 		return nil, utils.TranslateDomainsError(err)
 	}
 
@@ -252,12 +292,16 @@ func (s *UserServiceServer) GetMatchedRoommateMatches(
 	ctx context.Context,
 	req *user.GetMatchedRoommateMatchesRequest,
 ) (*user.GetMatchedRoommateMatchesResponse, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("method", "GetMatchedRoommateMatches")
+
 	if req.UserId <= 0 {
+		log.Error("invalid user_id")
 		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
 	}
 
 	resp, err := s.uc.GetMatchedRoommateMatches(ctx, int(req.UserId))
 	if err != nil {
+		log.Errorf("s.uc.GetMatchedRoommateMatches: %s", err)
 		return nil, utils.TranslateDomainsError(err)
 	}
 

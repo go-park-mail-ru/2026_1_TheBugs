@@ -92,7 +92,7 @@ type PosterRepo interface {
 	GetPosterRoommates(ctx context.Context, posterAlias string) ([]dto.RoommateUserDTO, error)
 	HasRoommateForm(ctx context.Context, userID int) (bool, error)
 	AddPosterRoommate(ctx context.Context, alias string, userID int) error
-	GetRoommatePoster(ctx context.Context, userID int) (*entity.PosterFlat, error)
+	GetRoommatePoster(ctx context.Context, userID int) (*entity.PosterFlat, error) //FIXME: а если постеров несколько?
 }
 
 type AuthRepo interface {

@@ -944,6 +944,7 @@ func (h *PosterHandler) GetPosterRoommates(w http.ResponseWriter, r *http.Reques
 // @Produce json
 // @Param alias path string true "Alias of poster"
 // @Success 204
+// @Security     BearerAuth
 // @Failure 400 {object} response.ErrorResponse
 // @Failure 401 {object} response.ErrorResponse
 // @Failure 404 {object} response.ErrorResponse

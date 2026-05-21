@@ -72,7 +72,7 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 	// API Routers
 	apiGroup := app.PathPrefix("/api").Subrouter()
 	apiGroup.Use(metrics.MetricsHTTPMiddleware)
-	apiGroup.Use(middleware.CSRFMiddleware)
+	//apiGroup.Use(middleware.CSRFMiddleware)
 	apiGroup.Use(middleware.SecurityMiddleware)
 	apiGroup.Use(mux.CORSMethodMiddleware(apiGroup))
 

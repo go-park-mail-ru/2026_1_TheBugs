@@ -445,6 +445,24 @@ definitions:
       field:
         type: string
     type: object
+  user.GetIncomingRoommateMatchesResponse:
+    properties:
+      len:
+        type: integer
+      users:
+        items:
+          $ref: '#/definitions/user.RoommateUser'
+        type: array
+    type: object
+  user.GetMatchedRoommateMatchesResponse:
+    properties:
+      len:
+        type: integer
+      users:
+        items:
+          $ref: '#/definitions/user.RoommateUser'
+        type: array
+    type: object
   user.GetRoommateContactsResponse:
     properties:
       email:
@@ -476,6 +494,17 @@ definitions:
       alias:
         type: string
       name:
+        type: string
+    type: object
+  user.RoommateUser:
+    properties:
+      avatar_url:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      last_name:
         type: string
     type: object
 externalDocs:
@@ -1112,6 +1141,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
       summary: Add poster roommate
       tags:
       - posters
@@ -2320,6 +2351,53 @@ paths:
       security:
       - BearerAuth: []
       summary: Update roommate form
+      tags:
+      - users
+  /user/me/roommate-matches/incoming:
+    get:
+      description: Returns users who added current authorized user to roommates
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.GetIncomingRoommateMatchesResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get incoming roommate matches
+      tags:
+      - users
+  /user/me/roommate-matches/matched:
+    get:
+      description: Returns users who have mutual roommate match with current authorized
+        user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.GetMatchedRoommateMatchesResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get matched roommate matches
       tags:
       - users
   /utility-companies/:
