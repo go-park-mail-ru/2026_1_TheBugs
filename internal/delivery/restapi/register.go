@@ -92,7 +92,7 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		apiGroup.Handle("/user/me/roommate-form", AuthMiddlewary(http.HandlerFunc(user.CreateRoommateForm))).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.Handle("/user/me/roommate-form", AuthMiddlewary(http.HandlerFunc(user.GetRoommateForm))).Methods(http.MethodGet, http.MethodOptions)
 		apiGroup.Handle("/user/me/roommate-form", AuthMiddlewary(http.HandlerFunc(user.UpdateRoommateForm))).Methods(http.MethodPut, http.MethodOptions)
-		apiGroup.Handle("/user/{id}", AuthMiddlewary(http.HandlerFunc(user.GetRoommateUser))).Methods(http.MethodGet, http.MethodOptions)
+		apiGroup.HandleFunc("/user/{id}", user.GetRoommateUser).Methods(http.MethodGet, http.MethodOptions)
 		apiGroup.Handle("/user/{id}/match", AuthMiddlewary(http.HandlerFunc(user.AddRoommateMatch))).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.Handle("/user/{id}/contacts", AuthMiddlewary(http.HandlerFunc(user.GetRoommateContacts))).Methods(http.MethodGet, http.MethodOptions)
 		apiGroup.Handle("/user/me/roommate-matches/incoming", AuthMiddlewary(http.HandlerFunc(user.GetIncomingRoommateMatches))).Methods(http.MethodGet, http.MethodOptions)
