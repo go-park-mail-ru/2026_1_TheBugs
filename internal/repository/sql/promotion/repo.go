@@ -122,8 +122,7 @@ func (r *PromotionRepo) GetByUserID(ctx context.Context, userID int) ([]dto.User
 		SELECT p.poster_id, p.promotion_id,
                p.status, p.ends_at
         FROM posters_promotions p
-		WHERE p.user_id = $1 AND status = 'active'
-		LIMIT 1;
+		WHERE p.user_id = $1 AND status = 'active';
 	`
 	rows, err := r.pool.Query(ctx, sql, userID)
 	if err != nil {
