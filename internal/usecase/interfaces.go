@@ -13,9 +13,9 @@ import (
 
 type UserRepo interface {
 	GetByEmail(ctx context.Context, email string) (*entity.User, error)
-	GetByEmailSecurity(ctx context.Context, email string) (*entity.UserSecurity, error)
 	Create(ctx context.Context, dto dto.CreateUserDTO) (*entity.User, error)
 	CreateByProvider(ctx context.Context, dto dto.CreateUserByProviderDTO) (*entity.User, error)
+	GetAdminByID(ctx context.Context, id int) (*entity.User, error)
 	GetByProvider(ctx context.Context, provider string, email string) (*entity.User, error)
 	UpdatePwd(ctx context.Context, email string, pwd string, salt string) error
 	GetByID(ctx context.Context, id int) (*dto.UserDTO, error)
@@ -107,7 +107,7 @@ type UnitOfWork interface {
 	Posters() PosterRepo
 	Autho() AuthRepo
 	UtilityCompany() UtilityCompanyRepo
-	Order() OrderRepo
+	Support() SupportRepo
 	Do(ctx context.Context, fn func(r UnitOfWork) error) error
 }
 
@@ -146,4 +146,13 @@ type LLMAgent interface {
 
 type StreetMapProvider interface {
 	GetMetroStationByRadius(ctx context.Context, buidingGeo dto.GeographyDTO, radius entity.Metre) ([]entity.MetroStation, error)
+}
+type SupportRepo interface {
+	Create(ctx context.Context, order *dto.Order) (int, error)
+	InsertPhotos(ctx context.Context, orderID int, photos []dto.PhotoInput) error
+	GetByUserID(ctx context.Context, userID int) ([]entity.Order, error)
+	GetAll(ctx context.Context) ([]entity.Order, error)
+	GetByID(ctx context.Context, orderID int) (*entity.OrderFull, error)
+	GetOrderImages(ctx context.Context, id int) ([]entity.OrderPhoto, error)
+	FinishOrder(ctx context.Context, orderID int, adminID int) error
 }

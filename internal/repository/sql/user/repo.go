@@ -22,7 +22,7 @@ func NewUserRepo(pool repository.DB) *UserRepo {
 }
 
 func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*entity.User, error) {
-	sql := `SELECT id, email, salt, hashed_password, provider, is_verified FROM users WHERE email=$1`
+	sql := `SELECT id, email, salt, hashed_password, provider, is_verified, is_admin FROM users WHERE email=$1`
 	row, err := r.pool.Query(ctx, sql, email)
 
 	if err != nil {
@@ -40,15 +40,15 @@ func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*entity.User, 
 
 }
 
-func (r *UserRepo) GetByEmailSecurity(ctx context.Context, email string) (*entity.UserSecurity, error) {
-	sql := `SELECT id, email, salt, hashed_password, provider, is_admin FROM users WHERE email=$1`
-	row, err := r.pool.Query(ctx, sql, email)
+func (r *UserRepo) GetAdminByID(ctx context.Context, userID int) (*entity.User, error) {
+	sql := `SELECT id, email, salt, hashed_password, provider, is_admin FROM users WHERE id=$1`
+	row, err := r.pool.Query(ctx, sql, userID)
 	if err != nil {
 		return nil, repository.HandelPgErrors(err)
 	}
 	defer row.Close()
 
-	user, err := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[entity.UserSecurity])
+	user, err := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[entity.User])
 	if err != nil {
 		return nil, repository.HandelPgErrors(err)
 	}
@@ -116,7 +116,7 @@ func (r *UserRepo) Create(ctx context.Context, dto dto.CreateUserDTO) (*entity.U
 		return nil, repository.HandelPgErrors(err)
 	}
 	sql := `INSERT INTO users (email, hashed_password, salt, profile_id) VALUES ($1, $2, $3, $4) 
-			RETURNING id, email, hashed_password, salt, provider, is_verified`
+			RETURNING id, email, hashed_password, salt, provider, is_verified, is_admin`
 
 	row, err := r.pool.Query(ctx, sql, dto.Email, *dto.HashedPassword, *dto.Salt, profileID)
 	if err != nil {
@@ -143,7 +143,7 @@ func (r *UserRepo) CreateByProvider(ctx context.Context, dto dto.CreateUserByPro
 		return nil, repository.HandelPgErrors(err)
 	}
 	sql := `INSERT INTO users (email, provider, provider_id, profile_id, is_verified) VALUES ($1, $2, $3, $4, TRUE) 
-			RETURNING id, email, hashed_password, salt, provider, is_verified`
+			RETURNING id, email, hashed_password, salt, provider, is_verified, is_admin`
 	row, err := r.pool.Query(ctx, sql, dto.Email, dto.Provider, dto.ProviderID, profileID)
 	if err != nil {
 		return nil, repository.HandelPgErrors(err)
@@ -158,7 +158,7 @@ func (r *UserRepo) CreateByProvider(ctx context.Context, dto dto.CreateUserByPro
 }
 
 func (r *UserRepo) GetByProvider(ctx context.Context, provider string, email string) (*entity.User, error) {
-	sql := `SELECT id, email, salt, hashed_password, provider, is_verified FROM users WHERE email=$1 AND provider=$2`
+	sql := `SELECT id, email, salt, hashed_password, provider, is_verified, is_admin FROM users WHERE email=$1 AND provider=$2`
 	row, err := r.pool.Query(ctx, sql, email, provider)
 
 	if err != nil {
