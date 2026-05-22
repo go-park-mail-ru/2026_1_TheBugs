@@ -461,6 +461,50 @@ info:
   title: DomDeli API
   version: "1.0"
 paths:
+  /auth/admin/login:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Authenticate admin user and return access token + set refresh token
+        cookie
+      parameters:
+      - description: User email
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: User password
+        in: formData
+        name: password
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Successful login, returns access token
+          headers:
+            Set-Cookie:
+              description: refresh_token=<NEW_REFRESH_TOKEN>; HttpOnly; Path=/api/auth/refresh;
+                Max-Age=...
+              type: string
+          schema:
+            $ref: '#/definitions/github_com_go-park-mail-ru_2026_1_TheBugs_internal_delivery_restapi_auth.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ValidationErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - CSRFToken: []
+      summary: Login admin user
+      tags:
+      - Auth
   /auth/email:
     post:
       consumes:

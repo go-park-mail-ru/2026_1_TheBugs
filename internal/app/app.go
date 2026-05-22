@@ -16,13 +16,12 @@ import (
 	promHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/promotion"
 	supportHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/support"
 	userHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
+	minioRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/minio"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/redis/limits"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/smtp"
 	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
 	promUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/promotion"
-	userHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
-	minioRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/minio"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/redis/limits"
-	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/ratelimit"
 	supportUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/support"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/dsn"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -85,10 +84,19 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 
 	promotionUC := promUC.NewPromotionUseCase(uow)
 	promotionHandler := promHandler.NewPromotionHandler(promotionUC)
-  limmitUC := ratelimit.NewRateLimitUC(limitRepo)
+	limmitUC := ratelimit.NewRateLimitUC(limitRepo)
 
 	r := mux.NewRouter()
-	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler, userHandler, supportHandler, promotionHandler, limmitUC)
+	restapi.RegisterHandlers(r,
+		logger,
+		authHandler,
+		posterHandler,
+		utilityCompanyHandler,
+		userHandler,
+		supportHandler,
+		promotionHandler,
+		limmitUC,
+	)
 
 	serverAddress := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	srv := &http.Server{

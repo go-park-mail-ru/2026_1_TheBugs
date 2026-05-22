@@ -34,7 +34,7 @@ type PosterUseCase struct {
 	search usecase.SearchRepo
 	agent  usecase.LLMAgent
 	cache  usecase.Cache
-  maps   usecase.StreetMapProvider
+	maps   usecase.StreetMapProvider
 }
 
 func NewPosterUseCase(uow usecase.UnitOfWork, file usecase.FileRepo, search usecase.SearchRepo, agent usecase.LLMAgent, cache usecase.Cache, maps usecase.StreetMapProvider) *PosterUseCase {
@@ -485,16 +485,9 @@ func (uc *PosterUseCase) UpdateFlatPoster(ctx context.Context, alias string, pos
 		}
 
 		if lastHistory.Price != post.Price {
-			if time.Since(lastHistory.ChangedAt) <= 24*time.Hour {
-				err = r.Posters().UpdateLastPriceHistory(ctx, lastHistory.ID, post.Price)
-				if err != nil {
-					return fmt.Errorf("uc.PosterRepo.UpdateLastPriceHistory: %w", err)
-				}
-			} else {
-				err = r.Posters().AddPriceHistory(ctx, ids.PosterID, post.Price)
-				if err != nil {
-					return fmt.Errorf("uc.PosterRepo.AddPriceHistory: %w", err)
-				}
+			err = r.Posters().AddPriceHistory(ctx, ids.PosterID, post.Price)
+			if err != nil {
+				return fmt.Errorf("uc.PosterRepo.AddPriceHistory: %w", err)
 			}
 		}
 
