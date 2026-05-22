@@ -133,7 +133,7 @@ func (e *SMTPSender) SendRoommateMatch(ctx context.Context, email string, firstN
 
 		<p>
 			Зайдите в DomDeli, чтобы посмотреть анкету и ответить взаимностью:
-			<a href="https://dom-deli.ru/profile">https://dom-deli.ru/profile</a>
+			<a href="https://dom-deli.ru/friends?tab=requests">https://dom-deli.ru/friends</a>
 		</p>
 	`, firstName, lastName, posterURL, posterURL))
 
@@ -185,7 +185,7 @@ func (e *SMTPSender) SendRoommateContactsForRequester(
 
 		<p>
 			Список ваших соседей вы можете посмотреть в профиле:
-			<a href="https://dom-deli.ru/profile">https://dom-deli.ru/profile</a>
+			<a href="https://dom-deli.ru/friends">https://dom-deli.ru/friends</a>
 		</p>
 	`, roommateFirstName, roommateLastName, posterURL, posterURL, roommateEmail, roommatePhone))
 
@@ -237,7 +237,7 @@ func (e *SMTPSender) SendRoommateContactsForAccepted(
 
 		<p>
 			Список ваших соседей вы можете посмотреть в профиле:
-			<a href="https://dom-deli.ru/profile">https://dom-deli.ru/profile</a>
+			<a href="https://dom-deli.ru/friends">https://dom-deli.ru/friends</a>
 		</p>
 	`, roommateFirstName, roommateLastName, posterURL, posterURL, roommateEmail, roommatePhone))
 

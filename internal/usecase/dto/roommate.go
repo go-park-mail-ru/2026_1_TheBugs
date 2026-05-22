@@ -3,11 +3,11 @@ package dto
 import "github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 
 type RoommateUserDTO struct {
-	ID          int     `json:"id"`
-	FirstName   string  `json:"first_name"`
-	LastName    string  `json:"last_name"`
-	AvatarURL   *string `json:"avatar_url,omitempty"`
-	PosterAlias *string `json:"poster_alias"`
+	ID          int     `json:"id" db:"id"`
+	FirstName   string  `json:"first_name" db:"first_name"`
+	LastName    string  `json:"last_name" db:"last_name"`
+	AvatarURL   *string `json:"avatar_url,omitempty" db:"avatar_url"`
+	PosterAlias *string `json:"poster_alias" db:"-"`
 }
 
 type PosterRoommatesResponse struct {
