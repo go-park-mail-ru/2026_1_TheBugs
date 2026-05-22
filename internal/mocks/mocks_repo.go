@@ -1765,4 +1765,6 @@ func (m *MockPromotionRepo) UpdateStatus(ctx context.Context, paymentID, status 
 func (mr *MockPromotionRepoMockRecorder) UpdateStatus(ctx, paymentID, status interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStatus", reflect.TypeOf((*MockPromotionRepo)(nil).UpdateStatus), ctx, paymentID, status)
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertPhotos", reflect.TypeOf((*MockSupportRepo)(nil).InsertPhotos), ctx, orderID, photos)
 }

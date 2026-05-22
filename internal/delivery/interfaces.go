@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	jwtUtils "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/jwt"
@@ -62,4 +63,7 @@ type PromotionUseCase interface {
 	ActivatePromotion(ctx context.Context, data yoowebhook.WebhookEvent[yoopayment.Payment]) error
 	CheckPaymentStatus(ctx context.Context, userID int, paymentID string) (yoopayment.Status, error)
 	GetPromotionByUserID(ctx context.Context, userID int) (*dto.UserPromotionsDTO, error)
+}
+type RateLimitUseCase interface {
+	CheckIPLimit(ctx context.Context, ip string, limit int, ttl time.Duration) (bool, error)
 }
