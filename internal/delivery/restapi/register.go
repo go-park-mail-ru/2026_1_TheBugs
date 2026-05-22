@@ -10,6 +10,7 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/complex"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/promotion"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/support"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
@@ -49,7 +50,7 @@ import (
 
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
-func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHandler, post *poster.PosterHandler, UtilityCompany *complex.UtilityCompanyHandler, user *user.UserHandler, order *order.OrderHandler, rps delivery.RateLimitUseCase) {
+func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHandler, post *poster.PosterHandler, UtilityCompany *complex.UtilityCompanyHandler, user *user.UserHandler, support *support.SupportHandler, payment *promotion.PromotionHandler, rps delivery.RateLimitUseCase) {
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   config.Config.CORS.AllowedHosts,
@@ -69,9 +70,11 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 	}).Methods(http.MethodGet)
+	app.Handle("/webhooks/yookassa", http.HandlerFunc(payment.YooKassaWebhook)).Methods(http.MethodPost, http.MethodOptions)
 
 	// API Routers
 	apiGroup := app.PathPrefix("/api").Subrouter()
+
 	apiGroup.Use(metrics.MetricsHTTPMiddleware)
 	apiGroup.Use(middleware.CSRFMiddleware)
 	apiGroup.Use(middleware.SecurityMiddleware)
@@ -92,6 +95,7 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		apiGroup.Handle("/user/me/profile", AuthMiddlewary(http.HandlerFunc(user.UpdateProfile))).Methods(http.MethodPut, http.MethodOptions)
 
 		apiGroup.HandleFunc("/auth/login", auth.LoginUser).Methods(http.MethodPost, http.MethodOptions)
+		apiGroup.HandleFunc("/auth/admin/login", auth.LoginAdminUser).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.HandleFunc("/auth/reg", auth.RegisterUser).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.HandleFunc("/auth/logout", auth.Logout).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.HandleFunc("/auth/refresh", auth.RefreshToken).Methods(http.MethodPost, http.MethodOptions)
@@ -131,5 +135,10 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		apiGroup.Handle("/support/orders", AuthMiddlewary(http.HandlerFunc(support.GetOrders))).Methods(http.MethodGet, http.MethodOptions)
 		apiGroup.Handle("/support/orders/{id}", AuthMiddlewary(http.HandlerFunc(support.GetOrderByID))).Methods(http.MethodGet, http.MethodOptions)
 		apiGroup.Handle("/support/orders/{id}/answer", AuthMiddlewary(http.HandlerFunc(support.AnswerOrder))).Methods(http.MethodPost, http.MethodOptions)
+
+		apiGroup.Handle("/promotions/payment", AuthMiddlewary(http.HandlerFunc(payment.CreatePayment))).Methods(http.MethodPost, http.MethodOptions)
+		//apiGroup.Handle("/promotions/webhooks/yookassa", middleware.IPFilterMiddleware(http.HandlerFunc(payment.YooKassaWebhook), middleware.AllowYookassaIPs)).Methods(http.MethodPost, http.MethodOptions)
+		apiGroup.Handle("/promotions/status", AuthMiddlewary(http.HandlerFunc(payment.CheckPaymentStatus))).Methods(http.MethodPost, http.MethodOptions)
+		apiGroup.Handle("/promotions/me", AuthMiddlewary(http.HandlerFunc(payment.GetUserPromotions))).Methods(http.MethodGet, http.MethodOptions)
 	} //alias
 }

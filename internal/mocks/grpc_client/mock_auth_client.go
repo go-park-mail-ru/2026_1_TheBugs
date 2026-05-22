@@ -56,6 +56,26 @@ func (mr *MockAuthServiceClientMockRecorder) CheckAccessToken(arg0, arg1 interfa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckAccessToken", reflect.TypeOf((*MockAuthServiceClient)(nil).CheckAccessToken), varargs...)
 }
 
+// LoginAdmin mocks base method.
+func (m *MockAuthServiceClient) LoginAdmin(arg0 context.Context, arg1 *auth.LoginUserRequest, arg2 ...grpc.CallOption) (*auth.LoginResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "LoginAdmin", varargs...)
+	ret0, _ := ret[0].(*auth.LoginResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoginAdmin indicates an expected call of LoginAdmin.
+func (mr *MockAuthServiceClientMockRecorder) LoginAdmin(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoginAdmin", reflect.TypeOf((*MockAuthServiceClient)(nil).LoginAdmin), varargs...)
+}
+
 // LoginUser mocks base method.
 func (m *MockAuthServiceClient) LoginUser(arg0 context.Context, arg1 *auth.LoginUserRequest, arg2 ...grpc.CallOption) (*auth.LoginResponse, error) {
 	m.ctrl.T.Helper()

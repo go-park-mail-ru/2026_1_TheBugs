@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	AuthService_RegisterUser_FullMethodName          = "/auth.AuthService/RegisterUser"
 	AuthService_LoginUser_FullMethodName             = "/auth.AuthService/LoginUser"
+	AuthService_LoginAdmin_FullMethodName            = "/auth.AuthService/LoginAdmin"
 	AuthService_RefreshToken_FullMethodName          = "/auth.AuthService/RefreshToken"
 	AuthService_Logout_FullMethodName                = "/auth.AuthService/Logout"
 	AuthService_VKLogin_FullMethodName               = "/auth.AuthService/VKLogin"
@@ -39,6 +40,7 @@ const (
 type AuthServiceClient interface {
 	RegisterUser(ctx context.Context, in *RegisterUserRequest, opts ...grpc.CallOption) (*StatusResponse, error)
 	LoginUser(ctx context.Context, in *LoginUserRequest, opts ...grpc.CallOption) (*LoginResponse, error)
+	LoginAdmin(ctx context.Context, in *LoginUserRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 	Logout(ctx context.Context, in *LogoutRequest, opts ...grpc.CallOption) (*StatusResponse, error)
 	VKLogin(ctx context.Context, in *VKLoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
@@ -73,6 +75,16 @@ func (c *authServiceClient) LoginUser(ctx context.Context, in *LoginUserRequest,
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(LoginResponse)
 	err := c.cc.Invoke(ctx, AuthService_LoginUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) LoginAdmin(ctx context.Context, in *LoginUserRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(LoginResponse)
+	err := c.cc.Invoke(ctx, AuthService_LoginAdmin_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -185,6 +197,7 @@ func (c *authServiceClient) CheckAccessToken(ctx context.Context, in *CheckAcces
 type AuthServiceServer interface {
 	RegisterUser(context.Context, *RegisterUserRequest) (*StatusResponse, error)
 	LoginUser(context.Context, *LoginUserRequest) (*LoginResponse, error)
+	LoginAdmin(context.Context, *LoginUserRequest) (*LoginResponse, error)
 	RefreshToken(context.Context, *RefreshTokenRequest) (*LoginResponse, error)
 	Logout(context.Context, *LogoutRequest) (*StatusResponse, error)
 	VKLogin(context.Context, *VKLoginRequest) (*LoginResponse, error)
@@ -210,6 +223,9 @@ func (UnimplementedAuthServiceServer) RegisterUser(context.Context, *RegisterUse
 }
 func (UnimplementedAuthServiceServer) LoginUser(context.Context, *LoginUserRequest) (*LoginResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method LoginUser not implemented")
+}
+func (UnimplementedAuthServiceServer) LoginAdmin(context.Context, *LoginUserRequest) (*LoginResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method LoginAdmin not implemented")
 }
 func (UnimplementedAuthServiceServer) RefreshToken(context.Context, *RefreshTokenRequest) (*LoginResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RefreshToken not implemented")
@@ -294,6 +310,24 @@ func _AuthService_LoginUser_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(AuthServiceServer).LoginUser(ctx, req.(*LoginUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_LoginAdmin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoginUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).LoginAdmin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_LoginAdmin_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).LoginAdmin(ctx, req.(*LoginUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -492,6 +526,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LoginUser",
 			Handler:    _AuthService_LoginUser_Handler,
+		},
+		{
+			MethodName: "LoginAdmin",
+			Handler:    _AuthService_LoginAdmin_Handler,
 		},
 		{
 			MethodName: "RefreshToken",

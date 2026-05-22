@@ -19,10 +19,11 @@ type SupportUseCase struct {
 	sender usecase.MailSender
 }
 
-func NewSupportUseCase(uow usecase.UnitOfWork, file usecase.FileRepo) *SupportUseCase {
+func NewSupportUseCase(uow usecase.UnitOfWork, file usecase.FileRepo, sender usecase.MailSender) *SupportUseCase {
 	return &SupportUseCase{
-		uow:  uow,
-		file: file,
+		uow:    uow,
+		file:   file,
+		sender: sender,
 	}
 }
 
@@ -151,6 +152,9 @@ func (uc *SupportUseCase) GetOrderByID(ctx context.Context, userID int, orderID 
 	if err != nil {
 		return nil, fmt.Errorf("uc.uow.Users().GetByEmail: %w", err)
 	}
+	if !user.IsAdmin {
+		return nil, fmt.Errorf("is Not Admin: %w", entity.BadCredentials)
+	}
 
 	order, err := uc.uow.Support().GetByID(ctx, orderID)
 	if err != nil {
@@ -182,7 +186,7 @@ func (uc *SupportUseCase) AnswerOrder(ctx context.Context, adminID int, orderID 
 	}
 
 	if !user.IsAdmin {
-		return entity.ServiceError
+		return fmt.Errorf("is Not Admin: %w", entity.BadCredentials)
 	}
 
 	order, err := uc.uow.Support().GetByID(ctx, orderID)

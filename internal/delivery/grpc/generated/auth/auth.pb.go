@@ -928,10 +928,12 @@ const file_auth_proto_rawDesc = "" +
 	"\x17CheckAccessTokenRequest\x12!\n" +
 	"\faccess_token\x18\x01 \x01(\tR\vaccessToken\"3\n" +
 	"\x18CheckAccessTokenResponse\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId2\xaf\x06\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId2\xea\x06\n" +
 	"\vAuthService\x12?\n" +
 	"\fRegisterUser\x12\x19.auth.RegisterUserRequest\x1a\x14.auth.StatusResponse\x128\n" +
-	"\tLoginUser\x12\x16.auth.LoginUserRequest\x1a\x13.auth.LoginResponse\x12>\n" +
+	"\tLoginUser\x12\x16.auth.LoginUserRequest\x1a\x13.auth.LoginResponse\x129\n" +
+	"\n" +
+	"LoginAdmin\x12\x16.auth.LoginUserRequest\x1a\x13.auth.LoginResponse\x12>\n" +
 	"\fRefreshToken\x12\x19.auth.RefreshTokenRequest\x1a\x13.auth.LoginResponse\x123\n" +
 	"\x06Logout\x12\x13.auth.LogoutRequest\x1a\x14.auth.StatusResponse\x124\n" +
 	"\aVKLogin\x12\x14.auth.VKLoginRequest\x1a\x13.auth.LoginResponse\x12<\n" +
@@ -978,30 +980,32 @@ var file_auth_proto_goTypes = []any{
 var file_auth_proto_depIdxs = []int32{
 	0,  // 0: auth.AuthService.RegisterUser:input_type -> auth.RegisterUserRequest
 	1,  // 1: auth.AuthService.LoginUser:input_type -> auth.LoginUserRequest
-	3,  // 2: auth.AuthService.RefreshToken:input_type -> auth.RefreshTokenRequest
-	4,  // 3: auth.AuthService.Logout:input_type -> auth.LogoutRequest
-	10, // 4: auth.AuthService.VKLogin:input_type -> auth.VKLoginRequest
-	11, // 5: auth.AuthService.YandexLogin:input_type -> auth.YandexLoginRequest
-	5,  // 6: auth.AuthService.SendCodeOnEmail:input_type -> auth.SendCodeOnEmailRequest
-	6,  // 7: auth.AuthService.SendVerifyCodeOnEmail:input_type -> auth.SendVerifyCodeOnEmailRequest
-	7,  // 8: auth.AuthService.VerifyCode:input_type -> auth.VerifyCodeRequest
-	8,  // 9: auth.AuthService.VerifyRecoveryCode:input_type -> auth.VerifyRecoveryCodeRequest
-	9,  // 10: auth.AuthService.UpdatePassword:input_type -> auth.UpdatePasswordRequest
-	14, // 11: auth.AuthService.CheckAccessToken:input_type -> auth.CheckAccessTokenRequest
-	13, // 12: auth.AuthService.RegisterUser:output_type -> auth.StatusResponse
-	2,  // 13: auth.AuthService.LoginUser:output_type -> auth.LoginResponse
-	2,  // 14: auth.AuthService.RefreshToken:output_type -> auth.LoginResponse
-	13, // 15: auth.AuthService.Logout:output_type -> auth.StatusResponse
-	2,  // 16: auth.AuthService.VKLogin:output_type -> auth.LoginResponse
-	2,  // 17: auth.AuthService.YandexLogin:output_type -> auth.LoginResponse
-	12, // 18: auth.AuthService.SendCodeOnEmail:output_type -> auth.SessionResponse
-	12, // 19: auth.AuthService.SendVerifyCodeOnEmail:output_type -> auth.SessionResponse
-	13, // 20: auth.AuthService.VerifyCode:output_type -> auth.StatusResponse
-	13, // 21: auth.AuthService.VerifyRecoveryCode:output_type -> auth.StatusResponse
-	13, // 22: auth.AuthService.UpdatePassword:output_type -> auth.StatusResponse
-	15, // 23: auth.AuthService.CheckAccessToken:output_type -> auth.CheckAccessTokenResponse
-	12, // [12:24] is the sub-list for method output_type
-	0,  // [0:12] is the sub-list for method input_type
+	1,  // 2: auth.AuthService.LoginAdmin:input_type -> auth.LoginUserRequest
+	3,  // 3: auth.AuthService.RefreshToken:input_type -> auth.RefreshTokenRequest
+	4,  // 4: auth.AuthService.Logout:input_type -> auth.LogoutRequest
+	10, // 5: auth.AuthService.VKLogin:input_type -> auth.VKLoginRequest
+	11, // 6: auth.AuthService.YandexLogin:input_type -> auth.YandexLoginRequest
+	5,  // 7: auth.AuthService.SendCodeOnEmail:input_type -> auth.SendCodeOnEmailRequest
+	6,  // 8: auth.AuthService.SendVerifyCodeOnEmail:input_type -> auth.SendVerifyCodeOnEmailRequest
+	7,  // 9: auth.AuthService.VerifyCode:input_type -> auth.VerifyCodeRequest
+	8,  // 10: auth.AuthService.VerifyRecoveryCode:input_type -> auth.VerifyRecoveryCodeRequest
+	9,  // 11: auth.AuthService.UpdatePassword:input_type -> auth.UpdatePasswordRequest
+	14, // 12: auth.AuthService.CheckAccessToken:input_type -> auth.CheckAccessTokenRequest
+	13, // 13: auth.AuthService.RegisterUser:output_type -> auth.StatusResponse
+	2,  // 14: auth.AuthService.LoginUser:output_type -> auth.LoginResponse
+	2,  // 15: auth.AuthService.LoginAdmin:output_type -> auth.LoginResponse
+	2,  // 16: auth.AuthService.RefreshToken:output_type -> auth.LoginResponse
+	13, // 17: auth.AuthService.Logout:output_type -> auth.StatusResponse
+	2,  // 18: auth.AuthService.VKLogin:output_type -> auth.LoginResponse
+	2,  // 19: auth.AuthService.YandexLogin:output_type -> auth.LoginResponse
+	12, // 20: auth.AuthService.SendCodeOnEmail:output_type -> auth.SessionResponse
+	12, // 21: auth.AuthService.SendVerifyCodeOnEmail:output_type -> auth.SessionResponse
+	13, // 22: auth.AuthService.VerifyCode:output_type -> auth.StatusResponse
+	13, // 23: auth.AuthService.VerifyRecoveryCode:output_type -> auth.StatusResponse
+	13, // 24: auth.AuthService.UpdatePassword:output_type -> auth.StatusResponse
+	15, // 25: auth.AuthService.CheckAccessToken:output_type -> auth.CheckAccessTokenResponse
+	13, // [13:26] is the sub-list for method output_type
+	0,  // [0:13] is the sub-list for method input_type
 	0,  // [0:0] is the sub-list for extension type_name
 	0,  // [0:0] is the sub-list for extension extendee
 	0,  // [0:0] is the sub-list for field type_name

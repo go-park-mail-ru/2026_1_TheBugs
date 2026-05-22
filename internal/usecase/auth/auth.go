@@ -25,11 +25,11 @@ const SessionBlacklistTimeout = 1 * time.Minute
 
 type AuthUseCase struct {
 	uow    usecase.UnitOfWork
-	cache  usecase.Сache
+	cache  usecase.SessionRepo
 	sender usecase.MailSender
 }
 
-func NewAuthUseCase(uow usecase.UnitOfWork, cache usecase.Сache, sender usecase.MailSender) *AuthUseCase {
+func NewAuthUseCase(uow usecase.UnitOfWork, cache usecase.SessionRepo, sender usecase.MailSender) *AuthUseCase {
 	return &AuthUseCase{
 		uow:    uow,
 		cache:  cache,

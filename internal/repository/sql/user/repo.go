@@ -41,7 +41,7 @@ func (r *UserRepo) GetByEmail(ctx context.Context, email string) (*entity.User, 
 }
 
 func (r *UserRepo) GetAdminByID(ctx context.Context, userID int) (*entity.User, error) {
-	sql := `SELECT id, email, salt, hashed_password, provider, is_admin FROM users WHERE id=$1`
+	sql := `SELECT id, email, salt, hashed_password, provider, is_admin, is_verified FROM users WHERE id=$1`
 	row, err := r.pool.Query(ctx, sql, userID)
 	if err != nil {
 		return nil, repository.HandelPgErrors(err)

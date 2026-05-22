@@ -13,7 +13,12 @@ import (
 	authHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/auth"
 	complexHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/complex"
 	posterHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
+	promHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/promotion"
 	supportHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/support"
+	userHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/smtp"
+	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
+	promUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/promotion"
 	userHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
 	minioRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/minio"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/redis/limits"
@@ -39,9 +44,10 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	}
 	uow := uowSql.NewSQLStorage(pool)
 	minioClient, err := minio.New(cfg.Endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(cfg.AccessKey, cfg.SecretKey, ""),
+		Creds:  credentials.NewStaticV4(cfg.Minio.AccessKey, cfg.Minio.SecretKey, ""),
 		Secure: false,
 	})
+	senderRepo := smtp.NewSMTPSender(config.Config.SMTP.Host, config.Config.SMTP.Port, config.Config.SMTP.Email, config.Config.SMTP.Pwd)
 	if err != nil {
 		logger.Fatalf("cannot create minio client: %v", err)
 	}
@@ -74,13 +80,16 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	posterHandler := posterHandler.NewPosterHandler(posterConn)
 	utilityCompanyHandler := complexHandler.NewUtilityCompanyHandler(complexConn)
 
-	supportUC := supportUC.NewSupportUseCase(uow, fileRepo)
+	supportUC := supportUC.NewSupportUseCase(uow, fileRepo, senderRepo)
 	supportHandler := supportHandler.NewSupportHandler(supportUC)
 
-	limmitUC := ratelimit.NewRateLimitUC(limitRepo)
+	promotionUC := promUC.NewPromotionUseCase(uow)
+	promotionHandler := promHandler.NewPromotionHandler(promotionUC)
+  limmitUC := ratelimit.NewRateLimitUC(limitRepo)
 
 	r := mux.NewRouter()
-	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler, userHandler, supportHandler, limmitUC)
+	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler, userHandler, supportHandler, promotionHandler, limmitUC)
+
 	serverAddress := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	srv := &http.Server{
 		Handler:      r,
