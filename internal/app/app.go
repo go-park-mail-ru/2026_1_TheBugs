@@ -16,12 +16,14 @@ import (
 	supportHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/support"
 	userHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
 	minioRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/minio"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/redis/limits"
 	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
 	supportUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/support"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/dsn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/redis/go-redis/v9"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -48,6 +50,8 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	if err != nil {
 		logger.Fatalf("cannot create file repo: %v", err)
 	}
+	rdb := redis.NewClient(&redis.Options{Addr: fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port), Password: cfg.Redis.Password, DB: cfg.Redis.DB})
+	limitRepo := limits.NewRateLimitRepositoryRepo(rdb)
 
 	authConn, err := grpc.NewClient(fmt.Sprintf("%s:%d", cfg.AuthService.Host, cfg.AuthService.Port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -73,8 +77,10 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	supportUC := supportUC.NewSupportUseCase(uow, fileRepo)
 	supportHandler := supportHandler.NewSupportHandler(supportUC)
 
+	limmitUC := ratelimit.NewRateLimitUC(limitRepo)
+
 	r := mux.NewRouter()
-	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler, userHandler, supportHandler)
+	restapi.RegisterHandlers(r, logger, authHandler, posterHandler, utilityCompanyHandler, userHandler, supportHandler, limmitUC)
 	serverAddress := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	srv := &http.Server{
 		Handler:      r,

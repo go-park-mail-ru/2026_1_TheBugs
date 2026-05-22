@@ -23,6 +23,7 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/elasticsearch"
 	minioRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/minio"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/openrouter"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/osm"
 	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
 	posterUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/poster"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/dsn"
@@ -81,8 +82,9 @@ func RunPosterService(cfg *config.ProjectConfig, logger *logrus.Logger) {
 
 	esRepo := elasticsearch.NewESRepo(esClient)
 	ai := openrouter.New(config.Config.OpenRouter.APIKey, config.Config.OpenRouter.Model)
+	maps := osm.NewOSMRepo()
 
-	posterUC := posterUC.NewPosterUseCase(uow, fileRepo, esRepo, ai)
+	posterUC := posterUC.NewPosterUseCase(uow, fileRepo, esRepo, ai, maps)
 
 	app := mux.NewRouter()
 

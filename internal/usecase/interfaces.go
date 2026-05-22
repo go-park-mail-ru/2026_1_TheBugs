@@ -34,6 +34,7 @@ type PosterRepo interface {
 	GetByUserID(ctx context.Context, userID int) ([]entity.Poster, error)
 	GetClustersByMapBounds(ctx context.Context, coords dto.MapBounds) ([]entity.ClusterPoint, error)
 	GetMetroStationByRadius(ctx context.Context, buidingGeo dto.GeographyDTO, radius entity.Metre) ([]entity.MetroStation, error)
+	CreateMetroStation(ctx context.Context, stationName string, statuonGeo dto.GeographyDTO) (*entity.MetroStation, error)
 	GetPostersByMapBounds(ctx context.Context, coords dto.MapBounds) ([]entity.AnyPoint, error)
 	GetPostersByRadius(ctx context.Context, point dto.GeographyDTO, radius entity.Metre) ([]entity.Poster, error)
 
@@ -91,6 +92,16 @@ type UtilityCompanyRepo interface {
 	GetAllDevelopers(ctx context.Context) ([]dto.DeveloperDTO, error)
 }
 
+type OrderRepo interface {
+	Create(ctx context.Context, order *dto.Order) (int, error)
+	InsertPhotos(ctx context.Context, orderID int, photos []dto.PhotoInput) error
+	GetByUserID(ctx context.Context, userID int) ([]entity.Order, error)
+	GetAll(ctx context.Context) ([]entity.Order, error)
+	GetByID(ctx context.Context, orderID int) (*entity.OrderFull, error)
+	GetOrderImages(ctx context.Context, id int) ([]entity.OrderPhoto, error)
+	FinishOrder(ctx context.Context, orderID int, adminID int) error
+}
+
 type UnitOfWork interface {
 	Users() UserRepo
 	Posters() PosterRepo
@@ -133,6 +144,9 @@ type LLMAgent interface {
 	Chat(ctx context.Context, systemPrompt string, userPrompt string) (*dto.ChatResult, error)
 }
 
+type StreetMapProvider interface {
+	GetMetroStationByRadius(ctx context.Context, buidingGeo dto.GeographyDTO, radius entity.Metre) ([]entity.MetroStation, error)
+}
 type SupportRepo interface {
 	Create(ctx context.Context, order *dto.Order) (int, error)
 	InsertPhotos(ctx context.Context, orderID int, photos []dto.PhotoInput) error
