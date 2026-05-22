@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/mocks"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/validator"
 	"github.com/golang/mock/gomock"
@@ -407,266 +408,13 @@ func TestUserUseCase_GetRoommateUser(t *testing.T) {
 	}
 }
 
-func TestUserUseCase_AddRoommateMatсh(t *testing.T) {
+func TestUserUseCase_AddRoommateMatch(t *testing.T) {
 	t.Parallel()
 	ctx := context.Background()
 
 	fromUserID := 10
 	toUserID := 42
-
-	toContacts := &dto.RoommateContactsDTO{
-		Email: "target@example.com",
-		Phone: "+79991234567",
-	}
-
-	fromUser := &dto.UserDTO{
-		ID:        fromUserID,
-		FirstName: "John",
-		LastName:  "Doe",
-	}
-
-	poster := &entity.PosterFlat{
-		Address: "Moscow, Arbat 1",
-	}
-
-	cases := []struct {
-		name       string
-		fromUserID int
-		toUserID   int
-		setupMock  func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender)
-		wantErr    error
-	}{
-		{
-			name:       "OK",
-			fromUserID: fromUserID,
-			toUserID:   toUserID,
-			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
-				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
-				posterRepoMock := mocks.NewMockPosterRepo(gomock.NewController(t))
-
-				uowMock.EXPECT().Users().Return(userRepoMock).Times(3)
-				uowMock.EXPECT().Posters().Return(posterRepoMock).Times(1)
-
-				userRepoMock.EXPECT().
-					AddRoommateMatch(ctx, fromUserID, toUserID).
-					Return(nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetRoommateContacts(ctx, toUserID).
-					Return(toContacts, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetByID(ctx, fromUserID).
-					Return(fromUser, nil).
-					Times(1)
-
-				posterRepoMock.EXPECT().
-					GetRoommatePoster(ctx, fromUserID).
-					Return(poster, nil).
-					Times(1)
-
-				senderMock.EXPECT().
-					SendRoommateMatch(ctx, toContacts.Email, fromUser.FirstName, fromUser.LastName, poster.Address).
-					Return(nil).
-					Times(1)
-			},
-			wantErr: nil,
-		},
-		{
-			name:       "SelfMatesth",
-			fromUserID: fromUserID,
-			toUserID:   fromUserID,
-			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
-			},
-			wantErr: entity.InvalidInput,
-		},
-		{
-			name:       "AddRoommateMatchNotFound",
-			fromUserID: fromUserID,
-			toUserID:   toUserID,
-			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
-				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
-
-				uowMock.EXPECT().Users().Return(userRepoMock).Times(1)
-
-				userRepoMock.EXPECT().
-					AddRoommateMatch(ctx, fromUserID, toUserID).
-					Return(entity.NotFoundError).
-					Times(1)
-			},
-			wantErr: entity.NotFoundError,
-		},
-		{
-			name:       "AddRoommateMatchServiceError",
-			fromUserID: fromUserID,
-			toUserID:   toUserID,
-			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
-				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
-
-				uowMock.EXPECT().Users().Return(userRepoMock).Times(1)
-
-				userRepoMock.EXPECT().
-					AddRoommateMatch(ctx, fromUserID, toUserID).
-					Return(entity.ServiceError).
-					Times(1)
-			},
-			wantErr: entity.ServiceError,
-		},
-		{
-			name:       "GetRoommateContactsError",
-			fromUserID: fromUserID,
-			toUserID:   toUserID,
-			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
-				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
-
-				uowMock.EXPECT().Users().Return(userRepoMock).Times(2)
-
-				userRepoMock.EXPECT().
-					AddRoommateMatch(ctx, fromUserID, toUserID).
-					Return(nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetRoommateContacts(ctx, toUserID).
-					Return(nil, entity.ServiceError).
-					Times(1)
-			},
-			wantErr: entity.ServiceError,
-		},
-		{
-			name:       "GetByIDError",
-			fromUserID: fromUserID,
-			toUserID:   toUserID,
-			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
-				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
-
-				uowMock.EXPECT().Users().Return(userRepoMock).Times(3)
-
-				userRepoMock.EXPECT().
-					AddRoommateMatch(ctx, fromUserID, toUserID).
-					Return(nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetRoommateContacts(ctx, toUserID).
-					Return(toContacts, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetByID(ctx, fromUserID).
-					Return(nil, entity.ServiceError).
-					Times(1)
-			},
-			wantErr: entity.ServiceError,
-		},
-		{
-			name:       "GetRoommatePosterError",
-			fromUserID: fromUserID,
-			toUserID:   toUserID,
-			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
-				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
-				posterRepoMock := mocks.NewMockPosterRepo(gomock.NewController(t))
-
-				uowMock.EXPECT().Users().Return(userRepoMock).Times(3)
-				uowMock.EXPECT().Posters().Return(posterRepoMock).Times(1)
-
-				userRepoMock.EXPECT().
-					AddRoommateMatch(ctx, fromUserID, toUserID).
-					Return(nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetRoommateContacts(ctx, toUserID).
-					Return(toContacts, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetByID(ctx, fromUserID).
-					Return(fromUser, nil).
-					Times(1)
-
-				posterRepoMock.EXPECT().
-					GetRoommatePoster(ctx, fromUserID).
-					Return(nil, entity.ServiceError).
-					Times(1)
-			},
-			wantErr: entity.ServiceError,
-		},
-		{
-			name:       "SenderErrorIgnored",
-			fromUserID: fromUserID,
-			toUserID:   toUserID,
-			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
-				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
-				posterRepoMock := mocks.NewMockPosterRepo(gomock.NewController(t))
-
-				uowMock.EXPECT().Users().Return(userRepoMock).Times(3)
-				uowMock.EXPECT().Posters().Return(posterRepoMock).Times(1)
-
-				userRepoMock.EXPECT().
-					AddRoommateMatch(ctx, fromUserID, toUserID).
-					Return(nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetRoommateContacts(ctx, toUserID).
-					Return(toContacts, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetByID(ctx, fromUserID).
-					Return(fromUser, nil).
-					Times(1)
-
-				posterRepoMock.EXPECT().
-					GetRoommatePoster(ctx, fromUserID).
-					Return(poster, nil).
-					Times(1)
-
-				senderMock.EXPECT().
-					SendRoommateMatch(ctx, toContacts.Email, fromUser.FirstName, fromUser.LastName, poster.Address).
-					Return(errors.New("smtp error")).
-					Times(1)
-			},
-			wantErr: nil,
-		},
-	}
-
-	for _, test := range cases {
-		test := test
-		t.Run(test.name, func(t *testing.T) {
-			t.Parallel()
-
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
-
-			uowMock := mocks.NewMockUnitOfWork(ctrl)
-			fileMock := mocks.NewMockFileRepo(ctrl)
-			senderMock := mocks.NewMockMailSender(ctrl)
-
-			test.setupMock(uowMock, fileMock, senderMock)
-
-			uc := NewUserUseCase(uowMock, fileMock, senderMock)
-			err := uc.AddRoommateMatch(ctx, test.fromUserID, test.toUserID)
-
-			if test.wantErr != nil {
-				require.ErrorIs(t, err, test.wantErr)
-				return
-			}
-
-			require.NoError(t, err)
-		})
-	}
-}
-
-func TestUserUseCase_GetRoommateContacts(t *testing.T) {
-	t.Parallel()
-	ctx := context.Background()
-
-	fromUserID := 10
-	toUserID := 42
+	posterAlias := "flat-1"
 
 	fromContacts := &dto.RoommateContactsDTO{
 		Email: "from@example.com",
@@ -692,6 +440,627 @@ func TestUserUseCase_GetRoommateContacts(t *testing.T) {
 
 	poster := &entity.PosterFlat{
 		Address: "Moscow, Arbat 1",
+		Alias:   posterAlias,
+	}
+
+	cases := []struct {
+		name        string
+		fromUserID  int
+		toUserID    int
+		posterAlias *string
+		setupMock   func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender)
+		wantErr     error
+	}{
+		{
+			name:        "OKNotMatched",
+			fromUserID:  fromUserID,
+			toUserID:    toUserID,
+			posterAlias: &posterAlias,
+			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
+				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
+				posterRepoMock := mocks.NewMockPosterRepo(gomock.NewController(t))
+
+				uowMock.EXPECT().Do(ctx, gomock.Any()).DoAndReturn(
+					func(ctx context.Context, fn func(usecase.UnitOfWork) error) error {
+						return fn(uowMock)
+					},
+				).Times(1)
+
+				uowMock.EXPECT().Users().Return(userRepoMock).Times(5)
+				uowMock.EXPECT().Posters().Return(posterRepoMock).Times(1)
+
+				userRepoMock.EXPECT().
+					GetByID(ctx, toUserID).
+					Return(toUser, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					AddRoommateMatch(ctx, fromUserID, toUserID, &posterAlias).
+					Return(nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					IsRoommateMatch(ctx, fromUserID, toUserID).
+					Return(false, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					GetRoommateContacts(ctx, toUserID).
+					Return(toContacts, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					GetByID(ctx, fromUserID).
+					Return(fromUser, nil).
+					Times(1)
+
+				posterRepoMock.EXPECT().
+					GetRoommatePoster(ctx, fromUserID, toUserID).
+					Return(poster, nil).
+					Times(1)
+
+				senderMock.EXPECT().
+					SendRoommateMatch(
+						ctx,
+						toContacts.Email,
+						fromUser.FirstName,
+						fromUser.LastName,
+						poster.Alias,
+					).
+					Return(nil).
+					Times(1)
+			},
+			wantErr: nil,
+		},
+		{
+			name:        "OKMatched",
+			fromUserID:  fromUserID,
+			toUserID:    toUserID,
+			posterAlias: nil,
+			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
+				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
+				posterRepoMock := mocks.NewMockPosterRepo(gomock.NewController(t))
+
+				uowMock.EXPECT().Do(ctx, gomock.Any()).DoAndReturn(
+					func(ctx context.Context, fn func(usecase.UnitOfWork) error) error {
+						return fn(uowMock)
+					},
+				).Times(1)
+
+				uowMock.EXPECT().Users().Return(userRepoMock).Times(7)
+				uowMock.EXPECT().Posters().Return(posterRepoMock).Times(1)
+
+				userRepoMock.EXPECT().
+					GetByID(ctx, toUserID).
+					Return(toUser, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					AddRoommateMatch(ctx, fromUserID, toUserID, (*string)(nil)).
+					Return(nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					IsRoommateMatch(ctx, fromUserID, toUserID).
+					Return(true, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					GetRoommateContacts(ctx, toUserID).
+					Return(toContacts, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					GetByID(ctx, fromUserID).
+					Return(fromUser, nil).
+					Times(1)
+
+				posterRepoMock.EXPECT().
+					GetRoommatePoster(ctx, fromUserID, toUserID).
+					Return(poster, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					GetRoommateContacts(ctx, fromUserID).
+					Return(fromContacts, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					GetByID(ctx, toUserID).
+					Return(toUser, nil).
+					Times(1)
+
+				senderMock.EXPECT().
+					SendRoommateContactsForRequester(
+						ctx,
+						fromContacts.Email,
+						toUser.FirstName,
+						toUser.LastName,
+						toContacts.Email,
+						toContacts.Phone,
+						poster.Alias,
+					).
+					Return(nil).
+					Times(1)
+
+				senderMock.EXPECT().
+					SendRoommateContactsForAccepted(
+						ctx,
+						toContacts.Email,
+						fromUser.FirstName,
+						fromUser.LastName,
+						fromContacts.Email,
+						fromContacts.Phone,
+						poster.Alias,
+					).
+					Return(nil).
+					Times(1)
+			},
+			wantErr: nil,
+		},
+		{
+			name:        "SelfMatch",
+			fromUserID:  fromUserID,
+			toUserID:    fromUserID,
+			posterAlias: &posterAlias,
+			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
+			},
+			wantErr: entity.InvalidInput,
+		},
+		{
+			name:        "GetTargetUserError",
+			fromUserID:  fromUserID,
+			toUserID:    toUserID,
+			posterAlias: &posterAlias,
+			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
+				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
+
+				uowMock.EXPECT().Do(ctx, gomock.Any()).DoAndReturn(
+					func(ctx context.Context, fn func(usecase.UnitOfWork) error) error {
+						return fn(uowMock)
+					},
+				).Times(1)
+
+				uowMock.EXPECT().Users().Return(userRepoMock).Times(1)
+
+				userRepoMock.EXPECT().
+					GetByID(ctx, toUserID).
+					Return(nil, entity.NotFoundError).
+					Times(1)
+			},
+			wantErr: entity.NotFoundError,
+		},
+		{
+			name:        "AddRoommateMatchError",
+			fromUserID:  fromUserID,
+			toUserID:    toUserID,
+			posterAlias: &posterAlias,
+			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
+				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
+
+				uowMock.EXPECT().Do(ctx, gomock.Any()).DoAndReturn(
+					func(ctx context.Context, fn func(usecase.UnitOfWork) error) error {
+						return fn(uowMock)
+					},
+				).Times(1)
+
+				uowMock.EXPECT().Users().Return(userRepoMock).Times(2)
+
+				userRepoMock.EXPECT().
+					GetByID(ctx, toUserID).
+					Return(toUser, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					AddRoommateMatch(ctx, fromUserID, toUserID, &posterAlias).
+					Return(entity.ServiceError).
+					Times(1)
+			},
+			wantErr: entity.ServiceError,
+		},
+		{
+			name:        "IsRoommateMatchError",
+			fromUserID:  fromUserID,
+			toUserID:    toUserID,
+			posterAlias: &posterAlias,
+			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
+				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
+
+				uowMock.EXPECT().Do(ctx, gomock.Any()).DoAndReturn(
+					func(ctx context.Context, fn func(usecase.UnitOfWork) error) error {
+						return fn(uowMock)
+					},
+				).Times(1)
+
+				uowMock.EXPECT().Users().Return(userRepoMock).Times(3)
+
+				userRepoMock.EXPECT().
+					GetByID(ctx, toUserID).
+					Return(toUser, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					AddRoommateMatch(ctx, fromUserID, toUserID, &posterAlias).
+					Return(nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					IsRoommateMatch(ctx, fromUserID, toUserID).
+					Return(false, entity.ServiceError).
+					Times(1)
+			},
+			wantErr: entity.ServiceError,
+		},
+		{
+			name:        "GetToContactsErrorNotMatched",
+			fromUserID:  fromUserID,
+			toUserID:    toUserID,
+			posterAlias: &posterAlias,
+			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
+				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
+
+				uowMock.EXPECT().Do(ctx, gomock.Any()).DoAndReturn(
+					func(ctx context.Context, fn func(usecase.UnitOfWork) error) error {
+						return fn(uowMock)
+					},
+				).Times(1)
+
+				uowMock.EXPECT().Users().Return(userRepoMock).Times(4)
+
+				userRepoMock.EXPECT().
+					GetByID(ctx, toUserID).
+					Return(toUser, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					AddRoommateMatch(ctx, fromUserID, toUserID, &posterAlias).
+					Return(nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					IsRoommateMatch(ctx, fromUserID, toUserID).
+					Return(false, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					GetRoommateContacts(ctx, toUserID).
+					Return(nil, entity.ServiceError).
+					Times(1)
+			},
+			wantErr: entity.ServiceError,
+		},
+		{
+			name:        "GetFromUserErrorNotMatched",
+			fromUserID:  fromUserID,
+			toUserID:    toUserID,
+			posterAlias: &posterAlias,
+			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
+				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
+
+				uowMock.EXPECT().Do(ctx, gomock.Any()).DoAndReturn(
+					func(ctx context.Context, fn func(usecase.UnitOfWork) error) error {
+						return fn(uowMock)
+					},
+				).Times(1)
+
+				uowMock.EXPECT().Users().Return(userRepoMock).Times(5)
+
+				userRepoMock.EXPECT().
+					GetByID(ctx, toUserID).
+					Return(toUser, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					AddRoommateMatch(ctx, fromUserID, toUserID, &posterAlias).
+					Return(nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					IsRoommateMatch(ctx, fromUserID, toUserID).
+					Return(false, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					GetRoommateContacts(ctx, toUserID).
+					Return(toContacts, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					GetByID(ctx, fromUserID).
+					Return(nil, entity.ServiceError).
+					Times(1)
+			},
+			wantErr: entity.ServiceError,
+		},
+		{
+			name:        "GetRoommatePosterErrorNotMatched",
+			fromUserID:  fromUserID,
+			toUserID:    toUserID,
+			posterAlias: &posterAlias,
+			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
+				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
+				posterRepoMock := mocks.NewMockPosterRepo(gomock.NewController(t))
+
+				uowMock.EXPECT().Do(ctx, gomock.Any()).DoAndReturn(
+					func(ctx context.Context, fn func(usecase.UnitOfWork) error) error {
+						return fn(uowMock)
+					},
+				).Times(1)
+
+				uowMock.EXPECT().Users().Return(userRepoMock).Times(5)
+				uowMock.EXPECT().Posters().Return(posterRepoMock).Times(1)
+
+				userRepoMock.EXPECT().
+					GetByID(ctx, toUserID).
+					Return(toUser, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					AddRoommateMatch(ctx, fromUserID, toUserID, &posterAlias).
+					Return(nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					IsRoommateMatch(ctx, fromUserID, toUserID).
+					Return(false, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					GetRoommateContacts(ctx, toUserID).
+					Return(toContacts, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					GetByID(ctx, fromUserID).
+					Return(fromUser, nil).
+					Times(1)
+
+				posterRepoMock.EXPECT().
+					GetRoommatePoster(ctx, fromUserID, toUserID).
+					Return(nil, entity.ServiceError).
+					Times(1)
+			},
+			wantErr: entity.ServiceError,
+		},
+		{
+			name:        "GetFromContactsError",
+			fromUserID:  fromUserID,
+			toUserID:    toUserID,
+			posterAlias: nil,
+			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
+				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
+				posterRepoMock := mocks.NewMockPosterRepo(gomock.NewController(t))
+
+				uowMock.EXPECT().Do(ctx, gomock.Any()).DoAndReturn(
+					func(ctx context.Context, fn func(usecase.UnitOfWork) error) error {
+						return fn(uowMock)
+					},
+				).Times(1)
+
+				uowMock.EXPECT().Users().Return(userRepoMock).Times(6)
+				uowMock.EXPECT().Posters().Return(posterRepoMock).Times(1)
+
+				userRepoMock.EXPECT().
+					GetByID(ctx, toUserID).
+					Return(toUser, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					AddRoommateMatch(ctx, fromUserID, toUserID, (*string)(nil)).
+					Return(nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					IsRoommateMatch(ctx, fromUserID, toUserID).
+					Return(true, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					GetRoommateContacts(ctx, toUserID).
+					Return(toContacts, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					GetByID(ctx, fromUserID).
+					Return(fromUser, nil).
+					Times(1)
+
+				posterRepoMock.EXPECT().
+					GetRoommatePoster(ctx, fromUserID, toUserID).
+					Return(poster, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					GetRoommateContacts(ctx, fromUserID).
+					Return(nil, entity.ServiceError).
+					Times(1)
+			},
+			wantErr: entity.ServiceError,
+		},
+		{
+			name:        "GetToUserError",
+			fromUserID:  fromUserID,
+			toUserID:    toUserID,
+			posterAlias: nil,
+			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
+				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
+				posterRepoMock := mocks.NewMockPosterRepo(gomock.NewController(t))
+
+				uowMock.EXPECT().Do(ctx, gomock.Any()).DoAndReturn(
+					func(ctx context.Context, fn func(usecase.UnitOfWork) error) error {
+						return fn(uowMock)
+					},
+				).Times(1)
+
+				uowMock.EXPECT().Users().Return(userRepoMock).Times(7)
+				uowMock.EXPECT().Posters().Return(posterRepoMock).Times(1)
+
+				userRepoMock.EXPECT().
+					GetByID(ctx, toUserID).
+					Return(toUser, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					AddRoommateMatch(ctx, fromUserID, toUserID, (*string)(nil)).
+					Return(nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					IsRoommateMatch(ctx, fromUserID, toUserID).
+					Return(true, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					GetRoommateContacts(ctx, toUserID).
+					Return(toContacts, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					GetByID(ctx, fromUserID).
+					Return(fromUser, nil).
+					Times(1)
+
+				posterRepoMock.EXPECT().
+					GetRoommatePoster(ctx, fromUserID, toUserID).
+					Return(poster, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					GetRoommateContacts(ctx, fromUserID).
+					Return(fromContacts, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					GetByID(ctx, toUserID).
+					Return(nil, entity.ServiceError).
+					Times(1)
+			},
+			wantErr: entity.ServiceError,
+		},
+		{
+			name:        "SenderErrorIgnored",
+			fromUserID:  fromUserID,
+			toUserID:    toUserID,
+			posterAlias: nil,
+			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
+				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
+				posterRepoMock := mocks.NewMockPosterRepo(gomock.NewController(t))
+
+				uowMock.EXPECT().Do(ctx, gomock.Any()).DoAndReturn(
+					func(ctx context.Context, fn func(usecase.UnitOfWork) error) error {
+						return fn(uowMock)
+					},
+				).Times(1)
+
+				uowMock.EXPECT().Users().Return(userRepoMock).Times(7)
+				uowMock.EXPECT().Posters().Return(posterRepoMock).Times(1)
+
+				userRepoMock.EXPECT().
+					GetByID(ctx, toUserID).
+					Return(toUser, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					AddRoommateMatch(ctx, fromUserID, toUserID, (*string)(nil)).
+					Return(nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					IsRoommateMatch(ctx, fromUserID, toUserID).
+					Return(true, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					GetRoommateContacts(ctx, toUserID).
+					Return(toContacts, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					GetByID(ctx, fromUserID).
+					Return(fromUser, nil).
+					Times(1)
+
+				posterRepoMock.EXPECT().
+					GetRoommatePoster(ctx, fromUserID, toUserID).
+					Return(poster, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					GetRoommateContacts(ctx, fromUserID).
+					Return(fromContacts, nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					GetByID(ctx, toUserID).
+					Return(toUser, nil).
+					Times(1)
+
+				senderMock.EXPECT().
+					SendRoommateContactsForRequester(
+						ctx,
+						fromContacts.Email,
+						toUser.FirstName,
+						toUser.LastName,
+						toContacts.Email,
+						toContacts.Phone,
+						poster.Alias,
+					).
+					Return(errors.New("smtp error")).
+					Times(1)
+
+				senderMock.EXPECT().
+					SendRoommateContactsForAccepted(
+						ctx,
+						toContacts.Email,
+						fromUser.FirstName,
+						fromUser.LastName,
+						fromContacts.Email,
+						fromContacts.Phone,
+						poster.Alias,
+					).
+					Return(nil).
+					Times(1)
+			},
+			wantErr: nil,
+		},
+	}
+
+	for _, test := range cases {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			uowMock := mocks.NewMockUnitOfWork(ctrl)
+			fileMock := mocks.NewMockFileRepo(ctrl)
+			senderMock := mocks.NewMockMailSender(ctrl)
+
+			test.setupMock(uowMock, fileMock, senderMock)
+
+			uc := NewUserUseCase(uowMock, fileMock, senderMock)
+			err := uc.AddRoommateMatch(ctx, test.fromUserID, test.toUserID, test.posterAlias)
+
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestUserUseCase_GetRoommateContacts(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	fromUserID := 10
+	toUserID := 42
+
+	toContacts := &dto.RoommateContactsDTO{
+		Email: "target@example.com",
+		Phone: "+79991234567",
 	}
 
 	cases := []struct {
@@ -708,10 +1077,8 @@ func TestUserUseCase_GetRoommateContacts(t *testing.T) {
 			toUserID:   toUserID,
 			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
 				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
-				posterRepoMock := mocks.NewMockPosterRepo(gomock.NewController(t))
 
-				uowMock.EXPECT().Users().Return(userRepoMock).Times(5)
-				uowMock.EXPECT().Posters().Return(posterRepoMock).Times(1)
+				uowMock.EXPECT().Users().Return(userRepoMock).Times(2)
 
 				userRepoMock.EXPECT().
 					IsRoommateMatch(ctx, fromUserID, toUserID).
@@ -719,54 +1086,8 @@ func TestUserUseCase_GetRoommateContacts(t *testing.T) {
 					Times(1)
 
 				userRepoMock.EXPECT().
-					GetRoommateContacts(ctx, fromUserID).
-					Return(fromContacts, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
 					GetRoommateContacts(ctx, toUserID).
 					Return(toContacts, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetByID(ctx, fromUserID).
-					Return(fromUser, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetByID(ctx, toUserID).
-					Return(toUser, nil).
-					Times(1)
-
-				posterRepoMock.EXPECT().
-					GetRoommatePoster(ctx, fromUserID).
-					Return(poster, nil).
-					Times(1)
-
-				senderMock.EXPECT().
-					SendRoommateContactsForRequester(
-						ctx,
-						fromContacts.Email,
-						toUser.FirstName,
-						toUser.LastName,
-						toContacts.Email,
-						toContacts.Phone,
-						poster.Address,
-					).
-					Return(nil).
-					Times(1)
-
-				senderMock.EXPECT().
-					SendRoommateContactsForAccepted(
-						ctx,
-						toContacts.Email,
-						fromUser.FirstName,
-						fromUser.LastName,
-						fromContacts.Email,
-						fromContacts.Phone,
-						poster.Address,
-					).
-					Return(nil).
 					Times(1)
 			},
 			want:    toContacts,
@@ -782,7 +1103,7 @@ func TestUserUseCase_GetRoommateContacts(t *testing.T) {
 			wantErr: entity.InvalidInput,
 		},
 		{
-			name:       "NotMatesthed",
+			name:       "NotMatched",
 			fromUserID: fromUserID,
 			toUserID:   toUserID,
 			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
@@ -799,7 +1120,7 @@ func TestUserUseCase_GetRoommateContacts(t *testing.T) {
 			wantErr: entity.NotFoundError,
 		},
 		{
-			name:       "IsRoommateMatesthError",
+			name:       "IsRoommateMatchError",
 			fromUserID: fromUserID,
 			toUserID:   toUserID,
 			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
@@ -816,7 +1137,7 @@ func TestUserUseCase_GetRoommateContacts(t *testing.T) {
 			wantErr: entity.ServiceError,
 		},
 		{
-			name:       "GetFromContactsError",
+			name:       "GetRoommateContactsError",
 			fromUserID: fromUserID,
 			toUserID:   toUserID,
 			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
@@ -830,222 +1151,12 @@ func TestUserUseCase_GetRoommateContacts(t *testing.T) {
 					Times(1)
 
 				userRepoMock.EXPECT().
-					GetRoommateContacts(ctx, fromUserID).
-					Return(nil, entity.NotFoundError).
-					Times(1)
-			},
-			want:    nil,
-			wantErr: entity.NotFoundError,
-		},
-		{
-			name:       "GetToContactsError",
-			fromUserID: fromUserID,
-			toUserID:   toUserID,
-			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
-				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
-
-				uowMock.EXPECT().Users().Return(userRepoMock).Times(3)
-
-				userRepoMock.EXPECT().
-					IsRoommateMatch(ctx, fromUserID, toUserID).
-					Return(true, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetRoommateContacts(ctx, fromUserID).
-					Return(fromContacts, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
 					GetRoommateContacts(ctx, toUserID).
 					Return(nil, entity.ServiceError).
 					Times(1)
 			},
 			want:    nil,
 			wantErr: entity.ServiceError,
-		},
-		{
-			name:       "GetFromUserError",
-			fromUserID: fromUserID,
-			toUserID:   toUserID,
-			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
-				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
-
-				uowMock.EXPECT().Users().Return(userRepoMock).Times(4)
-
-				userRepoMock.EXPECT().
-					IsRoommateMatch(ctx, fromUserID, toUserID).
-					Return(true, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetRoommateContacts(ctx, fromUserID).
-					Return(fromContacts, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetRoommateContacts(ctx, toUserID).
-					Return(toContacts, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetByID(ctx, fromUserID).
-					Return(nil, entity.ServiceError).
-					Times(1)
-			},
-			want:    nil,
-			wantErr: entity.ServiceError,
-		},
-		{
-			name:       "GetToUserError",
-			fromUserID: fromUserID,
-			toUserID:   toUserID,
-			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
-				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
-
-				uowMock.EXPECT().Users().Return(userRepoMock).Times(5)
-
-				userRepoMock.EXPECT().
-					IsRoommateMatch(ctx, fromUserID, toUserID).
-					Return(true, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetRoommateContacts(ctx, fromUserID).
-					Return(fromContacts, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetRoommateContacts(ctx, toUserID).
-					Return(toContacts, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetByID(ctx, fromUserID).
-					Return(fromUser, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetByID(ctx, toUserID).
-					Return(nil, entity.ServiceError).
-					Times(1)
-			},
-			want:    nil,
-			wantErr: entity.ServiceError,
-		},
-		{
-			name:       "GetRoommatePosterError",
-			fromUserID: fromUserID,
-			toUserID:   toUserID,
-			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
-				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
-				posterRepoMock := mocks.NewMockPosterRepo(gomock.NewController(t))
-
-				uowMock.EXPECT().Users().Return(userRepoMock).Times(5)
-				uowMock.EXPECT().Posters().Return(posterRepoMock).Times(1)
-
-				userRepoMock.EXPECT().
-					IsRoommateMatch(ctx, fromUserID, toUserID).
-					Return(true, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetRoommateContacts(ctx, fromUserID).
-					Return(fromContacts, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetRoommateContacts(ctx, toUserID).
-					Return(toContacts, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetByID(ctx, fromUserID).
-					Return(fromUser, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetByID(ctx, toUserID).
-					Return(toUser, nil).
-					Times(1)
-
-				posterRepoMock.EXPECT().
-					GetRoommatePoster(ctx, fromUserID).
-					Return(nil, entity.ServiceError).
-					Times(1)
-			},
-			want:    nil,
-			wantErr: entity.ServiceError,
-		},
-		{
-			name:       "SenderErrorIgnored",
-			fromUserID: fromUserID,
-			toUserID:   toUserID,
-			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, senderMock *mocks.MockMailSender) {
-				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
-				posterRepoMock := mocks.NewMockPosterRepo(gomock.NewController(t))
-
-				uowMock.EXPECT().Users().Return(userRepoMock).Times(5)
-				uowMock.EXPECT().Posters().Return(posterRepoMock).Times(1)
-
-				userRepoMock.EXPECT().
-					IsRoommateMatch(ctx, fromUserID, toUserID).
-					Return(true, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetRoommateContacts(ctx, fromUserID).
-					Return(fromContacts, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetRoommateContacts(ctx, toUserID).
-					Return(toContacts, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetByID(ctx, fromUserID).
-					Return(fromUser, nil).
-					Times(1)
-
-				userRepoMock.EXPECT().
-					GetByID(ctx, toUserID).
-					Return(toUser, nil).
-					Times(1)
-
-				posterRepoMock.EXPECT().
-					GetRoommatePoster(ctx, fromUserID).
-					Return(poster, nil).
-					Times(1)
-
-				senderMock.EXPECT().
-					SendRoommateContactsForRequester(
-						ctx,
-						fromContacts.Email,
-						toUser.FirstName,
-						toUser.LastName,
-						toContacts.Email,
-						toContacts.Phone,
-						poster.Address,
-					).
-					Return(errors.New("smtp error")).
-					Times(1)
-
-				senderMock.EXPECT().
-					SendRoommateContactsForAccepted(
-						ctx,
-						toContacts.Email,
-						fromUser.FirstName,
-						fromUser.LastName,
-						fromContacts.Email,
-						fromContacts.Phone,
-						poster.Address,
-					).
-					Return(errors.New("smtp error")).
-					Times(1)
-			},
-			want:    toContacts,
-			wantErr: nil,
 		},
 	}
 

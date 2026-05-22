@@ -570,7 +570,7 @@ func TestUserHandler_GetRoommateContacts(t *testing.T) {
 				ctx = utils.SetUserID(ctx, test.userID)
 			}
 
-			req := httptest.NewRequest(http.MethodGet, "/users/"+test.pathID+"/contacts", nil).WithContext(ctx)
+			req := httptest.NewRequest(http.MethodGet, "/user/"+test.pathID+"/contacts", nil).WithContext(ctx)
 			req = mux.SetURLVars(req, map[string]string{
 				"id": test.pathID,
 			})
@@ -966,10 +966,11 @@ func TestUserHandler_GetIncomingRoommateMatches(t *testing.T) {
 						return &user.GetIncomingRoommateMatchesResponse{
 							Users: []*user.RoommateUser{
 								{
-									Id:        42,
-									FirstName: "John",
-									LastName:  "Doe",
-									AvatarUrl: lo.ToPtr("https://example.com/avatar.jpg"),
+									Id:          42,
+									FirstName:   "John",
+									LastName:    "Doe",
+									AvatarUrl:   lo.ToPtr("https://example.com/avatar.jpg"),
+									PosterAlias: lo.ToPtr("flat-1"),
 								},
 							},
 							Len: 1,
@@ -1029,6 +1030,8 @@ func TestUserHandler_GetIncomingRoommateMatches(t *testing.T) {
 				require.Equal(t, "Doe", resp.Users[0].LastName)
 				require.NotNil(t, resp.Users[0].AvatarUrl)
 				require.Equal(t, "https://example.com/avatar.jpg", *resp.Users[0].AvatarUrl)
+				require.NotNil(t, resp.Users[0].PosterAlias)
+				require.Equal(t, "flat-1", *resp.Users[0].PosterAlias)
 			}
 		})
 	}

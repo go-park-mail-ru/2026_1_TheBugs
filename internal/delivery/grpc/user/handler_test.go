@@ -389,6 +389,7 @@ func TestUserServiceServer_AddRoommateMatch(t *testing.T) {
 	ctx := context.Background()
 	fromUserID := int64(10)
 	toUserID := int64(42)
+	posterAlias := "poster-alias"
 
 	tests := []struct {
 		name      string
@@ -398,14 +399,28 @@ func TestUserServiceServer_AddRoommateMatch(t *testing.T) {
 		wantCode  codes.Code
 	}{
 		{
-			name: "success",
+			name: "success with poster alias",
+			req: &userpb.AddRoommateMatchRequest{
+				FromUserId:  fromUserID,
+				ToUserId:    toUserID,
+				PosterAlias: &posterAlias,
+			},
+			setupMock: func(mockUC *mocks.MockUserUseCase) {
+				mockUC.EXPECT().
+					AddRoommateMatch(ctx, int(fromUserID), int(toUserID), &posterAlias).
+					Return(nil)
+			},
+			wantErr: false,
+		},
+		{
+			name: "success without poster alias",
 			req: &userpb.AddRoommateMatchRequest{
 				FromUserId: fromUserID,
 				ToUserId:   toUserID,
 			},
 			setupMock: func(mockUC *mocks.MockUserUseCase) {
 				mockUC.EXPECT().
-					AddRoommateMatch(ctx, int(fromUserID), int(toUserID)).
+					AddRoommateMatch(ctx, int(fromUserID), int(toUserID), nil).
 					Return(nil)
 			},
 			wantErr: false,
@@ -438,7 +453,7 @@ func TestUserServiceServer_AddRoommateMatch(t *testing.T) {
 			},
 			setupMock: func(mockUC *mocks.MockUserUseCase) {
 				mockUC.EXPECT().
-					AddRoommateMatch(ctx, int(fromUserID), int(toUserID)).
+					AddRoommateMatch(ctx, int(fromUserID), int(toUserID), nil).
 					Return(entity.NotFoundError)
 			},
 			wantErr:  true,
@@ -452,7 +467,7 @@ func TestUserServiceServer_AddRoommateMatch(t *testing.T) {
 			},
 			setupMock: func(mockUC *mocks.MockUserUseCase) {
 				mockUC.EXPECT().
-					AddRoommateMatch(ctx, int(fromUserID), int(fromUserID)).
+					AddRoommateMatch(ctx, int(fromUserID), int(fromUserID), nil).
 					Return(entity.InvalidInput)
 			},
 			wantErr:  true,
@@ -466,7 +481,7 @@ func TestUserServiceServer_AddRoommateMatch(t *testing.T) {
 			},
 			setupMock: func(mockUC *mocks.MockUserUseCase) {
 				mockUC.EXPECT().
-					AddRoommateMatch(ctx, int(fromUserID), int(toUserID)).
+					AddRoommateMatch(ctx, int(fromUserID), int(toUserID), nil).
 					Return(errors.New("database error"))
 			},
 			wantErr:  true,
@@ -474,27 +489,26 @@ func TestUserServiceServer_AddRoommateMatch(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
 			mockUC := mocks.NewMockUserUseCase(ctrl)
-			if tt.setupMock != nil {
-				tt.setupMock(mockUC)
+			if test.setupMock != nil {
+				test.setupMock(mockUC)
 			}
 
 			server := NewUserServiceServer(mockUC)
-			resp, err := server.AddRoommateMatch(ctx, tt.req)
+			resp, err := server.AddRoommateMatch(ctx, test.req)
 
-			if tt.wantErr {
+			if test.wantErr {
 				require.Error(t, err)
 				st, ok := status.FromError(err)
 				require.True(t, ok)
-				require.Equal(t, tt.wantCode, st.Code())
+				require.Equal(t, test.wantCode, st.Code())
 				require.Nil(t, resp)
 			} else {
 				require.NoError(t, err)
@@ -1041,10 +1055,11 @@ func TestUserServiceServer_GetIncomingRoommateMatches(t *testing.T) {
 	expectedResp := &dto.RoommateMatchesResponse{
 		Users: []dto.RoommateUserDTO{
 			{
-				ID:        42,
-				FirstName: "John",
-				LastName:  "Doe",
-				AvatarURL: lo.ToPtr("https://example.com/avatar.jpg"),
+				ID:          42,
+				FirstName:   "John",
+				LastName:    "Doe",
+				AvatarURL:   lo.ToPtr("https://example.com/avatar.jpg"),
+				PosterAlias: lo.ToPtr("flat-1"),
 			},
 		},
 		Len: 1,
@@ -1125,6 +1140,7 @@ func TestUserServiceServer_GetIncomingRoommateMatches(t *testing.T) {
 				require.Equal(t, expectedResp.Users[0].FirstName, resp.Users[0].FirstName)
 				require.Equal(t, expectedResp.Users[0].LastName, resp.Users[0].LastName)
 				require.Equal(t, expectedResp.Users[0].AvatarURL, resp.Users[0].AvatarUrl)
+				require.Equal(t, expectedResp.Users[0].PosterAlias, resp.Users[0].PosterAlias)
 			}
 		})
 	}

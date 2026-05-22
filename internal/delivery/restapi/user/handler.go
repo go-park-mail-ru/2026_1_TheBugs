@@ -165,10 +165,12 @@ func (h *UserHandler) GetRoommateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 // @Summary Add roommate match
-// @Description Adds current authorized user sympathy to target user
+// @Description Adds current authorized user sympathy to target user. Optional poster_alias links match to poster
 // @Tags users
+// @Accept json
 // @Produce json
 // @Param id path int true "Target user ID"
+// @Param input body AddRoommateMatchRequest false "Optional poster alias"
 // @Security BearerAuth
 // @Success 204
 // @Failure 400 {object} response.ErrorResponse
@@ -194,9 +196,19 @@ func (h *UserHandler) AddRoommateMatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var req dto.AddRoommateMatchRequest
+	if r.Body != nil {
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil && err != io.EOF {
+			log.WithError(err).Error("failed to decode request body")
+			utils.WriteError(w, "invalid request body", http.StatusBadRequest)
+			return
+		}
+	}
+
 	_, err = h.grpcClient.AddRoommateMatch(r.Context(), &user.AddRoommateMatchRequest{
-		FromUserId: int64(fromUserID),
-		ToUserId:   int64(toUserID),
+		FromUserId:  int64(fromUserID),
+		ToUserId:    int64(toUserID),
+		PosterAlias: req.PosterAlias,
 	})
 	if err != nil {
 		log.WithError(err).Error("h.grpcClient.AddRoommateMatch: failed to add roommate match")

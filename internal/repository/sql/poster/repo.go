@@ -1201,27 +1201,27 @@ func (r *PosterRepo) AddPosterRoommate(ctx context.Context, alias string, userID
 	return nil
 }
 
-func (r *PosterRepo) GetRoommatePoster(ctx context.Context, userID int) (*entity.PosterFlat, error) {
+func (r *PosterRepo) GetRoommatePoster(ctx context.Context, fromUserID int, toUserID int) (*entity.PosterFlat, error) {
 	log := ctxLogger.GetLogger(ctx).WithField("op", "PosterRepo.GetRoommatePoster")
 	log.Info("start db query")
 
 	query := `
 		SELECT p.id, p.price, p.avatar_url,
 			   b.address, m.station_name, prop.area, f.floor, p.alias, fc.name AS flat_category
-		FROM poster_roommates pr
-		JOIN posters p ON p.id = pr.poster_id
+		FROM roommate_matches rm
+		JOIN posters p ON p.id = rm.poster_id
 		JOIN property prop ON prop.id = p.property_id
 		JOIN property_categories pc ON pc.id = prop.category_id
 		JOIN buildings b ON b.id = prop.building_id
 		LEFT JOIN metro_stations m ON b.metro_station_id = m.id
 		LEFT JOIN flat f ON f.property_id = prop.id
 		LEFT JOIN flat_categories fc ON fc.id = f.category_id
-		WHERE pr.user_id = $1 AND p.deleted_at IS NULL
-		ORDER BY pr.created_at DESC
-		LIMIT 1
+		WHERE rm.from_user_id = $1
+		  AND rm.to_user_id = $2
+		  AND p.deleted_at IS NULL
 	`
 
-	rows, err := r.pool.Query(ctx, query, userID)
+	rows, err := r.pool.Query(ctx, query, fromUserID, toUserID)
 	if err != nil {
 		return nil, repository.HandelPgErrors(err)
 	}

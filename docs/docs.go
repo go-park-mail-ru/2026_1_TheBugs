@@ -2869,7 +2869,10 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Adds current authorized user sympathy to target user",
+                "description": "Adds current authorized user sympathy to target user. Optional poster_alias links match to poster",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -2884,6 +2887,14 @@ const docTemplate = `{
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "Optional poster alias",
+                        "name": "input",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/user.AddRoommateMatchRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -3531,6 +3542,9 @@ const docTemplate = `{
                 },
                 "last_name": {
                     "type": "string"
+                },
+                "poster_alias": {
+                    "type": "string"
                 }
             }
         },
@@ -3757,6 +3771,20 @@ const docTemplate = `{
                 }
             }
         },
+        "user.AddRoommateMatchRequest": {
+            "type": "object",
+            "properties": {
+                "from_user_id": {
+                    "type": "integer"
+                },
+                "poster_alias": {
+                    "type": "string"
+                },
+                "to_user_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "user.GetIncomingRoommateMatchesResponse": {
             "type": "object",
             "properties": {
@@ -3849,6 +3877,9 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "last_name": {
+                    "type": "string"
+                },
+                "poster_alias": {
                     "type": "string"
                 }
             }

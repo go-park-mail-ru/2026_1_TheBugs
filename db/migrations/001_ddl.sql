@@ -399,17 +399,21 @@ CREATE TABLE IF NOT EXISTS roommate_matches(
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     from_user_id BIGINT NOT NULL,
     to_user_id BIGINT NOT NULL,
+    poster_id BIGINT NOT NULL,
 
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
     CONSTRAINT fk_from_user_id FOREIGN KEY (from_user_id) REFERENCES users(id),
     CONSTRAINT fk_to_user_id FOREIGN KEY (to_user_id) REFERENCES users(id),
+    CONSTRAINT fk_roommate_match_poster_id FOREIGN KEY (poster_id) REFERENCES posters(id),
     CONSTRAINT unique_roommate_match UNIQUE (from_user_id, to_user_id),
     CONSTRAINT no_self_roommate_match CHECK (from_user_id <> to_user_id)
 );
 
 COMMENT ON TABLE roommate_matches IS 'Симпатии пользователей для сожительства';
 
+
+CREATE INDEX idx_roommate_matches_poster_id ON roommate_matches(poster_id);
 
 CREATE INDEX idx_roommate_forms_user_id ON roommate_forms(user_id);
 

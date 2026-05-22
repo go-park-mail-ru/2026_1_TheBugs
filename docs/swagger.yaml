@@ -301,6 +301,8 @@ definitions:
         type: integer
       last_name:
         type: string
+      poster_alias:
+        type: string
     type: object
   dto.UserDTO:
     properties:
@@ -445,6 +447,15 @@ definitions:
       field:
         type: string
     type: object
+  user.AddRoommateMatchRequest:
+    properties:
+      from_user_id:
+        type: integer
+      poster_alias:
+        type: string
+      to_user_id:
+        type: integer
+    type: object
   user.GetIncomingRoommateMatchesResponse:
     properties:
       len:
@@ -505,6 +516,8 @@ definitions:
       id:
         type: integer
       last_name:
+        type: string
+      poster_alias:
         type: string
     type: object
 externalDocs:
@@ -2144,13 +2157,21 @@ paths:
       - users
   /user/{id}/match:
     post:
-      description: Adds current authorized user sympathy to target user
+      consumes:
+      - application/json
+      description: Adds current authorized user sympathy to target user. Optional
+        poster_alias links match to poster
       parameters:
       - description: Target user ID
         in: path
         name: id
         required: true
         type: integer
+      - description: Optional poster alias
+        in: body
+        name: input
+        schema:
+          $ref: '#/definitions/user.AddRoommateMatchRequest'
       produces:
       - application/json
       responses:

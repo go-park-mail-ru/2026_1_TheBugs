@@ -3,10 +3,11 @@ package dto
 import "github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 
 type RoommateUserDTO struct {
-	ID        int     `json:"id"`
-	FirstName string  `json:"first_name"`
-	LastName  string  `json:"last_name"`
-	AvatarURL *string `json:"avatar_url,omitempty"`
+	ID          int     `json:"id"`
+	FirstName   string  `json:"first_name"`
+	LastName    string  `json:"last_name"`
+	AvatarURL   *string `json:"avatar_url,omitempty"`
+	PosterAlias *string `json:"poster_alias"`
 }
 
 type PosterRoommatesResponse struct {
@@ -81,4 +82,8 @@ func RoommateFormToDTO(form *entity.RoommateForm, tags []string) *RoommateFormDT
 type RoommateMatchesResponse struct {
 	Users []RoommateUserDTO `json:"users"`
 	Len   int               `json:"len"`
+}
+
+type AddRoommateMatchRequest struct {
+	PosterAlias *string `json:"poster_alias"`
 }

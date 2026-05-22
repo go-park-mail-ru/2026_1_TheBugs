@@ -485,6 +485,7 @@ type AddRoommateMatchRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	FromUserId    int64                  `protobuf:"varint,1,opt,name=from_user_id,json=fromUserId,proto3" json:"from_user_id,omitempty"`
 	ToUserId      int64                  `protobuf:"varint,2,opt,name=to_user_id,json=toUserId,proto3" json:"to_user_id,omitempty"`
+	PosterAlias   *string                `protobuf:"bytes,3,opt,name=poster_alias,json=posterAlias,proto3,oneof" json:"poster_alias,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -531,6 +532,13 @@ func (x *AddRoommateMatchRequest) GetToUserId() int64 {
 		return x.ToUserId
 	}
 	return 0
+}
+
+func (x *AddRoommateMatchRequest) GetPosterAlias() string {
+	if x != nil && x.PosterAlias != nil {
+		return *x.PosterAlias
+	}
+	return ""
 }
 
 type AddRoommateMatchResponse struct {
@@ -1015,6 +1023,7 @@ type RoommateUser struct {
 	FirstName     string                 `protobuf:"bytes,2,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
 	LastName      string                 `protobuf:"bytes,3,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
 	AvatarUrl     *string                `protobuf:"bytes,4,opt,name=avatar_url,json=avatarUrl,proto3,oneof" json:"avatar_url,omitempty"`
+	PosterAlias   *string                `protobuf:"bytes,5,opt,name=poster_alias,json=posterAlias,proto3,oneof" json:"poster_alias,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1073,6 +1082,13 @@ func (x *RoommateUser) GetLastName() string {
 func (x *RoommateUser) GetAvatarUrl() string {
 	if x != nil && x.AvatarUrl != nil {
 		return *x.AvatarUrl
+	}
+	return ""
+}
+
+func (x *RoommateUser) GetPosterAlias() string {
+	if x != nil && x.PosterAlias != nil {
+		return *x.PosterAlias
 	}
 	return ""
 }
@@ -1319,12 +1335,14 @@ const file_user_proto_rawDesc = "" +
 	"\vdescription\x18\x06 \x01(\tH\x01R\vdescription\x88\x01\x01\x12%\n" +
 	"\x04tags\x18\a \x03(\v2\x11.user.RoommateTagR\x04tagsB\r\n" +
 	"\v_avatar_urlB\x0e\n" +
-	"\f_description\"Y\n" +
+	"\f_description\"\x92\x01\n" +
 	"\x17AddRoommateMatchRequest\x12 \n" +
 	"\ffrom_user_id\x18\x01 \x01(\x03R\n" +
 	"fromUserId\x12\x1c\n" +
 	"\n" +
-	"to_user_id\x18\x02 \x01(\x03R\btoUserId\"\x1a\n" +
+	"to_user_id\x18\x02 \x01(\x03R\btoUserId\x12&\n" +
+	"\fposter_alias\x18\x03 \x01(\tH\x00R\vposterAlias\x88\x01\x01B\x0f\n" +
+	"\r_poster_alias\"\x1a\n" +
 	"\x18AddRoommateMatchResponse\"\\\n" +
 	"\x1aGetRoommateContactsRequest\x12 \n" +
 	"\ffrom_user_id\x18\x01 \x01(\x03R\n" +
@@ -1354,15 +1372,17 @@ const file_user_proto_rawDesc = "" +
 	"\bbirthday\x18\x03 \x01(\tR\bbirthday\x12 \n" +
 	"\vdescription\x18\x04 \x01(\tR\vdescription\x12\x12\n" +
 	"\x04tags\x18\x05 \x03(\tR\x04tags\"\x1c\n" +
-	"\x1aUpdateRoommateFormResponse\"\x8d\x01\n" +
+	"\x1aUpdateRoommateFormResponse\"\xc6\x01\n" +
 	"\fRoommateUser\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1d\n" +
 	"\n" +
 	"first_name\x18\x02 \x01(\tR\tfirstName\x12\x1b\n" +
 	"\tlast_name\x18\x03 \x01(\tR\blastName\x12\"\n" +
 	"\n" +
-	"avatar_url\x18\x04 \x01(\tH\x00R\tavatarUrl\x88\x01\x01B\r\n" +
-	"\v_avatar_url\"<\n" +
+	"avatar_url\x18\x04 \x01(\tH\x00R\tavatarUrl\x88\x01\x01\x12&\n" +
+	"\fposter_alias\x18\x05 \x01(\tH\x01R\vposterAlias\x88\x01\x01B\r\n" +
+	"\v_avatar_urlB\x0f\n" +
+	"\r_poster_alias\"<\n" +
 	"!GetIncomingRoommateMatchesRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\x03R\x06userId\"`\n" +
 	"\"GetIncomingRoommateMatchesResponse\x12(\n" +
@@ -1462,6 +1482,7 @@ func file_user_proto_init() {
 	file_user_proto_msgTypes[1].OneofWrappers = []any{}
 	file_user_proto_msgTypes[3].OneofWrappers = []any{}
 	file_user_proto_msgTypes[6].OneofWrappers = []any{}
+	file_user_proto_msgTypes[7].OneofWrappers = []any{}
 	file_user_proto_msgTypes[17].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

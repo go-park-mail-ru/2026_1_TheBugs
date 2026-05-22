@@ -2863,7 +2863,10 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Adds current authorized user sympathy to target user",
+                "description": "Adds current authorized user sympathy to target user. Optional poster_alias links match to poster",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -2878,6 +2881,14 @@
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "description": "Optional poster alias",
+                        "name": "input",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/user.AddRoommateMatchRequest"
+                        }
                     }
                 ],
                 "responses": {
@@ -3525,6 +3536,9 @@
                 },
                 "last_name": {
                     "type": "string"
+                },
+                "poster_alias": {
+                    "type": "string"
                 }
             }
         },
@@ -3751,6 +3765,20 @@
                 }
             }
         },
+        "user.AddRoommateMatchRequest": {
+            "type": "object",
+            "properties": {
+                "from_user_id": {
+                    "type": "integer"
+                },
+                "poster_alias": {
+                    "type": "string"
+                },
+                "to_user_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "user.GetIncomingRoommateMatchesResponse": {
             "type": "object",
             "properties": {
@@ -3843,6 +3871,9 @@
                     "type": "integer"
                 },
                 "last_name": {
+                    "type": "string"
+                },
+                "poster_alias": {
                     "type": "string"
                 }
             }

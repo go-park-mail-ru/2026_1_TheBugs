@@ -110,22 +110,20 @@ func (s *UserServiceServer) GetRoommateUser(ctx context.Context, req *user.GetRo
 	}, nil
 }
 
-func (s *UserServiceServer) AddRoommateMatch(ctx context.Context, req *user.AddRoommateMatchRequest) (*user.AddRoommateMatchResponse, error) {
-	log := ctxLogger.GetLogger(ctx).WithField("method", "AddRoommateMatch")
-
+func (s *UserServiceServer) AddRoommateMatch(
+	ctx context.Context,
+	req *user.AddRoommateMatchRequest,
+) (*user.AddRoommateMatchResponse, error) {
 	if req.FromUserId <= 0 {
-		log.Error("invalid from_user_id")
 		return nil, status.Error(codes.InvalidArgument, "invalid from_user_id")
 	}
 
 	if req.ToUserId <= 0 {
-		log.Error("invalid to_user_id")
 		return nil, status.Error(codes.InvalidArgument, "invalid to_user_id")
 	}
 
-	err := s.uc.AddRoommateMatch(ctx, int(req.FromUserId), int(req.ToUserId))
+	err := s.uc.AddRoommateMatch(ctx, int(req.FromUserId), int(req.ToUserId), req.PosterAlias)
 	if err != nil {
-		log.Errorf("s.uc.AddRoommateMatch: %s", err)
 		return nil, utils.TranslateDomainsError(err)
 	}
 
@@ -275,10 +273,11 @@ func (s *UserServiceServer) GetIncomingRoommateMatches(
 	users := make([]*user.RoommateUser, 0, len(resp.Users))
 	for _, u := range resp.Users {
 		users = append(users, &user.RoommateUser{
-			Id:        int64(u.ID),
-			FirstName: u.FirstName,
-			LastName:  u.LastName,
-			AvatarUrl: u.AvatarURL,
+			Id:          int64(u.ID),
+			FirstName:   u.FirstName,
+			LastName:    u.LastName,
+			AvatarUrl:   u.AvatarURL,
+			PosterAlias: u.PosterAlias,
 		})
 	}
 
@@ -308,10 +307,11 @@ func (s *UserServiceServer) GetMatchedRoommateMatches(
 	users := make([]*user.RoommateUser, 0, len(resp.Users))
 	for _, u := range resp.Users {
 		users = append(users, &user.RoommateUser{
-			Id:        int64(u.ID),
-			FirstName: u.FirstName,
-			LastName:  u.LastName,
-			AvatarUrl: u.AvatarURL,
+			Id:          int64(u.ID),
+			FirstName:   u.FirstName,
+			LastName:    u.LastName,
+			AvatarUrl:   u.AvatarURL,
+			PosterAlias: u.PosterAlias,
 		})
 	}
 

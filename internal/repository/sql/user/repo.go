@@ -252,10 +252,40 @@ func (r *UserRepo) GetRoommateTags(ctx context.Context, userID int) ([]entity.Ro
 	return tags, nil
 }
 
-func (r *UserRepo) AddRoommateMatch(ctx context.Context, fromUserID int, toUserID int) error {
+func (r *UserRepo) AddRoommateMatch(ctx context.Context, fromUserID int, toUserID int, posterAlias *string) error {
+	if posterAlias != nil {
+		sql := `
+			INSERT INTO roommate_matches (from_user_id, to_user_id, poster_id)
+			SELECT $1, $2, p.id
+			FROM posters p
+			WHERE p.alias = $3
+			  AND p.deleted_at IS NULL
+		`
+
+		ct, err := r.pool.Exec(ctx, sql, fromUserID, toUserID, *posterAlias)
+		if err != nil {
+			return repository.HandelPgErrors(err)
+		}
+
+		if ct.RowsAffected() == 0 {
+			return repository.HandelPgErrors(pgx.ErrNoRows)
+		}
+
+		return nil
+	}
+
 	sql := `
-		INSERT INTO roommate_matches (from_user_id, to_user_id)
-		VALUES ($1, $2)
+		INSERT INTO roommate_matches (from_user_id, to_user_id, poster_id)
+		VALUES (
+			$1,
+			$2,
+			(
+				SELECT reverse_rm.poster_id
+				FROM roommate_matches reverse_rm
+				WHERE reverse_rm.from_user_id = $2
+				  AND reverse_rm.to_user_id = $1
+			)
+		)
 	`
 
 	_, err := r.pool.Exec(ctx, sql, fromUserID, toUserID)
@@ -439,11 +469,13 @@ func (r *UserRepo) UpdateRoommateForm(ctx context.Context, data dto.CreateRoomma
 
 func (r *UserRepo) GetIncomingRoommateMatches(ctx context.Context, userID int) ([]dto.RoommateUserDTO, error) {
 	sql := `
-		SELECT u.id, p.first_name, p.last_name, p.avatar_url
+		SELECT u.id, p.first_name, p.last_name, p.avatar_url, poster.alias AS poster_alias
 		FROM roommate_matches rm
 		JOIN users u ON u.id = rm.from_user_id
 		JOIN profiles p ON p.id = u.profile_id
+		JOIN posters poster ON poster.id = rm.poster_id
 		WHERE rm.to_user_id = $1
+		  AND poster.deleted_at IS NULL
 		  AND NOT EXISTS (
 			  SELECT 1
 			  FROM roommate_matches reverse_rm
@@ -469,14 +501,16 @@ func (r *UserRepo) GetIncomingRoommateMatches(ctx context.Context, userID int) (
 
 func (r *UserRepo) GetMatchedRoommateMatches(ctx context.Context, userID int) ([]dto.RoommateUserDTO, error) {
 	sql := `
-		SELECT u.id, p.first_name, p.last_name, p.avatar_url
+		SELECT u.id, p.first_name, p.last_name, p.avatar_url, poster.alias AS poster_alias
 		FROM roommate_matches rm1
 		JOIN roommate_matches rm2
 		  ON rm1.from_user_id = rm2.to_user_id
 		 AND rm1.to_user_id = rm2.from_user_id
 		JOIN users u ON u.id = rm1.to_user_id
 		JOIN profiles p ON p.id = u.profile_id
+		JOIN posters poster ON poster.id = rm1.poster_id
 		WHERE rm1.from_user_id = $1
+		  AND poster.deleted_at IS NULL
 		ORDER BY rm1.created_at DESC
 	`
 

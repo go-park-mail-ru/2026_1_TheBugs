@@ -4105,20 +4105,21 @@ func TestGetRoommatePosterRepo(t *testing.T) {
 	query := regexp.QuoteMeta(`
 		SELECT p.id, p.price, p.avatar_url,
 			   b.address, m.station_name, prop.area, f.floor, p.alias, fc.name AS flat_category
-		FROM poster_roommates pr
-		JOIN posters p ON p.id = pr.poster_id
+		FROM roommate_matches rm
+		JOIN posters p ON p.id = rm.poster_id
 		JOIN property prop ON prop.id = p.property_id
 		JOIN property_categories pc ON pc.id = prop.category_id
 		JOIN buildings b ON b.id = prop.building_id
 		LEFT JOIN metro_stations m ON b.metro_station_id = m.id
 		LEFT JOIN flat f ON f.property_id = prop.id
 		LEFT JOIN flat_categories fc ON fc.id = f.category_id
-		WHERE pr.user_id = $1 AND p.deleted_at IS NULL
-		ORDER BY pr.created_at DESC
-		LIMIT 1
+		WHERE rm.from_user_id = $1
+		  AND rm.to_user_id = $2
+		  AND p.deleted_at IS NULL
 	`)
 
-	userID := 10
+	fromUserID := 10
+	toUserID := 42
 
 	expectedPoster := &entity.PosterFlat{
 		ID:           1,
@@ -4133,15 +4134,17 @@ func TestGetRoommatePosterRepo(t *testing.T) {
 	}
 
 	tests := []struct {
-		name      string
-		userID    int
-		setupMock func(m pgxmock.PgxPoolIface)
-		want      *entity.PosterFlat
-		wantErr   error
+		name       string
+		fromUserID int
+		toUserID   int
+		setupMock  func(m pgxmock.PgxPoolIface)
+		want       *entity.PosterFlat
+		wantErr    error
 	}{
 		{
-			name:   "ok",
-			userID: userID,
+			name:       "ok",
+			fromUserID: fromUserID,
+			toUserID:   toUserID,
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
 					"id", "price", "avatar_url",
@@ -4159,15 +4162,16 @@ func TestGetRoommatePosterRepo(t *testing.T) {
 				)
 
 				m.ExpectQuery(query).
-					WithArgs(userID).
+					WithArgs(fromUserID, toUserID).
 					WillReturnRows(rows)
 			},
 			want:    expectedPoster,
 			wantErr: nil,
 		},
 		{
-			name:   "not_found",
-			userID: userID,
+			name:       "not_found",
+			fromUserID: fromUserID,
+			toUserID:   toUserID,
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
 					"id", "price", "avatar_url",
@@ -4175,26 +4179,28 @@ func TestGetRoommatePosterRepo(t *testing.T) {
 				})
 
 				m.ExpectQuery(query).
-					WithArgs(userID).
+					WithArgs(fromUserID, toUserID).
 					WillReturnRows(rows)
 			},
 			want:    nil,
 			wantErr: entity.NotFoundError,
 		},
 		{
-			name:   "query_error",
-			userID: userID,
+			name:       "query_error",
+			fromUserID: fromUserID,
+			toUserID:   toUserID,
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				m.ExpectQuery(query).
-					WithArgs(userID).
+					WithArgs(fromUserID, toUserID).
 					WillReturnError(errors.New("db error"))
 			},
 			want:    nil,
 			wantErr: entity.ServiceError,
 		},
 		{
-			name:   "collect_error",
-			userID: userID,
+			name:       "collect_error",
+			fromUserID: fromUserID,
+			toUserID:   toUserID,
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
 					"id", "price", "avatar_url",
@@ -4212,7 +4218,7 @@ func TestGetRoommatePosterRepo(t *testing.T) {
 				)
 
 				m.ExpectQuery(query).
-					WithArgs(userID).
+					WithArgs(fromUserID, toUserID).
 					WillReturnRows(rows)
 			},
 			want:    nil,
@@ -4230,7 +4236,7 @@ func TestGetRoommatePosterRepo(t *testing.T) {
 
 			repo := NewPosterRepo(mock)
 
-			got, err := repo.GetRoommatePoster(context.Background(), test.userID)
+			got, err := repo.GetRoommatePoster(context.Background(), test.fromUserID, test.toUserID)
 			if test.wantErr != nil {
 				require.ErrorIs(t, err, test.wantErr)
 				return

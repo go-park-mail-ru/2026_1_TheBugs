@@ -40,17 +40,17 @@ func (m *MockUserRepo) EXPECT() *MockUserRepoMockRecorder {
 }
 
 // AddRoommateMatch mocks base method.
-func (m *MockUserRepo) AddRoommateMatch(ctx context.Context, fromUserID, toUserID int) error {
+func (m *MockUserRepo) AddRoommateMatch(ctx context.Context, fromUserID, toUserID int, posterAlias *string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddRoommateMatch", ctx, fromUserID, toUserID)
+	ret := m.ctrl.Call(m, "AddRoommateMatch", ctx, fromUserID, toUserID, posterAlias)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AddRoommateMatch indicates an expected call of AddRoommateMatch.
-func (mr *MockUserRepoMockRecorder) AddRoommateMatch(ctx, fromUserID, toUserID interface{}) *gomock.Call {
+func (mr *MockUserRepoMockRecorder) AddRoommateMatch(ctx, fromUserID, toUserID, posterAlias interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddRoommateMatch", reflect.TypeOf((*MockUserRepo)(nil).AddRoommateMatch), ctx, fromUserID, toUserID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddRoommateMatch", reflect.TypeOf((*MockUserRepo)(nil).AddRoommateMatch), ctx, fromUserID, toUserID, posterAlias)
 }
 
 // Create mocks base method.
@@ -840,18 +840,18 @@ func (mr *MockPosterRepoMockRecorder) GetPriceHistoryByAlias(ctx, posterAlias in
 }
 
 // GetRoommatePoster mocks base method.
-func (m *MockPosterRepo) GetRoommatePoster(ctx context.Context, userID int) (*entity.PosterFlat, error) {
+func (m *MockPosterRepo) GetRoommatePoster(ctx context.Context, fromUserID, toUserID int) (*entity.PosterFlat, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRoommatePoster", ctx, userID)
+	ret := m.ctrl.Call(m, "GetRoommatePoster", ctx, fromUserID, toUserID)
 	ret0, _ := ret[0].(*entity.PosterFlat)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetRoommatePoster indicates an expected call of GetRoommatePoster.
-func (mr *MockPosterRepoMockRecorder) GetRoommatePoster(ctx, userID interface{}) *gomock.Call {
+func (mr *MockPosterRepoMockRecorder) GetRoommatePoster(ctx, fromUserID, toUserID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoommatePoster", reflect.TypeOf((*MockPosterRepo)(nil).GetRoommatePoster), ctx, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRoommatePoster", reflect.TypeOf((*MockPosterRepo)(nil).GetRoommatePoster), ctx, fromUserID, toUserID)
 }
 
 // GetUpdateIDsByAlias mocks base method.

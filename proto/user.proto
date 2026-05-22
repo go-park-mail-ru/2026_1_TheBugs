@@ -53,6 +53,7 @@ message GetRoommateUserResponse {
 message AddRoommateMatchRequest {
   int64 from_user_id = 1;
   int64 to_user_id = 2;
+  optional string poster_alias = 3;
 }
 
 message AddRoommateMatchResponse {}
@@ -103,6 +104,7 @@ message RoommateUser {
   string first_name = 2;
   string last_name = 3;
   optional string avatar_url = 4;
+  optional string poster_alias = 5;
 }
 
 message GetIncomingRoommateMatchesRequest {

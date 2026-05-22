@@ -29,7 +29,7 @@ type UserUseCase interface {
 	UpdateProfile(ctx context.Context, data dto.UpdateProfileRequest) (*dto.UserDTO, error)
 
 	GetRoommateUser(ctx context.Context, userID int) (*dto.RoommateUserProfileDTO, error)
-	AddRoommateMatch(ctx context.Context, fromUserID int, toUserID int) error
+	AddRoommateMatch(ctx context.Context, fromUserID int, toUserID int, posterAlias *string) error
 	GetRoommateContacts(ctx context.Context, fromUserID int, toUserID int) (*dto.RoommateContactsDTO, error)
 	CreateRoommateForm(ctx context.Context, data dto.CreateRoommateFormRequest) error
 	GetRoommateForm(ctx context.Context, userID int) (*dto.RoommateFormDTO, error)

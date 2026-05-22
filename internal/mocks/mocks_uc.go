@@ -235,17 +235,17 @@ func (m *MockUserUseCase) EXPECT() *MockUserUseCaseMockRecorder {
 }
 
 // AddRoommateMatch mocks base method.
-func (m *MockUserUseCase) AddRoommateMatch(ctx context.Context, fromUserID, toUserID int) error {
+func (m *MockUserUseCase) AddRoommateMatch(ctx context.Context, fromUserID, toUserID int, posterAlias *string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddRoommateMatch", ctx, fromUserID, toUserID)
+	ret := m.ctrl.Call(m, "AddRoommateMatch", ctx, fromUserID, toUserID, posterAlias)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AddRoommateMatch indicates an expected call of AddRoommateMatch.
-func (mr *MockUserUseCaseMockRecorder) AddRoommateMatch(ctx, fromUserID, toUserID interface{}) *gomock.Call {
+func (mr *MockUserUseCaseMockRecorder) AddRoommateMatch(ctx, fromUserID, toUserID, posterAlias interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddRoommateMatch", reflect.TypeOf((*MockUserUseCase)(nil).AddRoommateMatch), ctx, fromUserID, toUserID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddRoommateMatch", reflect.TypeOf((*MockUserUseCase)(nil).AddRoommateMatch), ctx, fromUserID, toUserID, posterAlias)
 }
 
 // CreateRoommateForm mocks base method.
