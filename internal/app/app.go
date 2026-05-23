@@ -19,7 +19,6 @@ import (
 	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
 	supportUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/support"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/dsn"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/sirupsen/logrus"
@@ -30,8 +29,7 @@ import (
 )
 
 func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
-	dsn := dsn.BuildDSN(cfg.Postgres)
-	pool, err := pgxpool.New(context.Background(), dsn)
+	pool, err := dsn.OpenDB(cfg.Postgres)
 	if err != nil {
 		logger.Fatalf("cannot create pgx pool: %v", err)
 	}

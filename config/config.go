@@ -78,14 +78,18 @@ type (
 	}
 
 	Postgres struct {
-		Host            string        `yaml:"host"    env:"PG_HOST" env-default:"localhost"`
-		Port            int           `yaml:"port" env:"PG_PORT" env-default:"5432"`
-		User            string        `yaml:"user" env:"PG_USER" env-default:"thebugs"`
-		Password        string        `yaml:"password" env:"PG_PASSWORD" env-default:"thebugs"`
-		Database        string        `yaml:"database" env:"PG_DB" env-default:"main"`
-		SslMode         string        `yaml:"sslmode" env:"PG_SSL_MODE" env-default:"disable"`
-		MaxOpenConns    int           `yaml:"max-open-connections" env:"PG_MAX_OPEN_CONN" env-default:"10"`
-		ConnMaxLifetime time.Duration `yaml:"conn-max-lifetime" env:"PG_CONN_MAX_LIFETIME" env-default:"30s"`
+		Host             string        `yaml:"host"    env:"PG_HOST" env-default:"localhost"`
+		Port             int           `yaml:"port" env:"PG_PORT" env-default:"5432"`
+		User             string        `yaml:"user" env:"PG_USER" env-default:"thebugs"`
+		Password         string        `yaml:"password" env:"PG_PASSWORD" env-default:"thebugs"`
+		Database         string        `yaml:"database" env:"PG_DB" env-default:"main"`
+		SslMode          string        `yaml:"sslmode" env:"PG_SSL_MODE" env-default:"disable"`
+		MaxOpenConns     int           `yaml:"max-open-connections" env:"PG_MAX_OPEN_CONN" env-default:"10"`
+		ConnMaxLifetime  time.Duration `yaml:"conn-max-lifetime" env:"PG_CONN_MAX_LIFETIME" env-default:"30s"`
+		MaxIdleConns     int           `yaml:"max-idle-conns" env:"PG_IDLE_CONNS" env-default:"50"`
+		ConnMaxIdleTime  time.Duration `yaml:"conn-max-idle-time" env:"PG_MAX_IDLE_TIME" env-default:"15s"`
+		LockTimeout      int           `yaml:"lock-timeout" env:"PG_LOCK_TIMEOUT" env-default:"5000"`
+		StatementTimeout int           `yaml:"statement-timeout" env:"PG_STATEMENT_TIMEOUT" env-default:"3000"`
 	}
 	JWT struct {
 		PublicKeySource  string        `yaml:"public-key-source"    env:"JWT_PUBLIC_KEY_SOURCE" env-default:"public.pem"`
