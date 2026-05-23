@@ -62,6 +62,8 @@ jobs:
           cd /home/${{ secrets.VPS_USERNAME }}/prod
           docker compose pull
           docker compose up -d --build --remove-orphans --no-deps gateaway_service user_service complex_service poster_service auth_service
+          docker compose down nginx 
+          docker compose up -d --build --no-deps nginx
           '"
 
   notify_success:
