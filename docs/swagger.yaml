@@ -7,6 +7,19 @@ definitions:
       name:
         type: string
     type: object
+  dto.CreateRoommateFormRequest:
+    properties:
+      birthday:
+        type: string
+      description:
+        type: string
+      gender:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+    type: object
   dto.CreatedPoster:
     properties:
       alias:
@@ -238,6 +251,15 @@ definitions:
       seller:
         $ref: '#/definitions/dto.PosterSellerDTO'
     type: object
+  dto.PosterRoommatesResponse:
+    properties:
+      len:
+        type: integer
+      users:
+        items:
+          $ref: '#/definitions/dto.RoommateUserDTO'
+        type: array
+    type: object
   dto.PosterSellerDTO:
     properties:
       avatar_url:
@@ -264,6 +286,32 @@ definitions:
         type: string
       price:
         type: number
+    type: object
+  dto.RoommateFormDTO:
+    properties:
+      birthday:
+        type: string
+      description:
+        type: string
+      gender:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+    type: object
+  dto.RoommateUserDTO:
+    properties:
+      avatar_url:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      last_name:
+        type: string
+      poster_alias:
+        type: string
     type: object
   dto.UserDTO:
     properties:
@@ -443,6 +491,79 @@ definitions:
       error:
         type: string
       field:
+        type: string
+    type: object
+  user.AddRoommateMatchRequest:
+    properties:
+      from_user_id:
+        type: integer
+      poster_alias:
+        type: string
+      to_user_id:
+        type: integer
+    type: object
+  user.GetIncomingRoommateMatchesResponse:
+    properties:
+      len:
+        type: integer
+      users:
+        items:
+          $ref: '#/definitions/user.RoommateUser'
+        type: array
+    type: object
+  user.GetMatchedRoommateMatchesResponse:
+    properties:
+      len:
+        type: integer
+      users:
+        items:
+          $ref: '#/definitions/user.RoommateUser'
+        type: array
+    type: object
+  user.GetRoommateContactsResponse:
+    properties:
+      email:
+        type: string
+      phone:
+        type: string
+    type: object
+  user.GetRoommateUserResponse:
+    properties:
+      avatar_url:
+        type: string
+      birthday:
+        type: string
+      description:
+        type: string
+      first_name:
+        type: string
+      gender:
+        type: string
+      last_name:
+        type: string
+      tags:
+        items:
+          $ref: '#/definitions/user.RoommateTag'
+        type: array
+    type: object
+  user.RoommateTag:
+    properties:
+      alias:
+        type: string
+      name:
+        type: string
+    type: object
+  user.RoommateUser:
+    properties:
+      avatar_url:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: integer
+      last_name:
+        type: string
+      poster_alias:
         type: string
     type: object
 externalDocs:
@@ -1061,6 +1182,71 @@ paths:
           schema:
             $ref: '#/definitions/response.ErrorResponse'
       summary: Get poster price history
+      tags:
+      - posters
+  /posters/{alias}/roommates:
+    get:
+      description: Returns users who want to become roommates for poster
+      parameters:
+      - description: Alias of poster
+        in: path
+        name: alias
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PosterRoommatesResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get poster roommates
+      tags:
+      - posters
+    post:
+      description: Adds current authorized user to poster roommates
+      parameters:
+      - description: Alias of poster
+        in: path
+        name: alias
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add poster roommate
       tags:
       - posters
   /posters/{alias}/views:
@@ -2102,6 +2288,121 @@ paths:
       summary: Answer order
       tags:
       - order
+  /user/{id}:
+    get:
+      description: Returns user details with roommate form
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.GetRoommateUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      summary: Get roommate user details
+      tags:
+      - users
+  /user/{id}/contacts:
+    get:
+      description: Returns target user contacts if roommate match is mutual
+      parameters:
+      - description: Target user ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.GetRoommateContactsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get roommate contacts
+      tags:
+      - users
+  /user/{id}/match:
+    post:
+      consumes:
+      - application/json
+      description: Adds current authorized user sympathy to target user. Optional
+        poster_alias links match to poster
+      parameters:
+      - description: Target user ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Optional poster alias
+        in: body
+        name: input
+        schema:
+          $ref: '#/definitions/user.AddRoommateMatchRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Add roommate match
+      tags:
+      - users
   /user/me:
     get:
       description: Returns user details
@@ -2179,6 +2480,150 @@ paths:
       security:
       - BearerAuth: []
       summary: Update user details
+      tags:
+      - users
+  /user/me/roommate-form:
+    get:
+      description: Returns current user roommate form
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.RoommateFormDTO'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get roommate form
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Creates roommate form for current authorized user
+      parameters:
+      - description: Roommate form
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateRoommateFormRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create roommate form
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Updates roommate form for current authorized user
+      parameters:
+      - description: Roommate form
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RoommateFormDTO'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update roommate form
+      tags:
+      - users
+  /user/me/roommate-matches/incoming:
+    get:
+      description: Returns users who added current authorized user to roommates
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.GetIncomingRoommateMatchesResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get incoming roommate matches
+      tags:
+      - users
+  /user/me/roommate-matches/matched:
+    get:
+      description: Returns users who have mutual roommate match with current authorized
+        user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.GetMatchedRoommateMatchesResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get matched roommate matches
       tags:
       - users
   /utility-companies/:

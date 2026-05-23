@@ -2622,3 +2622,203 @@ func TestGetPriceHistoryPoster(t *testing.T) {
 		})
 	}
 }
+
+func TestGetPosterRoommates(t *testing.T) {
+	ctx := context.Background()
+
+	alias := "flat-1"
+
+	existingRoommates := []dto.RoommateUserDTO{
+		{
+			ID:        1,
+			FirstName: "Ivan",
+			LastName:  "Ivanov",
+			AvatarURL: lo.ToPtr("avatar.jpg"),
+		},
+		{
+			ID:        2,
+			FirstName: "Petr",
+			LastName:  "Petrov",
+			AvatarURL: nil,
+		},
+	}
+
+	tests := []struct {
+		name      string
+		param     string
+		setupMock func(m *mocks.MockPosterRepo)
+		want      []dto.RoommateUserDTO
+		wantErr   error
+	}{
+		{
+			name:  "OK",
+			param: alias,
+			setupMock: func(m *mocks.MockPosterRepo) {
+				m.EXPECT().
+					GetPosterRoommates(ctx, alias).
+					Return(existingRoommates, nil).
+					Times(1)
+			},
+			want:    existingRoommates,
+			wantErr: nil,
+		},
+		{
+			name:  "RepoError",
+			param: alias,
+			setupMock: func(m *mocks.MockPosterRepo) {
+				m.EXPECT().
+					GetPosterRoommates(ctx, alias).
+					Return(nil, entity.NotFoundError).
+					Times(1)
+			},
+			want:    nil,
+			wantErr: entity.NotFoundError,
+		},
+		{
+			name:  "EmptyResult",
+			param: alias,
+			setupMock: func(m *mocks.MockPosterRepo) {
+				m.EXPECT().
+					GetPosterRoommates(ctx, alias).
+					Return([]dto.RoommateUserDTO{}, nil).
+					Times(1)
+			},
+			want:    []dto.RoommateUserDTO{},
+			wantErr: nil,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepo := mocks.NewMockPosterRepo(ctrl)
+			mockUOW := mocks.NewMockUnitOfWork(ctrl)
+			mockFile := mocks.NewMockFileRepo(ctrl)
+
+			mockUOW.EXPECT().
+				Posters().
+				Return(mockRepo).
+				AnyTimes()
+
+			if test.setupMock != nil {
+				test.setupMock(mockRepo)
+			}
+
+			uc := NewPosterUseCase(mockUOW, mockFile, nil, nil)
+
+			res, err := uc.GetPosterRoommates(ctx, test.param)
+
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.Equal(t, len(test.want), len(res))
+
+			for i, user := range test.want {
+				require.Equal(t, user.ID, res[i].ID)
+				require.Equal(t, user.FirstName, res[i].FirstName)
+				require.Equal(t, user.LastName, res[i].LastName)
+				require.Equal(t, user.AvatarURL, res[i].AvatarURL)
+			}
+		})
+	}
+}
+
+func TestAddPosterRoommate(t *testing.T) {
+	ctx := context.Background()
+
+	alias := "flat-1"
+	userID := 10
+
+	tests := []struct {
+		name      string
+		setupMock func(repo *mocks.MockPosterRepo)
+		wantErr   error
+	}{
+		{
+			name: "OK",
+			setupMock: func(repo *mocks.MockPosterRepo) {
+				repo.EXPECT().
+					HasRoommateForm(ctx, userID).
+					Return(true, nil).
+					Times(1)
+
+				repo.EXPECT().
+					AddPosterRoommate(ctx, alias, userID).
+					Return(nil).
+					Times(1)
+			},
+			wantErr: nil,
+		},
+		{
+			name: "NoRoommateForm",
+			setupMock: func(repo *mocks.MockPosterRepo) {
+				repo.EXPECT().
+					HasRoommateForm(ctx, userID).
+					Return(false, nil).
+					Times(1)
+			},
+			wantErr: entity.InvalidInput,
+		},
+		{
+			name: "HasRoommateFormRepoError",
+			setupMock: func(repo *mocks.MockPosterRepo) {
+				repo.EXPECT().
+					HasRoommateForm(ctx, userID).
+					Return(false, entity.ServiceError).
+					Times(1)
+			},
+			wantErr: entity.ServiceError,
+		},
+		{
+			name: "AddPosterRoommateRepoError",
+			setupMock: func(repo *mocks.MockPosterRepo) {
+				repo.EXPECT().
+					HasRoommateForm(ctx, userID).
+					Return(true, nil).
+					Times(1)
+
+				repo.EXPECT().
+					AddPosterRoommate(ctx, alias, userID).
+					Return(entity.NotFoundError).
+					Times(1)
+			},
+			wantErr: entity.NotFoundError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepo := mocks.NewMockPosterRepo(ctrl)
+			mockUOW := mocks.NewMockUnitOfWork(ctrl)
+			mockFile := mocks.NewMockFileRepo(ctrl)
+
+			mockUOW.EXPECT().
+				Posters().
+				Return(mockRepo).
+				AnyTimes()
+
+			if test.setupMock != nil {
+				test.setupMock(mockRepo)
+			}
+
+			uc := NewPosterUseCase(mockUOW, mockFile, nil, nil)
+
+			err := uc.AddPosterRoommate(ctx, alias, userID)
+
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+		})
+	}
+}

@@ -806,3 +806,30 @@ func (uc *PosterUseCase) GetPriceHistoryPoster(ctx context.Context, posterAlias 
 
 	return dto.PriceHistoryToPriceHistoryDTO(history), nil
 }
+
+func (uc *PosterUseCase) GetPosterRoommates(ctx context.Context, alias string) ([]dto.RoommateUserDTO, error) {
+	users, err := uc.uow.Posters().GetPosterRoommates(ctx, alias)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Posters().GetPosterRoommates: %w", err)
+	}
+
+	return users, nil
+}
+
+func (uc *PosterUseCase) AddPosterRoommate(ctx context.Context, alias string, userID int) error {
+	hasForm, err := uc.uow.Posters().HasRoommateForm(ctx, userID)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Posters().HasRoommateForm: %w", err)
+	}
+
+	if !hasForm {
+		return entity.InvalidInput
+	}
+
+	err = uc.uow.Posters().AddPosterRoommate(ctx, alias, userID)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Posters().AddPosterRoommate: %w", err)
+	}
+
+	return nil
+}

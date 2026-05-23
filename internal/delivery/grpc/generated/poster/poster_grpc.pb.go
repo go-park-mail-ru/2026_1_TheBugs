@@ -35,6 +35,8 @@ const (
 	PosterService_CreateFlatPoster_FullMethodName        = "/poster.PosterService/CreateFlatPoster"
 	PosterService_UpdateFlatPoster_FullMethodName        = "/poster.PosterService/UpdateFlatPoster"
 	PosterService_DeleteFlatPoster_FullMethodName        = "/poster.PosterService/DeleteFlatPoster"
+	PosterService_GetPosterRoommates_FullMethodName      = "/poster.PosterService/GetPosterRoommates"
+	PosterService_AddPosterRoommate_FullMethodName       = "/poster.PosterService/AddPosterRoommate"
 )
 
 // PosterServiceClient is the client API for PosterService service.
@@ -57,6 +59,8 @@ type PosterServiceClient interface {
 	CreateFlatPoster(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[CreateFlatPosterRequest, CreateFlatPosterResponse], error)
 	UpdateFlatPoster(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[UpdateFlatPosterRequest, UpdateFlatPosterResponse], error)
 	DeleteFlatPoster(ctx context.Context, in *DeleteFlatPosterRequest, opts ...grpc.CallOption) (*DeleteFlatPosterResponse, error)
+	GetPosterRoommates(ctx context.Context, in *GetPosterRoommatesRequest, opts ...grpc.CallOption) (*GetPosterRoommatesResponse, error)
+	AddPosterRoommate(ctx context.Context, in *AddPosterRoommateRequest, opts ...grpc.CallOption) (*AddPosterRoommateResponse, error)
 }
 
 type posterServiceClient struct {
@@ -233,6 +237,26 @@ func (c *posterServiceClient) DeleteFlatPoster(ctx context.Context, in *DeleteFl
 	return out, nil
 }
 
+func (c *posterServiceClient) GetPosterRoommates(ctx context.Context, in *GetPosterRoommatesRequest, opts ...grpc.CallOption) (*GetPosterRoommatesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetPosterRoommatesResponse)
+	err := c.cc.Invoke(ctx, PosterService_GetPosterRoommates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *posterServiceClient) AddPosterRoommate(ctx context.Context, in *AddPosterRoommateRequest, opts ...grpc.CallOption) (*AddPosterRoommateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AddPosterRoommateResponse)
+	err := c.cc.Invoke(ctx, PosterService_AddPosterRoommate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PosterServiceServer is the server API for PosterService service.
 // All implementations must embed UnimplementedPosterServiceServer
 // for forward compatibility.
@@ -253,6 +277,8 @@ type PosterServiceServer interface {
 	CreateFlatPoster(grpc.ClientStreamingServer[CreateFlatPosterRequest, CreateFlatPosterResponse]) error
 	UpdateFlatPoster(grpc.ClientStreamingServer[UpdateFlatPosterRequest, UpdateFlatPosterResponse]) error
 	DeleteFlatPoster(context.Context, *DeleteFlatPosterRequest) (*DeleteFlatPosterResponse, error)
+	GetPosterRoommates(context.Context, *GetPosterRoommatesRequest) (*GetPosterRoommatesResponse, error)
+	AddPosterRoommate(context.Context, *AddPosterRoommateRequest) (*AddPosterRoommateResponse, error)
 	mustEmbedUnimplementedPosterServiceServer()
 }
 
@@ -310,6 +336,12 @@ func (UnimplementedPosterServiceServer) UpdateFlatPoster(grpc.ClientStreamingSer
 }
 func (UnimplementedPosterServiceServer) DeleteFlatPoster(context.Context, *DeleteFlatPosterRequest) (*DeleteFlatPosterResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DeleteFlatPoster not implemented")
+}
+func (UnimplementedPosterServiceServer) GetPosterRoommates(context.Context, *GetPosterRoommatesRequest) (*GetPosterRoommatesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetPosterRoommates not implemented")
+}
+func (UnimplementedPosterServiceServer) AddPosterRoommate(context.Context, *AddPosterRoommateRequest) (*AddPosterRoommateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AddPosterRoommate not implemented")
 }
 func (UnimplementedPosterServiceServer) mustEmbedUnimplementedPosterServiceServer() {}
 func (UnimplementedPosterServiceServer) testEmbeddedByValue()                       {}
@@ -598,6 +630,42 @@ func _PosterService_DeleteFlatPoster_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PosterService_GetPosterRoommates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPosterRoommatesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PosterServiceServer).GetPosterRoommates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PosterService_GetPosterRoommates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PosterServiceServer).GetPosterRoommates(ctx, req.(*GetPosterRoommatesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PosterService_AddPosterRoommate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddPosterRoommateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PosterServiceServer).AddPosterRoommate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PosterService_AddPosterRoommate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PosterServiceServer).AddPosterRoommate(ctx, req.(*AddPosterRoommateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PosterService_ServiceDesc is the grpc.ServiceDesc for PosterService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -660,6 +728,14 @@ var PosterService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteFlatPoster",
 			Handler:    _PosterService_DeleteFlatPoster_Handler,
+		},
+		{
+			MethodName: "GetPosterRoommates",
+			Handler:    _PosterService_GetPosterRoommates_Handler,
+		},
+		{
+			MethodName: "AddPosterRoommate",
+			Handler:    _PosterService_AddPosterRoommate_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

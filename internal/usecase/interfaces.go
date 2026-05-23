@@ -21,6 +21,17 @@ type UserRepo interface {
 	GetByID(ctx context.Context, id int) (*dto.UserDTO, error)
 	VerifyEmail(ctx context.Context, email string) error
 	UpdateProfile(ctx context.Context, data dto.UpdateProfileDTO) (*dto.UserDTO, error)
+	GetRoommateUser(ctx context.Context, userID int) (*entity.RoommateUser, error)
+	GetRoommateTags(ctx context.Context, userID int) ([]entity.RoommateTag, error)
+	AddRoommateMatch(ctx context.Context, fromUserID int, toUserID int, posterAlias *string) error
+	IsRoommateMatch(ctx context.Context, fromUserID int, toUserID int) (bool, error)
+	GetRoommateContacts(ctx context.Context, userID int) (*dto.RoommateContactsDTO, error)
+	CreateRoommateForm(ctx context.Context, data dto.CreateRoommateFormRequest) error
+	GetRoommateForm(ctx context.Context, userID int) (*entity.RoommateForm, error)
+	GetRoommateFormTags(ctx context.Context, userID int) ([]string, error)
+	UpdateRoommateForm(ctx context.Context, data dto.CreateRoommateFormRequest) error
+	GetIncomingRoommateMatches(ctx context.Context, userID int) ([]dto.RoommateUserDTO, error)
+	GetMatchedRoommateMatches(ctx context.Context, userID int) ([]dto.RoommateUserDTO, error)
 }
 
 type PosterRepo interface {
@@ -78,6 +89,11 @@ type PosterRepo interface {
 	AddPriceHistory(ctx context.Context, posterID int, price float64) error
 	GetLastPriceHistoryByPosterID(ctx context.Context, posterID int) (*entity.PriceHistory, error)
 	UpdateLastPriceHistory(ctx context.Context, historyID int, price float64) error
+
+	GetPosterRoommates(ctx context.Context, posterAlias string) ([]dto.RoommateUserDTO, error)
+	HasRoommateForm(ctx context.Context, userID int) (bool, error)
+	AddPosterRoommate(ctx context.Context, alias string, userID int) error
+	GetRoommatePoster(ctx context.Context, fromUserID int, toUserID int) (*entity.PosterFlat, error) //FIXME: а если постеров несколько?
 }
 
 type AuthRepo interface {
@@ -132,6 +148,9 @@ type MailSender interface {
 	SendAnswer(ctx context.Context, email string, orderID int, answer string) error
 	SendRecoveryCode(ctx context.Context, to string, code string) error
 	SendVerificationCode(ctx context.Context, to string, code string) error
+	SendRoommateMatch(ctx context.Context, email string, firstName string, lastName string, posterAlias string) error
+	SendRoommateContactsForRequester(ctx context.Context, email, roommateFirstName, roommateLastName, roommateEmail, roommatePhone, posterAlias string) error
+	SendRoommateContactsForAccepted(ctx context.Context, email, roommateFirstName, roommateLastName, roommateEmail, roommatePhone, posterAlias string) error
 }
 
 type FileRepo interface {

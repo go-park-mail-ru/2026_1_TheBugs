@@ -405,6 +405,17 @@ INSERT INTO handling_categories (name) VALUES
 ('Не работает кнопка');
 
 
+INSERT INTO roommate_tags (name, alias) VALUES
+('Не курит', 'no_smoking'),
+('Не пьет', 'no_alcohol'),
+('Любит животных', 'likes_animals'),
+('Ранний подъём', 'early_riser'),
+('Порядок — образ жизни', 'tidy_lifestyle'),
+('Не любит гостей', 'no_guests'),
+('Тихий сосед', 'quiet_roommate'),
+('Чистоплотный', 'clean_person'),
+('Спокойный', 'calm'),
+('Уважает личное пространство', 'respects_privacy');
 
 INSERT INTO promotions (code, name, description, duration_days, price)
 VALUES 

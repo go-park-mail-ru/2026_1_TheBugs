@@ -18,6 +18,9 @@ import (
 const defaultLimit = "12"
 const defaultOffset = "0"
 
+//grpc.ClientStreamingClient[poster.UpdateFlatPosterRequest, poster.UpdateFlatPosterResponse]
+//grpc.ClientStreamingClient[poster.CreateFlatPosterRequest, poster.CreateFlatPosterResponse]
+
 type PosterHandler struct {
 	grpcClient poster.PosterServiceClient
 }
@@ -888,4 +891,92 @@ func (h *PosterHandler) GetPriceHistoryPoster(w http.ResponseWriter, r *http.Req
 		History: history,
 		Count:   len(history),
 	})
+}
+
+// @Summary Get poster roommates
+// @Description Returns users who want to become roommates for poster
+// @Tags posters
+// @Produce json
+// @Param alias path string true "Alias of poster"
+// @Success 200 {object} dto.PosterRoommatesResponse
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/{alias}/roommates [get]
+func (h *PosterHandler) GetPosterRoommates(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.GetPosterRoommates"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	alias, err := utils.ParseAliasFromRequest(r)
+	if err != nil {
+		utils.JSONResponse(w, http.StatusBadRequest, response.ErrorResponse{Error: "invalid alias"})
+		return
+	}
+
+	resp, err := h.grpcClient.GetPosterRoommates(r.Context(), &poster.GetPosterRoommatesRequest{
+		Alias: alias,
+	})
+	if err != nil {
+		log.Errorf("h.grpcClient.GetPosterRoommates: %s", err)
+		utils.HandelGRPCError(w, err)
+		return
+	}
+
+	users := make([]dto.RoommateUserDTO, 0, len(resp.Users))
+	for _, user := range resp.Users {
+		users = append(users, dto.RoommateUserDTO{
+			ID:        int(user.Id),
+			FirstName: user.FirstName,
+			LastName:  user.LastName,
+			AvatarURL: user.AvatarUrl,
+		})
+	}
+
+	utils.JSONResponse(w, http.StatusOK, dto.PosterRoommatesResponse{
+		Users: users,
+		Len:   int(resp.Total),
+	})
+}
+
+// @Summary Add poster roommate
+// @Description Adds current authorized user to poster roommates
+// @Tags posters
+// @Produce json
+// @Param alias path string true "Alias of poster"
+// @Success 204
+// @Security     BearerAuth
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/{alias}/roommates [post]
+func (h *PosterHandler) AddPosterRoommate(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.AddPosterRoommate"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	userID, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.Errorf("utils.GetUserID: %s", err)
+		utils.JSONResponse(w, http.StatusUnauthorized, response.ErrorResponse{Error: "unauthorized"})
+		return
+	}
+
+	alias, err := utils.ParseAliasFromRequest(r)
+	if err != nil {
+		log.Errorf("utils.ParseAliasFromRequest: %s", err)
+		utils.JSONResponse(w, http.StatusBadRequest, response.ErrorResponse{Error: "invalid alias"})
+		return
+	}
+
+	_, err = h.grpcClient.AddPosterRoommate(r.Context(), &poster.AddPosterRoommateRequest{
+		Alias:  alias,
+		UserId: int64(userID),
+	})
+	if err != nil {
+		log.Errorf("h.grpcClient.AddPosterRoommate: %s", err)
+		utils.HandelGRPCError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

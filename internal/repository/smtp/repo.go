@@ -139,3 +139,146 @@ func (e *SMTPSender) SendPromotionExpier(ctx context.Context, email string) erro
 
 	return nil
 }
+
+func (e *SMTPSender) SendRoommateMatch(ctx context.Context, email string, firstName string, lastName string, posterAlias string) error {
+	from := config.Config.SMTP.Email
+	log := ctxLogger.GetLogger(ctx).WithField("method", "SendRoommateMatch")
+	log.Infof("Sending roommate match notification to %s from %s via %s", email, from, config.Config.SMTP.Host)
+
+	posterURL := fmt.Sprintf("https://dom-deli.ru/posters/%s", posterAlias)
+
+	m := gomail.NewMessage()
+	m.SetHeader("From", fmt.Sprintf(`"DomDeli" <%s>`, from))
+	m.SetHeader("To", email)
+	m.SetHeader("Subject", "Вас хотят добавить в соседи")
+	m.SetHeader("Reply-To", from)
+
+	m.SetBody("text/html", fmt.Sprintf(`
+		<h2>У вас новая заявка</h2>
+
+		<p><b>%s %s</b> хочет добавить вас в соседи.</p>
+
+		<p><b>Объявление:</b> <a href="%s">%s</a></p>
+
+		<p>
+			Зайдите в DomDeli, чтобы посмотреть анкету и ответить взаимностью:
+			<a href="https://dom-deli.ru/friends?tab=requests">https://dom-deli.ru/friends</a>
+		</p>
+	`, firstName, lastName, posterURL, posterURL))
+
+	dialer := gomail.NewDialer(e.host, e.port, e.username, e.password)
+
+	go func(ctx context.Context) {
+		if err := dialer.DialAndSend(m); err != nil {
+			log.Printf("gomail send roommate match: %s", err)
+			return
+		}
+		log.Printf("✅ Roommate match notification sent to %s", email)
+	}(ctx)
+
+	return nil
+}
+
+func (e *SMTPSender) SendRoommateContactsForRequester(
+	ctx context.Context,
+	email string,
+	roommateFirstName string,
+	roommateLastName string,
+	roommateEmail string,
+	roommatePhone string,
+	posterAlias string,
+) error {
+	from := config.Config.SMTP.Email
+	log := ctxLogger.GetLogger(ctx).WithField("method", "SendRoommateContactsForRequester")
+	log.Infof("Sending roommate contacts to %s from %s via %s", email, from, config.Config.SMTP.Host)
+
+	posterURL := fmt.Sprintf("https://dom-deli.ru/posters/%s", posterAlias)
+
+	m := gomail.NewMessage()
+	m.SetHeader("From", fmt.Sprintf(`"DomDeli" <%s>`, from))
+	m.SetHeader("To", email)
+	m.SetHeader("Subject", "Контакты сожителя")
+	m.SetHeader("Reply-To", from)
+
+	m.SetBody("text/html", fmt.Sprintf(`
+		<h2>Контакты сожителя</h2>
+
+		<p>Вы добавили <b>%s %s</b> в соседи.</p>
+
+		<p><b>Объявление:</b> <a href="%s">%s</a></p>
+
+		<p>Теперь вы можете связаться с пользователем:</p>
+
+		<p><b>Email:</b> %s</p>
+		<p><b>Телефон:</b> %s</p>
+
+		<p>
+			Список ваших соседей вы можете посмотреть в профиле:
+			<a href="https://dom-deli.ru/friends">https://dom-deli.ru/friends</a>
+		</p>
+	`, roommateFirstName, roommateLastName, posterURL, posterURL, roommateEmail, roommatePhone))
+
+	dialer := gomail.NewDialer(e.host, e.port, e.username, e.password)
+
+	go func(ctx context.Context) {
+		if err := dialer.DialAndSend(m); err != nil {
+			log.Printf("gomail send roommate contacts for requester: %s", err)
+			return
+		}
+		log.Printf("✅ Roommate contacts sent to %s", email)
+	}(ctx)
+
+	return nil
+}
+
+func (e *SMTPSender) SendRoommateContactsForAccepted(
+	ctx context.Context,
+	email string,
+	roommateFirstName string,
+	roommateLastName string,
+	roommateEmail string,
+	roommatePhone string,
+	posterAlias string,
+) error {
+	from := config.Config.SMTP.Email
+	log := ctxLogger.GetLogger(ctx).WithField("method", "SendRoommateContactsForAccepted")
+	log.Infof("Sending accepted roommate contacts to %s from %s via %s", email, from, config.Config.SMTP.Host)
+
+	posterURL := fmt.Sprintf("https://dom-deli.ru/posters/%s", posterAlias)
+
+	m := gomail.NewMessage()
+	m.SetHeader("From", fmt.Sprintf(`"DomDeli" <%s>`, from))
+	m.SetHeader("To", email)
+	m.SetHeader("Subject", "Вашу заявку в соседи приняли")
+	m.SetHeader("Reply-To", from)
+
+	m.SetBody("text/html", fmt.Sprintf(`
+		<h2>Вашу заявку в соседи приняли</h2>
+
+		<p><b>%s %s</b> добавил вас в соседи.</p>
+
+		<p><b>Объявление:</b> <a href="%s">%s</a></p>
+
+		<p>Теперь вы можете связаться с пользователем:</p>
+
+		<p><b>Email:</b> %s</p>
+		<p><b>Телефон:</b> %s</p>
+
+		<p>
+			Список ваших соседей вы можете посмотреть в профиле:
+			<a href="https://dom-deli.ru/friends">https://dom-deli.ru/friends</a>
+		</p>
+	`, roommateFirstName, roommateLastName, posterURL, posterURL, roommateEmail, roommatePhone))
+
+	dialer := gomail.NewDialer(e.host, e.port, e.username, e.password)
+
+	go func(ctx context.Context) {
+		if err := dialer.DialAndSend(m); err != nil {
+			log.Printf("gomail send accepted roommate contacts: %s", err)
+			return
+		}
+		log.Printf("✅ Accepted roommate contacts sent to %s", email)
+	}(ctx)
+
+	return nil
+}

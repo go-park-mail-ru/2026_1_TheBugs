@@ -29,10 +29,111 @@ message UpdateProfileRequest {
   optional string firstname = 3;
   optional string lastname = 4;
   optional UploadFile file = 5;
-
-  
 }
+
+message RoommateTag {
+  string name = 1;
+  string alias = 2;
+}
+
+message GetRoommateUserRequest {
+  int64 user_id = 1;
+}
+
+message GetRoommateUserResponse {
+  string first_name = 1;
+  string last_name = 2;
+  optional string avatar_url = 3;
+  string gender = 4;
+  string birthday = 5;
+  optional string description = 6;
+  repeated RoommateTag tags = 7;
+}
+
+message AddRoommateMatchRequest {
+  int64 from_user_id = 1;
+  int64 to_user_id = 2;
+  optional string poster_alias = 3;
+}
+
+message AddRoommateMatchResponse {}
+
+message GetRoommateContactsRequest {
+  int64 from_user_id = 1;
+  int64 to_user_id = 2;
+}
+
+message GetRoommateContactsResponse {
+  string email = 1;
+  string phone = 2;
+}
+
+message CreateRoommateFormRequest {
+  int64 user_id = 1;
+  string gender = 2;
+  string birthday = 3;
+  string description = 4;
+  repeated string tags = 5;
+}
+
+message CreateRoommateFormResponse {}
+
+message GetRoommateFormRequest {
+  int64 user_id = 1;
+}
+
+message GetRoommateFormResponse {
+  string gender = 1;
+  string birthday = 2;
+  string description = 3;
+  repeated string tags = 4;
+}
+
+message UpdateRoommateFormRequest {
+  int64 user_id = 1;
+  string gender = 2;
+  string birthday = 3;
+  string description = 4;
+  repeated string tags = 5;
+}
+
+message UpdateRoommateFormResponse {}
+
+message RoommateUser {
+  int64 id = 1;
+  string first_name = 2;
+  string last_name = 3;
+  optional string avatar_url = 4;
+  optional string poster_alias = 5;
+}
+
+message GetIncomingRoommateMatchesRequest {
+  int64 user_id = 1;
+}
+
+message GetIncomingRoommateMatchesResponse {
+  repeated RoommateUser users = 1;
+  int64 len = 2;
+}
+
+message GetMatchedRoommateMatchesRequest {
+  int64 user_id = 1;
+}
+
+message GetMatchedRoommateMatchesResponse {
+  repeated RoommateUser users = 1;
+  int64 len = 2;
+}
+
 service UserService {
   rpc GetMe(GetMeRequest) returns (GetMeResponse);
   rpc UpdateProfile(UpdateProfileRequest) returns (GetMeResponse);
+  rpc GetRoommateUser(GetRoommateUserRequest) returns (GetRoommateUserResponse);
+  rpc AddRoommateMatch(AddRoommateMatchRequest) returns (AddRoommateMatchResponse);
+  rpc GetRoommateContacts(GetRoommateContactsRequest) returns (GetRoommateContactsResponse);
+  rpc CreateRoommateForm(CreateRoommateFormRequest) returns (CreateRoommateFormResponse);
+  rpc GetRoommateForm(GetRoommateFormRequest) returns (GetRoommateFormResponse);
+  rpc UpdateRoommateForm(UpdateRoommateFormRequest) returns (UpdateRoommateFormResponse);
+  rpc GetIncomingRoommateMatches(GetIncomingRoommateMatchesRequest) returns (GetIncomingRoommateMatchesResponse);
+  rpc GetMatchedRoommateMatches(GetMatchedRoommateMatchesRequest) returns (GetMatchedRoommateMatchesResponse);
 }

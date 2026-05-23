@@ -1,18 +1,5 @@
-# server-env: &server-common
-#   environment:
-#     APP_ENV: dev
-#     SRV_HOST: 0.0.0.0
-#     PG_HOST: postgres
-#     PG_PORT: 5432
-#     REDIS_HOST: redis
-#     REDIS_PORT: 6379
-#     SMTP_PWD: ${SMTP_PWD}
-#     MINIO_ENDPOINT: minio:9000
-#     ES_HOST: elasticsearch
-#     OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
-#     LOKI_URL: http://loki:3100
-
 services:
+
   postgres:
     image: postgis/postgis:16-3.4
     container_name: postgres
@@ -104,6 +91,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
 
   logstash:
     build: 

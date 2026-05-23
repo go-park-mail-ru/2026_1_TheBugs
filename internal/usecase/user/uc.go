@@ -9,18 +9,21 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/validator"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/photo"
 )
 
 type UserUseCase struct {
-	uow  usecase.UnitOfWork
-	file usecase.FileRepo
+	uow    usecase.UnitOfWork
+	file   usecase.FileRepo
+	sender usecase.MailSender
 }
 
-func NewUserUseCase(uow usecase.UnitOfWork, file usecase.FileRepo) *UserUseCase {
+func NewUserUseCase(uow usecase.UnitOfWork, file usecase.FileRepo, sender usecase.MailSender) *UserUseCase {
 	return &UserUseCase{
-		uow:  uow,
-		file: file,
+		uow:    uow,
+		file:   file,
+		sender: sender,
 	}
 }
 
@@ -84,4 +87,263 @@ func (uc *UserUseCase) UpdateProfile(ctx context.Context, data dto.UpdateProfile
 	}
 	user.MakeAvatarPath()
 	return user, nil
+}
+
+func (uc *UserUseCase) GetRoommateUser(ctx context.Context, userID int) (*dto.RoommateUserProfileDTO, error) {
+	user, err := uc.uow.Users().GetRoommateUser(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Users().GetRoommateUser: %w", err)
+	}
+
+	tags, err := uc.uow.Users().GetRoommateTags(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Users().GetRoommateTags: %w", err)
+	}
+
+	return dto.RoommateUserToDTO(user, tags), nil
+}
+
+// FIXME: Переделать логику, добавить логику определения типа матча( входящий / исходящий), чтобы сообщения на почту отличались ( вас хотят добавить / вас приняли ...)
+func (uc *UserUseCase) AddRoommateMatch(
+	ctx context.Context,
+	fromUserID int,
+	toUserID int,
+	posterAlias *string,
+) error {
+	op := "UserUseCase.AddRoommateMatch"
+	log := ctxLogger.GetLogger(ctx).WithField("op", op)
+
+	if fromUserID == toUserID {
+		return entity.InvalidInput
+	}
+
+	var (
+		isMatched bool
+
+		fromContacts *dto.RoommateContactsDTO
+		toContacts   *dto.RoommateContactsDTO
+
+		fromUser *dto.UserDTO
+		toUser   *dto.UserDTO
+
+		poster *entity.PosterFlat
+	)
+
+	err := uc.uow.Do(ctx, func(r usecase.UnitOfWork) error {
+		_, err := r.Users().GetByID(ctx, toUserID)
+		if err != nil {
+			return fmt.Errorf("r.Users().GetByID: %w", err)
+		}
+
+		err = r.Users().AddRoommateMatch(ctx, fromUserID, toUserID, posterAlias)
+		if err != nil {
+			return fmt.Errorf("r.Users().AddRoommateMatch: %w", err)
+		}
+
+		isMatched, err = r.Users().IsRoommateMatch(ctx, fromUserID, toUserID)
+		if err != nil {
+			return fmt.Errorf("r.Users().IsRoommateMatch: %w", err)
+		}
+
+		toContacts, err = r.Users().GetRoommateContacts(ctx, toUserID)
+		if err != nil {
+			return fmt.Errorf("r.Users().GetRoommateContacts(to): %w", err)
+		}
+
+		fromUser, err = r.Users().GetByID(ctx, fromUserID)
+		if err != nil {
+			return fmt.Errorf("r.Users().GetByID(from): %w", err)
+		}
+
+		poster, err = r.Posters().GetRoommatePoster(ctx, fromUserID, toUserID)
+		if err != nil {
+			return fmt.Errorf("r.Posters().GetRoommatePoster: %w", err)
+		}
+
+		if !isMatched {
+			return nil
+		}
+
+		fromContacts, err = r.Users().GetRoommateContacts(ctx, fromUserID)
+		if err != nil {
+			return fmt.Errorf("r.Users().GetRoommateContacts(from): %w", err)
+		}
+
+		toUser, err = r.Users().GetByID(ctx, toUserID)
+		if err != nil {
+			return fmt.Errorf("r.Users().GetByID(to): %w", err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return fmt.Errorf("uc.uow.Do: %w", err)
+	}
+
+	if uc.sender == nil {
+		return nil
+	}
+
+	if !isMatched {
+		if err := uc.sender.SendRoommateMatch(
+			ctx,
+			toContacts.Email,
+			fromUser.FirstName,
+			fromUser.LastName,
+			poster.Alias,
+		); err != nil {
+			log.Errorf("uc.sender.SendRoommateMatch: %v", err)
+		}
+
+		return nil
+	}
+
+	if err := uc.sender.SendRoommateContactsForRequester(
+		ctx,
+		fromContacts.Email,
+		toUser.FirstName,
+		toUser.LastName,
+		toContacts.Email,
+		toContacts.Phone,
+		poster.Alias,
+	); err != nil {
+		log.Errorf("uc.sender.SendRoommateContactsForRequester: %v", err)
+	}
+
+	if err := uc.sender.SendRoommateContactsForAccepted(
+		ctx,
+		toContacts.Email,
+		fromUser.FirstName,
+		fromUser.LastName,
+		fromContacts.Email,
+		fromContacts.Phone,
+		poster.Alias,
+	); err != nil {
+		log.Errorf("uc.sender.SendRoommateContactsForAccepted: %v", err)
+	}
+
+	return nil
+}
+
+func (uc *UserUseCase) GetRoommateContacts(ctx context.Context, fromUserID int, toUserID int) (*dto.RoommateContactsDTO, error) {
+	if fromUserID == toUserID {
+		return nil, entity.InvalidInput
+	}
+
+	isMatched, err := uc.uow.Users().IsRoommateMatch(ctx, fromUserID, toUserID)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Users().IsRoommateMatch: %w", err)
+	}
+
+	if !isMatched {
+		return nil, entity.NotFoundError
+	}
+
+	toContacts, err := uc.uow.Users().GetRoommateContacts(ctx, toUserID)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Users().GetRoommateContacts: %w", err)
+	}
+
+	return toContacts, nil
+}
+
+func (uc *UserUseCase) CreateRoommateForm(ctx context.Context, data dto.CreateRoommateFormRequest) error {
+	if data.UserID <= 0 {
+		return entity.InvalidInput
+	}
+
+	if data.Gender != "male" && data.Gender != "female" {
+		return &entity.ValidationError{Err: entity.InvalidInput, Field: "gender", Details: "only male or female"}
+	}
+
+	if data.Birthday == "" {
+		return entity.InvalidInput
+	}
+
+	if data.Description == "" {
+		return entity.InvalidInput
+	}
+
+	err := uc.uow.Users().CreateRoommateForm(ctx, data)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Users().CreateRoommateForm: %w", err)
+	}
+
+	return nil
+}
+
+func (uc *UserUseCase) GetRoommateForm(ctx context.Context, userID int) (*dto.RoommateFormDTO, error) {
+	if userID <= 0 {
+		return nil, entity.InvalidInput
+	}
+
+	form, err := uc.uow.Users().GetRoommateForm(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Users().GetRoommateForm: %w", err)
+	}
+
+	tags, err := uc.uow.Users().GetRoommateFormTags(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Users().GetRoommateFormTags: %w", err)
+	}
+
+	return dto.RoommateFormToDTO(form, tags), nil
+}
+
+func (uc *UserUseCase) UpdateRoommateForm(ctx context.Context, data dto.CreateRoommateFormRequest) error {
+	if data.UserID <= 0 {
+		return entity.InvalidInput
+	}
+
+	if data.Gender != "male" && data.Gender != "female" {
+		return entity.InvalidInput
+	}
+
+	if data.Birthday == "" {
+		return entity.InvalidInput
+	}
+
+	if data.Description == "" {
+		return entity.InvalidInput
+	}
+
+	err := uc.uow.Users().UpdateRoommateForm(ctx, data)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Users().UpdateRoommateForm: %w", err)
+	}
+
+	return nil
+}
+
+func (uc *UserUseCase) GetIncomingRoommateMatches(ctx context.Context, userID int) (*dto.RoommateMatchesResponse, error) {
+	if userID <= 0 {
+		return nil, entity.InvalidInput
+	}
+
+	users, err := uc.uow.Users().GetIncomingRoommateMatches(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Users().GetIncomingRoommateMatches: %w", err)
+	}
+
+	return &dto.RoommateMatchesResponse{
+		Users: users,
+		Len:   len(users),
+	}, nil
+}
+
+func (uc *UserUseCase) GetMatchedRoommateMatches(ctx context.Context, userID int) (*dto.RoommateMatchesResponse, error) {
+	if userID <= 0 {
+		return nil, entity.InvalidInput
+	}
+
+	users, err := uc.uow.Users().GetMatchedRoommateMatches(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("uc.uow.Users().GetMatchedRoommateMatches: %w", err)
+	}
+
+	return &dto.RoommateMatchesResponse{
+		Users: users,
+		Len:   len(users),
+	}, nil
 }

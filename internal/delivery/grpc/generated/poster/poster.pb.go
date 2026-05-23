@@ -3308,6 +3308,258 @@ func (x *DeleteFlatPosterResponse) GetAlias() string {
 	return ""
 }
 
+type RoommateUser struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	FirstName     string                 `protobuf:"bytes,2,opt,name=first_name,json=firstName,proto3" json:"first_name,omitempty"`
+	LastName      string                 `protobuf:"bytes,3,opt,name=last_name,json=lastName,proto3" json:"last_name,omitempty"`
+	AvatarUrl     *string                `protobuf:"bytes,4,opt,name=avatar_url,json=avatarUrl,proto3,oneof" json:"avatar_url,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RoommateUser) Reset() {
+	*x = RoommateUser{}
+	mi := &file_poster_proto_msgTypes[53]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RoommateUser) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RoommateUser) ProtoMessage() {}
+
+func (x *RoommateUser) ProtoReflect() protoreflect.Message {
+	mi := &file_poster_proto_msgTypes[53]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RoommateUser.ProtoReflect.Descriptor instead.
+func (*RoommateUser) Descriptor() ([]byte, []int) {
+	return file_poster_proto_rawDescGZIP(), []int{53}
+}
+
+func (x *RoommateUser) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *RoommateUser) GetFirstName() string {
+	if x != nil {
+		return x.FirstName
+	}
+	return ""
+}
+
+func (x *RoommateUser) GetLastName() string {
+	if x != nil {
+		return x.LastName
+	}
+	return ""
+}
+
+func (x *RoommateUser) GetAvatarUrl() string {
+	if x != nil && x.AvatarUrl != nil {
+		return *x.AvatarUrl
+	}
+	return ""
+}
+
+type GetPosterRoommatesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Alias         string                 `protobuf:"bytes,1,opt,name=alias,proto3" json:"alias,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPosterRoommatesRequest) Reset() {
+	*x = GetPosterRoommatesRequest{}
+	mi := &file_poster_proto_msgTypes[54]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPosterRoommatesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPosterRoommatesRequest) ProtoMessage() {}
+
+func (x *GetPosterRoommatesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_poster_proto_msgTypes[54]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPosterRoommatesRequest.ProtoReflect.Descriptor instead.
+func (*GetPosterRoommatesRequest) Descriptor() ([]byte, []int) {
+	return file_poster_proto_rawDescGZIP(), []int{54}
+}
+
+func (x *GetPosterRoommatesRequest) GetAlias() string {
+	if x != nil {
+		return x.Alias
+	}
+	return ""
+}
+
+type GetPosterRoommatesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Users         []*RoommateUser        `protobuf:"bytes,1,rep,name=users,proto3" json:"users,omitempty"`
+	Total         int32                  `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetPosterRoommatesResponse) Reset() {
+	*x = GetPosterRoommatesResponse{}
+	mi := &file_poster_proto_msgTypes[55]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetPosterRoommatesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetPosterRoommatesResponse) ProtoMessage() {}
+
+func (x *GetPosterRoommatesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_poster_proto_msgTypes[55]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetPosterRoommatesResponse.ProtoReflect.Descriptor instead.
+func (*GetPosterRoommatesResponse) Descriptor() ([]byte, []int) {
+	return file_poster_proto_rawDescGZIP(), []int{55}
+}
+
+func (x *GetPosterRoommatesResponse) GetUsers() []*RoommateUser {
+	if x != nil {
+		return x.Users
+	}
+	return nil
+}
+
+func (x *GetPosterRoommatesResponse) GetTotal() int32 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+type AddPosterRoommateRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Alias         string                 `protobuf:"bytes,1,opt,name=alias,proto3" json:"alias,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddPosterRoommateRequest) Reset() {
+	*x = AddPosterRoommateRequest{}
+	mi := &file_poster_proto_msgTypes[56]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddPosterRoommateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddPosterRoommateRequest) ProtoMessage() {}
+
+func (x *AddPosterRoommateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_poster_proto_msgTypes[56]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddPosterRoommateRequest.ProtoReflect.Descriptor instead.
+func (*AddPosterRoommateRequest) Descriptor() ([]byte, []int) {
+	return file_poster_proto_rawDescGZIP(), []int{56}
+}
+
+func (x *AddPosterRoommateRequest) GetAlias() string {
+	if x != nil {
+		return x.Alias
+	}
+	return ""
+}
+
+func (x *AddPosterRoommateRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+type AddPosterRoommateResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AddPosterRoommateResponse) Reset() {
+	*x = AddPosterRoommateResponse{}
+	mi := &file_poster_proto_msgTypes[57]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AddPosterRoommateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AddPosterRoommateResponse) ProtoMessage() {}
+
+func (x *AddPosterRoommateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_poster_proto_msgTypes[57]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AddPosterRoommateResponse.ProtoReflect.Descriptor instead.
+func (*AddPosterRoommateResponse) Descriptor() ([]byte, []int) {
+	return file_poster_proto_rawDescGZIP(), []int{57}
+}
+
 var File_poster_proto protoreflect.FileDescriptor
 
 const file_poster_proto_rawDesc = "" +
@@ -3600,7 +3852,24 @@ const file_poster_proto_rawDesc = "" +
 	"\auser_id\x18\x02 \x01(\x03R\x06userId\"@\n" +
 	"\x18DeleteFlatPosterResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x14\n" +
-	"\x05alias\x18\x02 \x01(\tR\x05alias2\xbf\v\n" +
+	"\x05alias\x18\x02 \x01(\tR\x05alias\"\x8d\x01\n" +
+	"\fRoommateUser\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1d\n" +
+	"\n" +
+	"first_name\x18\x02 \x01(\tR\tfirstName\x12\x1b\n" +
+	"\tlast_name\x18\x03 \x01(\tR\blastName\x12\"\n" +
+	"\n" +
+	"avatar_url\x18\x04 \x01(\tH\x00R\tavatarUrl\x88\x01\x01B\r\n" +
+	"\v_avatar_url\"1\n" +
+	"\x19GetPosterRoommatesRequest\x12\x14\n" +
+	"\x05alias\x18\x01 \x01(\tR\x05alias\"^\n" +
+	"\x1aGetPosterRoommatesResponse\x12*\n" +
+	"\x05users\x18\x01 \x03(\v2\x14.poster.RoommateUserR\x05users\x12\x14\n" +
+	"\x05total\x18\x02 \x01(\x05R\x05total\"I\n" +
+	"\x18AddPosterRoommateRequest\x12\x14\n" +
+	"\x05alias\x18\x01 \x01(\tR\x05alias\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\"\x1b\n" +
+	"\x19AddPosterRoommateResponse2\xf6\f\n" +
 	"\rPosterService\x12L\n" +
 	"\rSearchPosters\x12\x1c.poster.SearchPostersRequest\x1a\x1d.poster.SearchPostersResponse\x12U\n" +
 	"\x10GetPosterByAlias\x12\x1f.poster.GetPosterByAliasRequest\x1a .poster.GetPosterByAliasResponse\x12[\n" +
@@ -3617,7 +3886,9 @@ const file_poster_proto_rawDesc = "" +
 	"\x15GetPriceHistoryPoster\x12$.poster.GetPriceHistoryPosterRequest\x1a%.poster.GetPriceHistoryPosterResponse\x12W\n" +
 	"\x10CreateFlatPoster\x12\x1f.poster.CreateFlatPosterRequest\x1a .poster.CreateFlatPosterResponse(\x01\x12W\n" +
 	"\x10UpdateFlatPoster\x12\x1f.poster.UpdateFlatPosterRequest\x1a .poster.UpdateFlatPosterResponse(\x01\x12U\n" +
-	"\x10DeleteFlatPoster\x12\x1f.poster.DeleteFlatPosterRequest\x1a .poster.DeleteFlatPosterResponseB\n" +
+	"\x10DeleteFlatPoster\x12\x1f.poster.DeleteFlatPosterRequest\x1a .poster.DeleteFlatPosterResponse\x12[\n" +
+	"\x12GetPosterRoommates\x12!.poster.GetPosterRoommatesRequest\x1a\".poster.GetPosterRoommatesResponse\x12X\n" +
+	"\x11AddPosterRoommate\x12 .poster.AddPosterRoommateRequest\x1a!.poster.AddPosterRoommateResponseB\n" +
 	"Z\b./posterb\x06proto3"
 
 var (
@@ -3632,7 +3903,7 @@ func file_poster_proto_rawDescGZIP() []byte {
 	return file_poster_proto_rawDescData
 }
 
-var file_poster_proto_msgTypes = make([]protoimpl.MessageInfo, 54)
+var file_poster_proto_msgTypes = make([]protoimpl.MessageInfo, 59)
 var file_poster_proto_goTypes = []any{
 	(*SearchPostersRequest)(nil),            // 0: poster.SearchPostersRequest
 	(*PosterCard)(nil),                      // 1: poster.PosterCard
@@ -3687,8 +3958,13 @@ var file_poster_proto_goTypes = []any{
 	(*UpdateFlatPosterResponse)(nil),        // 50: poster.UpdateFlatPosterResponse
 	(*DeleteFlatPosterRequest)(nil),         // 51: poster.DeleteFlatPosterRequest
 	(*DeleteFlatPosterResponse)(nil),        // 52: poster.DeleteFlatPosterResponse
-	nil,                                     // 53: poster.GeoJSONFeature.PropertiesEntry
-	(*structpb.Value)(nil),                  // 54: google.protobuf.Value
+	(*RoommateUser)(nil),                    // 53: poster.RoommateUser
+	(*GetPosterRoommatesRequest)(nil),       // 54: poster.GetPosterRoommatesRequest
+	(*GetPosterRoommatesResponse)(nil),      // 55: poster.GetPosterRoommatesResponse
+	(*AddPosterRoommateRequest)(nil),        // 56: poster.AddPosterRoommateRequest
+	(*AddPosterRoommateResponse)(nil),       // 57: poster.AddPosterRoommateResponse
+	nil,                                     // 58: poster.GeoJSONFeature.PropertiesEntry
+	(*structpb.Value)(nil),                  // 59: google.protobuf.Value
 }
 var file_poster_proto_depIdxs = []int32{
 	1,  // 0: poster.SearchPostersResponse.posters:type_name -> poster.PosterCard
@@ -3711,7 +3987,7 @@ var file_poster_proto_depIdxs = []int32{
 	32, // 17: poster.MapBounds.bbox:type_name -> poster.BBox
 	7,  // 18: poster.BBox.south_west:type_name -> poster.Geography
 	7,  // 19: poster.BBox.north_east:type_name -> poster.Geography
-	53, // 20: poster.GeoJSONFeature.properties:type_name -> poster.GeoJSONFeature.PropertiesEntry
+	58, // 20: poster.GeoJSONFeature.properties:type_name -> poster.GeoJSONFeature.PropertiesEntry
 	34, // 21: poster.GeoJSONFeature.geometry:type_name -> poster.Geometry
 	7,  // 22: poster.GetPostersByRadiusRequest.point:type_name -> poster.Geography
 	16, // 23: poster.GetPostersByRadiusResponse.posters:type_name -> poster.MyPoster
@@ -3724,44 +4000,49 @@ var file_poster_proto_depIdxs = []int32{
 	44, // 30: poster.UpdateFlatPosterRequest.photo_meta:type_name -> poster.FlatPosterPhotoMeta
 	46, // 31: poster.UpdateFlatPosterRequest.photo_chunk:type_name -> poster.PhotoChunk
 	43, // 32: poster.UpdateFlatPosterMeta.poster:type_name -> poster.FlatPosterMeta
-	54, // 33: poster.GeoJSONFeature.PropertiesEntry.value:type_name -> google.protobuf.Value
-	0,  // 34: poster.PosterService.SearchPosters:input_type -> poster.SearchPostersRequest
-	3,  // 35: poster.PosterService.GetPosterByAlias:input_type -> poster.GetPosterByAliasRequest
-	14, // 36: poster.PosterService.GetPostersByUserID:input_type -> poster.GetPostersByUserIDRequest
-	17, // 37: poster.PosterService.AddViewPoster:input_type -> poster.AddViewPosterRequest
-	19, // 38: poster.PosterService.GetViewsPoster:input_type -> poster.GetViewsPosterRequest
-	21, // 39: poster.PosterService.AddFavoritePoster:input_type -> poster.AddFavoritePosterRequest
-	23, // 40: poster.PosterService.GetFavoritePosters:input_type -> poster.GetFavoritePostersRequest
-	25, // 41: poster.PosterService.DeleteFavoritePoster:input_type -> poster.DeleteFavoritePosterRequest
-	27, // 42: poster.PosterService.GetFavoritesCountPoster:input_type -> poster.GetFavoritesCountPosterRequest
-	29, // 43: poster.PosterService.GetPostersByCoords:input_type -> poster.GetPostersByCoordsRequest
-	35, // 44: poster.PosterService.GetPostersByRadius:input_type -> poster.GetPostersByRadiusRequest
-	37, // 45: poster.PosterService.GenerateDescription:input_type -> poster.GenerateDescriptionRequest
-	39, // 46: poster.PosterService.GetPriceHistoryPoster:input_type -> poster.GetPriceHistoryPosterRequest
-	42, // 47: poster.PosterService.CreateFlatPoster:input_type -> poster.CreateFlatPosterRequest
-	48, // 48: poster.PosterService.UpdateFlatPoster:input_type -> poster.UpdateFlatPosterRequest
-	51, // 49: poster.PosterService.DeleteFlatPoster:input_type -> poster.DeleteFlatPosterRequest
-	2,  // 50: poster.PosterService.SearchPosters:output_type -> poster.SearchPostersResponse
-	4,  // 51: poster.PosterService.GetPosterByAlias:output_type -> poster.GetPosterByAliasResponse
-	15, // 52: poster.PosterService.GetPostersByUserID:output_type -> poster.GetPostersByUserIDResponse
-	18, // 53: poster.PosterService.AddViewPoster:output_type -> poster.AddViewPosterResponse
-	20, // 54: poster.PosterService.GetViewsPoster:output_type -> poster.GetViewsPosterResponse
-	22, // 55: poster.PosterService.AddFavoritePoster:output_type -> poster.AddFavoritePosterResponse
-	24, // 56: poster.PosterService.GetFavoritePosters:output_type -> poster.GetFavoritePostersResponse
-	26, // 57: poster.PosterService.DeleteFavoritePoster:output_type -> poster.DeleteFavoritePosterResponse
-	28, // 58: poster.PosterService.GetFavoritesCountPoster:output_type -> poster.GetFavoritesCountPosterResponse
-	30, // 59: poster.PosterService.GetPostersByCoords:output_type -> poster.GetPostersByCoordsResponse
-	36, // 60: poster.PosterService.GetPostersByRadius:output_type -> poster.GetPostersByRadiusResponse
-	38, // 61: poster.PosterService.GenerateDescription:output_type -> poster.GenerateDescriptionResponse
-	40, // 62: poster.PosterService.GetPriceHistoryPoster:output_type -> poster.GetPriceHistoryPosterResponse
-	47, // 63: poster.PosterService.CreateFlatPoster:output_type -> poster.CreateFlatPosterResponse
-	50, // 64: poster.PosterService.UpdateFlatPoster:output_type -> poster.UpdateFlatPosterResponse
-	52, // 65: poster.PosterService.DeleteFlatPoster:output_type -> poster.DeleteFlatPosterResponse
-	50, // [50:66] is the sub-list for method output_type
-	34, // [34:50] is the sub-list for method input_type
-	34, // [34:34] is the sub-list for extension type_name
-	34, // [34:34] is the sub-list for extension extendee
-	0,  // [0:34] is the sub-list for field type_name
+	53, // 33: poster.GetPosterRoommatesResponse.users:type_name -> poster.RoommateUser
+	59, // 34: poster.GeoJSONFeature.PropertiesEntry.value:type_name -> google.protobuf.Value
+	0,  // 35: poster.PosterService.SearchPosters:input_type -> poster.SearchPostersRequest
+	3,  // 36: poster.PosterService.GetPosterByAlias:input_type -> poster.GetPosterByAliasRequest
+	14, // 37: poster.PosterService.GetPostersByUserID:input_type -> poster.GetPostersByUserIDRequest
+	17, // 38: poster.PosterService.AddViewPoster:input_type -> poster.AddViewPosterRequest
+	19, // 39: poster.PosterService.GetViewsPoster:input_type -> poster.GetViewsPosterRequest
+	21, // 40: poster.PosterService.AddFavoritePoster:input_type -> poster.AddFavoritePosterRequest
+	23, // 41: poster.PosterService.GetFavoritePosters:input_type -> poster.GetFavoritePostersRequest
+	25, // 42: poster.PosterService.DeleteFavoritePoster:input_type -> poster.DeleteFavoritePosterRequest
+	27, // 43: poster.PosterService.GetFavoritesCountPoster:input_type -> poster.GetFavoritesCountPosterRequest
+	29, // 44: poster.PosterService.GetPostersByCoords:input_type -> poster.GetPostersByCoordsRequest
+	35, // 45: poster.PosterService.GetPostersByRadius:input_type -> poster.GetPostersByRadiusRequest
+	37, // 46: poster.PosterService.GenerateDescription:input_type -> poster.GenerateDescriptionRequest
+	39, // 47: poster.PosterService.GetPriceHistoryPoster:input_type -> poster.GetPriceHistoryPosterRequest
+	42, // 48: poster.PosterService.CreateFlatPoster:input_type -> poster.CreateFlatPosterRequest
+	48, // 49: poster.PosterService.UpdateFlatPoster:input_type -> poster.UpdateFlatPosterRequest
+	51, // 50: poster.PosterService.DeleteFlatPoster:input_type -> poster.DeleteFlatPosterRequest
+	54, // 51: poster.PosterService.GetPosterRoommates:input_type -> poster.GetPosterRoommatesRequest
+	56, // 52: poster.PosterService.AddPosterRoommate:input_type -> poster.AddPosterRoommateRequest
+	2,  // 53: poster.PosterService.SearchPosters:output_type -> poster.SearchPostersResponse
+	4,  // 54: poster.PosterService.GetPosterByAlias:output_type -> poster.GetPosterByAliasResponse
+	15, // 55: poster.PosterService.GetPostersByUserID:output_type -> poster.GetPostersByUserIDResponse
+	18, // 56: poster.PosterService.AddViewPoster:output_type -> poster.AddViewPosterResponse
+	20, // 57: poster.PosterService.GetViewsPoster:output_type -> poster.GetViewsPosterResponse
+	22, // 58: poster.PosterService.AddFavoritePoster:output_type -> poster.AddFavoritePosterResponse
+	24, // 59: poster.PosterService.GetFavoritePosters:output_type -> poster.GetFavoritePostersResponse
+	26, // 60: poster.PosterService.DeleteFavoritePoster:output_type -> poster.DeleteFavoritePosterResponse
+	28, // 61: poster.PosterService.GetFavoritesCountPoster:output_type -> poster.GetFavoritesCountPosterResponse
+	30, // 62: poster.PosterService.GetPostersByCoords:output_type -> poster.GetPostersByCoordsResponse
+	36, // 63: poster.PosterService.GetPostersByRadius:output_type -> poster.GetPostersByRadiusResponse
+	38, // 64: poster.PosterService.GenerateDescription:output_type -> poster.GenerateDescriptionResponse
+	40, // 65: poster.PosterService.GetPriceHistoryPoster:output_type -> poster.GetPriceHistoryPosterResponse
+	47, // 66: poster.PosterService.CreateFlatPoster:output_type -> poster.CreateFlatPosterResponse
+	50, // 67: poster.PosterService.UpdateFlatPoster:output_type -> poster.UpdateFlatPosterResponse
+	52, // 68: poster.PosterService.DeleteFlatPoster:output_type -> poster.DeleteFlatPosterResponse
+	55, // 69: poster.PosterService.GetPosterRoommates:output_type -> poster.GetPosterRoommatesResponse
+	57, // 70: poster.PosterService.AddPosterRoommate:output_type -> poster.AddPosterRoommateResponse
+	53, // [53:71] is the sub-list for method output_type
+	35, // [35:53] is the sub-list for method input_type
+	35, // [35:35] is the sub-list for extension type_name
+	35, // [35:35] is the sub-list for extension extendee
+	0,  // [0:35] is the sub-list for field type_name
 }
 
 func init() { file_poster_proto_init() }
@@ -3792,13 +4073,14 @@ func file_poster_proto_init() {
 		(*UpdateFlatPosterRequest_PhotoMeta)(nil),
 		(*UpdateFlatPosterRequest_PhotoChunk)(nil),
 	}
+	file_poster_proto_msgTypes[53].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_poster_proto_rawDesc), len(file_poster_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   54,
+			NumMessages:   59,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

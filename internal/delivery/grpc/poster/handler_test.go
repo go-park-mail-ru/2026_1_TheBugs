@@ -10,6 +10,7 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/mocks"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/golang/mock/gomock"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -1912,6 +1913,222 @@ func TestPosterServiceServer_DeleteFlatPoster(t *testing.T) {
 			require.NotNil(t, resp)
 			require.Equal(t, int64(expectedResult.ID), resp.Id)
 			require.Equal(t, expectedResult.Alias, resp.Alias)
+		})
+	}
+}
+
+func TestPosterServiceServer_GetPosterRoommates(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	alias := "flat-1"
+
+	expectedUsers := []dto.RoommateUserDTO{
+		{
+			ID:        1,
+			FirstName: "Ivan",
+			LastName:  "Ivanov",
+			AvatarURL: lo.ToPtr("avatar.jpg"),
+		},
+	}
+
+	tests := []struct {
+		name      string
+		req       *posterpb.GetPosterRoommatesRequest
+		setupMock func(mockUC *mocks.MockPostersUseCase)
+		wantErr   bool
+		wantCode  codes.Code
+	}{
+		{
+			name: "success",
+			req: &posterpb.GetPosterRoommatesRequest{
+				Alias: alias,
+			},
+			setupMock: func(mockUC *mocks.MockPostersUseCase) {
+				mockUC.EXPECT().
+					GetPosterRoommates(ctx, alias).
+					Return(expectedUsers, nil)
+			},
+			wantErr: false,
+		},
+		{
+			name: "missing alias",
+			req: &posterpb.GetPosterRoommatesRequest{
+				Alias: "",
+			},
+			wantErr:  true,
+			wantCode: codes.InvalidArgument,
+		},
+		{
+			name: "use case error",
+			req: &posterpb.GetPosterRoommatesRequest{
+				Alias: alias,
+			},
+			setupMock: func(mockUC *mocks.MockPostersUseCase) {
+				mockUC.EXPECT().
+					GetPosterRoommates(ctx, alias).
+					Return(nil, entity.ServiceError)
+			},
+			wantErr:  true,
+			wantCode: codes.Internal,
+		},
+		{
+			name: "not found",
+			req: &posterpb.GetPosterRoommatesRequest{
+				Alias: alias,
+			},
+			setupMock: func(mockUC *mocks.MockPostersUseCase) {
+				mockUC.EXPECT().
+					GetPosterRoommates(ctx, alias).
+					Return(nil, entity.NotFoundError)
+			},
+			wantErr:  true,
+			wantCode: codes.NotFound,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockUC := mocks.NewMockPostersUseCase(ctrl)
+			if test.setupMock != nil {
+				test.setupMock(mockUC)
+			}
+
+			server := NewPosterServiceServer(mockUC)
+
+			resp, err := server.GetPosterRoommates(ctx, test.req)
+
+			if test.wantErr {
+				require.Error(t, err)
+				st, ok := status.FromError(err)
+				require.True(t, ok)
+				require.Equal(t, test.wantCode, st.Code())
+				require.Nil(t, resp)
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, resp)
+			require.Equal(t, int32(len(expectedUsers)), resp.Total)
+
+			require.Len(t, resp.Users, 1)
+			require.Equal(t, int64(expectedUsers[0].ID), resp.Users[0].Id)
+			require.Equal(t, expectedUsers[0].FirstName, resp.Users[0].FirstName)
+			require.Equal(t, expectedUsers[0].LastName, resp.Users[0].LastName)
+			require.Equal(t, expectedUsers[0].AvatarURL, resp.Users[0].AvatarUrl)
+		})
+	}
+}
+
+func TestPosterServiceServer_AddPosterRoommate(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	alias := "flat-1"
+	userID := int64(10)
+
+	tests := []struct {
+		name      string
+		req       *posterpb.AddPosterRoommateRequest
+		setupMock func(mockUC *mocks.MockPostersUseCase)
+		wantErr   bool
+		wantCode  codes.Code
+	}{
+		{
+			name: "success",
+			req: &posterpb.AddPosterRoommateRequest{
+				Alias:  alias,
+				UserId: userID,
+			},
+			setupMock: func(mockUC *mocks.MockPostersUseCase) {
+				mockUC.EXPECT().
+					AddPosterRoommate(ctx, alias, int(userID)).
+					Return(nil)
+			},
+			wantErr: false,
+		},
+		{
+			name: "missing alias",
+			req: &posterpb.AddPosterRoommateRequest{
+				Alias:  "",
+				UserId: userID,
+			},
+			wantErr:  true,
+			wantCode: codes.InvalidArgument,
+		},
+		{
+			name: "invalid user id",
+			req: &posterpb.AddPosterRoommateRequest{
+				Alias:  alias,
+				UserId: 0,
+			},
+			wantErr:  true,
+			wantCode: codes.InvalidArgument,
+		},
+		{
+			name: "use case error",
+			req: &posterpb.AddPosterRoommateRequest{
+				Alias:  alias,
+				UserId: userID,
+			},
+			setupMock: func(mockUC *mocks.MockPostersUseCase) {
+				mockUC.EXPECT().
+					AddPosterRoommate(ctx, alias, int(userID)).
+					Return(entity.ServiceError)
+			},
+			wantErr:  true,
+			wantCode: codes.Internal,
+		},
+		{
+			name: "not found",
+			req: &posterpb.AddPosterRoommateRequest{
+				Alias:  alias,
+				UserId: userID,
+			},
+			setupMock: func(mockUC *mocks.MockPostersUseCase) {
+				mockUC.EXPECT().
+					AddPosterRoommate(ctx, alias, int(userID)).
+					Return(entity.NotFoundError)
+			},
+			wantErr:  true,
+			wantCode: codes.NotFound,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockUC := mocks.NewMockPostersUseCase(ctrl)
+			if test.setupMock != nil {
+				test.setupMock(mockUC)
+			}
+
+			server := NewPosterServiceServer(mockUC)
+
+			resp, err := server.AddPosterRoommate(ctx, test.req)
+
+			if test.wantErr {
+				require.Error(t, err)
+				st, ok := status.FromError(err)
+				require.True(t, ok)
+				require.Equal(t, test.wantCode, st.Code())
+				require.Nil(t, resp)
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, resp)
 		})
 	}
 }
