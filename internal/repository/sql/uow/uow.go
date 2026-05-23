@@ -7,28 +7,31 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/auth"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/complex"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/poster"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/promotion"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/support"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/user"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
 )
 
 type SQLStorage struct {
-	db      repository.DB
-	users   usecase.UserRepo
-	auth    usecase.AuthRepo
-	posters usecase.PosterRepo
-	company usecase.UtilityCompanyRepo
-	support usecase.SupportRepo
+	db        repository.DB
+	users     usecase.UserRepo
+	auth      usecase.AuthRepo
+	posters   usecase.PosterRepo
+	company   usecase.UtilityCompanyRepo
+	support   usecase.SupportRepo
+	promotion usecase.PromotionRepo
 }
 
 func NewSQLStorage(db repository.DB) *SQLStorage {
 	return &SQLStorage{
-		db:      db,
-		users:   user.NewUserRepo(db),
-		auth:    auth.NewAuthRepo(db),
-		posters: poster.NewPosterRepo(db),
-		support: support.NewSupportRepo(db),
-		company: complex.NewUtilityCompanyRepo(db),
+		db:        db,
+		users:     user.NewUserRepo(db),
+		auth:      auth.NewAuthRepo(db),
+		posters:   poster.NewPosterRepo(db),
+		support:   support.NewSupportRepo(db),
+		company:   complex.NewUtilityCompanyRepo(db),
+		promotion: promotion.NewPromotionRepo(db),
 	}
 }
 
@@ -50,6 +53,10 @@ func (s *SQLStorage) Posters() usecase.PosterRepo {
 
 func (s *SQLStorage) Support() usecase.SupportRepo {
 	return s.support
+}
+
+func (s *SQLStorage) Promotion() usecase.PromotionRepo {
+	return s.promotion
 }
 
 func (s *SQLStorage) Do(

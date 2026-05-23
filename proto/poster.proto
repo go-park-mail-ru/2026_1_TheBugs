@@ -38,12 +38,14 @@ message PosterCard {
   string alias = 2;
   double price = 3;
 
+
   optional string image_url = 4;
   string address = 5;
   optional string metro = 6;
 
   double area = 7;
   optional string flat_category = 8;
+  bool has_active_promotion = 9;
 }
 
 message SearchPostersResponse {

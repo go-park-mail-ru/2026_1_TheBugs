@@ -265,7 +265,8 @@ func (r *PosterRepo) GetMetroStationByRadius(ctx context.Context, buildingGeo dt
     SELECT m.id, m.station_name, ST_AsText(m.geo) AS metro_geo
     FROM metro_stations m 
     WHERE ST_DWithin(m.geo, ST_GeogFromText($1), $2)
-    ORDER BY m.geo <-> ST_GeogFromText($1)
+    ORDER BY m.geo <-> ST_GeogFromText($1) 
+	LIMIT 1
 `
 	rows, err := r.pool.Query(ctx, query, geo.GeographyPoint{Lat: buildingGeo.Lat, Lon: buildingGeo.Lon}, int(radius))
 	if err != nil {
@@ -280,6 +281,27 @@ func (r *PosterRepo) GetMetroStationByRadius(ctx context.Context, buildingGeo dt
 	}
 
 	return stations, rows.Err()
+}
+
+func (r *PosterRepo) CreateMetroStation(ctx context.Context, stationName string, statuonGeo dto.GeographyDTO) (*entity.MetroStation, error) {
+	query := `
+		INSERT INTO metro_stations (station_name, geo)
+		VALUES ($1, ST_GeogFromText($2))
+		RETURNING id, station_name, ST_AsText(geo) AS metro_geo
+	`
+	row, err := r.pool.Query(ctx, query, stationName, geo.GeographyPoint{Lat: statuonGeo.Lat, Lon: statuonGeo.Lon})
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	defer row.Close()
+
+	station, err := pgx.CollectOneRow(row, pgx.RowToStructByName[entity.MetroStation])
+	if err != nil {
+		return nil, repository.HandelPgErrors(err)
+	}
+
+	return &station, row.Err()
 }
 
 func (r *PosterRepo) CreateBuilding(ctx context.Context, poster *dto.PosterInput) (int, error) {

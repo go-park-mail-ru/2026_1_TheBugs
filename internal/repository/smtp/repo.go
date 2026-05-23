@@ -111,6 +111,35 @@ func (e *SMTPSender) SendAnswer(ctx context.Context, email string, orderID int, 
 	return nil
 }
 
+func (e *SMTPSender) SendPromotionExpier(ctx context.Context, email string) error {
+	from := config.Config.SMTP.Email
+	log := ctxLogger.GetLogger(ctx).WithField("method", "SendAnswer")
+	log.Infof("Sending to %s from %s via %s", email, from, config.Config.SMTP.Host)
+
+	m := gomail.NewMessage()
+	m.SetHeader("From", fmt.Sprintf(`"DomDeli" <%s>`, from))
+	m.SetHeader("To", email)
+	m.SetHeader("Subject", "Не забудте продлить буст")
+	m.SetHeader("Reply-To", from)
+
+	m.SetBody("text/html", `
+		<h2>Ваше платное продвижение объявления скоро истечет</h2>
+		<a href="https://dom-deli.ru/my-posters" style="color: #f08dcc">Продлить буст...</a> 
+	`)
+
+	dialer := gomail.NewDialer(e.host, e.port, e.username, e.password)
+
+	go func(ctx context.Context) {
+		if err := dialer.DialAndSend(m); err != nil {
+			log.Printf("gomail send answer: %s", err)
+			return
+		}
+		log.Printf("✅ Email sent to %s", email)
+	}(ctx)
+
+	return nil
+}
+
 func (e *SMTPSender) SendRoommateMatch(ctx context.Context, email string, firstName string, lastName string, posterAlias string) error {
 	from := config.Config.SMTP.Email
 	log := ctxLogger.GetLogger(ctx).WithField("method", "SendRoommateMatch")

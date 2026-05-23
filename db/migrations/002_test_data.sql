@@ -417,4 +417,22 @@ INSERT INTO roommate_tags (name, alias) VALUES
 ('Спокойный', 'calm'),
 ('Уважает личное пространство', 'respects_privacy');
 
+INSERT INTO promotions (code, name, description, duration_days, price)
+VALUES 
+(
+    'boost_7_days', 
+    'Недельный буст', 
+    'Ваше объявление будет отображаться в топе и подсвечиваться в течение 7 дней.', 
+    7, 
+    299.00
+),
+(
+    'boost_30_days', 
+    'Буст на месяц', 
+    'Максимальный охват аудитории: объявление закрепляется в топе поиска на 30 дней.', 
+    30, 
+    699.00
+);
+
  ANALYSE;
+

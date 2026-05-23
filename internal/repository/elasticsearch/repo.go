@@ -56,7 +56,9 @@ func ParseInSliceStruct[T any](body io.Reader) ([]T, int, error) {
 	return res, resp.Res.Total.Value, nil
 }
 
-func ApplyPostersFilters(filters dto.PostersFiltersDTO) SearchQuery {
+// buildBaseQuery создает основной запрос с фильтрами и поиском.
+// Она возвращает структуру SearchQuery[Query], чтобы её можно было встроить в function_score.
+func buildBaseQuery(filters dto.PostersFiltersDTO) SearchQuery[Query] {
 	var should []any
 	var notMust []any
 
@@ -135,7 +137,7 @@ func ApplyPostersFilters(filters dto.PostersFiltersDTO) SearchQuery {
 	filter = ApplyRangeFilter(filter, "floor", filters.MaxFlatFloor, filters.MinFlatFloor)
 	filter = ApplyRangeFilter(filter, "building_floor", filters.MaxBuildingFloor, filters.MinBuildingFloor)
 
-	return SearchQuery{
+	return SearchQuery[Query]{
 		Size:           filters.Limit,
 		From:           filters.Offset,
 		TrackTotalHits: true,
@@ -146,6 +148,53 @@ func ApplyPostersFilters(filters dto.PostersFiltersDTO) SearchQuery {
 			MustNot: notMust,
 		}},
 	}
+}
+
+func applyBoosting(baseQuery SearchQuery[Query]) SearchQuery[ScoreQuery] {
+	const (
+		boostActive   = 2.0
+		boostInactive = 1.1
+	)
+
+	functions := []ScoreFunc{
+		map[string]any{
+			"filter": map[string]any{
+				"term": map[string]any{
+					"has_active_promotion": true,
+				},
+			},
+			"weight": boostActive,
+		},
+		map[string]any{
+			"filter": map[string]any{
+				"term": map[string]any{
+					"has_active_promotion": false,
+				},
+			},
+			"weight": boostInactive,
+		},
+	}
+
+	return SearchQuery[ScoreQuery]{
+		Size:           baseQuery.Size,
+		From:           baseQuery.From,
+		TrackTotalHits: baseQuery.TrackTotalHits,
+		MinScore:       baseQuery.MinScore,
+		Query: ScoreQuery{
+			FunctionScore: FunctionScoreQuery{
+				Query:     baseQuery.Query,
+				Functions: functions,
+				ScoreMode: "multiply",
+				BoostMode: "multiply",
+			},
+		},
+	}
+}
+
+func ApplyPostersFilters(filters dto.PostersFiltersDTO) SearchQuery[ScoreQuery] {
+	base := buildBaseQuery(filters)
+	final := applyBoosting(base)
+	return final
 }
 
 func NewESRepo(client *es.Client) *ESRepo {
@@ -221,7 +270,7 @@ func (r *ESRepo) GetClustersByMapBounds(ctx context.Context, coords dto.MapBound
 	// 	},
 	// }
 
-	searchQuery := ApplyPostersFilters(filters)
+	searchQuery := buildBaseQuery(filters)
 	searchQuery.TrackTotalHits = false
 	searchQuery.Size = 0
 
@@ -327,7 +376,7 @@ func parseSimpleClusters(aggs json.RawMessage) ([]entity.ClusterPoint, error) {
 
 func (r *ESRepo) GetPostersByMapBounds(ctx context.Context, coords dto.MapBounds, filters dto.PostersFiltersDTO) ([]entity.AnyPoint, error) {
 
-	searchQuery := ApplyPostersFilters(filters)
+	searchQuery := buildBaseQuery(filters)
 	searchQuery.TrackTotalHits = false
 
 	searchQuery.Query.Bool.Filter = append(searchQuery.Query.Bool.Filter, map[string]any{
@@ -444,7 +493,7 @@ func (r *ESRepo) DeletePoster(ctx context.Context, posterID int) error {
 		},
 	}
 	filter = append(filter, termQuery)
-	searchQuery := SearchQuery{
+	searchQuery := SearchQuery[Query]{
 		Size:           1,
 		TrackTotalHits: true,
 		Query: Query{Bool: BoolQuery{

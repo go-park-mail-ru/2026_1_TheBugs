@@ -18,14 +18,15 @@ func PosterCardDTOToProto(p *dto.PosterCardDTO) *poster.PosterCard {
 	}
 
 	return &poster.PosterCard{
-		Id:           int64(p.ID),
-		Alias:        p.Alias,
-		Price:        p.Price,
-		ImageUrl:     p.ImgURL,
-		Address:      p.Address,
-		Metro:        p.Metro,
-		Area:         p.Area,
-		FlatCategory: p.FlatCategory,
+		Id:                 int64(p.ID),
+		Alias:              p.Alias,
+		Price:              p.Price,
+		ImageUrl:           p.ImgURL,
+		Address:            p.Address,
+		Metro:              p.Metro,
+		Area:               p.Area,
+		FlatCategory:       p.FlatCategory,
+		HasActivePromotion: p.HasActivePromotion,
 	}
 }
 

@@ -89,6 +89,7 @@ message CheckAccessTokenResponse {
 service AuthService {
   rpc RegisterUser(RegisterUserRequest) returns (StatusResponse);
   rpc LoginUser(LoginUserRequest) returns (LoginResponse);
+  rpc LoginAdmin(LoginUserRequest) returns (LoginResponse);
   rpc RefreshToken(RefreshTokenRequest) returns (LoginResponse);
   rpc Logout(LogoutRequest) returns (StatusResponse);
   rpc VKLogin(VKLoginRequest) returns (LoginResponse);

@@ -195,17 +195,18 @@ func (x *SearchPostersRequest) GetMinBuildingFloor() int32 {
 }
 
 type PosterCard struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Alias         string                 `protobuf:"bytes,2,opt,name=alias,proto3" json:"alias,omitempty"`
-	Price         float64                `protobuf:"fixed64,3,opt,name=price,proto3" json:"price,omitempty"`
-	ImageUrl      *string                `protobuf:"bytes,4,opt,name=image_url,json=imageUrl,proto3,oneof" json:"image_url,omitempty"`
-	Address       string                 `protobuf:"bytes,5,opt,name=address,proto3" json:"address,omitempty"`
-	Metro         *string                `protobuf:"bytes,6,opt,name=metro,proto3,oneof" json:"metro,omitempty"`
-	Area          float64                `protobuf:"fixed64,7,opt,name=area,proto3" json:"area,omitempty"`
-	FlatCategory  *string                `protobuf:"bytes,8,opt,name=flat_category,json=flatCategory,proto3,oneof" json:"flat_category,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Id                 int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Alias              string                 `protobuf:"bytes,2,opt,name=alias,proto3" json:"alias,omitempty"`
+	Price              float64                `protobuf:"fixed64,3,opt,name=price,proto3" json:"price,omitempty"`
+	ImageUrl           *string                `protobuf:"bytes,4,opt,name=image_url,json=imageUrl,proto3,oneof" json:"image_url,omitempty"`
+	Address            string                 `protobuf:"bytes,5,opt,name=address,proto3" json:"address,omitempty"`
+	Metro              *string                `protobuf:"bytes,6,opt,name=metro,proto3,oneof" json:"metro,omitempty"`
+	Area               float64                `protobuf:"fixed64,7,opt,name=area,proto3" json:"area,omitempty"`
+	FlatCategory       *string                `protobuf:"bytes,8,opt,name=flat_category,json=flatCategory,proto3,oneof" json:"flat_category,omitempty"`
+	HasActivePromotion bool                   `protobuf:"varint,9,opt,name=has_active_promotion,json=hasActivePromotion,proto3" json:"has_active_promotion,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *PosterCard) Reset() {
@@ -292,6 +293,13 @@ func (x *PosterCard) GetFlatCategory() string {
 		return *x.FlatCategory
 	}
 	return ""
+}
+
+func (x *PosterCard) GetHasActivePromotion() bool {
+	if x != nil {
+		return x.HasActivePromotion
+	}
+	return false
 }
 
 type SearchPostersResponse struct {
@@ -3595,7 +3603,7 @@ const file_poster_proto_rawDesc = "" +
 	"\x0f_max_flat_floorB\x11\n" +
 	"\x0f_min_flat_floorB\x15\n" +
 	"\x13_max_building_floorB\x15\n" +
-	"\x13_min_building_floor\"\x87\x02\n" +
+	"\x13_min_building_floor\"\xb9\x02\n" +
 	"\n" +
 	"PosterCard\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x14\n" +
@@ -3605,7 +3613,8 @@ const file_poster_proto_rawDesc = "" +
 	"\aaddress\x18\x05 \x01(\tR\aaddress\x12\x19\n" +
 	"\x05metro\x18\x06 \x01(\tH\x01R\x05metro\x88\x01\x01\x12\x12\n" +
 	"\x04area\x18\a \x01(\x01R\x04area\x12(\n" +
-	"\rflat_category\x18\b \x01(\tH\x02R\fflatCategory\x88\x01\x01B\f\n" +
+	"\rflat_category\x18\b \x01(\tH\x02R\fflatCategory\x88\x01\x01\x120\n" +
+	"\x14has_active_promotion\x18\t \x01(\bR\x12hasActivePromotionB\f\n" +
 	"\n" +
 	"_image_urlB\b\n" +
 	"\x06_metroB\x10\n" +

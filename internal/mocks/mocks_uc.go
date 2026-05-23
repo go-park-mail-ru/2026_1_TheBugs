@@ -11,6 +11,7 @@ import (
 	dto "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	tokens "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/jwt"
 	gomock "github.com/golang/mock/gomock"
+	yoopayment "github.com/rvinnie/yookassa-sdk-go/yookassa/payment"
 )
 
 // MockAuthUseCase is a mock of AuthUseCase interface.
@@ -48,6 +49,21 @@ func (m *MockAuthUseCase) CheckRecoveryCode(ctx context.Context, sessionID, code
 func (mr *MockAuthUseCaseMockRecorder) CheckRecoveryCode(ctx, sessionID, code interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckRecoveryCode", reflect.TypeOf((*MockAuthUseCase)(nil).CheckRecoveryCode), ctx, sessionID, code)
+}
+
+// LoginAdminUseCase mocks base method.
+func (m *MockAuthUseCase) LoginAdminUseCase(ctx context.Context, email, passwod string) (*dto.UserAccessCredDTO, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LoginAdminUseCase", ctx, email, passwod)
+	ret0, _ := ret[0].(*dto.UserAccessCredDTO)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LoginAdminUseCase indicates an expected call of LoginAdminUseCase.
+func (mr *MockAuthUseCaseMockRecorder) LoginAdminUseCase(ctx, email, passwod interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LoginAdminUseCase", reflect.TypeOf((*MockAuthUseCase)(nil).LoginAdminUseCase), ctx, email, passwod)
 }
 
 // LoginUseCase mocks base method.
@@ -669,4 +685,72 @@ func (m *MockPostersUseCase) UpdateFlatPoster(ctx context.Context, alias string,
 func (mr *MockPostersUseCaseMockRecorder) UpdateFlatPoster(ctx, alias, poster interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateFlatPoster", reflect.TypeOf((*MockPostersUseCase)(nil).UpdateFlatPoster), ctx, alias, poster)
+}
+
+// MockPromotionUseCase is a mock of PromotionUseCase interface.
+type MockPromotionUseCase struct {
+	ctrl     *gomock.Controller
+	recorder *MockPromotionUseCaseMockRecorder
+}
+
+// MockPromotionUseCaseMockRecorder is the mock recorder for MockPromotionUseCase.
+type MockPromotionUseCaseMockRecorder struct {
+	mock *MockPromotionUseCase
+}
+
+// NewMockPromotionUseCase creates a new mock instance.
+func NewMockPromotionUseCase(ctrl *gomock.Controller) *MockPromotionUseCase {
+	mock := &MockPromotionUseCase{ctrl: ctrl}
+	mock.recorder = &MockPromotionUseCaseMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockPromotionUseCase) EXPECT() *MockPromotionUseCaseMockRecorder {
+	return m.recorder
+}
+
+// CheckPaymentStatus mocks base method.
+func (m *MockPromotionUseCase) CheckPaymentStatus(ctx context.Context, userID int, paymentID string) (yoopayment.Status, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CheckPaymentStatus", ctx, userID, paymentID)
+	ret0, _ := ret[0].(yoopayment.Status)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CheckPaymentStatus indicates an expected call of CheckPaymentStatus.
+func (mr *MockPromotionUseCaseMockRecorder) CheckPaymentStatus(ctx, userID, paymentID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CheckPaymentStatus", reflect.TypeOf((*MockPromotionUseCase)(nil).CheckPaymentStatus), ctx, userID, paymentID)
+}
+
+// CreatePaymentOrder mocks base method.
+func (m *MockPromotionUseCase) CreatePaymentOrder(ctx context.Context, promotionCode string, posterID, userID int) (*dto.PaymentDTO, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreatePaymentOrder", ctx, promotionCode, posterID, userID)
+	ret0, _ := ret[0].(*dto.PaymentDTO)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreatePaymentOrder indicates an expected call of CreatePaymentOrder.
+func (mr *MockPromotionUseCaseMockRecorder) CreatePaymentOrder(ctx, promotionCode, posterID, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePaymentOrder", reflect.TypeOf((*MockPromotionUseCase)(nil).CreatePaymentOrder), ctx, promotionCode, posterID, userID)
+}
+
+// GetPromotionByUserID mocks base method.
+func (m *MockPromotionUseCase) GetPromotionByUserID(ctx context.Context, userID int) (*dto.UserPromotionsDTO, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPromotionByUserID", ctx, userID)
+	ret0, _ := ret[0].(*dto.UserPromotionsDTO)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPromotionByUserID indicates an expected call of GetPromotionByUserID.
+func (mr *MockPromotionUseCaseMockRecorder) GetPromotionByUserID(ctx, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPromotionByUserID", reflect.TypeOf((*MockPromotionUseCase)(nil).GetPromotionByUserID), ctx, userID)
 }

@@ -425,6 +425,53 @@ CREATE INDEX idx_poster_roommates_user_id ON poster_roommates(user_id);
 
 CREATE INDEX idx_roommate_matches_from_user_id ON roommate_matches(from_user_id);
 CREATE INDEX idx_roommate_matches_to_user_id ON roommate_matches(to_user_id);
+CREATE TABLE promotions (
+    id SMALLINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    code TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT,
+    duration_days INT NOT NULL,
+    price NUMERIC(10,2) NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    CONSTRAINT price_code_check CHECK (LENGTH(code) <= 32),
+    CONSTRAINT price_name_check CHECK (LENGTH(name) <= 64),
+    CONSTRAINT price_description_check CHECK (LENGTH(description) <= 1024),
+    CONSTRAINT price_promotions_check CHECK (price > 0)
+);
+
+COMMENT ON TABLE promotions IS 'Виды продвижений объявлений';
+
+CREATE TYPE promotions_status AS ENUM ('pending', 'active', 'cancelled', 'expiered');
+
+
+CREATE TABLE posters_promotions (
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    poster_id BIGINT NOT NULL REFERENCES posters(id),
+    promotion_id SMALLINT NOT NULL REFERENCES promotions(id),
+    user_id BIGINT NOT NULL REFERENCES users(id),
+    
+    status promotions_status NOT NULL DEFAULT 'pending',
+    started_at TIMESTAMPTZ,
+    ends_at TIMESTAMPTZ NOT NULL,
+    
+    payment_id UUID UNIQUE,
+    amount_paid NUMERIC(10,2),
+    is_notification_sent BOOLEAN DEFAULT false,
+    
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT chk_status_dates CHECK (
+        (status = 'pending' AND started_at IS NULL) OR
+        (status = 'active' AND started_at IS NOT NULL AND NOW() < ends_at)
+    )
+);
+
+COMMENT ON TABLE posters_promotions IS 'Продвижение на объявления';
+ALTER TABLE posters_promotions DROP CONSTRAINT chk_status_dates;
+
+
+CREATE INDEX idx_promotion_types_active ON promotions(is_active) WHERE is_active = true;
+
 CREATE INDEX price_history_poster_id ON price_history(poster_id);
 
 CREATE INDEX idx_price_history_changed_at ON price_history(changed_at);
@@ -480,6 +527,7 @@ $$ language 'plpgsql';
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_posters_updated_at BEFORE UPDATE ON posters FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_posters_promotions_updated_at BEFORE UPDATE ON posters_promotions FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE OR REPLACE FUNCTION get_explain_rows(p_sql text)
  RETURNS bigint AS $BODY$
@@ -501,3 +549,19 @@ CREATE OR REPLACE FUNCTION get_explain_rows(p_sql text)
  END;
  $BODY$ LANGUAGE plpgsql;
 
+-- Триггерная функция
+CREATE OR REPLACE FUNCTION update_poster_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE posters 
+    SET updated_at = NOW() 
+    WHERE id = NEW.poster_id;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER trg_update_poster_on_promo_change
+AFTER INSERT OR UPDATE OR DELETE ON posters_promotions
+FOR EACH ROW
+EXECUTE FUNCTION update_poster_timestamp();

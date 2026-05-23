@@ -77,6 +77,30 @@ func (s *AuthServiceServer) LoginUser(
 	}, nil
 }
 
+func (s *AuthServiceServer) LoginAdmin(
+	ctx context.Context,
+	req *auth.LoginUserRequest,
+) (*auth.LoginResponse, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("method", "LoginUser")
+	if req.Email == "" || req.Password == "" {
+		log.Error("missing required fields: email, password")
+		return nil, status.Error(codes.InvalidArgument, "email and password required")
+	}
+
+	accessCred, err := s.uc.LoginAdminUseCase(ctx, req.Email, req.Password)
+	if err != nil {
+		log.Errorf("s.uc.LoginUseCase: %s", err)
+		return nil, utils.TranslateDomainsError(err)
+	}
+
+	return &auth.LoginResponse{
+		AccessToken:     accessCred.AccessToken,
+		AccessTokenExp:  int64(accessCred.AccessTokenExp),
+		RefreshToken:    accessCred.RefreshToken,
+		RefreshTokenExp: int64(accessCred.RefreshTokenExp),
+	}, nil
+}
+
 // RefreshToken handles token refresh
 func (s *AuthServiceServer) RefreshToken(
 	ctx context.Context,

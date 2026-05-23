@@ -355,7 +355,7 @@ func TestRefreshUseCase(t *testing.T) {
 
 			uowMock := mocks.NewMockUnitOfWork(ctrl)
 			authMock := mocks.NewMockAuthRepo(ctrl)
-			tokenMock := mocks.NewMockСache(ctrl)
+			tokenMock := mocks.NewMockSessionRepo(ctrl)
 
 			uowMock.EXPECT().Autho().Return(authMock).AnyTimes()
 
@@ -390,7 +390,7 @@ func TestValidateAccessToken(t *testing.T) {
 	type testCase struct {
 		name      string
 		token     string
-		setupMock func(c *mocks.MockСache)
+		setupMock func(c *mocks.MockSessionRepo)
 		patchFunc func() func()
 		wantErr   bool
 	}
@@ -410,7 +410,7 @@ func TestValidateAccessToken(t *testing.T) {
 				})
 				return func() { patch.Unpatch() }
 			},
-			setupMock: func(c *mocks.MockСache) {
+			setupMock: func(c *mocks.MockSessionRepo) {
 				c.EXPECT().
 					IsBlacklisted(ctx, tokenID).
 					Return(false, nil)
@@ -431,7 +431,7 @@ func TestValidateAccessToken(t *testing.T) {
 				})
 				return func() { patch.Unpatch() }
 			},
-			setupMock: func(c *mocks.MockСache) {
+			setupMock: func(c *mocks.MockSessionRepo) {
 				c.EXPECT().
 					IsBlacklisted(ctx, tokenID).
 					Return(true, nil)
@@ -447,7 +447,7 @@ func TestValidateAccessToken(t *testing.T) {
 				})
 				return func() { patch.Unpatch() }
 			},
-			setupMock: func(c *mocks.MockСache) {},
+			setupMock: func(c *mocks.MockSessionRepo) {},
 			wantErr:   true,
 		},
 		{
@@ -463,7 +463,7 @@ func TestValidateAccessToken(t *testing.T) {
 				})
 				return func() { patch.Unpatch() }
 			},
-			setupMock: func(c *mocks.MockСache) {
+			setupMock: func(c *mocks.MockSessionRepo) {
 				c.EXPECT().
 					IsBlacklisted(ctx, tokenID).
 					Return(false, errors.New("redis down"))
@@ -478,14 +478,14 @@ func TestValidateAccessToken(t *testing.T) {
 				})
 				return func() { patch.Unpatch() }
 			},
-			setupMock: func(c *mocks.MockСache) {},
+			setupMock: func(c *mocks.MockSessionRepo) {},
 			wantErr:   true,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cache := mocks.NewMockСache(ctrl)
+			cache := mocks.NewMockSessionRepo(ctrl)
 			tt.setupMock(cache)
 			unpatch := tt.patchFunc()
 			defer unpatch()
@@ -667,7 +667,7 @@ func TestValidateRefreshToken(t *testing.T) {
 
 			mockUOW := mocks.NewMockUnitOfWork(ctl)
 			mockAuth := mocks.NewMockAuthRepo(ctl)
-			mockCache := mocks.NewMockСache(ctl)
+			mockCache := mocks.NewMockSessionRepo(ctl)
 			mockSender := mocks.NewMockMailSender(ctl)
 
 			mockUOW.EXPECT().Autho().Return(mockAuth).AnyTimes()
@@ -697,7 +697,7 @@ func TestLogoutUseCase(t *testing.T) {
 	type testCase struct {
 		name      string
 		dto       dto.LogoutDTO
-		setupMock func(c *mocks.MockСache, r *mocks.MockAuthRepo)
+		setupMock func(c *mocks.MockSessionRepo, r *mocks.MockAuthRepo)
 		patchFunc func() func()
 		wantErr   bool
 	}
@@ -733,7 +733,7 @@ func TestLogoutUseCase(t *testing.T) {
 				})
 				return func() { patch.Unpatch() }
 			},
-			setupMock: func(c *mocks.MockСache, r *mocks.MockAuthRepo) {
+			setupMock: func(c *mocks.MockSessionRepo, r *mocks.MockAuthRepo) {
 				// access validation
 				c.EXPECT().
 					IsBlacklisted(ctx, accessID).
@@ -770,7 +770,7 @@ func TestLogoutUseCase(t *testing.T) {
 				})
 				return func() { patch.Unpatch() }
 			},
-			setupMock: func(c *mocks.MockСache, r *mocks.MockAuthRepo) {},
+			setupMock: func(c *mocks.MockSessionRepo, r *mocks.MockAuthRepo) {},
 			wantErr:   true,
 		},
 		{
@@ -793,7 +793,7 @@ func TestLogoutUseCase(t *testing.T) {
 				})
 				return func() { patch.Unpatch() }
 			},
-			setupMock: func(c *mocks.MockСache, r *mocks.MockAuthRepo) {
+			setupMock: func(c *mocks.MockSessionRepo, r *mocks.MockAuthRepo) {
 				c.EXPECT().
 					IsBlacklisted(ctx, accessID).
 					Return(false, nil)
@@ -830,7 +830,7 @@ func TestLogoutUseCase(t *testing.T) {
 				})
 				return func() { patch.Unpatch() }
 			},
-			setupMock: func(c *mocks.MockСache, r *mocks.MockAuthRepo) {
+			setupMock: func(c *mocks.MockSessionRepo, r *mocks.MockAuthRepo) {
 				c.EXPECT().
 					IsBlacklisted(ctx, accessID).
 					Return(false, nil)
@@ -877,7 +877,7 @@ func TestLogoutUseCase(t *testing.T) {
 				})
 				return func() { patch.Unpatch() }
 			},
-			setupMock: func(c *mocks.MockСache, r *mocks.MockAuthRepo) {
+			setupMock: func(c *mocks.MockSessionRepo, r *mocks.MockAuthRepo) {
 				c.EXPECT().
 					IsBlacklisted(ctx, accessID).
 					Return(false, nil)
@@ -907,7 +907,7 @@ func TestLogoutUseCase(t *testing.T) {
 
 			mockUOW := mocks.NewMockUnitOfWork(ctrl)
 			mockAuth := mocks.NewMockAuthRepo(ctrl)
-			mockCache := mocks.NewMockСache(ctrl)
+			mockCache := mocks.NewMockSessionRepo(ctrl)
 			mockSender := mocks.NewMockMailSender(ctrl)
 
 			mockUOW.EXPECT().
@@ -937,12 +937,12 @@ func TestSendVerificationCode(t *testing.T) {
 
 	tests := []struct {
 		name  string
-		setup func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockСache, mockSender *mocks.MockMailSender)
+		setup func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockSessionRepo, mockSender *mocks.MockMailSender)
 		err   error
 	}{
 		{
 			name: "OK",
-			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockСache, mockSender *mocks.MockMailSender) {
+			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockSessionRepo, mockSender *mocks.MockMailSender) {
 				gomock.InOrder(
 					mockUser.EXPECT().GetByEmail(ctx, email).Return(nil, nil),
 					mockCache.EXPECT().IsBlacklisted(ctx, email).Return(false, nil),
@@ -955,14 +955,14 @@ func TestSendVerificationCode(t *testing.T) {
 		},
 		{
 			name: "Email not found",
-			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockСache, mockSender *mocks.MockMailSender) {
+			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockSessionRepo, mockSender *mocks.MockMailSender) {
 				mockUser.EXPECT().GetByEmail(ctx, email).Return(nil, entity.NotFoundError)
 			},
 			err: entity.NotFoundError,
 		},
 		{
 			name: "Email in blacklis",
-			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockСache, mockSender *mocks.MockMailSender) {
+			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockSessionRepo, mockSender *mocks.MockMailSender) {
 				mockUser.EXPECT().GetByEmail(ctx, email).Return(nil, nil)
 				mockCache.EXPECT().IsBlacklisted(ctx, email).Return(true, nil)
 			},
@@ -979,7 +979,7 @@ func TestSendVerificationCode(t *testing.T) {
 
 			mockUOW := mocks.NewMockUnitOfWork(ctl)
 			mockUser := mocks.NewMockUserRepo(ctl)
-			mockCache := mocks.NewMockСache(ctl)
+			mockCache := mocks.NewMockSessionRepo(ctl)
 			mockSender := mocks.NewMockMailSender(ctl)
 
 			mockUOW.EXPECT().Users().Return(mockUser).AnyTimes()
@@ -1004,13 +1004,13 @@ func TestCheckRecoveryCode(t *testing.T) {
 	tests := []struct {
 		name  string
 		code  string
-		setup func(mockCache *mocks.MockСache)
+		setup func(mockCache *mocks.MockSessionRepo)
 		err   error
 	}{
 		{
 			name: "OK",
 			code: "code",
-			setup: func(mockCache *mocks.MockСache) {
+			setup: func(mockCache *mocks.MockSessionRepo) {
 				session := &entity.RecoverSession{
 					Email:    "test@email.com",
 					Code:     "code",
@@ -1027,7 +1027,7 @@ func TestCheckRecoveryCode(t *testing.T) {
 		{
 			name: "Session is empty",
 			code: "code",
-			setup: func(mockCache *mocks.MockСache) {
+			setup: func(mockCache *mocks.MockSessionRepo) {
 				var session *entity.RecoverSession
 
 				gomock.InOrder(
@@ -1039,7 +1039,7 @@ func TestCheckRecoveryCode(t *testing.T) {
 		{
 			name: "Invalid code",
 			code: "wrong_code",
-			setup: func(mockCache *mocks.MockСache) {
+			setup: func(mockCache *mocks.MockSessionRepo) {
 				session := &entity.RecoverSession{
 					Email:    "test@email.com",
 					Code:     "code",
@@ -1057,7 +1057,7 @@ func TestCheckRecoveryCode(t *testing.T) {
 		{
 			name: "Invalid code and max limit",
 			code: "wrong_code",
-			setup: func(mockCache *mocks.MockСache) {
+			setup: func(mockCache *mocks.MockSessionRepo) {
 				session := &entity.RecoverSession{
 					Email:    "test@email.com",
 					Code:     "code",
@@ -1084,7 +1084,7 @@ func TestCheckRecoveryCode(t *testing.T) {
 
 			mockUOW := mocks.NewMockUnitOfWork(ctl)
 			mockUser := mocks.NewMockUserRepo(ctl)
-			mockCache := mocks.NewMockСache(ctl)
+			mockCache := mocks.NewMockSessionRepo(ctl)
 			mockSender := mocks.NewMockMailSender(ctl)
 
 			mockUOW.EXPECT().Users().Return(mockUser).AnyTimes()
@@ -1109,13 +1109,13 @@ func TestUpdateUserPassword(t *testing.T) {
 	tests := []struct {
 		name  string
 		pwd   string
-		setup func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockСache)
+		setup func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockSessionRepo)
 		err   error
 	}{
 		{
 			name: "OK",
 			pwd:  "new_pwd",
-			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockСache) {
+			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockSessionRepo) {
 				email := "test@email.com"
 				session := &entity.RecoverSession{
 					Email:    email,
@@ -1133,7 +1133,7 @@ func TestUpdateUserPassword(t *testing.T) {
 		{
 			name: "Empty session",
 			pwd:  "new_pwd",
-			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockСache) {
+			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockSessionRepo) {
 				var session *entity.RecoverSession
 
 				gomock.InOrder(
@@ -1146,7 +1146,7 @@ func TestUpdateUserPassword(t *testing.T) {
 		{
 			name: "Session is not verified",
 			pwd:  "new_pwd",
-			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockСache) {
+			setup: func(uow *mocks.MockUnitOfWork, mockUser *mocks.MockUserRepo, mockCache *mocks.MockSessionRepo) {
 				email := "test@email.com"
 				session := &entity.RecoverSession{
 					Email:    email,
@@ -1170,7 +1170,7 @@ func TestUpdateUserPassword(t *testing.T) {
 
 			mockUOW := mocks.NewMockUnitOfWork(ctl)
 			mockUser := mocks.NewMockUserRepo(ctl)
-			mockCache := mocks.NewMockСache(ctl)
+			mockCache := mocks.NewMockSessionRepo(ctl)
 			mockSender := mocks.NewMockMailSender(ctl)
 
 			mockUOW.EXPECT().Users().Return(mockUser).AnyTimes()

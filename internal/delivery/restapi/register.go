@@ -5,10 +5,12 @@ import (
 	"net/http"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/auth"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/complex"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/middleware"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/poster"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/promotion"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/support"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
@@ -48,7 +50,7 @@ import (
 
 // @externalDocs.description  OpenAPI
 // @externalDocs.url          https://swagger.io/resources/open-api/
-func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHandler, post *poster.PosterHandler, UtilityCompany *complex.UtilityCompanyHandler, user *user.UserHandler, support *support.SupportHandler) {
+func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHandler, post *poster.PosterHandler, UtilityCompany *complex.UtilityCompanyHandler, user *user.UserHandler, support *support.SupportHandler, payment *promotion.PromotionHandler, rps delivery.RateLimitUseCase) {
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   config.Config.CORS.AllowedHosts,
@@ -68,9 +70,11 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 	}).Methods(http.MethodGet)
+	app.Handle("/webhooks/yookassa", http.HandlerFunc(payment.YooKassaWebhook)).Methods(http.MethodPost, http.MethodOptions)
 
 	// API Routers
 	apiGroup := app.PathPrefix("/api").Subrouter()
+
 	apiGroup.Use(metrics.MetricsHTTPMiddleware)
 	//apiGroup.Use(middleware.CSRFMiddleware)
 	apiGroup.Use(middleware.SecurityMiddleware)
@@ -80,6 +84,7 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		apiGroup.HandleFunc("/csrf-token", auth.GetCSRFToken).Methods(http.MethodGet)
 
 		AuthMiddlewary := auth.GetAuthMiddlewary()
+		RateLimitMiddlewary := middleware.RateLimitMiddleware(rps)
 		UserIDMiddleware := auth.GetUserIDMiddlewary()
 		apiGroup.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 			_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
@@ -99,6 +104,7 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		apiGroup.Handle("/user/me/roommate-matches/matched", AuthMiddlewary(http.HandlerFunc(user.GetMatchedRoommateMatches))).Methods(http.MethodGet, http.MethodOptions)
 
 		apiGroup.HandleFunc("/auth/login", auth.LoginUser).Methods(http.MethodPost, http.MethodOptions)
+		apiGroup.HandleFunc("/auth/admin/login", auth.LoginAdminUser).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.HandleFunc("/auth/reg", auth.RegisterUser).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.HandleFunc("/auth/logout", auth.Logout).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.HandleFunc("/auth/refresh", auth.RefreshToken).Methods(http.MethodPost, http.MethodOptions)
@@ -121,15 +127,15 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 
 		apiGroup.Handle("/posters/me", AuthMiddlewary(http.HandlerFunc(post.GetPostersByUser))).Methods(http.MethodGet, http.MethodOptions)
 		apiGroup.Handle("/posters/me/{alias}", AuthMiddlewary(http.HandlerFunc(post.GetPostersByUserByAlias))).Methods(http.MethodGet, http.MethodOptions)
-		apiGroup.Handle("/posters/flat", AuthMiddlewary(http.HandlerFunc(post.CreateFlatPoster))).Methods(http.MethodPost, http.MethodOptions)
-		apiGroup.Handle("/posters/flat/{alias}", AuthMiddlewary(http.HandlerFunc(post.UpdateFlatPoster))).Methods(http.MethodPut, http.MethodOptions)
+		apiGroup.Handle("/posters/flat", RateLimitMiddlewary(10)(AuthMiddlewary(http.HandlerFunc(post.CreateFlatPoster)))).Methods(http.MethodPost, http.MethodOptions)
+		apiGroup.Handle("/posters/flat/{alias}", RateLimitMiddlewary(10)(AuthMiddlewary(http.HandlerFunc(post.UpdateFlatPoster)))).Methods(http.MethodPut, http.MethodOptions)
 		apiGroup.Handle("/posters/flat/{alias}", AuthMiddlewary(http.HandlerFunc(post.DeleteFlatPoster))).Methods(http.MethodDelete, http.MethodOptions)
 
 		apiGroup.Handle("/posters/{alias}/favorites", AuthMiddlewary(http.HandlerFunc(post.AddFavoritePoster))).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.Handle("/posters/favorites", AuthMiddlewary(http.HandlerFunc(post.GetFavoritesPoster))).Methods(http.MethodGet, http.MethodOptions)
 		apiGroup.Handle("/posters/{alias}/favorites", AuthMiddlewary(http.HandlerFunc(post.DeleteFavoritePoster))).Methods(http.MethodDelete, http.MethodOptions)
 		apiGroup.Handle("/posters/{alias}/favorites", UserIDMiddleware(http.HandlerFunc(post.GetFavoritesCountPoster))).Methods(http.MethodGet, http.MethodOptions)
-		apiGroup.Handle("/posters/generate-description", AuthMiddlewary(http.HandlerFunc(post.GenerateDescription))).Methods(http.MethodPost, http.MethodOptions)
+		apiGroup.Handle("/posters/generate-description", RateLimitMiddlewary(10)(AuthMiddlewary(http.HandlerFunc(post.GenerateDescription)))).Methods(http.MethodPost, http.MethodOptions)
 
 		apiGroup.Handle("/posters/{alias}/views", AuthMiddlewary(http.HandlerFunc(post.AddViewPoster))).Methods(http.MethodPost, http.MethodOptions)
 		apiGroup.Handle("/posters/{alias}/views", http.HandlerFunc(post.GetViewsPoster)).Methods(http.MethodGet, http.MethodOptions)
@@ -143,5 +149,9 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		apiGroup.Handle("/support/orders/{id}", AuthMiddlewary(http.HandlerFunc(support.GetOrderByID))).Methods(http.MethodGet, http.MethodOptions)
 		apiGroup.Handle("/support/orders/{id}/answer", AuthMiddlewary(http.HandlerFunc(support.AnswerOrder))).Methods(http.MethodPost, http.MethodOptions)
 
+		apiGroup.Handle("/promotions/payment", AuthMiddlewary(http.HandlerFunc(payment.CreatePayment))).Methods(http.MethodPost, http.MethodOptions)
+		//apiGroup.Handle("/promotions/webhooks/yookassa", middleware.IPFilterMiddleware(http.HandlerFunc(payment.YooKassaWebhook), middleware.AllowYookassaIPs)).Methods(http.MethodPost, http.MethodOptions)
+		apiGroup.Handle("/promotions/status", AuthMiddlewary(http.HandlerFunc(payment.CheckPaymentStatus))).Methods(http.MethodPost, http.MethodOptions)
+		apiGroup.Handle("/promotions/me", AuthMiddlewary(http.HandlerFunc(payment.GetUserPromotions))).Methods(http.MethodGet, http.MethodOptions)
 	} //alias
 }

@@ -2,9 +2,12 @@ package delivery
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	jwtUtils "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/jwt"
+	yoopayment "github.com/rvinnie/yookassa-sdk-go/yookassa/payment"
+	yoowebhook "github.com/rvinnie/yookassa-sdk-go/yookassa/webhook"
 )
 
 //go:generate mockgen -source=interfaces.go -destination=../mocks/mocks_uc.go -package=mocks
@@ -22,6 +25,7 @@ type AuthUseCase interface {
 	CheckRecoveryCode(ctx context.Context, sessionID string, code string) error
 	UpdateUserPassword(ctx context.Context, sessionID string, password string) error
 	ValidateAccessToken(ctx context.Context, accessToken string) (*jwtUtils.Claims, error)
+	LoginAdminUseCase(ctx context.Context, email string, passwod string) (*dto.UserAccessCredDTO, error)
 }
 
 type UserUseCase interface {
@@ -64,4 +68,14 @@ type PostersUseCase interface {
 
 	GetPosterRoommates(ctx context.Context, alias string) ([]dto.RoommateUserDTO, error)
 	AddPosterRoommate(ctx context.Context, alias string, userID int) error
+}
+
+type PromotionUseCase interface {
+	CreatePaymentOrder(ctx context.Context, promotionCode string, posterID int, userID int) (*dto.PaymentDTO, error)
+	ActivatePromotion(ctx context.Context, data yoowebhook.WebhookEvent[yoopayment.Payment]) error
+	CheckPaymentStatus(ctx context.Context, userID int, paymentID string) (yoopayment.Status, error)
+	GetPromotionByUserID(ctx context.Context, userID int) (*dto.UserPromotionsDTO, error)
+}
+type RateLimitUseCase interface {
+	CheckIPLimit(ctx context.Context, ip string, limit int, ttl time.Duration) (bool, error)
 }
