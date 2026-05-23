@@ -1,6 +1,10 @@
 package dto
 
-import "github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+import (
+	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/photo"
+)
 
 type RoommateUserDTO struct {
 	ID          int     `json:"id" db:"id"`
@@ -37,6 +41,13 @@ func RoommateUserToDTO(user *entity.RoommateUser, tags []entity.RoommateTag) *Ro
 			Name:  tag.Name,
 			Alias: tag.Alias,
 		})
+	}
+	if user == nil {
+		return nil
+	}
+	if user.AvatarURL != nil {
+		avatar := photo.MakeUrlFromPath(*user.AvatarURL, config.Config.PublicHost, config.Config.Bucket)
+		user.AvatarURL = &avatar
 	}
 
 	return &RoommateUserProfileDTO{

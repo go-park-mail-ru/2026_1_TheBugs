@@ -303,13 +303,13 @@ func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.Poste
 			return fmt.Errorf("uc.PosterRepo.InsertFlat: %w", err)
 		}
 
-		// for _, photoPoster := range post.Images {
-		// 	key, err := uc.uploadPhoto(ctx, photoPoster)
-		// 	if err != nil {
-		// 		return fmt.Errorf("uc.uploadPhoto: %w", err)
-		// 	}
-		// 	keys = append(keys, key)
-		// }
+		for _, photoPoster := range post.Images {
+			key, err := uc.uploadPhoto(ctx, photoPoster)
+			if err != nil {
+				return fmt.Errorf("uc.uploadPhoto: %w", err)
+			}
+			keys = append(keys, key)
+		}
 
 		err = r.Posters().InsertPhotos(ctx, posterID, post.Images)
 		if err != nil {

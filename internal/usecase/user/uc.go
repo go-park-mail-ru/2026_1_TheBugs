@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html"
 
+	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
@@ -325,6 +326,12 @@ func (uc *UserUseCase) GetIncomingRoommateMatches(ctx context.Context, userID in
 	if err != nil {
 		return nil, fmt.Errorf("uc.uow.Users().GetIncomingRoommateMatches: %w", err)
 	}
+	for _, user := range users {
+		if user.AvatarURL != nil {
+			avatar := photo.MakeUrlFromPath(*user.AvatarURL, config.Config.PublicHost, config.Config.Bucket)
+			user.AvatarURL = &avatar
+		}
+	}
 
 	return &dto.RoommateMatchesResponse{
 		Users: users,
@@ -340,6 +347,12 @@ func (uc *UserUseCase) GetMatchedRoommateMatches(ctx context.Context, userID int
 	users, err := uc.uow.Users().GetMatchedRoommateMatches(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("uc.uow.Users().GetMatchedRoommateMatches: %w", err)
+	}
+	for _, user := range users {
+		if user.AvatarURL != nil {
+			avatar := photo.MakeUrlFromPath(*user.AvatarURL, config.Config.PublicHost, config.Config.Bucket)
+			user.AvatarURL = &avatar
+		}
 	}
 
 	return &dto.RoommateMatchesResponse{
