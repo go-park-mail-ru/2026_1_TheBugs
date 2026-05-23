@@ -11,7 +11,7 @@ RUN go mod download
 COPY . .
 
 RUN --mount=type=cache,target=/root/.cache/go-build \
-    go build -ldflags="-s -w" -o app ./cmd/crond/promotion_worker
+    go build -ldflags="-s -w" -o app ./cmd/cron/promotion_worker
 
 
 FROM alpine:3.20
