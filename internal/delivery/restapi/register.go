@@ -70,15 +70,14 @@ func RegisterHandlers(app *mux.Router, logger *logrus.Logger, auth *auth.AuthHan
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 	}).Methods(http.MethodGet)
-	app.Handle("/webhooks/yookassa", http.HandlerFunc(payment.YooKassaWebhook)).Methods(http.MethodPost, http.MethodOptions)
-
-	// API Routers
 	apiGroup := app.PathPrefix("/api").Subrouter()
 
-	apiGroup.Use(metrics.MetricsHTTPMiddleware)
-	//apiGroup.Use(middleware.CSRFMiddleware)
-	apiGroup.Use(middleware.SecurityMiddleware)
-	apiGroup.Use(mux.CORSMethodMiddleware(apiGroup))
+	apiGroup.HandleFunc("/webhooks/yookassa", payment.YooKassaWebhook).Methods(http.MethodPost, http.MethodOptions)
+
+	restAPI := apiGroup.PathPrefix("/").Subrouter()
+	restAPI.Use(metrics.MetricsHTTPMiddleware)
+	restAPI.Use(middleware.SecurityMiddleware)
+	restAPI.Use(mux.CORSMethodMiddleware(restAPI))
 
 	{
 		apiGroup.HandleFunc("/csrf-token", auth.GetCSRFToken).Methods(http.MethodGet)
