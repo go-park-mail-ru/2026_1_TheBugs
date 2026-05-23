@@ -26,7 +26,7 @@ func main() {
 	pool, err := pgxpool.New(context.Background(), dsn)
 	senderRepo := smtp.NewSMTPSender(config.Config.SMTP.Host, config.Config.SMTP.Port, config.Config.SMTP.Email, config.Config.SMTP.Pwd)
 	c := cron.New()
-	c.AddFunc("*/1 * * * *", func() {
+	c.AddFunc("*/30 * * * *", func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
@@ -75,6 +75,22 @@ func main() {
 			}
 		}
 
+	})
+	c.AddFunc("*/10 * * * *", func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		sql := `DELETE FROM users WHERE is_verified = FALSE AND created_at < NOW() - INTERVAL '10 minutes'`
+
+		ct, err := pool.Exec(ctx, sql)
+		if err != nil {
+			logger.WithError(err).Error("Failed to delete unverified users")
+			return
+		}
+
+		if ct.RowsAffected() > 0 {
+			logger.Infof("Cleanup: deleted %d unverified users", ct.RowsAffected())
+		}
 	})
 	c.Start()
 	logger.Info("Cron job started. Press Ctrl+C to stop.")
