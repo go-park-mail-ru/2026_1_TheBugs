@@ -812,10 +812,10 @@ func (uc *PosterUseCase) GetPosterRoommates(ctx context.Context, alias string) (
 	if err != nil {
 		return nil, fmt.Errorf("uc.uow.Posters().GetPosterRoommates: %w", err)
 	}
-	for _, user := range users {
+	for i, user := range users {
 		if user.AvatarURL != nil {
 			avatar := photo.MakeUrlFromPath(*user.AvatarURL, config.Config.PublicHost, config.Config.Bucket)
-			user.AvatarURL = &avatar
+			users[i].AvatarURL = &avatar
 		}
 	}
 

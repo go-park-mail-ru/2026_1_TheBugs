@@ -326,10 +326,10 @@ func (uc *UserUseCase) GetIncomingRoommateMatches(ctx context.Context, userID in
 	if err != nil {
 		return nil, fmt.Errorf("uc.uow.Users().GetIncomingRoommateMatches: %w", err)
 	}
-	for _, user := range users {
+	for i, user := range users {
 		if user.AvatarURL != nil {
 			avatar := photo.MakeUrlFromPath(*user.AvatarURL, config.Config.PublicHost, config.Config.Bucket)
-			user.AvatarURL = &avatar
+			users[i].AvatarURL = &avatar
 		}
 	}
 
@@ -348,10 +348,10 @@ func (uc *UserUseCase) GetMatchedRoommateMatches(ctx context.Context, userID int
 	if err != nil {
 		return nil, fmt.Errorf("uc.uow.Users().GetMatchedRoommateMatches: %w", err)
 	}
-	for _, user := range users {
+	for i, user := range users {
 		if user.AvatarURL != nil {
 			avatar := photo.MakeUrlFromPath(*user.AvatarURL, config.Config.PublicHost, config.Config.Bucket)
-			user.AvatarURL = &avatar
+			users[i].AvatarURL = &avatar
 		}
 	}
 

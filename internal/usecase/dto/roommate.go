@@ -11,7 +11,7 @@ type RoommateUserDTO struct {
 	FirstName   string  `json:"first_name" db:"first_name"`
 	LastName    string  `json:"last_name" db:"last_name"`
 	AvatarURL   *string `json:"avatar_url,omitempty" db:"avatar_url"`
-	PosterAlias *string `json:"poster_alias" db:"-"`
+	PosterAlias *string `json:"poster_alias" db:"poster_alias"`
 }
 
 type PosterRoommatesResponse struct {
