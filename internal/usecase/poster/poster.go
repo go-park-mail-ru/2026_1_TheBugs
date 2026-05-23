@@ -1,12 +1,16 @@
 package poster
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
@@ -269,6 +273,7 @@ func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.Poste
 	dto.MakePhotoPathsForPoster(post)
 
 	keys := make([]string, 0, len(post.Images))
+	var posterID int
 
 	err = uc.uow.Do(ctx, func(r usecase.UnitOfWork) error {
 
@@ -287,7 +292,7 @@ func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.Poste
 			return fmt.Errorf("uc.PosterRepo.InsertFacilities: %w", err)
 		}
 
-		posterID, err := r.Posters().Create(ctx, post, propertyID)
+		posterID, err = r.Posters().Create(ctx, post, propertyID)
 		if err != nil {
 			return fmt.Errorf("uc.PosterRepo.Create: %w", err)
 		}
@@ -316,12 +321,13 @@ func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.Poste
 			return fmt.Errorf("uc.PosterRepo.InsertPhotos: %w", err)
 		}
 
-		if len(post.Images) > 0 {
-			err = r.Posters().InsertMainPhoto(ctx, posterID, post.Images[0].Path)
-			if err != nil {
-				return fmt.Errorf("r.Posters().InsertMainPhoto: %w", err)
-			}
-		}
+		// if len(post.Images) > 0 {
+
+		// 	err = r.Posters().InsertMainPhoto(ctx, posterID, post.Images[0].Path)
+		// 	if err != nil {
+		// 		return fmt.Errorf("r.Posters().InsertMainPhoto: %w", err)
+		// 	}
+		// }
 
 		createdPoster = &dto.CreatedPoster{
 			ID:    posterID,
@@ -330,6 +336,9 @@ func (uc *PosterUseCase) CreateFlatPoster(ctx context.Context, poster *dto.Poste
 
 		return nil
 	})
+	if len(keys) > 0 && len(post.Images) > 0 {
+		go uc.scaleAndCropPhoto(context.Background(), keys[0], post.Images[0].Path, posterID)
+	}
 
 	if err != nil {
 		cleanErr := uc.cleanUploadedFiles(ctx, keys)
@@ -533,10 +542,10 @@ func (uc *PosterUseCase) UpdateFlatPoster(ctx context.Context, alias string, pos
 			if err != nil {
 				return fmt.Errorf("uc.PosterRepo.InsertPhotos: %w", err)
 			}
-			err = r.Posters().InsertMainPhoto(ctx, ids.PosterID, post.Images[0].Path)
-			if err != nil {
-				return fmt.Errorf("r.Posters().InsertMainPhoto: %w", err)
-			}
+			// err = r.Posters().InsertMainPhoto(ctx, ids.PosterID, post.Images[0].Path)
+			// if err != nil {
+			// 	return fmt.Errorf("r.Posters().InsertMainPhoto: %w", err)
+			// }
 		}
 
 		createdPoster = &dto.CreatedPoster{
@@ -551,6 +560,9 @@ func (uc *PosterUseCase) UpdateFlatPoster(ctx context.Context, alias string, pos
 			_ = uc.cleanUploadedFiles(ctx, newKeys) // FIXME: а если старый путь и новый совпадают?
 		}
 		return nil, fmt.Errorf("uc.uow.Do: %w", err)
+	}
+	if len(newKeys) > 0 && len(post.Images) > 0 {
+		go uc.scaleAndCropPhoto(context.Background(), newKeys[0], post.Images[0].Path, ids.PosterID)
 	}
 
 	for _, key := range oldKeys {
@@ -837,5 +849,49 @@ func (uc *PosterUseCase) AddPosterRoommate(ctx context.Context, alias string, us
 		return fmt.Errorf("uc.uow.Posters().AddPosterRoommate: %w", err)
 	}
 
+	return nil
+}
+
+func (uc *PosterUseCase) scaleAndCropPhoto(ctx context.Context, srcKey string, srcPath string, posterID int) error {
+	file, err := uc.file.Get(context.Background(), srcKey)
+	if err != nil {
+		log.Printf("Failed to get original from MinIO: %v", err)
+		return err
+	}
+	defer file.Close()
+	buffer, err := io.ReadAll(file)
+	if err != nil {
+		log.Printf("io.ReadAll: %s", err)
+		return err
+	}
+	log.Printf("Buffer size: %d", len(buffer))
+	if len(buffer) > 20 {
+		log.Printf("First bytes (hex): %x", buffer[:min(20, len(buffer))])
+	}
+	mime := http.DetectContentType(buffer)
+	log.Printf("Detected MIME: %s", mime)
+	if !strings.HasPrefix(mime, "image/") {
+		return fmt.Errorf("file is not an image, MIME: %s", mime)
+	}
+	newImage, err := photo.ResizeAndCropJPEG(buffer, 600, 340, 80)
+	if err != nil {
+		log.Printf("resizeAndCropJPEG: %s", err)
+		return fmt.Errorf("resizeAndCropJPEG: %w", err)
+	}
+	size := int64(len(newImage))
+	contentType := "image/jpeg"
+	path := strings.Replace(srcPath, "poster/img/", "poster/img/scaled/", 1)
+	key := photo.GetKeyFromPath(path)
+
+	if err := uc.file.Upload(context.Background(), key, bytes.NewReader(newImage), size, contentType); err != nil {
+		log.Printf("uc.file.Upload: %s", err)
+		return fmt.Errorf("uc.file.Upload: %w", err)
+	}
+
+	err = uc.uow.Posters().InsertMainPhoto(context.Background(), posterID, path)
+	if err != nil {
+		log.Printf("uc.uow.Posters().InsertMainPhoto: %s", err)
+		return fmt.Errorf("r.Posters().InsertMainPhoto: %w", err)
+	}
 	return nil
 }
