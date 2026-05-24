@@ -37,8 +37,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && success()
-    steps:
+    
+    #if: github.event_name == 'push' && github.ref == 'refs/heads/main' && success()
+    if: success()
+    steps:  
       - name: Checkout repo
         uses: actions/checkout@v4
 
