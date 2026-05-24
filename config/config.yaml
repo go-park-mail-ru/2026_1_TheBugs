@@ -12,8 +12,8 @@ server:
 postgres:
   host: localhost
   port: 5435
-  user: thebugs
-  password: thebugs
+  user: app_user
+  password: app_user
   database: main
   sslmode: disable
   max-open-connections: 10
