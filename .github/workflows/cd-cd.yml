@@ -62,7 +62,6 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=accept-new "${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}" "sudo bash -lc '
           cd /home/${{ secrets.VPS_USERNAME }}/prod
-          docker compose pull
          
           '"
 
