@@ -32,7 +32,7 @@ jobs:
         run: go mod download
 
       - name: Run tests
-        run: go test -v ./internal/utils...
+        run: go test -v ./...
 
   deploy:
     runs-on: ubuntu-latest
@@ -62,7 +62,9 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=accept-new "${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}" "sudo bash -lc '
           cd /home/${{ secrets.VPS_USERNAME }}/prod
-         
+          docker compose up -d --build --remove-orphans --no-deps gateaway_service user_service complex_service poster_service auth_service
+          docker compose down nginx 
+          docker compose up -d --build --no-deps nginx
           '"
 
   notify_success:
