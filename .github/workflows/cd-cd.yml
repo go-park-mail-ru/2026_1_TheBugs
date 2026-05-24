@@ -2,13 +2,13 @@ name: CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, dev]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  test:
+  test: 
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -61,9 +61,7 @@ jobs:
           ssh -o StrictHostKeyChecking=accept-new "${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}" "sudo bash -lc '
           cd /home/${{ secrets.VPS_USERNAME }}/prod
           docker compose pull
-          docker compose up -d --build --remove-orphans --no-deps gateaway_service user_service complex_service poster_service auth_service
-          docker compose down nginx 
-          docker compose up -d --build --no-deps nginx
+         
           '"
 
   notify_success:
