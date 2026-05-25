@@ -130,6 +130,26 @@ func (s *UserServiceServer) AddRoommateMatch(
 	return &user.AddRoommateMatchResponse{}, nil
 }
 
+func (s *UserServiceServer) DeleteRoommateMatch(
+	ctx context.Context,
+	req *user.DeleteRoommateMatchRequest,
+) (*user.DeleteRoommateMatchResponse, error) {
+	if req.FromUserId <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "invalid from_user_id")
+	}
+
+	if req.ToUserId <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "invalid to_user_id")
+	}
+
+	err := s.uc.DeleteRoommateMatch(ctx, int(req.FromUserId), int(req.ToUserId))
+	if err != nil {
+		return nil, utils.TranslateDomainsError(err)
+	}
+
+	return &user.DeleteRoommateMatchResponse{}, nil
+}
+
 func (s *UserServiceServer) GetRoommateContacts(ctx context.Context, req *user.GetRoommateContactsRequest) (*user.GetRoommateContactsResponse, error) {
 	log := ctxLogger.GetLogger(ctx).WithField("method", "GetRoommateContacts")
 
@@ -251,6 +271,22 @@ func (s *UserServiceServer) UpdateRoommateForm(ctx context.Context, req *user.Up
 	}
 
 	return &user.UpdateRoommateFormResponse{}, nil
+}
+
+func (s *UserServiceServer) DeleteRoommateForm(
+	ctx context.Context,
+	req *user.DeleteRoommateFormRequest,
+) (*user.DeleteRoommateFormResponse, error) {
+	if req.UserId <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+
+	err := s.uc.DeleteRoommateForm(ctx, int(req.UserId))
+	if err != nil {
+		return nil, utils.TranslateDomainsError(err)
+	}
+
+	return &user.DeleteRoommateFormResponse{}, nil
 }
 
 func (s *UserServiceServer) GetIncomingRoommateMatches(

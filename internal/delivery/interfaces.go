@@ -34,10 +34,12 @@ type UserUseCase interface {
 
 	GetRoommateUser(ctx context.Context, userID int) (*dto.RoommateUserProfileDTO, error)
 	AddRoommateMatch(ctx context.Context, fromUserID int, toUserID int, posterAlias *string) error
+	DeleteRoommateMatch(ctx context.Context, fromUserID int, toUserID int) error
 	GetRoommateContacts(ctx context.Context, fromUserID int, toUserID int) (*dto.RoommateContactsDTO, error)
 	CreateRoommateForm(ctx context.Context, data dto.CreateRoommateFormRequest) error
 	GetRoommateForm(ctx context.Context, userID int) (*dto.RoommateFormDTO, error)
 	UpdateRoommateForm(ctx context.Context, data dto.CreateRoommateFormRequest) error
+	DeleteRoommateForm(ctx context.Context, userID int) error
 	GetIncomingRoommateMatches(ctx context.Context, userID int) (*dto.RoommateMatchesResponse, error)
 	GetMatchedRoommateMatches(ctx context.Context, userID int) (*dto.RoommateMatchesResponse, error)
 }
@@ -68,6 +70,7 @@ type PostersUseCase interface {
 
 	GetPosterRoommates(ctx context.Context, alias string) ([]dto.RoommateUserDTO, error)
 	AddPosterRoommate(ctx context.Context, alias string, userID int) error
+	DeletePosterRoommate(ctx context.Context, alias string, userID int) error
 }
 
 type PromotionUseCase interface {

@@ -1185,6 +1185,40 @@ paths:
       tags:
       - posters
   /posters/{alias}/roommates:
+    delete:
+      description: Removes current authorized user from poster roommates
+      parameters:
+      - description: Alias of poster
+        in: path
+        name: alias
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete poster roommate
+      tags:
+      - posters
     get:
       description: Returns users who want to become roommates for poster
       parameters:
@@ -2361,6 +2395,40 @@ paths:
       tags:
       - users
   /user/{id}/match:
+    delete:
+      description: Removes target user from current authorized user roommates
+      parameters:
+      - description: Target user ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete roommate match
+      tags:
+      - users
     post:
       consumes:
       - application/json
@@ -2483,6 +2551,30 @@ paths:
       tags:
       - users
   /user/me/roommate-form:
+    delete:
+      description: Deletes current user roommate form
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete roommate form
+      tags:
+      - users
     get:
       description: Returns current user roommate form
       produces:

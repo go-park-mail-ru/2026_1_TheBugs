@@ -980,3 +980,46 @@ func (h *PosterHandler) AddPosterRoommate(w http.ResponseWriter, r *http.Request
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+// @Summary Delete poster roommate
+// @Description Removes current authorized user from poster roommates
+// @Tags posters
+// @Produce json
+// @Param alias path string true "Alias of poster"
+// @Success 204
+// @Security BearerAuth
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /posters/{alias}/roommates [delete]
+func (h *PosterHandler) DeletePosterRoommate(w http.ResponseWriter, r *http.Request) {
+	op := "PosterHandler.DeletePosterRoommate"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	userID, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.Errorf("utils.GetUserID: %s", err)
+		utils.JSONResponse(w, http.StatusUnauthorized, response.ErrorResponse{Error: "unauthorized"})
+		return
+	}
+
+	alias, err := utils.ParseAliasFromRequest(r)
+	if err != nil {
+		log.Errorf("utils.ParseAliasFromRequest: %s", err)
+		utils.JSONResponse(w, http.StatusBadRequest, response.ErrorResponse{Error: "invalid alias"})
+		return
+	}
+
+	_, err = h.grpcClient.DeletePosterRoommate(r.Context(), &poster.DeletePosterRoommateRequest{
+		Alias:  alias,
+		UserId: int64(userID),
+	})
+	if err != nil {
+		log.Errorf("h.grpcClient.DeletePosterRoommate: %s", err)
+		utils.HandelGRPCError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

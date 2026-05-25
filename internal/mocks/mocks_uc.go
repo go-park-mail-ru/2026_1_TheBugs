@@ -278,6 +278,34 @@ func (mr *MockUserUseCaseMockRecorder) CreateRoommateForm(ctx, data interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRoommateForm", reflect.TypeOf((*MockUserUseCase)(nil).CreateRoommateForm), ctx, data)
 }
 
+// DeleteRoommateForm mocks base method.
+func (m *MockUserUseCase) DeleteRoommateForm(ctx context.Context, userID int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteRoommateForm", ctx, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteRoommateForm indicates an expected call of DeleteRoommateForm.
+func (mr *MockUserUseCaseMockRecorder) DeleteRoommateForm(ctx, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRoommateForm", reflect.TypeOf((*MockUserUseCase)(nil).DeleteRoommateForm), ctx, userID)
+}
+
+// DeleteRoommateMatch mocks base method.
+func (m *MockUserUseCase) DeleteRoommateMatch(ctx context.Context, fromUserID, toUserID int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteRoommateMatch", ctx, fromUserID, toUserID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteRoommateMatch indicates an expected call of DeleteRoommateMatch.
+func (mr *MockUserUseCaseMockRecorder) DeleteRoommateMatch(ctx, fromUserID, toUserID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRoommateMatch", reflect.TypeOf((*MockUserUseCase)(nil).DeleteRoommateMatch), ctx, fromUserID, toUserID)
+}
+
 // GetByID mocks base method.
 func (m *MockUserUseCase) GetByID(ctx context.Context, userID int) (*dto.UserDTO, error) {
 	m.ctrl.T.Helper()
@@ -504,6 +532,20 @@ func (m *MockPostersUseCase) DeleteFlatPoster(ctx context.Context, alias string,
 func (mr *MockPostersUseCaseMockRecorder) DeleteFlatPoster(ctx, alias, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFlatPoster", reflect.TypeOf((*MockPostersUseCase)(nil).DeleteFlatPoster), ctx, alias, userID)
+}
+
+// DeletePosterRoommate mocks base method.
+func (m *MockPostersUseCase) DeletePosterRoommate(ctx context.Context, alias string, userID int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeletePosterRoommate", ctx, alias, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeletePosterRoommate indicates an expected call of DeletePosterRoommate.
+func (mr *MockPostersUseCaseMockRecorder) DeletePosterRoommate(ctx, alias, userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeletePosterRoommate", reflect.TypeOf((*MockPostersUseCase)(nil).DeletePosterRoommate), ctx, alias, userID)
 }
 
 // GenerateDescription mocks base method.

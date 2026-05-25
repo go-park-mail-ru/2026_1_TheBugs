@@ -4248,3 +4248,80 @@ func TestGetRoommatePosterRepo(t *testing.T) {
 		})
 	}
 }
+
+func TestDeletePosterRoommateRepo(t *testing.T) {
+	query := regexp.QuoteMeta(`
+		DELETE FROM poster_roommates pr
+		USING posters p
+		WHERE pr.poster_id = p.id
+		  AND p.alias = $1
+		  AND pr.user_id = $2
+		  AND p.deleted_at IS NULL
+	`)
+
+	alias := "flat-1"
+	userID := 10
+
+	tests := []struct {
+		name      string
+		alias     string
+		userID    int
+		setupMock func(m pgxmock.PgxPoolIface)
+		wantErr   error
+	}{
+		{
+			name:   "ok",
+			alias:  alias,
+			userID: userID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(alias, userID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 1))
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "not_found",
+			alias:  alias,
+			userID: userID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(alias, userID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 0))
+			},
+			wantErr: entity.NotFoundError,
+		},
+		{
+			name:   "service_error",
+			alias:  alias,
+			userID: userID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(alias, userID).
+					WillReturnError(errors.New("db error"))
+			},
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mock, err := pgxmock.NewPool()
+			require.NoError(t, err)
+			defer mock.Close()
+
+			test.setupMock(mock)
+
+			repo := NewPosterRepo(mock)
+
+			err = repo.DeletePosterRoommate(context.Background(), test.alias, test.userID)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}

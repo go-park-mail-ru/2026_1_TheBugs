@@ -1723,3 +1723,92 @@ func TestPosterHandler_AddPosterRoommate(t *testing.T) {
 		})
 	}
 }
+
+func TestPosterHandler_DeletePosterRoommate(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockClient := grpc_client.NewMockPosterServiceClient(ctrl)
+	handler := PosterHandler{grpcClient: mockClient}
+
+	tests := []struct {
+		name           string
+		alias          string
+		userID         int
+		setupMock      func()
+		expectedStatus int
+	}{
+		{
+			name:   "success",
+			alias:  "flat-1",
+			userID: 10,
+			setupMock: func() {
+				mockClient.EXPECT().
+					DeletePosterRoommate(gomock.Any(), &poster.DeletePosterRoommateRequest{
+						Alias:  "flat-1",
+						UserId: 10,
+					}).
+					Return(&poster.DeletePosterRoommateResponse{}, nil)
+			},
+			expectedStatus: http.StatusNoContent,
+		},
+		{
+			name:           "missing user id",
+			alias:          "flat-1",
+			userID:         0,
+			setupMock:      nil,
+			expectedStatus: http.StatusUnauthorized,
+		},
+		{
+			name:           "invalid alias",
+			alias:          "",
+			userID:         10,
+			setupMock:      nil,
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:   "grpc not found",
+			alias:  "unknown",
+			userID: 10,
+			setupMock: func() {
+				mockClient.EXPECT().
+					DeletePosterRoommate(gomock.Any(), gomock.Any()).
+					Return(nil, status.Error(codes.NotFound, "not found"))
+			},
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			name:   "grpc internal error",
+			alias:  "flat-1",
+			userID: 10,
+			setupMock: func() {
+				mockClient.EXPECT().
+					DeletePosterRoommate(gomock.Any(), gomock.Any()).
+					Return(nil, status.Error(codes.Internal, "internal error"))
+			},
+			expectedStatus: http.StatusInternalServerError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if test.setupMock != nil {
+				test.setupMock()
+			}
+
+			req := httptest.NewRequest(http.MethodDelete, "/posters/"+test.alias+"/roommates", nil)
+			req = mux.SetURLVars(req, map[string]string{
+				"alias": test.alias,
+			})
+			if test.userID != 0 {
+				req = req.WithContext(utils.SetUserID(req.Context(), test.userID))
+			}
+
+			rec := httptest.NewRecorder()
+
+			handler.DeletePosterRoommate(rec, req)
+
+			require.Equal(t, test.expectedStatus, rec.Code)
+		})
+	}
+}

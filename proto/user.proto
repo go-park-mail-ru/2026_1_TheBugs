@@ -58,6 +58,13 @@ message AddRoommateMatchRequest {
 
 message AddRoommateMatchResponse {}
 
+message DeleteRoommateMatchRequest {
+  int64 from_user_id = 1;
+  int64 to_user_id = 2;
+}
+
+message DeleteRoommateMatchResponse {}
+
 message GetRoommateContactsRequest {
   int64 from_user_id = 1;
   int64 to_user_id = 2;
@@ -125,15 +132,23 @@ message GetMatchedRoommateMatchesResponse {
   int64 len = 2;
 }
 
+message DeleteRoommateFormRequest {
+  int64 user_id = 1;
+}
+
+message DeleteRoommateFormResponse {}
+
 service UserService {
   rpc GetMe(GetMeRequest) returns (GetMeResponse);
   rpc UpdateProfile(UpdateProfileRequest) returns (GetMeResponse);
   rpc GetRoommateUser(GetRoommateUserRequest) returns (GetRoommateUserResponse);
   rpc AddRoommateMatch(AddRoommateMatchRequest) returns (AddRoommateMatchResponse);
+  rpc DeleteRoommateMatch(DeleteRoommateMatchRequest) returns (DeleteRoommateMatchResponse);
   rpc GetRoommateContacts(GetRoommateContactsRequest) returns (GetRoommateContactsResponse);
   rpc CreateRoommateForm(CreateRoommateFormRequest) returns (CreateRoommateFormResponse);
   rpc GetRoommateForm(GetRoommateFormRequest) returns (GetRoommateFormResponse);
   rpc UpdateRoommateForm(UpdateRoommateFormRequest) returns (UpdateRoommateFormResponse);
   rpc GetIncomingRoommateMatches(GetIncomingRoommateMatchesRequest) returns (GetIncomingRoommateMatchesResponse);
   rpc GetMatchedRoommateMatches(GetMatchedRoommateMatchesRequest) returns (GetMatchedRoommateMatchesResponse);
+  rpc DeleteRoommateForm(DeleteRoommateFormRequest) returns (DeleteRoommateFormResponse);
 }

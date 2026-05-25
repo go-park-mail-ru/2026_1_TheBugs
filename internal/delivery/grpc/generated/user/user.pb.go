@@ -577,6 +577,94 @@ func (*AddRoommateMatchResponse) Descriptor() ([]byte, []int) {
 	return file_user_proto_rawDescGZIP(), []int{8}
 }
 
+type DeleteRoommateMatchRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FromUserId    int64                  `protobuf:"varint,1,opt,name=from_user_id,json=fromUserId,proto3" json:"from_user_id,omitempty"`
+	ToUserId      int64                  `protobuf:"varint,2,opt,name=to_user_id,json=toUserId,proto3" json:"to_user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteRoommateMatchRequest) Reset() {
+	*x = DeleteRoommateMatchRequest{}
+	mi := &file_user_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteRoommateMatchRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteRoommateMatchRequest) ProtoMessage() {}
+
+func (x *DeleteRoommateMatchRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteRoommateMatchRequest.ProtoReflect.Descriptor instead.
+func (*DeleteRoommateMatchRequest) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *DeleteRoommateMatchRequest) GetFromUserId() int64 {
+	if x != nil {
+		return x.FromUserId
+	}
+	return 0
+}
+
+func (x *DeleteRoommateMatchRequest) GetToUserId() int64 {
+	if x != nil {
+		return x.ToUserId
+	}
+	return 0
+}
+
+type DeleteRoommateMatchResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteRoommateMatchResponse) Reset() {
+	*x = DeleteRoommateMatchResponse{}
+	mi := &file_user_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteRoommateMatchResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteRoommateMatchResponse) ProtoMessage() {}
+
+func (x *DeleteRoommateMatchResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteRoommateMatchResponse.ProtoReflect.Descriptor instead.
+func (*DeleteRoommateMatchResponse) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{10}
+}
+
 type GetRoommateContactsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	FromUserId    int64                  `protobuf:"varint,1,opt,name=from_user_id,json=fromUserId,proto3" json:"from_user_id,omitempty"`
@@ -587,7 +675,7 @@ type GetRoommateContactsRequest struct {
 
 func (x *GetRoommateContactsRequest) Reset() {
 	*x = GetRoommateContactsRequest{}
-	mi := &file_user_proto_msgTypes[9]
+	mi := &file_user_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -599,7 +687,7 @@ func (x *GetRoommateContactsRequest) String() string {
 func (*GetRoommateContactsRequest) ProtoMessage() {}
 
 func (x *GetRoommateContactsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[9]
+	mi := &file_user_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -612,7 +700,7 @@ func (x *GetRoommateContactsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRoommateContactsRequest.ProtoReflect.Descriptor instead.
 func (*GetRoommateContactsRequest) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{9}
+	return file_user_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetRoommateContactsRequest) GetFromUserId() int64 {
@@ -639,7 +727,7 @@ type GetRoommateContactsResponse struct {
 
 func (x *GetRoommateContactsResponse) Reset() {
 	*x = GetRoommateContactsResponse{}
-	mi := &file_user_proto_msgTypes[10]
+	mi := &file_user_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -651,7 +739,7 @@ func (x *GetRoommateContactsResponse) String() string {
 func (*GetRoommateContactsResponse) ProtoMessage() {}
 
 func (x *GetRoommateContactsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[10]
+	mi := &file_user_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -664,7 +752,7 @@ func (x *GetRoommateContactsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRoommateContactsResponse.ProtoReflect.Descriptor instead.
 func (*GetRoommateContactsResponse) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{10}
+	return file_user_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *GetRoommateContactsResponse) GetEmail() string {
@@ -694,7 +782,7 @@ type CreateRoommateFormRequest struct {
 
 func (x *CreateRoommateFormRequest) Reset() {
 	*x = CreateRoommateFormRequest{}
-	mi := &file_user_proto_msgTypes[11]
+	mi := &file_user_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -706,7 +794,7 @@ func (x *CreateRoommateFormRequest) String() string {
 func (*CreateRoommateFormRequest) ProtoMessage() {}
 
 func (x *CreateRoommateFormRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[11]
+	mi := &file_user_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -719,7 +807,7 @@ func (x *CreateRoommateFormRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRoommateFormRequest.ProtoReflect.Descriptor instead.
 func (*CreateRoommateFormRequest) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{11}
+	return file_user_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *CreateRoommateFormRequest) GetUserId() int64 {
@@ -765,7 +853,7 @@ type CreateRoommateFormResponse struct {
 
 func (x *CreateRoommateFormResponse) Reset() {
 	*x = CreateRoommateFormResponse{}
-	mi := &file_user_proto_msgTypes[12]
+	mi := &file_user_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -777,7 +865,7 @@ func (x *CreateRoommateFormResponse) String() string {
 func (*CreateRoommateFormResponse) ProtoMessage() {}
 
 func (x *CreateRoommateFormResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[12]
+	mi := &file_user_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -790,7 +878,7 @@ func (x *CreateRoommateFormResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateRoommateFormResponse.ProtoReflect.Descriptor instead.
 func (*CreateRoommateFormResponse) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{12}
+	return file_user_proto_rawDescGZIP(), []int{14}
 }
 
 type GetRoommateFormRequest struct {
@@ -802,7 +890,7 @@ type GetRoommateFormRequest struct {
 
 func (x *GetRoommateFormRequest) Reset() {
 	*x = GetRoommateFormRequest{}
-	mi := &file_user_proto_msgTypes[13]
+	mi := &file_user_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -814,7 +902,7 @@ func (x *GetRoommateFormRequest) String() string {
 func (*GetRoommateFormRequest) ProtoMessage() {}
 
 func (x *GetRoommateFormRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[13]
+	mi := &file_user_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -827,7 +915,7 @@ func (x *GetRoommateFormRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRoommateFormRequest.ProtoReflect.Descriptor instead.
 func (*GetRoommateFormRequest) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{13}
+	return file_user_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *GetRoommateFormRequest) GetUserId() int64 {
@@ -849,7 +937,7 @@ type GetRoommateFormResponse struct {
 
 func (x *GetRoommateFormResponse) Reset() {
 	*x = GetRoommateFormResponse{}
-	mi := &file_user_proto_msgTypes[14]
+	mi := &file_user_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -861,7 +949,7 @@ func (x *GetRoommateFormResponse) String() string {
 func (*GetRoommateFormResponse) ProtoMessage() {}
 
 func (x *GetRoommateFormResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[14]
+	mi := &file_user_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -874,7 +962,7 @@ func (x *GetRoommateFormResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRoommateFormResponse.ProtoReflect.Descriptor instead.
 func (*GetRoommateFormResponse) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{14}
+	return file_user_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *GetRoommateFormResponse) GetGender() string {
@@ -918,7 +1006,7 @@ type UpdateRoommateFormRequest struct {
 
 func (x *UpdateRoommateFormRequest) Reset() {
 	*x = UpdateRoommateFormRequest{}
-	mi := &file_user_proto_msgTypes[15]
+	mi := &file_user_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -930,7 +1018,7 @@ func (x *UpdateRoommateFormRequest) String() string {
 func (*UpdateRoommateFormRequest) ProtoMessage() {}
 
 func (x *UpdateRoommateFormRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[15]
+	mi := &file_user_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -943,7 +1031,7 @@ func (x *UpdateRoommateFormRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRoommateFormRequest.ProtoReflect.Descriptor instead.
 func (*UpdateRoommateFormRequest) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{15}
+	return file_user_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *UpdateRoommateFormRequest) GetUserId() int64 {
@@ -989,7 +1077,7 @@ type UpdateRoommateFormResponse struct {
 
 func (x *UpdateRoommateFormResponse) Reset() {
 	*x = UpdateRoommateFormResponse{}
-	mi := &file_user_proto_msgTypes[16]
+	mi := &file_user_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1001,7 +1089,7 @@ func (x *UpdateRoommateFormResponse) String() string {
 func (*UpdateRoommateFormResponse) ProtoMessage() {}
 
 func (x *UpdateRoommateFormResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[16]
+	mi := &file_user_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1014,7 +1102,7 @@ func (x *UpdateRoommateFormResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpdateRoommateFormResponse.ProtoReflect.Descriptor instead.
 func (*UpdateRoommateFormResponse) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{16}
+	return file_user_proto_rawDescGZIP(), []int{18}
 }
 
 type RoommateUser struct {
@@ -1030,7 +1118,7 @@ type RoommateUser struct {
 
 func (x *RoommateUser) Reset() {
 	*x = RoommateUser{}
-	mi := &file_user_proto_msgTypes[17]
+	mi := &file_user_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1042,7 +1130,7 @@ func (x *RoommateUser) String() string {
 func (*RoommateUser) ProtoMessage() {}
 
 func (x *RoommateUser) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[17]
+	mi := &file_user_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1055,7 +1143,7 @@ func (x *RoommateUser) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RoommateUser.ProtoReflect.Descriptor instead.
 func (*RoommateUser) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{17}
+	return file_user_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *RoommateUser) GetId() int64 {
@@ -1102,7 +1190,7 @@ type GetIncomingRoommateMatchesRequest struct {
 
 func (x *GetIncomingRoommateMatchesRequest) Reset() {
 	*x = GetIncomingRoommateMatchesRequest{}
-	mi := &file_user_proto_msgTypes[18]
+	mi := &file_user_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1114,7 +1202,7 @@ func (x *GetIncomingRoommateMatchesRequest) String() string {
 func (*GetIncomingRoommateMatchesRequest) ProtoMessage() {}
 
 func (x *GetIncomingRoommateMatchesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[18]
+	mi := &file_user_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1127,7 +1215,7 @@ func (x *GetIncomingRoommateMatchesRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GetIncomingRoommateMatchesRequest.ProtoReflect.Descriptor instead.
 func (*GetIncomingRoommateMatchesRequest) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{18}
+	return file_user_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *GetIncomingRoommateMatchesRequest) GetUserId() int64 {
@@ -1147,7 +1235,7 @@ type GetIncomingRoommateMatchesResponse struct {
 
 func (x *GetIncomingRoommateMatchesResponse) Reset() {
 	*x = GetIncomingRoommateMatchesResponse{}
-	mi := &file_user_proto_msgTypes[19]
+	mi := &file_user_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1159,7 +1247,7 @@ func (x *GetIncomingRoommateMatchesResponse) String() string {
 func (*GetIncomingRoommateMatchesResponse) ProtoMessage() {}
 
 func (x *GetIncomingRoommateMatchesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[19]
+	mi := &file_user_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1172,7 +1260,7 @@ func (x *GetIncomingRoommateMatchesResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use GetIncomingRoommateMatchesResponse.ProtoReflect.Descriptor instead.
 func (*GetIncomingRoommateMatchesResponse) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{19}
+	return file_user_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *GetIncomingRoommateMatchesResponse) GetUsers() []*RoommateUser {
@@ -1198,7 +1286,7 @@ type GetMatchedRoommateMatchesRequest struct {
 
 func (x *GetMatchedRoommateMatchesRequest) Reset() {
 	*x = GetMatchedRoommateMatchesRequest{}
-	mi := &file_user_proto_msgTypes[20]
+	mi := &file_user_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1210,7 +1298,7 @@ func (x *GetMatchedRoommateMatchesRequest) String() string {
 func (*GetMatchedRoommateMatchesRequest) ProtoMessage() {}
 
 func (x *GetMatchedRoommateMatchesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[20]
+	mi := &file_user_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1223,7 +1311,7 @@ func (x *GetMatchedRoommateMatchesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMatchedRoommateMatchesRequest.ProtoReflect.Descriptor instead.
 func (*GetMatchedRoommateMatchesRequest) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{20}
+	return file_user_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *GetMatchedRoommateMatchesRequest) GetUserId() int64 {
@@ -1243,7 +1331,7 @@ type GetMatchedRoommateMatchesResponse struct {
 
 func (x *GetMatchedRoommateMatchesResponse) Reset() {
 	*x = GetMatchedRoommateMatchesResponse{}
-	mi := &file_user_proto_msgTypes[21]
+	mi := &file_user_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1255,7 +1343,7 @@ func (x *GetMatchedRoommateMatchesResponse) String() string {
 func (*GetMatchedRoommateMatchesResponse) ProtoMessage() {}
 
 func (x *GetMatchedRoommateMatchesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_user_proto_msgTypes[21]
+	mi := &file_user_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1268,7 +1356,7 @@ func (x *GetMatchedRoommateMatchesResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GetMatchedRoommateMatchesResponse.ProtoReflect.Descriptor instead.
 func (*GetMatchedRoommateMatchesResponse) Descriptor() ([]byte, []int) {
-	return file_user_proto_rawDescGZIP(), []int{21}
+	return file_user_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *GetMatchedRoommateMatchesResponse) GetUsers() []*RoommateUser {
@@ -1283,6 +1371,86 @@ func (x *GetMatchedRoommateMatchesResponse) GetLen() int64 {
 		return x.Len
 	}
 	return 0
+}
+
+type DeleteRoommateFormRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteRoommateFormRequest) Reset() {
+	*x = DeleteRoommateFormRequest{}
+	mi := &file_user_proto_msgTypes[24]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteRoommateFormRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteRoommateFormRequest) ProtoMessage() {}
+
+func (x *DeleteRoommateFormRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[24]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteRoommateFormRequest.ProtoReflect.Descriptor instead.
+func (*DeleteRoommateFormRequest) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{24}
+}
+
+func (x *DeleteRoommateFormRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+type DeleteRoommateFormResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeleteRoommateFormResponse) Reset() {
+	*x = DeleteRoommateFormResponse{}
+	mi := &file_user_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeleteRoommateFormResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeleteRoommateFormResponse) ProtoMessage() {}
+
+func (x *DeleteRoommateFormResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_user_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeleteRoommateFormResponse.ProtoReflect.Descriptor instead.
+func (*DeleteRoommateFormResponse) Descriptor() ([]byte, []int) {
+	return file_user_proto_rawDescGZIP(), []int{25}
 }
 
 var File_user_proto protoreflect.FileDescriptor
@@ -1344,6 +1512,12 @@ const file_user_proto_rawDesc = "" +
 	"\fposter_alias\x18\x03 \x01(\tH\x00R\vposterAlias\x88\x01\x01B\x0f\n" +
 	"\r_poster_alias\"\x1a\n" +
 	"\x18AddRoommateMatchResponse\"\\\n" +
+	"\x1aDeleteRoommateMatchRequest\x12 \n" +
+	"\ffrom_user_id\x18\x01 \x01(\x03R\n" +
+	"fromUserId\x12\x1c\n" +
+	"\n" +
+	"to_user_id\x18\x02 \x01(\x03R\btoUserId\"\x1d\n" +
+	"\x1bDeleteRoommateMatchResponse\"\\\n" +
 	"\x1aGetRoommateContactsRequest\x12 \n" +
 	"\ffrom_user_id\x18\x01 \x01(\x03R\n" +
 	"fromUserId\x12\x1c\n" +
@@ -1392,18 +1566,23 @@ const file_user_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\x03R\x06userId\"_\n" +
 	"!GetMatchedRoommateMatchesResponse\x12(\n" +
 	"\x05users\x18\x01 \x03(\v2\x12.user.RoommateUserR\x05users\x12\x10\n" +
-	"\x03len\x18\x02 \x01(\x03R\x03len2\xe1\x06\n" +
+	"\x03len\x18\x02 \x01(\x03R\x03len\"4\n" +
+	"\x19DeleteRoommateFormRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\"\x1c\n" +
+	"\x1aDeleteRoommateFormResponse2\x96\b\n" +
 	"\vUserService\x120\n" +
 	"\x05GetMe\x12\x12.user.GetMeRequest\x1a\x13.user.GetMeResponse\x12@\n" +
 	"\rUpdateProfile\x12\x1a.user.UpdateProfileRequest\x1a\x13.user.GetMeResponse\x12N\n" +
 	"\x0fGetRoommateUser\x12\x1c.user.GetRoommateUserRequest\x1a\x1d.user.GetRoommateUserResponse\x12Q\n" +
 	"\x10AddRoommateMatch\x12\x1d.user.AddRoommateMatchRequest\x1a\x1e.user.AddRoommateMatchResponse\x12Z\n" +
+	"\x13DeleteRoommateMatch\x12 .user.DeleteRoommateMatchRequest\x1a!.user.DeleteRoommateMatchResponse\x12Z\n" +
 	"\x13GetRoommateContacts\x12 .user.GetRoommateContactsRequest\x1a!.user.GetRoommateContactsResponse\x12W\n" +
 	"\x12CreateRoommateForm\x12\x1f.user.CreateRoommateFormRequest\x1a .user.CreateRoommateFormResponse\x12N\n" +
 	"\x0fGetRoommateForm\x12\x1c.user.GetRoommateFormRequest\x1a\x1d.user.GetRoommateFormResponse\x12W\n" +
 	"\x12UpdateRoommateForm\x12\x1f.user.UpdateRoommateFormRequest\x1a .user.UpdateRoommateFormResponse\x12o\n" +
 	"\x1aGetIncomingRoommateMatches\x12'.user.GetIncomingRoommateMatchesRequest\x1a(.user.GetIncomingRoommateMatchesResponse\x12l\n" +
-	"\x19GetMatchedRoommateMatches\x12&.user.GetMatchedRoommateMatchesRequest\x1a'.user.GetMatchedRoommateMatchesResponseB\bZ\x06./userb\x06proto3"
+	"\x19GetMatchedRoommateMatches\x12&.user.GetMatchedRoommateMatchesRequest\x1a'.user.GetMatchedRoommateMatchesResponse\x12W\n" +
+	"\x12DeleteRoommateForm\x12\x1f.user.DeleteRoommateFormRequest\x1a .user.DeleteRoommateFormResponseB\bZ\x06./userb\x06proto3"
 
 var (
 	file_user_proto_rawDescOnce sync.Once
@@ -1417,7 +1596,7 @@ func file_user_proto_rawDescGZIP() []byte {
 	return file_user_proto_rawDescData
 }
 
-var file_user_proto_msgTypes = make([]protoimpl.MessageInfo, 22)
+var file_user_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
 var file_user_proto_goTypes = []any{
 	(*GetMeRequest)(nil),                       // 0: user.GetMeRequest
 	(*GetMeResponse)(nil),                      // 1: user.GetMeResponse
@@ -1428,47 +1607,55 @@ var file_user_proto_goTypes = []any{
 	(*GetRoommateUserResponse)(nil),            // 6: user.GetRoommateUserResponse
 	(*AddRoommateMatchRequest)(nil),            // 7: user.AddRoommateMatchRequest
 	(*AddRoommateMatchResponse)(nil),           // 8: user.AddRoommateMatchResponse
-	(*GetRoommateContactsRequest)(nil),         // 9: user.GetRoommateContactsRequest
-	(*GetRoommateContactsResponse)(nil),        // 10: user.GetRoommateContactsResponse
-	(*CreateRoommateFormRequest)(nil),          // 11: user.CreateRoommateFormRequest
-	(*CreateRoommateFormResponse)(nil),         // 12: user.CreateRoommateFormResponse
-	(*GetRoommateFormRequest)(nil),             // 13: user.GetRoommateFormRequest
-	(*GetRoommateFormResponse)(nil),            // 14: user.GetRoommateFormResponse
-	(*UpdateRoommateFormRequest)(nil),          // 15: user.UpdateRoommateFormRequest
-	(*UpdateRoommateFormResponse)(nil),         // 16: user.UpdateRoommateFormResponse
-	(*RoommateUser)(nil),                       // 17: user.RoommateUser
-	(*GetIncomingRoommateMatchesRequest)(nil),  // 18: user.GetIncomingRoommateMatchesRequest
-	(*GetIncomingRoommateMatchesResponse)(nil), // 19: user.GetIncomingRoommateMatchesResponse
-	(*GetMatchedRoommateMatchesRequest)(nil),   // 20: user.GetMatchedRoommateMatchesRequest
-	(*GetMatchedRoommateMatchesResponse)(nil),  // 21: user.GetMatchedRoommateMatchesResponse
+	(*DeleteRoommateMatchRequest)(nil),         // 9: user.DeleteRoommateMatchRequest
+	(*DeleteRoommateMatchResponse)(nil),        // 10: user.DeleteRoommateMatchResponse
+	(*GetRoommateContactsRequest)(nil),         // 11: user.GetRoommateContactsRequest
+	(*GetRoommateContactsResponse)(nil),        // 12: user.GetRoommateContactsResponse
+	(*CreateRoommateFormRequest)(nil),          // 13: user.CreateRoommateFormRequest
+	(*CreateRoommateFormResponse)(nil),         // 14: user.CreateRoommateFormResponse
+	(*GetRoommateFormRequest)(nil),             // 15: user.GetRoommateFormRequest
+	(*GetRoommateFormResponse)(nil),            // 16: user.GetRoommateFormResponse
+	(*UpdateRoommateFormRequest)(nil),          // 17: user.UpdateRoommateFormRequest
+	(*UpdateRoommateFormResponse)(nil),         // 18: user.UpdateRoommateFormResponse
+	(*RoommateUser)(nil),                       // 19: user.RoommateUser
+	(*GetIncomingRoommateMatchesRequest)(nil),  // 20: user.GetIncomingRoommateMatchesRequest
+	(*GetIncomingRoommateMatchesResponse)(nil), // 21: user.GetIncomingRoommateMatchesResponse
+	(*GetMatchedRoommateMatchesRequest)(nil),   // 22: user.GetMatchedRoommateMatchesRequest
+	(*GetMatchedRoommateMatchesResponse)(nil),  // 23: user.GetMatchedRoommateMatchesResponse
+	(*DeleteRoommateFormRequest)(nil),          // 24: user.DeleteRoommateFormRequest
+	(*DeleteRoommateFormResponse)(nil),         // 25: user.DeleteRoommateFormResponse
 }
 var file_user_proto_depIdxs = []int32{
 	2,  // 0: user.UpdateProfileRequest.file:type_name -> user.UploadFile
 	4,  // 1: user.GetRoommateUserResponse.tags:type_name -> user.RoommateTag
-	17, // 2: user.GetIncomingRoommateMatchesResponse.users:type_name -> user.RoommateUser
-	17, // 3: user.GetMatchedRoommateMatchesResponse.users:type_name -> user.RoommateUser
+	19, // 2: user.GetIncomingRoommateMatchesResponse.users:type_name -> user.RoommateUser
+	19, // 3: user.GetMatchedRoommateMatchesResponse.users:type_name -> user.RoommateUser
 	0,  // 4: user.UserService.GetMe:input_type -> user.GetMeRequest
 	3,  // 5: user.UserService.UpdateProfile:input_type -> user.UpdateProfileRequest
 	5,  // 6: user.UserService.GetRoommateUser:input_type -> user.GetRoommateUserRequest
 	7,  // 7: user.UserService.AddRoommateMatch:input_type -> user.AddRoommateMatchRequest
-	9,  // 8: user.UserService.GetRoommateContacts:input_type -> user.GetRoommateContactsRequest
-	11, // 9: user.UserService.CreateRoommateForm:input_type -> user.CreateRoommateFormRequest
-	13, // 10: user.UserService.GetRoommateForm:input_type -> user.GetRoommateFormRequest
-	15, // 11: user.UserService.UpdateRoommateForm:input_type -> user.UpdateRoommateFormRequest
-	18, // 12: user.UserService.GetIncomingRoommateMatches:input_type -> user.GetIncomingRoommateMatchesRequest
-	20, // 13: user.UserService.GetMatchedRoommateMatches:input_type -> user.GetMatchedRoommateMatchesRequest
-	1,  // 14: user.UserService.GetMe:output_type -> user.GetMeResponse
-	1,  // 15: user.UserService.UpdateProfile:output_type -> user.GetMeResponse
-	6,  // 16: user.UserService.GetRoommateUser:output_type -> user.GetRoommateUserResponse
-	8,  // 17: user.UserService.AddRoommateMatch:output_type -> user.AddRoommateMatchResponse
-	10, // 18: user.UserService.GetRoommateContacts:output_type -> user.GetRoommateContactsResponse
-	12, // 19: user.UserService.CreateRoommateForm:output_type -> user.CreateRoommateFormResponse
-	14, // 20: user.UserService.GetRoommateForm:output_type -> user.GetRoommateFormResponse
-	16, // 21: user.UserService.UpdateRoommateForm:output_type -> user.UpdateRoommateFormResponse
-	19, // 22: user.UserService.GetIncomingRoommateMatches:output_type -> user.GetIncomingRoommateMatchesResponse
-	21, // 23: user.UserService.GetMatchedRoommateMatches:output_type -> user.GetMatchedRoommateMatchesResponse
-	14, // [14:24] is the sub-list for method output_type
-	4,  // [4:14] is the sub-list for method input_type
+	9,  // 8: user.UserService.DeleteRoommateMatch:input_type -> user.DeleteRoommateMatchRequest
+	11, // 9: user.UserService.GetRoommateContacts:input_type -> user.GetRoommateContactsRequest
+	13, // 10: user.UserService.CreateRoommateForm:input_type -> user.CreateRoommateFormRequest
+	15, // 11: user.UserService.GetRoommateForm:input_type -> user.GetRoommateFormRequest
+	17, // 12: user.UserService.UpdateRoommateForm:input_type -> user.UpdateRoommateFormRequest
+	20, // 13: user.UserService.GetIncomingRoommateMatches:input_type -> user.GetIncomingRoommateMatchesRequest
+	22, // 14: user.UserService.GetMatchedRoommateMatches:input_type -> user.GetMatchedRoommateMatchesRequest
+	24, // 15: user.UserService.DeleteRoommateForm:input_type -> user.DeleteRoommateFormRequest
+	1,  // 16: user.UserService.GetMe:output_type -> user.GetMeResponse
+	1,  // 17: user.UserService.UpdateProfile:output_type -> user.GetMeResponse
+	6,  // 18: user.UserService.GetRoommateUser:output_type -> user.GetRoommateUserResponse
+	8,  // 19: user.UserService.AddRoommateMatch:output_type -> user.AddRoommateMatchResponse
+	10, // 20: user.UserService.DeleteRoommateMatch:output_type -> user.DeleteRoommateMatchResponse
+	12, // 21: user.UserService.GetRoommateContacts:output_type -> user.GetRoommateContactsResponse
+	14, // 22: user.UserService.CreateRoommateForm:output_type -> user.CreateRoommateFormResponse
+	16, // 23: user.UserService.GetRoommateForm:output_type -> user.GetRoommateFormResponse
+	18, // 24: user.UserService.UpdateRoommateForm:output_type -> user.UpdateRoommateFormResponse
+	21, // 25: user.UserService.GetIncomingRoommateMatches:output_type -> user.GetIncomingRoommateMatchesResponse
+	23, // 26: user.UserService.GetMatchedRoommateMatches:output_type -> user.GetMatchedRoommateMatchesResponse
+	25, // 27: user.UserService.DeleteRoommateForm:output_type -> user.DeleteRoommateFormResponse
+	16, // [16:28] is the sub-list for method output_type
+	4,  // [4:16] is the sub-list for method input_type
 	4,  // [4:4] is the sub-list for extension type_name
 	4,  // [4:4] is the sub-list for extension extendee
 	0,  // [0:4] is the sub-list for field type_name
@@ -1483,14 +1670,14 @@ func file_user_proto_init() {
 	file_user_proto_msgTypes[3].OneofWrappers = []any{}
 	file_user_proto_msgTypes[6].OneofWrappers = []any{}
 	file_user_proto_msgTypes[7].OneofWrappers = []any{}
-	file_user_proto_msgTypes[17].OneofWrappers = []any{}
+	file_user_proto_msgTypes[19].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_user_proto_rawDesc), len(file_user_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   22,
+			NumMessages:   26,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

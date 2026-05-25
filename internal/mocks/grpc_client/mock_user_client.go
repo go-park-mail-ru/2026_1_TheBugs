@@ -76,6 +76,46 @@ func (mr *MockUserServiceClientMockRecorder) CreateRoommateForm(arg0, arg1 inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRoommateForm", reflect.TypeOf((*MockUserServiceClient)(nil).CreateRoommateForm), varargs...)
 }
 
+// DeleteRoommateForm mocks base method.
+func (m *MockUserServiceClient) DeleteRoommateForm(arg0 context.Context, arg1 *user.DeleteRoommateFormRequest, arg2 ...grpc.CallOption) (*user.DeleteRoommateFormResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteRoommateForm", varargs...)
+	ret0, _ := ret[0].(*user.DeleteRoommateFormResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteRoommateForm indicates an expected call of DeleteRoommateForm.
+func (mr *MockUserServiceClientMockRecorder) DeleteRoommateForm(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRoommateForm", reflect.TypeOf((*MockUserServiceClient)(nil).DeleteRoommateForm), varargs...)
+}
+
+// DeleteRoommateMatch mocks base method.
+func (m *MockUserServiceClient) DeleteRoommateMatch(arg0 context.Context, arg1 *user.DeleteRoommateMatchRequest, arg2 ...grpc.CallOption) (*user.DeleteRoommateMatchResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "DeleteRoommateMatch", varargs...)
+	ret0, _ := ret[0].(*user.DeleteRoommateMatchResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DeleteRoommateMatch indicates an expected call of DeleteRoommateMatch.
+func (mr *MockUserServiceClientMockRecorder) DeleteRoommateMatch(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteRoommateMatch", reflect.TypeOf((*MockUserServiceClient)(nil).DeleteRoommateMatch), varargs...)
+}
+
 // GetIncomingRoommateMatches mocks base method.
 func (m *MockUserServiceClient) GetIncomingRoommateMatches(arg0 context.Context, arg1 *user.GetIncomingRoommateMatchesRequest, arg2 ...grpc.CallOption) (*user.GetIncomingRoommateMatchesResponse, error) {
 	m.ctrl.T.Helper()

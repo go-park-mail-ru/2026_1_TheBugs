@@ -2019,3 +2019,267 @@ func TestGetMatchedRoommateMatches(t *testing.T) {
 		})
 	}
 }
+
+func TestDeletePosterRoommatesByUserID(t *testing.T) {
+	query := regexp.QuoteMeta(`
+		DELETE FROM poster_roommates
+		WHERE user_id = $1
+	`)
+
+	userID := 10
+
+	tests := []struct {
+		name      string
+		userID    int
+		setupMock func(m pgxmock.PgxPoolIface)
+		wantErr   error
+	}{
+		{
+			name:   "OK",
+			userID: userID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(userID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 2))
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "OK_empty",
+			userID: userID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(userID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 0))
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "service_error",
+			userID: userID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(userID).
+					WillReturnError(errors.New("db error"))
+			},
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mock, err := pgxmock.NewPool()
+			require.NoError(t, err)
+			defer mock.Close()
+
+			test.setupMock(mock)
+
+			repo := NewUserRepo(mock)
+
+			err = repo.DeletePosterRoommatesByUserID(context.Background(), test.userID)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}
+
+func TestDeleteRoommateForm(t *testing.T) {
+	deleteTagsQuery := regexp.QuoteMeta(`
+		DELETE FROM roommate_form_tags rft
+		USING roommate_forms rf
+		WHERE rft.roommate_form_id = rf.id
+		  AND rf.user_id = $1
+	`)
+
+	deleteFormQuery := regexp.QuoteMeta(`
+		DELETE FROM roommate_forms
+		WHERE user_id = $1
+	`)
+
+	userID := 10
+
+	tests := []struct {
+		name      string
+		userID    int
+		setupMock func(m pgxmock.PgxPoolIface)
+		wantErr   error
+	}{
+		{
+			name:   "OK",
+			userID: userID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(deleteTagsQuery).
+					WithArgs(userID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 2))
+
+				m.ExpectExec(deleteFormQuery).
+					WithArgs(userID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 1))
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "OK_without_tags",
+			userID: userID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(deleteTagsQuery).
+					WithArgs(userID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 0))
+
+				m.ExpectExec(deleteFormQuery).
+					WithArgs(userID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 1))
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "not_found",
+			userID: userID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(deleteTagsQuery).
+					WithArgs(userID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 0))
+
+				m.ExpectExec(deleteFormQuery).
+					WithArgs(userID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 0))
+			},
+			wantErr: entity.NotFoundError,
+		},
+		{
+			name:   "delete_tags_error",
+			userID: userID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(deleteTagsQuery).
+					WithArgs(userID).
+					WillReturnError(errors.New("db error"))
+			},
+			wantErr: entity.ServiceError,
+		},
+		{
+			name:   "delete_form_error",
+			userID: userID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(deleteTagsQuery).
+					WithArgs(userID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 2))
+
+				m.ExpectExec(deleteFormQuery).
+					WithArgs(userID).
+					WillReturnError(errors.New("db error"))
+			},
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mock, err := pgxmock.NewPool()
+			require.NoError(t, err)
+			defer mock.Close()
+
+			test.setupMock(mock)
+
+			repo := NewUserRepo(mock)
+
+			err = repo.DeleteRoommateForm(context.Background(), test.userID)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}
+
+func TestDeleteRoommateMatch(t *testing.T) {
+	query := regexp.QuoteMeta(`
+		DELETE FROM roommate_matches
+		WHERE (from_user_id = $1 AND to_user_id = $2)
+		   OR (from_user_id = $2 AND to_user_id = $1)
+	`)
+
+	fromUserID := 10
+	toUserID := 42
+
+	tests := []struct {
+		name       string
+		fromUserID int
+		toUserID   int
+		setupMock  func(m pgxmock.PgxPoolIface)
+		wantErr    error
+	}{
+		{
+			name:       "OK_delete_both",
+			fromUserID: fromUserID,
+			toUserID:   toUserID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(fromUserID, toUserID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 2))
+			},
+			wantErr: nil,
+		},
+		{
+			name:       "OK_delete_one",
+			fromUserID: fromUserID,
+			toUserID:   toUserID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(fromUserID, toUserID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 1))
+			},
+			wantErr: nil,
+		},
+		{
+			name:       "not_found",
+			fromUserID: fromUserID,
+			toUserID:   toUserID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(fromUserID, toUserID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 0))
+			},
+			wantErr: entity.NotFoundError,
+		},
+		{
+			name:       "service_error",
+			fromUserID: fromUserID,
+			toUserID:   toUserID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(fromUserID, toUserID).
+					WillReturnError(errors.New("db error"))
+			},
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mock, err := pgxmock.NewPool()
+			require.NoError(t, err)
+			defer mock.Close()
+
+			test.setupMock(mock)
+
+			repo := NewUserRepo(mock)
+
+			err = repo.DeleteRoommateMatch(context.Background(), test.fromUserID, test.toUserID)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+			require.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}

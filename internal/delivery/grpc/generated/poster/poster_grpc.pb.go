@@ -37,6 +37,7 @@ const (
 	PosterService_DeleteFlatPoster_FullMethodName        = "/poster.PosterService/DeleteFlatPoster"
 	PosterService_GetPosterRoommates_FullMethodName      = "/poster.PosterService/GetPosterRoommates"
 	PosterService_AddPosterRoommate_FullMethodName       = "/poster.PosterService/AddPosterRoommate"
+	PosterService_DeletePosterRoommate_FullMethodName    = "/poster.PosterService/DeletePosterRoommate"
 )
 
 // PosterServiceClient is the client API for PosterService service.
@@ -61,6 +62,7 @@ type PosterServiceClient interface {
 	DeleteFlatPoster(ctx context.Context, in *DeleteFlatPosterRequest, opts ...grpc.CallOption) (*DeleteFlatPosterResponse, error)
 	GetPosterRoommates(ctx context.Context, in *GetPosterRoommatesRequest, opts ...grpc.CallOption) (*GetPosterRoommatesResponse, error)
 	AddPosterRoommate(ctx context.Context, in *AddPosterRoommateRequest, opts ...grpc.CallOption) (*AddPosterRoommateResponse, error)
+	DeletePosterRoommate(ctx context.Context, in *DeletePosterRoommateRequest, opts ...grpc.CallOption) (*DeletePosterRoommateResponse, error)
 }
 
 type posterServiceClient struct {
@@ -257,6 +259,16 @@ func (c *posterServiceClient) AddPosterRoommate(ctx context.Context, in *AddPost
 	return out, nil
 }
 
+func (c *posterServiceClient) DeletePosterRoommate(ctx context.Context, in *DeletePosterRoommateRequest, opts ...grpc.CallOption) (*DeletePosterRoommateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(DeletePosterRoommateResponse)
+	err := c.cc.Invoke(ctx, PosterService_DeletePosterRoommate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PosterServiceServer is the server API for PosterService service.
 // All implementations must embed UnimplementedPosterServiceServer
 // for forward compatibility.
@@ -279,6 +291,7 @@ type PosterServiceServer interface {
 	DeleteFlatPoster(context.Context, *DeleteFlatPosterRequest) (*DeleteFlatPosterResponse, error)
 	GetPosterRoommates(context.Context, *GetPosterRoommatesRequest) (*GetPosterRoommatesResponse, error)
 	AddPosterRoommate(context.Context, *AddPosterRoommateRequest) (*AddPosterRoommateResponse, error)
+	DeletePosterRoommate(context.Context, *DeletePosterRoommateRequest) (*DeletePosterRoommateResponse, error)
 	mustEmbedUnimplementedPosterServiceServer()
 }
 
@@ -342,6 +355,9 @@ func (UnimplementedPosterServiceServer) GetPosterRoommates(context.Context, *Get
 }
 func (UnimplementedPosterServiceServer) AddPosterRoommate(context.Context, *AddPosterRoommateRequest) (*AddPosterRoommateResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method AddPosterRoommate not implemented")
+}
+func (UnimplementedPosterServiceServer) DeletePosterRoommate(context.Context, *DeletePosterRoommateRequest) (*DeletePosterRoommateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeletePosterRoommate not implemented")
 }
 func (UnimplementedPosterServiceServer) mustEmbedUnimplementedPosterServiceServer() {}
 func (UnimplementedPosterServiceServer) testEmbeddedByValue()                       {}
@@ -666,6 +682,24 @@ func _PosterService_AddPosterRoommate_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _PosterService_DeletePosterRoommate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeletePosterRoommateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PosterServiceServer).DeletePosterRoommate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: PosterService_DeletePosterRoommate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PosterServiceServer).DeletePosterRoommate(ctx, req.(*DeletePosterRoommateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // PosterService_ServiceDesc is the grpc.ServiceDesc for PosterService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -736,6 +770,10 @@ var PosterService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddPosterRoommate",
 			Handler:    _PosterService_AddPosterRoommate_Handler,
+		},
+		{
+			MethodName: "DeletePosterRoommate",
+			Handler:    _PosterService_DeletePosterRoommate_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{

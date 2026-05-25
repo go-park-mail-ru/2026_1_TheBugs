@@ -2822,3 +2822,78 @@ func TestAddPosterRoommate(t *testing.T) {
 		})
 	}
 }
+
+func TestDeletePosterRoommate(t *testing.T) {
+	ctx := context.Background()
+
+	alias := "flat-1"
+	userID := 10
+
+	tests := []struct {
+		name      string
+		setupMock func(repo *mocks.MockPosterRepo)
+		wantErr   error
+	}{
+		{
+			name: "OK",
+			setupMock: func(repo *mocks.MockPosterRepo) {
+				repo.EXPECT().
+					DeletePosterRoommate(ctx, alias, userID).
+					Return(nil).
+					Times(1)
+			},
+			wantErr: nil,
+		},
+		{
+			name: "NotFound",
+			setupMock: func(repo *mocks.MockPosterRepo) {
+				repo.EXPECT().
+					DeletePosterRoommate(ctx, alias, userID).
+					Return(entity.NotFoundError).
+					Times(1)
+			},
+			wantErr: entity.NotFoundError,
+		},
+		{
+			name: "RepoError",
+			setupMock: func(repo *mocks.MockPosterRepo) {
+				repo.EXPECT().
+					DeletePosterRoommate(ctx, alias, userID).
+					Return(entity.ServiceError).
+					Times(1)
+			},
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockRepo := mocks.NewMockPosterRepo(ctrl)
+			mockUOW := mocks.NewMockUnitOfWork(ctrl)
+			mockFile := mocks.NewMockFileRepo(ctrl)
+
+			mockUOW.EXPECT().
+				Posters().
+				Return(mockRepo).
+				AnyTimes()
+
+			if test.setupMock != nil {
+				test.setupMock(mockRepo)
+			}
+
+			uc := NewPosterUseCase(mockUOW, mockFile, nil, nil)
+
+			err := uc.DeletePosterRoommate(ctx, alias, userID)
+
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+		})
+	}
+}
