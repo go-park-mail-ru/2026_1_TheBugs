@@ -47,7 +47,7 @@ func (h *UtilityCompanyHandler) GetUtilityCompany(w http.ResponseWriter, r *http
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusOK, response.MapGRPCComplexToDTO(company))
+	utils.EasyJSONResponse(w, http.StatusOK, response.MapGRPCComplexToDTO(company))
 
 }
 
@@ -70,7 +70,7 @@ func (h *UtilityCompanyHandler) GetAllDevelopers(w http.ResponseWriter, r *http.
 		utils.HandelError(w, err)
 		return
 	}
-	utils.JSONResponse(w, http.StatusOK, response.MapGRPCDevelopersToDTO(res))
+	utils.EasyJSONResponse(w, http.StatusOK, response.MapGRPCDevelopersToDTO(res))
 
 }
 
@@ -110,6 +110,6 @@ func (h *UtilityCompanyHandler) GetUtilityCompaniesByDeveloper(w http.ResponseWr
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusOK, response.MapGRPCComplexesToDTO(res.Complexes))
+	utils.EasyJSONResponse(w, http.StatusOK, response.MapGRPCComplexesToDTO(res.Complexes))
 
 }

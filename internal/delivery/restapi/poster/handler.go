@@ -78,7 +78,7 @@ func (h *PosterHandler) GetFlatsAll(w http.ResponseWriter, r *http.Request) {
 
 	result := utils.MapSearchPostersResponseToDTO(resp)
 
-	utils.JSONResponse(w, http.StatusOK, result)
+	utils.EasyJSONResponse(w, http.StatusOK, result)
 }
 
 // @Summary Get poster by alias
@@ -98,7 +98,7 @@ func (h *PosterHandler) GetPoster(w http.ResponseWriter, r *http.Request) {
 
 	alias, err := utils.ParseAliasFromRequest(r)
 	if err != nil {
-		utils.JSONResponse(w, http.StatusBadRequest, response.ErrorResponse{Error: "invalid alias"})
+		utils.EasyJSONResponse(w, http.StatusBadRequest, response.ErrorResponse{Error: "invalid alias"})
 		return
 	}
 
@@ -114,7 +114,7 @@ func (h *PosterHandler) GetPoster(w http.ResponseWriter, r *http.Request) {
 	var response response.PosterResponse
 	response.Poster = utils.MapProtoPosterToDTO(resp.Poster)
 
-	utils.JSONResponse(w, http.StatusOK, response)
+	utils.EasyJSONResponse(w, http.StatusOK, response)
 }
 
 // @Summary Get list of user`s posters
@@ -155,7 +155,7 @@ func (h *PosterHandler) GetPostersByUser(w http.ResponseWriter, r *http.Request)
 		Len:     len(posters),
 	}
 
-	utils.JSONResponse(w, http.StatusOK, response)
+	utils.EasyJSONResponse(w, http.StatusOK, response)
 }
 
 // @Summary Get list of user`s posters
@@ -175,7 +175,7 @@ func (h *PosterHandler) GetPostersByUserByAlias(w http.ResponseWriter, r *http.R
 
 	alias, err := utils.ParseAliasFromRequest(r)
 	if err != nil {
-		utils.JSONResponse(w, http.StatusBadRequest, response.ErrorResponse{Error: "invalid alias"})
+		utils.EasyJSONResponse(w, http.StatusBadRequest, response.ErrorResponse{Error: "invalid alias"})
 		return
 	}
 
@@ -199,7 +199,7 @@ func (h *PosterHandler) GetPostersByUserByAlias(w http.ResponseWriter, r *http.R
 	var response response.PosterResponse
 	response.Poster = utils.MapProtoPosterToDTO(resp.Poster)
 
-	utils.JSONResponse(w, http.StatusOK, response)
+	utils.EasyJSONResponse(w, http.StatusOK, response)
 }
 
 // @Summary Create flat poster
@@ -290,7 +290,7 @@ func (h *PosterHandler) CreateFlatPoster(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusCreated, response.CreatedPosterResponse{
+	utils.EasyJSONResponse(w, http.StatusCreated, response.CreatedPosterResponse{
 		Poster: &dto.CreatedPoster{
 			ID:    int(resp.Id),
 			Alias: resp.Alias,
@@ -393,7 +393,7 @@ func (h *PosterHandler) UpdateFlatPoster(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusOK, response.CreatedPosterResponse{
+	utils.EasyJSONResponse(w, http.StatusOK, response.CreatedPosterResponse{
 		Poster: &dto.CreatedPoster{
 			ID:    int(resp.Id),
 			Alias: resp.Alias,
@@ -442,7 +442,7 @@ func (h *PosterHandler) DeleteFlatPoster(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusOK, response.CreatedPosterResponse{
+	utils.EasyJSONResponse(w, http.StatusOK, response.CreatedPosterResponse{
 		Poster: &dto.CreatedPoster{
 			ID:    int(resp.Id),
 			Alias: resp.Alias,
@@ -524,7 +524,7 @@ func (h *PosterHandler) GetViewsPoster(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusOK, response.PosterViewsResponse{
+	utils.EasyJSONResponse(w, http.StatusOK, response.PosterViewsResponse{
 		Views: int(resp.Views),
 	})
 }
@@ -609,7 +609,7 @@ func (h *PosterHandler) GetFavoritesPoster(w http.ResponseWriter, r *http.Reques
 		Posters: resp.Posters,
 	})
 
-	utils.JSONResponse(w, http.StatusOK, result)
+	utils.EasyJSONResponse(w, http.StatusOK, result)
 }
 
 // @Summary Remove poster from favorites
@@ -699,7 +699,7 @@ func (h *PosterHandler) GetFavoritesCountPoster(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusOK, response.PosterFavoritesCountResponse{
+	utils.EasyJSONResponse(w, http.StatusOK, response.PosterFavoritesCountResponse{
 		Count:      int(resp.Count),
 		IsFavorite: resp.IsFavorite,
 	})
@@ -808,7 +808,7 @@ func (h *PosterHandler) GetPostersByPoint(w http.ResponseWriter, r *http.Request
 
 	posters := utils.MapProtoMyPostersToDTO(resp.Posters)
 
-	utils.JSONResponse(w, http.StatusOK, response.MyPostersResponse{
+	utils.EasyJSONResponse(w, http.StatusOK, response.MyPostersResponse{
 		Posters: posters,
 		Len:     len(posters),
 	})
@@ -850,7 +850,7 @@ func (h *PosterHandler) GenerateDescription(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusOK, response.GenerateDescriptionResponse{
+	utils.EasyJSONResponse(w, http.StatusOK, response.GenerateDescriptionResponse{
 		Description: resp.Description,
 	})
 }
@@ -887,7 +887,7 @@ func (h *PosterHandler) GetPriceHistoryPoster(w http.ResponseWriter, r *http.Req
 
 	history := utils.MapProtoPriceHistoryToDTO(resp.History)
 
-	utils.JSONResponse(w, http.StatusOK, response.PriceHistoryResponse{
+	utils.EasyJSONResponse(w, http.StatusOK, response.PriceHistoryResponse{
 		History: history,
 		Count:   len(history),
 	})
@@ -909,7 +909,7 @@ func (h *PosterHandler) GetPosterRoommates(w http.ResponseWriter, r *http.Reques
 
 	alias, err := utils.ParseAliasFromRequest(r)
 	if err != nil {
-		utils.JSONResponse(w, http.StatusBadRequest, response.ErrorResponse{Error: "invalid alias"})
+		utils.EasyJSONResponse(w, http.StatusBadRequest, response.ErrorResponse{Error: "invalid alias"})
 		return
 	}
 
@@ -932,7 +932,7 @@ func (h *PosterHandler) GetPosterRoommates(w http.ResponseWriter, r *http.Reques
 		})
 	}
 
-	utils.JSONResponse(w, http.StatusOK, dto.PosterRoommatesResponse{
+	utils.EasyJSONResponse(w, http.StatusOK, dto.PosterRoommatesResponse{
 		Users: users,
 		Len:   int(resp.Total),
 	})
@@ -957,14 +957,14 @@ func (h *PosterHandler) AddPosterRoommate(w http.ResponseWriter, r *http.Request
 	userID, err := utils.GetUserID(r.Context())
 	if err != nil {
 		log.Errorf("utils.GetUserID: %s", err)
-		utils.JSONResponse(w, http.StatusUnauthorized, response.ErrorResponse{Error: "unauthorized"})
+		utils.EasyJSONResponse(w, http.StatusUnauthorized, response.ErrorResponse{Error: "unauthorized"})
 		return
 	}
 
 	alias, err := utils.ParseAliasFromRequest(r)
 	if err != nil {
 		log.Errorf("utils.ParseAliasFromRequest: %s", err)
-		utils.JSONResponse(w, http.StatusBadRequest, response.ErrorResponse{Error: "invalid alias"})
+		utils.EasyJSONResponse(w, http.StatusBadRequest, response.ErrorResponse{Error: "invalid alias"})
 		return
 	}
 

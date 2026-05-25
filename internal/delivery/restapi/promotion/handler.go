@@ -75,7 +75,7 @@ func (h *PromotionHandler) CreatePayment(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusOK, data)
+	utils.EasyJSONResponse(w, http.StatusOK, data)
 }
 
 // @Summary YooKassa webhook

@@ -20,11 +20,13 @@ type AuthHandler struct {
 	grpcClient auth.AuthServiceClient
 }
 
+//easyjson:json
 type FormDataCredential struct {
 	Email    string `schema:"email"`
 	Password string `schema:"password"`
 }
 
+//easyjson:json
 type FormDataCreateUser struct {
 	Email     string `schema:"email"`
 	Password  string `schema:"password"`
@@ -33,6 +35,7 @@ type FormDataCreateUser struct {
 	LastName  string `schema:"lastname"`
 }
 
+//easyjson:json
 type LoginResponse struct {
 	AccessToken    string `json:"access_token"`
 	AccessTokenExp int    `json:"expire_at"`
@@ -151,7 +154,7 @@ func (h AuthHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	utils.JSONResponse(w, http.StatusOK, &resp)
+	utils.EasyJSONResponse(w, http.StatusOK, &resp)
 }
 
 // LoginAdminUser
@@ -207,7 +210,7 @@ func (h AuthHandler) LoginAdminUser(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	utils.JSONResponse(w, http.StatusOK, &resp)
+	utils.EasyJSONResponse(w, http.StatusOK, &resp)
 
 }
 
@@ -261,7 +264,7 @@ func (h AuthHandler) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	utils.JSONResponse(w, http.StatusOK, &resp)
+	utils.EasyJSONResponse(w, http.StatusOK, &resp)
 }
 
 // Logout godoc
@@ -370,7 +373,7 @@ func (h AuthHandler) VKLogin(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	utils.JSONResponse(w, http.StatusOK, &resp)
+	utils.EasyJSONResponse(w, http.StatusOK, &resp)
 }
 
 // LoginYandexUser
@@ -437,7 +440,7 @@ func (h AuthHandler) YandexLogin(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	})
 
-	utils.JSONResponse(w, http.StatusOK, &resp)
+	utils.EasyJSONResponse(w, http.StatusOK, &resp)
 }
 
 // SendCodeOnEmail
