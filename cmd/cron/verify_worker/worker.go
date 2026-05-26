@@ -22,6 +22,9 @@ func main() {
 	}
 	dsn := dsn.BuildDSN(config.Config.Postgres)
 	pool, err := pgxpool.New(context.Background(), dsn)
+	if err != nil {
+		logger.Fatalf("pgxpool.New: %s", err)
+	}
 	c := cron.New()
 	c.AddFunc("*/10 * * * *", func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)

@@ -30,7 +30,7 @@ install-lint:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 
 lint:
-	golangci-lint run ./... --fix
+	golangci-lint run --fast ./... --fix
 
 format: 
 	gofmt -w .

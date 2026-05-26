@@ -24,6 +24,9 @@ func main() {
 	}
 	dsn := dsn.BuildDSN(config.Config.Postgres)
 	pool, err := pgxpool.New(context.Background(), dsn)
+	if err != nil {
+		logger.Fatalf("pgxpool.New: %s", err)
+	}
 	senderRepo := smtp.NewSMTPSender(config.Config.SMTP.Host, config.Config.SMTP.Port, config.Config.SMTP.Email, config.Config.SMTP.Pwd)
 	c := cron.New()
 	_, _ = c.AddFunc("*/1 * * * *", func() {
