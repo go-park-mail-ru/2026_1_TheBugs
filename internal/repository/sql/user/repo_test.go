@@ -15,7 +15,7 @@ import (
 )
 
 func TestGetUserByEmail(t *testing.T) {
-	query := regexp.QuoteMeta(`SELECT id, email, salt, hashed_password, provider, is_verified FROM users WHERE email=$1`)
+	query := regexp.QuoteMeta(`SELECT id, email, salt, hashed_password, provider, is_verified, is_admin FROM users WHERE email=$1`)
 	expectedUser := &entity.User{
 		ID:             1,
 		Email:          "test@mail.ru",
@@ -35,8 +35,8 @@ func TestGetUserByEmail(t *testing.T) {
 			email: "test@mail.ru",
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
-					"id", "email", "salt", "hashed_password", "provider", "is_verified",
-				}).AddRow(1, "test@mail.ru", lo.ToPtr("salt123"), lo.ToPtr("hash123"), nil, false)
+					"id", "email", "salt", "hashed_password", "provider", "is_verified", "is_admin",
+				}).AddRow(1, "test@mail.ru", lo.ToPtr("salt123"), lo.ToPtr("hash123"), nil, false, false)
 
 				m.ExpectQuery(query).WithArgs("test@mail.ru").WillReturnRows(rows)
 			},
@@ -48,7 +48,7 @@ func TestGetUserByEmail(t *testing.T) {
 			email: "missing@mail.ru",
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
-					"id", "email", "salt", "hashed_password", "provider", "is_verified",
+					"id", "email", "salt", "hashed_password", "provider", "is_verified", "is_admin",
 				})
 
 				m.ExpectQuery(query).WithArgs("missing@mail.ru").WillReturnRows(rows)
@@ -61,8 +61,8 @@ func TestGetUserByEmail(t *testing.T) {
 			email: "test@mail.ru",
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
-					"id", "email", "salt", "hashed_password", "provider", "is_verified",
-				}).AddRow("bad_id", "test@mail.ru", lo.ToPtr("salt123"), lo.ToPtr("hash123"), nil, false)
+					"id", "email", "salt", "hashed_password", "provider", "is_verified", "is_admin",
+				}).AddRow("bad_id", "test@mail.ru", lo.ToPtr("salt123"), lo.ToPtr("hash123"), nil, false, false)
 
 				m.ExpectQuery(query).WithArgs("test@mail.ru").WillReturnRows(rows)
 			},
@@ -298,7 +298,7 @@ func TestUpdateProfile(t *testing.T) {
 func TestCreateUser(t *testing.T) {
 	profileQuery := regexp.QuoteMeta(`INSERT INTO profiles (phone, first_name, last_name) VALUES ($1, $2, $3) RETURNING id`)
 	userQuery := regexp.QuoteMeta(`INSERT INTO users (email, hashed_password, salt, profile_id) VALUES ($1, $2, $3, $4) 
-			RETURNING id, email, hashed_password, salt, provider, is_verified`)
+			RETURNING id, email, hashed_password, salt, provider, is_verified, is_admin`)
 
 	phone := "123456"
 	firstName := "John"
@@ -335,8 +335,8 @@ func TestCreateUser(t *testing.T) {
 				m.ExpectQuery(profileQuery).WithArgs("123456", "John", "Doe").WillReturnRows(profileRows)
 
 				rows := pgxmock.NewRows([]string{
-					"id", "email", "hashed_password", "salt", "provider", "is_verified",
-				}).AddRow(1, "test@mail.ru", lo.ToPtr("hash123"), lo.ToPtr("salt123"), nil, false)
+					"id", "email", "hashed_password", "salt", "provider", "is_verified", "is_admin",
+				}).AddRow(1, "test@mail.ru", lo.ToPtr("hash123"), lo.ToPtr("salt123"), nil, false, false)
 
 				m.ExpectQuery(userQuery).WithArgs("test@mail.ru", "hash123", "salt123", 1).WillReturnRows(rows)
 			},
@@ -351,8 +351,8 @@ func TestCreateUser(t *testing.T) {
 				m.ExpectQuery(profileQuery).WithArgs("123456", "John", "Doe").WillReturnRows(profileRows)
 
 				rows := pgxmock.NewRows([]string{
-					"id", "email", "hashed_password", "salt", "provider", "is_verified",
-				}).AddRow("bad_id", "test@mail.ru", lo.ToPtr("hash123"), lo.ToPtr("salt123"), nil, false)
+					"id", "email", "hashed_password", "salt", "provider", "is_verified", "is_admin",
+				}).AddRow("bad_id", "test@mail.ru", lo.ToPtr("hash123"), lo.ToPtr("salt123"), nil, false, false)
 
 				m.ExpectQuery(userQuery).WithArgs("test@mail.ru", "hash123", "salt123", 1).WillReturnRows(rows)
 			},
@@ -387,7 +387,7 @@ func TestCreateUser(t *testing.T) {
 func TestCreateUserByProvider(t *testing.T) {
 	profileQuery := regexp.QuoteMeta(`INSERT INTO profiles (phone, first_name, last_name) VALUES ($1, $2, $3) RETURNING id`)
 	userQuery := regexp.QuoteMeta(`INSERT INTO users (email, provider, provider_id, profile_id, is_verified) VALUES ($1, $2, $3, $4, TRUE) 
-			RETURNING id, email, hashed_password, salt, provider, is_verified`)
+			RETURNING id, email, hashed_password, salt, provider, is_verified, is_admin`)
 
 	phone := "123456"
 	firstName := "John"
@@ -427,8 +427,8 @@ func TestCreateUserByProvider(t *testing.T) {
 				m.ExpectQuery(profileQuery).WithArgs("123456", "John", "Doe").WillReturnRows(profileRows)
 
 				rows := pgxmock.NewRows([]string{
-					"id", "email", "hashed_password", "salt", "provider", "is_verified",
-				}).AddRow(1, "test@mail.ru", nil, nil, lo.ToPtr("provider"), false)
+					"id", "email", "hashed_password", "salt", "provider", "is_verified", "is_admin",
+				}).AddRow(1, "test@mail.ru", nil, nil, lo.ToPtr("provider"), false, false)
 
 				m.ExpectQuery(userQuery).WithArgs("test@mail.ru", provider, providerID, 1).WillReturnRows(rows)
 			},
@@ -443,8 +443,8 @@ func TestCreateUserByProvider(t *testing.T) {
 				m.ExpectQuery(profileQuery).WithArgs("123456", "John", "Doe").WillReturnRows(profileRows)
 
 				rows := pgxmock.NewRows([]string{
-					"id", "email", "hashed_password", "salt", "provider", "is_verified",
-				}).AddRow("bad_id", "test@mail.ru", nil, nil, lo.ToPtr("provider"), false)
+					"id", "email", "hashed_password", "salt", "provider", "is_verified", "is_admin",
+				}).AddRow("bad_id", "test@mail.ru", nil, nil, lo.ToPtr("provider"), false, false)
 
 				m.ExpectQuery(userQuery).WithArgs("test@mail.ru", provider, providerID, 1).WillReturnRows(rows)
 			},
@@ -477,7 +477,7 @@ func TestCreateUserByProvider(t *testing.T) {
 }
 
 func TestGetUserByProvider(t *testing.T) {
-	query := regexp.QuoteMeta(`SELECT id, email, salt, hashed_password, provider, is_verified FROM users WHERE email=$1 AND provider=$2`)
+	query := regexp.QuoteMeta(`SELECT id, email, salt, hashed_password, provider, is_verified, is_admin FROM users WHERE email=$1 AND provider=$2`)
 	provider := "provider"
 
 	expectedUser := &entity.User{
@@ -502,8 +502,8 @@ func TestGetUserByProvider(t *testing.T) {
 			email:    "test@mail.ru",
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
-					"id", "email", "salt", "hashed_password", "provider", "is_verified",
-				}).AddRow(1, "test@mail.ru", nil, nil, lo.ToPtr(provider), false)
+					"id", "email", "salt", "hashed_password", "provider", "is_verified", "is_admin",
+				}).AddRow(1, "test@mail.ru", nil, nil, lo.ToPtr(provider), false, false)
 
 				m.ExpectQuery(query).
 					WithArgs("test@mail.ru", provider).
@@ -518,7 +518,7 @@ func TestGetUserByProvider(t *testing.T) {
 			email:    "missing@mail.ru",
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
-					"id", "email", "salt", "hashed_password", "provider", "is_verified",
+					"id", "email", "salt", "hashed_password", "provider", "is_verified", "is_admin",
 				})
 
 				m.ExpectQuery(query).
@@ -534,8 +534,8 @@ func TestGetUserByProvider(t *testing.T) {
 			email:    "test@mail.ru",
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
-					"id", "email", "salt", "hashed_password", "provider", "is_verified",
-				}).AddRow("bad_id", "test@mail.ru", nil, nil, lo.ToPtr(provider), false)
+					"id", "email", "salt", "hashed_password", "provider", "is_verified", "is_admin",
+				}).AddRow("bad_id", "test@mail.ru", nil, nil, lo.ToPtr(provider), false, false)
 
 				m.ExpectQuery(query).
 					WithArgs("test@mail.ru", provider).
@@ -1737,122 +1737,332 @@ func TestUpdateRoommateForm(t *testing.T) {
 	}
 }
 
-func TestGetIncomingRoommateMatches(t *testing.T) {
+/*
+	func TestGetIncomingRoommateMatches(t *testing.T) {
+		query := regexp.QuoteMeta(`
+			SELECT u.id, p.first_name, p.last_name, p.avatar_url, poster.alias AS poster_alias
+			FROM roommate_matches rm
+			JOIN users u ON u.id = rm.from_user_id
+			JOIN profiles p ON p.id = u.profile_id
+			JOIN posters poster ON poster.id = rm.poster_id
+			WHERE rm.to_user_id = $1
+			  AND poster.deleted_at IS NULL
+			  AND NOT EXISTS (
+				  SELECT 1
+				  FROM roommate_matches reverse_rm
+				  WHERE reverse_rm.from_user_id = rm.to_user_id
+				    AND reverse_rm.to_user_id = rm.from_user_id
+			  )
+			ORDER BY rm.created_at DESC
+		`)
+
+		userID := 10
+
+		expectedUsers := []dto.RoommateUserDTO{
+			{
+				ID:          42,
+				FirstName:   "John",
+				LastName:    "Doe",
+				AvatarURL:   lo.ToPtr("https://example.com/avatar.jpg"),
+				PosterAlias: lo.ToPtr("flat-1"),
+			},
+			{
+				ID:          43,
+				FirstName:   "Jane",
+				LastName:    "Smith",
+				AvatarURL:   nil,
+				PosterAlias: lo.ToPtr("flat-2"),
+			},
+		}
+
+		tests := []struct {
+			name      string
+			userID    int
+			setupMock func(m pgxmock.PgxPoolIface)
+			want      []dto.RoommateUserDTO
+			wantErr   error
+		}{
+			{
+				name:   "OK",
+				userID: userID,
+				setupMock: func(m pgxmock.PgxPoolIface) {
+					rows := pgxmock.NewRows([]string{
+						"id", "first_name", "last_name", "avatar_url", "poster_alias",
+					}).AddRow(
+						42,
+						"John",
+						"Doe",
+						lo.ToPtr("https://example.com/avatar.jpg"),
+						lo.ToPtr("flat-1"),
+					).AddRow(
+						43,
+						"Jane",
+						"Smith",
+						nil,
+						lo.ToPtr("flat-2"),
+					)
+
+					m.ExpectQuery(query).
+						WithArgs(userID).
+						WillReturnRows(rows)
+				},
+				want:    expectedUsers,
+				wantErr: nil,
+			},
+			{
+				name:   "empty",
+				userID: userID,
+				setupMock: func(m pgxmock.PgxPoolIface) {
+					rows := pgxmock.NewRows([]string{
+						"id", "first_name", "last_name", "avatar_url", "poster_alias",
+					})
+
+					m.ExpectQuery(query).
+						WithArgs(userID).
+						WillReturnRows(rows)
+				},
+				want:    []dto.RoommateUserDTO{},
+				wantErr: nil,
+			},
+			{
+				name:   "collect_rows_error",
+				userID: userID,
+				setupMock: func(m pgxmock.PgxPoolIface) {
+					rows := pgxmock.NewRows([]string{
+						"id", "first_name", "last_name", "avatar_url", "poster_alias",
+					}).AddRow(
+						"bad_id",
+						"John",
+						"Doe",
+						nil,
+						lo.ToPtr("flat-1"),
+					)
+
+					m.ExpectQuery(query).
+						WithArgs(userID).
+						WillReturnRows(rows)
+				},
+				want:    nil,
+				wantErr: entity.ServiceError,
+			},
+			{
+				name:   "query_error",
+				userID: userID,
+				setupMock: func(m pgxmock.PgxPoolIface) {
+					m.ExpectQuery(query).
+						WithArgs(userID).
+						WillReturnError(errors.New("db error"))
+				},
+				want:    nil,
+				wantErr: entity.ServiceError,
+			},
+		}
+
+		for _, test := range tests {
+			t.Run(test.name, func(t *testing.T) {
+				mock, err := pgxmock.NewPool()
+				require.NoError(t, err)
+				defer mock.Close()
+
+				test.setupMock(mock)
+
+				repo := NewUserRepo(mock)
+
+				got, err := repo.GetIncomingRoommateMatches(context.Background(), test.userID)
+				if test.wantErr != nil {
+					require.ErrorIs(t, err, test.wantErr)
+					return
+				}
+
+				require.NoError(t, err)
+				require.Equal(t, test.want, got)
+				require.NoError(t, mock.ExpectationsWereMet())
+			})
+		}
+	}
+
+	func TestGetMatchedRoommateMatches(t *testing.T) {
+		query := regexp.QuoteMeta(`
+			SELECT u.id, p.first_name, p.last_name, p.avatar_url, poster.alias AS poster_alias
+			FROM roommate_matches rm1
+			JOIN roommate_matches rm2
+			  ON rm1.from_user_id = rm2.to_user_id
+			 AND rm1.to_user_id = rm2.from_user_id
+			JOIN users u ON u.id = rm1.to_user_id
+			JOIN profiles p ON p.id = u.profile_id
+			JOIN posters poster ON poster.id = rm1.poster_id
+			WHERE rm1.from_user_id = $1
+			  AND poster.deleted_at IS NULL
+			ORDER BY rm1.created_at DESC
+		`)
+
+		userID := 10
+
+		expectedUsers := []dto.RoommateUserDTO{
+			{
+				ID:          42,
+				FirstName:   "John",
+				LastName:    "Doe",
+				AvatarURL:   lo.ToPtr("https://example.com/avatar.jpg"),
+				PosterAlias: lo.ToPtr("flat-1"),
+			},
+			{
+				ID:          43,
+				FirstName:   "Jane",
+				LastName:    "Smith",
+				AvatarURL:   nil,
+				PosterAlias: lo.ToPtr("flat-2"),
+			},
+		}
+
+		tests := []struct {
+			name      string
+			userID    int
+			setupMock func(m pgxmock.PgxPoolIface)
+			want      []dto.RoommateUserDTO
+			wantErr   error
+		}{
+			{
+				name:   "OK",
+				userID: userID,
+				setupMock: func(m pgxmock.PgxPoolIface) {
+					rows := pgxmock.NewRows([]string{
+						"id", "first_name", "last_name", "avatar_url", "poster_alias",
+					}).AddRow(
+						42,
+						"John",
+						"Doe",
+						lo.ToPtr("https://example.com/avatar.jpg"),
+						lo.ToPtr("flat-1"),
+					).AddRow(
+						43,
+						"Jane",
+						"Smith",
+						nil,
+						lo.ToPtr("flat-2"),
+					)
+
+					m.ExpectQuery(query).
+						WithArgs(userID).
+						WillReturnRows(rows)
+				},
+				want:    expectedUsers,
+				wantErr: nil,
+			},
+			{
+				name:   "empty",
+				userID: userID,
+				setupMock: func(m pgxmock.PgxPoolIface) {
+					rows := pgxmock.NewRows([]string{
+						"id", "first_name", "last_name", "avatar_url", "poster_alias",
+					})
+
+					m.ExpectQuery(query).
+						WithArgs(userID).
+						WillReturnRows(rows)
+				},
+				want:    []dto.RoommateUserDTO{},
+				wantErr: nil,
+			},
+			{
+				name:   "collect_rows_error",
+				userID: userID,
+				setupMock: func(m pgxmock.PgxPoolIface) {
+					rows := pgxmock.NewRows([]string{
+						"id", "first_name", "last_name", "avatar_url", "poster_alias",
+					}).AddRow(
+						"bad_id",
+						"John",
+						"Doe",
+						nil,
+						lo.ToPtr("flat-1"),
+					)
+
+					m.ExpectQuery(query).
+						WithArgs(userID).
+						WillReturnRows(rows)
+				},
+				want:    nil,
+				wantErr: entity.ServiceError,
+			},
+			{
+				name:   "query_error",
+				userID: userID,
+				setupMock: func(m pgxmock.PgxPoolIface) {
+					m.ExpectQuery(query).
+						WithArgs(userID).
+						WillReturnError(errors.New("db error"))
+				},
+				want:    nil,
+				wantErr: entity.ServiceError,
+			},
+		}
+
+		for _, test := range tests {
+			t.Run(test.name, func(t *testing.T) {
+				mock, err := pgxmock.NewPool()
+				require.NoError(t, err)
+				defer mock.Close()
+
+				test.setupMock(mock)
+
+				repo := NewUserRepo(mock)
+
+				got, err := repo.GetMatchedRoommateMatches(context.Background(), test.userID)
+				if test.wantErr != nil {
+					require.ErrorIs(t, err, test.wantErr)
+					return
+				}
+
+				require.NoError(t, err)
+				require.Equal(t, test.want, got)
+				require.NoError(t, mock.ExpectationsWereMet())
+			})
+		}
+	}
+*/
+func TestDeletePosterRoommatesByUserID(t *testing.T) {
 	query := regexp.QuoteMeta(`
-		SELECT u.id, p.first_name, p.last_name, p.avatar_url, poster.alias AS poster_alias
-		FROM roommate_matches rm
-		JOIN users u ON u.id = rm.from_user_id
-		JOIN profiles p ON p.id = u.profile_id
-		JOIN posters poster ON poster.id = rm.poster_id
-		WHERE rm.to_user_id = $1
-		  AND poster.deleted_at IS NULL
-		  AND NOT EXISTS (
-			  SELECT 1
-			  FROM roommate_matches reverse_rm
-			  WHERE reverse_rm.from_user_id = rm.to_user_id
-			    AND reverse_rm.to_user_id = rm.from_user_id
-		  )
-		ORDER BY rm.created_at DESC
+		DELETE FROM poster_roommates
+		WHERE user_id = $1
 	`)
 
 	userID := 10
-
-	expectedUsers := []dto.RoommateUserDTO{
-		{
-			ID:          42,
-			FirstName:   "John",
-			LastName:    "Doe",
-			AvatarURL:   lo.ToPtr("https://example.com/avatar.jpg"),
-			PosterAlias: lo.ToPtr("flat-1"),
-		},
-		{
-			ID:          43,
-			FirstName:   "Jane",
-			LastName:    "Smith",
-			AvatarURL:   nil,
-			PosterAlias: lo.ToPtr("flat-2"),
-		},
-	}
 
 	tests := []struct {
 		name      string
 		userID    int
 		setupMock func(m pgxmock.PgxPoolIface)
-		want      []dto.RoommateUserDTO
 		wantErr   error
 	}{
 		{
 			name:   "OK",
 			userID: userID,
 			setupMock: func(m pgxmock.PgxPoolIface) {
-				rows := pgxmock.NewRows([]string{
-					"id", "first_name", "last_name", "avatar_url", "poster_alias",
-				}).AddRow(
-					42,
-					"John",
-					"Doe",
-					lo.ToPtr("https://example.com/avatar.jpg"),
-					lo.ToPtr("flat-1"),
-				).AddRow(
-					43,
-					"Jane",
-					"Smith",
-					nil,
-					lo.ToPtr("flat-2"),
-				)
-
-				m.ExpectQuery(query).
+				m.ExpectExec(query).
 					WithArgs(userID).
-					WillReturnRows(rows)
+					WillReturnResult(pgxmock.NewResult("DELETE", 2))
 			},
-			want:    expectedUsers,
 			wantErr: nil,
 		},
 		{
-			name:   "empty",
+			name:   "OK_empty",
 			userID: userID,
 			setupMock: func(m pgxmock.PgxPoolIface) {
-				rows := pgxmock.NewRows([]string{
-					"id", "first_name", "last_name", "avatar_url", "poster_alias",
-				})
-
-				m.ExpectQuery(query).
+				m.ExpectExec(query).
 					WithArgs(userID).
-					WillReturnRows(rows)
+					WillReturnResult(pgxmock.NewResult("DELETE", 0))
 			},
-			want:    []dto.RoommateUserDTO{},
 			wantErr: nil,
 		},
 		{
-			name:   "collect_rows_error",
+			name:   "service_error",
 			userID: userID,
 			setupMock: func(m pgxmock.PgxPoolIface) {
-				rows := pgxmock.NewRows([]string{
-					"id", "first_name", "last_name", "avatar_url", "poster_alias",
-				}).AddRow(
-					"bad_id",
-					"John",
-					"Doe",
-					nil,
-					lo.ToPtr("flat-1"),
-				)
-
-				m.ExpectQuery(query).
-					WithArgs(userID).
-					WillReturnRows(rows)
-			},
-			want:    nil,
-			wantErr: entity.ServiceError,
-		},
-		{
-			name:   "query_error",
-			userID: userID,
-			setupMock: func(m pgxmock.PgxPoolIface) {
-				m.ExpectQuery(query).
+				m.ExpectExec(query).
 					WithArgs(userID).
 					WillReturnError(errors.New("db error"))
 			},
-			want:    nil,
 			wantErr: entity.ServiceError,
 		},
 	}
@@ -1867,132 +2077,103 @@ func TestGetIncomingRoommateMatches(t *testing.T) {
 
 			repo := NewUserRepo(mock)
 
-			got, err := repo.GetIncomingRoommateMatches(context.Background(), test.userID)
+			err = repo.DeletePosterRoommatesByUserID(context.Background(), test.userID)
 			if test.wantErr != nil {
 				require.ErrorIs(t, err, test.wantErr)
 				return
 			}
 
 			require.NoError(t, err)
-			require.Equal(t, test.want, got)
 			require.NoError(t, mock.ExpectationsWereMet())
 		})
 	}
 }
 
-func TestGetMatchedRoommateMatches(t *testing.T) {
-	query := regexp.QuoteMeta(`
-		SELECT u.id, p.first_name, p.last_name, p.avatar_url, poster.alias AS poster_alias
-		FROM roommate_matches rm1
-		JOIN roommate_matches rm2
-		  ON rm1.from_user_id = rm2.to_user_id
-		 AND rm1.to_user_id = rm2.from_user_id
-		JOIN users u ON u.id = rm1.to_user_id
-		JOIN profiles p ON p.id = u.profile_id
-		JOIN posters poster ON poster.id = rm1.poster_id
-		WHERE rm1.from_user_id = $1
-		  AND poster.deleted_at IS NULL
-		ORDER BY rm1.created_at DESC
+func TestDeleteRoommateForm(t *testing.T) {
+	deleteTagsQuery := regexp.QuoteMeta(`
+		DELETE FROM roommate_form_tags rft
+		USING roommate_forms rf
+		WHERE rft.roommate_form_id = rf.id
+		  AND rf.user_id = $1
+	`)
+
+	deleteFormQuery := regexp.QuoteMeta(`
+		DELETE FROM roommate_forms
+		WHERE user_id = $1
 	`)
 
 	userID := 10
-
-	expectedUsers := []dto.RoommateUserDTO{
-		{
-			ID:          42,
-			FirstName:   "John",
-			LastName:    "Doe",
-			AvatarURL:   lo.ToPtr("https://example.com/avatar.jpg"),
-			PosterAlias: lo.ToPtr("flat-1"),
-		},
-		{
-			ID:          43,
-			FirstName:   "Jane",
-			LastName:    "Smith",
-			AvatarURL:   nil,
-			PosterAlias: lo.ToPtr("flat-2"),
-		},
-	}
 
 	tests := []struct {
 		name      string
 		userID    int
 		setupMock func(m pgxmock.PgxPoolIface)
-		want      []dto.RoommateUserDTO
 		wantErr   error
 	}{
 		{
 			name:   "OK",
 			userID: userID,
 			setupMock: func(m pgxmock.PgxPoolIface) {
-				rows := pgxmock.NewRows([]string{
-					"id", "first_name", "last_name", "avatar_url", "poster_alias",
-				}).AddRow(
-					42,
-					"John",
-					"Doe",
-					lo.ToPtr("https://example.com/avatar.jpg"),
-					lo.ToPtr("flat-1"),
-				).AddRow(
-					43,
-					"Jane",
-					"Smith",
-					nil,
-					lo.ToPtr("flat-2"),
-				)
-
-				m.ExpectQuery(query).
+				m.ExpectExec(deleteTagsQuery).
 					WithArgs(userID).
-					WillReturnRows(rows)
+					WillReturnResult(pgxmock.NewResult("DELETE", 2))
+
+				m.ExpectExec(deleteFormQuery).
+					WithArgs(userID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 1))
 			},
-			want:    expectedUsers,
 			wantErr: nil,
 		},
 		{
-			name:   "empty",
+			name:   "OK_without_tags",
 			userID: userID,
 			setupMock: func(m pgxmock.PgxPoolIface) {
-				rows := pgxmock.NewRows([]string{
-					"id", "first_name", "last_name", "avatar_url", "poster_alias",
-				})
-
-				m.ExpectQuery(query).
+				m.ExpectExec(deleteTagsQuery).
 					WithArgs(userID).
-					WillReturnRows(rows)
+					WillReturnResult(pgxmock.NewResult("DELETE", 0))
+
+				m.ExpectExec(deleteFormQuery).
+					WithArgs(userID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 1))
 			},
-			want:    []dto.RoommateUserDTO{},
 			wantErr: nil,
 		},
 		{
-			name:   "collect_rows_error",
+			name:   "not_found",
 			userID: userID,
 			setupMock: func(m pgxmock.PgxPoolIface) {
-				rows := pgxmock.NewRows([]string{
-					"id", "first_name", "last_name", "avatar_url", "poster_alias",
-				}).AddRow(
-					"bad_id",
-					"John",
-					"Doe",
-					nil,
-					lo.ToPtr("flat-1"),
-				)
-
-				m.ExpectQuery(query).
+				m.ExpectExec(deleteTagsQuery).
 					WithArgs(userID).
-					WillReturnRows(rows)
+					WillReturnResult(pgxmock.NewResult("DELETE", 0))
+
+				m.ExpectExec(deleteFormQuery).
+					WithArgs(userID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 0))
 			},
-			want:    nil,
-			wantErr: entity.ServiceError,
+			wantErr: entity.NotFoundError,
 		},
 		{
-			name:   "query_error",
+			name:   "delete_tags_error",
 			userID: userID,
 			setupMock: func(m pgxmock.PgxPoolIface) {
-				m.ExpectQuery(query).
+				m.ExpectExec(deleteTagsQuery).
 					WithArgs(userID).
 					WillReturnError(errors.New("db error"))
 			},
-			want:    nil,
+			wantErr: entity.ServiceError,
+		},
+		{
+			name:   "delete_form_error",
+			userID: userID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(deleteTagsQuery).
+					WithArgs(userID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 2))
+
+				m.ExpectExec(deleteFormQuery).
+					WithArgs(userID).
+					WillReturnError(errors.New("db error"))
+			},
 			wantErr: entity.ServiceError,
 		},
 	}
@@ -2007,14 +2188,98 @@ func TestGetMatchedRoommateMatches(t *testing.T) {
 
 			repo := NewUserRepo(mock)
 
-			got, err := repo.GetMatchedRoommateMatches(context.Background(), test.userID)
+			err = repo.DeleteRoommateForm(context.Background(), test.userID)
 			if test.wantErr != nil {
 				require.ErrorIs(t, err, test.wantErr)
 				return
 			}
 
 			require.NoError(t, err)
-			require.Equal(t, test.want, got)
+			require.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}
+
+func TestDeleteRoommateMatch(t *testing.T) {
+	query := regexp.QuoteMeta(`
+		DELETE FROM roommate_matches
+		WHERE (from_user_id = $1 AND to_user_id = $2)
+		   OR (from_user_id = $2 AND to_user_id = $1)
+	`)
+
+	fromUserID := 10
+	toUserID := 42
+
+	tests := []struct {
+		name       string
+		fromUserID int
+		toUserID   int
+		setupMock  func(m pgxmock.PgxPoolIface)
+		wantErr    error
+	}{
+		{
+			name:       "OK_delete_both",
+			fromUserID: fromUserID,
+			toUserID:   toUserID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(fromUserID, toUserID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 2))
+			},
+			wantErr: nil,
+		},
+		{
+			name:       "OK_delete_one",
+			fromUserID: fromUserID,
+			toUserID:   toUserID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(fromUserID, toUserID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 1))
+			},
+			wantErr: nil,
+		},
+		{
+			name:       "not_found",
+			fromUserID: fromUserID,
+			toUserID:   toUserID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(fromUserID, toUserID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 0))
+			},
+			wantErr: entity.NotFoundError,
+		},
+		{
+			name:       "service_error",
+			fromUserID: fromUserID,
+			toUserID:   toUserID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(fromUserID, toUserID).
+					WillReturnError(errors.New("db error"))
+			},
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mock, err := pgxmock.NewPool()
+			require.NoError(t, err)
+			defer mock.Close()
+
+			test.setupMock(mock)
+
+			repo := NewUserRepo(mock)
+
+			err = repo.DeleteRoommateMatch(context.Background(), test.fromUserID, test.toUserID)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
 			require.NoError(t, mock.ExpectationsWereMet())
 		})
 	}

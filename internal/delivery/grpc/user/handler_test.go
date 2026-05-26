@@ -614,27 +614,26 @@ func TestUserServiceServer_GetRoommateContacts(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
 			mockUC := mocks.NewMockUserUseCase(ctrl)
-			if tt.setupMock != nil {
-				tt.setupMock(mockUC)
+			if test.setupMock != nil {
+				test.setupMock(mockUC)
 			}
 
 			server := NewUserServiceServer(mockUC)
-			resp, err := server.GetRoommateContacts(ctx, tt.req)
+			resp, err := server.GetRoommateContacts(ctx, test.req)
 
-			if tt.wantErr {
+			if test.wantErr {
 				require.Error(t, err)
 				st, ok := status.FromError(err)
 				require.True(t, ok)
-				require.Equal(t, tt.wantCode, st.Code())
+				require.Equal(t, test.wantCode, st.Code())
 				require.Nil(t, resp)
 			} else {
 				require.NoError(t, err)
@@ -759,27 +758,26 @@ func TestUserServiceServer_CreateRoommateForm(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
 			mockUC := mocks.NewMockUserUseCase(ctrl)
-			if tt.setupMock != nil {
-				tt.setupMock(mockUC)
+			if test.setupMock != nil {
+				test.setupMock(mockUC)
 			}
 
 			server := NewUserServiceServer(mockUC)
-			resp, err := server.CreateRoommateForm(ctx, tt.req)
+			resp, err := server.CreateRoommateForm(ctx, test.req)
 
-			if tt.wantErr {
+			if test.wantErr {
 				require.Error(t, err)
 				st, ok := status.FromError(err)
 				require.True(t, ok)
-				require.Equal(t, tt.wantCode, st.Code())
+				require.Equal(t, test.wantCode, st.Code())
 				require.Nil(t, resp)
 			} else {
 				require.NoError(t, err)
@@ -858,27 +856,26 @@ func TestUserServiceServer_GetRoommateForm(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 
 			mockUC := mocks.NewMockUserUseCase(ctrl)
-			if tt.setupMock != nil {
-				tt.setupMock(mockUC)
+			if test.setupMock != nil {
+				test.setupMock(mockUC)
 			}
 
 			server := NewUserServiceServer(mockUC)
-			resp, err := server.GetRoommateForm(ctx, tt.req)
+			resp, err := server.GetRoommateForm(ctx, test.req)
 
-			if tt.wantErr {
+			if test.wantErr {
 				require.Error(t, err)
 				st, ok := status.FromError(err)
 				require.True(t, ok)
-				require.Equal(t, tt.wantCode, st.Code())
+				require.Equal(t, test.wantCode, st.Code())
 				require.Nil(t, resp)
 			} else {
 				require.NoError(t, err)
@@ -1017,7 +1014,6 @@ func TestUserServiceServer_UpdateRoommateForm(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1109,7 +1105,6 @@ func TestUserServiceServer_GetIncomingRoommateMatches(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1208,7 +1203,6 @@ func TestUserServiceServer_GetMatchedRoommateMatches(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1239,6 +1233,217 @@ func TestUserServiceServer_GetMatchedRoommateMatches(t *testing.T) {
 				require.Equal(t, expectedResp.Users[0].FirstName, resp.Users[0].FirstName)
 				require.Equal(t, expectedResp.Users[0].LastName, resp.Users[0].LastName)
 				require.Equal(t, expectedResp.Users[0].AvatarURL, resp.Users[0].AvatarUrl)
+			}
+		})
+	}
+}
+
+func TestUserServiceServer_DeleteRoommateForm(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	userID := int64(10)
+
+	tests := []struct {
+		name      string
+		req       *userpb.DeleteRoommateFormRequest
+		setupMock func(mockUC *mocks.MockUserUseCase)
+		wantErr   bool
+		wantCode  codes.Code
+	}{
+		{
+			name: "success",
+			req: &userpb.DeleteRoommateFormRequest{
+				UserId: userID,
+			},
+			setupMock: func(mockUC *mocks.MockUserUseCase) {
+				mockUC.EXPECT().
+					DeleteRoommateForm(ctx, int(userID)).
+					Return(nil)
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid user id",
+			req: &userpb.DeleteRoommateFormRequest{
+				UserId: 0,
+			},
+			setupMock: nil,
+			wantErr:   true,
+			wantCode:  codes.InvalidArgument,
+		},
+		{
+			name: "use case error - not found",
+			req: &userpb.DeleteRoommateFormRequest{
+				UserId: userID,
+			},
+			setupMock: func(mockUC *mocks.MockUserUseCase) {
+				mockUC.EXPECT().
+					DeleteRoommateForm(ctx, int(userID)).
+					Return(entity.NotFoundError)
+			},
+			wantErr:  true,
+			wantCode: codes.NotFound,
+		},
+		{
+			name: "use case error - internal",
+			req: &userpb.DeleteRoommateFormRequest{
+				UserId: userID,
+			},
+			setupMock: func(mockUC *mocks.MockUserUseCase) {
+				mockUC.EXPECT().
+					DeleteRoommateForm(ctx, int(userID)).
+					Return(errors.New("database error"))
+			},
+			wantErr:  true,
+			wantCode: codes.Internal,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockUC := mocks.NewMockUserUseCase(ctrl)
+			if test.setupMock != nil {
+				test.setupMock(mockUC)
+			}
+
+			server := NewUserServiceServer(mockUC)
+			resp, err := server.DeleteRoommateForm(ctx, test.req)
+
+			if test.wantErr {
+				require.Error(t, err)
+				st, ok := status.FromError(err)
+				require.True(t, ok)
+				require.Equal(t, test.wantCode, st.Code())
+				require.Nil(t, resp)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, resp)
+			}
+		})
+	}
+}
+
+func TestUserServiceServer_DeleteRoommateMatch(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+	fromUserID := int64(10)
+	toUserID := int64(42)
+
+	tests := []struct {
+		name      string
+		req       *userpb.DeleteRoommateMatchRequest
+		setupMock func(mockUC *mocks.MockUserUseCase)
+		wantErr   bool
+		wantCode  codes.Code
+	}{
+		{
+			name: "success",
+			req: &userpb.DeleteRoommateMatchRequest{
+				FromUserId: fromUserID,
+				ToUserId:   toUserID,
+			},
+			setupMock: func(mockUC *mocks.MockUserUseCase) {
+				mockUC.EXPECT().
+					DeleteRoommateMatch(ctx, int(fromUserID), int(toUserID)).
+					Return(nil)
+			},
+			wantErr: false,
+		},
+		{
+			name: "invalid from user id",
+			req: &userpb.DeleteRoommateMatchRequest{
+				FromUserId: 0,
+				ToUserId:   toUserID,
+			},
+			setupMock: nil,
+			wantErr:   true,
+			wantCode:  codes.InvalidArgument,
+		},
+		{
+			name: "invalid to user id",
+			req: &userpb.DeleteRoommateMatchRequest{
+				FromUserId: fromUserID,
+				ToUserId:   0,
+			},
+			setupMock: nil,
+			wantErr:   true,
+			wantCode:  codes.InvalidArgument,
+		},
+		{
+			name: "use case error - not found",
+			req: &userpb.DeleteRoommateMatchRequest{
+				FromUserId: fromUserID,
+				ToUserId:   toUserID,
+			},
+			setupMock: func(mockUC *mocks.MockUserUseCase) {
+				mockUC.EXPECT().
+					DeleteRoommateMatch(ctx, int(fromUserID), int(toUserID)).
+					Return(entity.NotFoundError)
+			},
+			wantErr:  true,
+			wantCode: codes.NotFound,
+		},
+		{
+			name: "use case error - invalid input",
+			req: &userpb.DeleteRoommateMatchRequest{
+				FromUserId: fromUserID,
+				ToUserId:   fromUserID,
+			},
+			setupMock: func(mockUC *mocks.MockUserUseCase) {
+				mockUC.EXPECT().
+					DeleteRoommateMatch(ctx, int(fromUserID), int(fromUserID)).
+					Return(entity.InvalidInput)
+			},
+			wantErr:  true,
+			wantCode: codes.InvalidArgument,
+		},
+		{
+			name: "use case error - internal",
+			req: &userpb.DeleteRoommateMatchRequest{
+				FromUserId: fromUserID,
+				ToUserId:   toUserID,
+			},
+			setupMock: func(mockUC *mocks.MockUserUseCase) {
+				mockUC.EXPECT().
+					DeleteRoommateMatch(ctx, int(fromUserID), int(toUserID)).
+					Return(errors.New("database error"))
+			},
+			wantErr:  true,
+			wantCode: codes.Internal,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockUC := mocks.NewMockUserUseCase(ctrl)
+			if test.setupMock != nil {
+				test.setupMock(mockUC)
+			}
+
+			server := NewUserServiceServer(mockUC)
+			resp, err := server.DeleteRoommateMatch(ctx, test.req)
+
+			if test.wantErr {
+				require.Error(t, err)
+				st, ok := status.FromError(err)
+				require.True(t, ok)
+				require.Equal(t, test.wantCode, st.Code())
+				require.Nil(t, resp)
+			} else {
+				require.NoError(t, err)
+				require.NotNil(t, resp)
 			}
 		})
 	}

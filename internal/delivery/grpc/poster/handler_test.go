@@ -2132,3 +2132,106 @@ func TestPosterServiceServer_AddPosterRoommate(t *testing.T) {
 		})
 	}
 }
+
+func TestPosterServiceServer_DeletePosterRoommate(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	alias := "flat-1"
+	userID := int64(10)
+
+	validReq := &posterpb.DeletePosterRoommateRequest{
+		Alias:  alias,
+		UserId: userID,
+	}
+
+	tests := []struct {
+		name      string
+		req       *posterpb.DeletePosterRoommateRequest
+		setupMock func(mockUC *mocks.MockPostersUseCase)
+		wantErr   bool
+		wantCode  codes.Code
+	}{
+		{
+			name: "success",
+			req:  validReq,
+			setupMock: func(mockUC *mocks.MockPostersUseCase) {
+				mockUC.EXPECT().
+					DeletePosterRoommate(ctx, alias, int(userID)).
+					Return(nil)
+			},
+			wantErr: false,
+		},
+		{
+			name: "missing alias",
+			req: &posterpb.DeletePosterRoommateRequest{
+				Alias:  "",
+				UserId: userID,
+			},
+			wantErr:  true,
+			wantCode: codes.InvalidArgument,
+		},
+		{
+			name: "invalid user id",
+			req: &posterpb.DeletePosterRoommateRequest{
+				Alias:  alias,
+				UserId: 0,
+			},
+			wantErr:  true,
+			wantCode: codes.InvalidArgument,
+		},
+		{
+			name: "use case error",
+			req:  validReq,
+			setupMock: func(mockUC *mocks.MockPostersUseCase) {
+				mockUC.EXPECT().
+					DeletePosterRoommate(ctx, alias, int(userID)).
+					Return(entity.ServiceError)
+			},
+			wantErr:  true,
+			wantCode: codes.Internal,
+		},
+		{
+			name: "not found",
+			req:  validReq,
+			setupMock: func(mockUC *mocks.MockPostersUseCase) {
+				mockUC.EXPECT().
+					DeletePosterRoommate(ctx, alias, int(userID)).
+					Return(entity.NotFoundError)
+			},
+			wantErr:  true,
+			wantCode: codes.NotFound,
+		},
+	}
+
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			mockUC := mocks.NewMockPostersUseCase(ctrl)
+			if test.setupMock != nil {
+				test.setupMock(mockUC)
+			}
+
+			server := NewPosterServiceServer(mockUC)
+			resp, err := server.DeletePosterRoommate(ctx, test.req)
+
+			if test.wantErr {
+				require.Error(t, err)
+				st, ok := status.FromError(err)
+				require.True(t, ok)
+				require.Equal(t, test.wantCode, st.Code())
+				require.Nil(t, resp)
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, resp)
+		})
+	}
+}

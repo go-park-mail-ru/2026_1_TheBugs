@@ -852,6 +852,15 @@ func (uc *PosterUseCase) AddPosterRoommate(ctx context.Context, alias string, us
 	return nil
 }
 
+func (uc *PosterUseCase) DeletePosterRoommate(ctx context.Context, alias string, userID int) error {
+	err := uc.uow.Posters().DeletePosterRoommate(ctx, alias, userID)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Posters().DeletePosterRoommate: %w", err)
+	}
+
+	return nil
+}
+
 func (uc *PosterUseCase) scaleAndCropPhoto(ctx context.Context, srcKey string, srcPath string, posterID int) error {
 	file, err := uc.file.Get(context.Background(), srcKey)
 	if err != nil {

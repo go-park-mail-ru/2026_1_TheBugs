@@ -11,28 +11,33 @@ jobs:
   test: 
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.23'
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
 
-      - name: Cache Go modules
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/go-build
-            ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('backend/go.sum') }}
-          restore-keys: ${{ runner.os }}-go-
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('backend/go.sum') }}
+        restore-keys: ${{ runner.os }}-go-
 
-      - name: Install dependencies
-        run: go mod download
+    - name: Install golangci-lint
+      uses: golangci/golangci-lint-action@v5
+      with:
+        version: v1.61.0
 
-      - name: Run tests
-        run: go test -v ./...
+    - name: Run golangci-lint
+      run: golangci-lint --fast run ./... --timeout 5m
+
+    - name: Run tests
+      run: go test -v ./...
 
   deploy:
     runs-on: ubuntu-latest
@@ -62,7 +67,11 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=accept-new "${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}" "sudo bash -lc '
           cd /home/${{ secrets.VPS_USERNAME }}/prod
-          docker compose up -d --build --remove-orphans --no-deps gateaway_service user_service complex_service poster_service auth_service
+          docker compose up -d --build --remove-orphans --no-deps user_service 
+          docker compose up -d --build --remove-orphans --no-deps complex_service
+          docker compose up -d --build --remove-orphans --no-deps poster_service
+          docker compose up -d --build --remove-orphans --no-deps auth_service
+          docker compose up -d --build --remove-orphans --no-deps gateaway_service
           docker compose down nginx 
           docker compose up -d --build --no-deps nginx
           '"

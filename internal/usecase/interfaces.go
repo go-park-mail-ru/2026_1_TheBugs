@@ -25,11 +25,14 @@ type UserRepo interface {
 	GetRoommateTags(ctx context.Context, userID int) ([]entity.RoommateTag, error)
 	AddRoommateMatch(ctx context.Context, fromUserID int, toUserID int, posterAlias *string) error
 	IsRoommateMatch(ctx context.Context, fromUserID int, toUserID int) (bool, error)
+	DeleteRoommateMatch(ctx context.Context, fromUserID int, toUserID int) error
 	GetRoommateContacts(ctx context.Context, userID int) (*dto.RoommateContactsDTO, error)
 	CreateRoommateForm(ctx context.Context, data dto.CreateRoommateFormRequest) error
 	GetRoommateForm(ctx context.Context, userID int) (*entity.RoommateForm, error)
 	GetRoommateFormTags(ctx context.Context, userID int) ([]string, error)
 	UpdateRoommateForm(ctx context.Context, data dto.CreateRoommateFormRequest) error
+	DeletePosterRoommatesByUserID(ctx context.Context, userID int) error
+	DeleteRoommateForm(ctx context.Context, userID int) error
 	GetIncomingRoommateMatches(ctx context.Context, userID int) ([]dto.RoommateUserDTO, error)
 	GetMatchedRoommateMatches(ctx context.Context, userID int) ([]dto.RoommateUserDTO, error)
 }
@@ -94,6 +97,7 @@ type PosterRepo interface {
 	HasRoommateForm(ctx context.Context, userID int) (bool, error)
 	AddPosterRoommate(ctx context.Context, alias string, userID int) error
 	GetRoommatePoster(ctx context.Context, fromUserID int, toUserID int) (*entity.PosterFlat, error) //FIXME: а если постеров несколько?
+	DeletePosterRoommate(ctx context.Context, alias string, userID int) error
 }
 
 type AuthRepo interface {

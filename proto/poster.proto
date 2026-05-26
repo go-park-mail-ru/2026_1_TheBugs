@@ -375,7 +375,12 @@ message AddPosterRoommateRequest {
 
 message AddPosterRoommateResponse {}
 
+message DeletePosterRoommateRequest {
+  string alias = 1;
+  int64 user_id = 2;
+}
 
+message DeletePosterRoommateResponse {}
 
 service PosterService {
   rpc SearchPosters (SearchPostersRequest) returns (SearchPostersResponse);
@@ -403,4 +408,5 @@ service PosterService {
 
   rpc GetPosterRoommates (GetPosterRoommatesRequest) returns (GetPosterRoommatesResponse);
   rpc AddPosterRoommate(AddPosterRoommateRequest) returns (AddPosterRoommateResponse);
+  rpc DeletePosterRoommate(DeletePosterRoommateRequest) returns (DeletePosterRoommateResponse);
 }

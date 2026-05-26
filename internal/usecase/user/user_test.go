@@ -51,7 +51,6 @@ func TestUserUseCase_GetByID(t *testing.T) {
 	}
 
 	for _, test := range cases {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -147,7 +146,6 @@ func TestUserUseCase_UpdateProfile(t *testing.T) {
 				},
 			},
 			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo, userRepoMock *mocks.MockUserRepo) {
-				// file.Upload НЕ вызывается
 			},
 			wantErr: true,
 		},
@@ -172,7 +170,6 @@ func TestUserUseCase_UpdateProfile(t *testing.T) {
 	}
 
 	for _, test := range cases {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -382,7 +379,6 @@ func TestUserUseCase_GetRoommateUser(t *testing.T) {
 	}
 
 	for _, test := range cases {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1161,7 +1157,6 @@ func TestUserUseCase_GetRoommateContacts(t *testing.T) {
 	}
 
 	for _, test := range cases {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1306,7 +1301,6 @@ func TestUserUseCase_CreateRoommateForm(t *testing.T) {
 	}
 
 	for _, test := range cases {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1470,7 +1464,6 @@ func TestUserUseCase_GetRoommateForm(t *testing.T) {
 	}
 
 	for _, test := range cases {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1610,7 +1603,6 @@ func TestUserUseCase_UpdateRoommateForm(t *testing.T) {
 	}
 
 	for _, test := range cases {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1746,7 +1738,6 @@ func TestUserUseCase_GetIncomingRoommateMatches(t *testing.T) {
 	}
 
 	for _, test := range cases {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1883,7 +1874,6 @@ func TestUserUseCase_GetMatchedRoommateMatches(t *testing.T) {
 	}
 
 	for _, test := range cases {
-		test := test
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -1905,6 +1895,273 @@ func TestUserUseCase_GetMatchedRoommateMatches(t *testing.T) {
 
 			require.NoError(t, err)
 			require.Equal(t, test.want, got)
+		})
+	}
+}
+
+func TestUserUseCase_DeleteRoommateForm(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	userID := 10
+
+	cases := []struct {
+		name      string
+		userID    int
+		setupMock func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo)
+		wantErr   error
+	}{
+		{
+			name:   "OK",
+			userID: userID,
+			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo) {
+				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
+
+				uowMock.EXPECT().Do(ctx, gomock.Any()).DoAndReturn(
+					func(ctx context.Context, fn func(usecase.UnitOfWork) error) error {
+						return fn(uowMock)
+					},
+				).Times(1)
+
+				uowMock.EXPECT().Users().Return(userRepoMock).Times(2)
+
+				userRepoMock.EXPECT().
+					DeletePosterRoommatesByUserID(ctx, userID).
+					Return(nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					DeleteRoommateForm(ctx, userID).
+					Return(nil).
+					Times(1)
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "InvalidUserID",
+			userID: 0,
+			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo) {
+			},
+			wantErr: entity.InvalidInput,
+		},
+		{
+			name:   "DeletePosterRoommatesError",
+			userID: userID,
+			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo) {
+				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
+
+				uowMock.EXPECT().Do(ctx, gomock.Any()).DoAndReturn(
+					func(ctx context.Context, fn func(usecase.UnitOfWork) error) error {
+						return fn(uowMock)
+					},
+				).Times(1)
+
+				uowMock.EXPECT().Users().Return(userRepoMock).Times(1)
+
+				userRepoMock.EXPECT().
+					DeletePosterRoommatesByUserID(ctx, userID).
+					Return(entity.ServiceError).
+					Times(1)
+			},
+			wantErr: entity.ServiceError,
+		},
+		{
+			name:   "DeleteRoommateFormNotFound",
+			userID: userID,
+			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo) {
+				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
+
+				uowMock.EXPECT().Do(ctx, gomock.Any()).DoAndReturn(
+					func(ctx context.Context, fn func(usecase.UnitOfWork) error) error {
+						return fn(uowMock)
+					},
+				).Times(1)
+
+				uowMock.EXPECT().Users().Return(userRepoMock).Times(2)
+
+				userRepoMock.EXPECT().
+					DeletePosterRoommatesByUserID(ctx, userID).
+					Return(nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					DeleteRoommateForm(ctx, userID).
+					Return(entity.NotFoundError).
+					Times(1)
+			},
+			wantErr: entity.NotFoundError,
+		},
+		{
+			name:   "DeleteRoommateFormServiceError",
+			userID: userID,
+			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo) {
+				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
+
+				uowMock.EXPECT().Do(ctx, gomock.Any()).DoAndReturn(
+					func(ctx context.Context, fn func(usecase.UnitOfWork) error) error {
+						return fn(uowMock)
+					},
+				).Times(1)
+
+				uowMock.EXPECT().Users().Return(userRepoMock).Times(2)
+
+				userRepoMock.EXPECT().
+					DeletePosterRoommatesByUserID(ctx, userID).
+					Return(nil).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					DeleteRoommateForm(ctx, userID).
+					Return(entity.ServiceError).
+					Times(1)
+			},
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range cases {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			uowMock := mocks.NewMockUnitOfWork(ctrl)
+			fileMock := mocks.NewMockFileRepo(ctrl)
+
+			test.setupMock(uowMock, fileMock)
+
+			uc := NewUserUseCase(uowMock, fileMock, nil)
+			err := uc.DeleteRoommateForm(ctx, test.userID)
+
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestUserUseCase_DeleteRoommateMatch(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+
+	fromUserID := 10
+	toUserID := 42
+
+	cases := []struct {
+		name       string
+		fromUserID int
+		toUserID   int
+		setupMock  func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo)
+		wantErr    error
+	}{
+		{
+			name:       "OK",
+			fromUserID: fromUserID,
+			toUserID:   toUserID,
+			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo) {
+				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
+
+				uowMock.EXPECT().
+					Users().
+					Return(userRepoMock).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					DeleteRoommateMatch(ctx, fromUserID, toUserID).
+					Return(nil).
+					Times(1)
+			},
+			wantErr: nil,
+		},
+		{
+			name:       "InvalidFromUserID",
+			fromUserID: 0,
+			toUserID:   toUserID,
+			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo) {
+			},
+			wantErr: entity.InvalidInput,
+		},
+		{
+			name:       "InvalidToUserID",
+			fromUserID: fromUserID,
+			toUserID:   0,
+			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo) {
+			},
+			wantErr: entity.InvalidInput,
+		},
+		{
+			name:       "SelfMatch",
+			fromUserID: fromUserID,
+			toUserID:   fromUserID,
+			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo) {
+			},
+			wantErr: entity.InvalidInput,
+		},
+		{
+			name:       "RepoNotFound",
+			fromUserID: fromUserID,
+			toUserID:   toUserID,
+			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo) {
+				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
+
+				uowMock.EXPECT().
+					Users().
+					Return(userRepoMock).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					DeleteRoommateMatch(ctx, fromUserID, toUserID).
+					Return(entity.NotFoundError).
+					Times(1)
+			},
+			wantErr: entity.NotFoundError,
+		},
+		{
+			name:       "RepoServiceError",
+			fromUserID: fromUserID,
+			toUserID:   toUserID,
+			setupMock: func(uowMock *mocks.MockUnitOfWork, fileMock *mocks.MockFileRepo) {
+				userRepoMock := mocks.NewMockUserRepo(gomock.NewController(t))
+
+				uowMock.EXPECT().
+					Users().
+					Return(userRepoMock).
+					Times(1)
+
+				userRepoMock.EXPECT().
+					DeleteRoommateMatch(ctx, fromUserID, toUserID).
+					Return(entity.ServiceError).
+					Times(1)
+			},
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range cases {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			uowMock := mocks.NewMockUnitOfWork(ctrl)
+			fileMock := mocks.NewMockFileRepo(ctrl)
+
+			test.setupMock(uowMock, fileMock)
+
+			uc := NewUserUseCase(uowMock, fileMock, nil)
+			err := uc.DeleteRoommateMatch(ctx, test.fromUserID, test.toUserID)
+
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
 		})
 	}
 }

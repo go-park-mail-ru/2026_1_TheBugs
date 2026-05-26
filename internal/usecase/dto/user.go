@@ -3,7 +3,7 @@ package dto
 import (
 	"encoding/base64"
 	"fmt"
-	"math/rand"
+	"crypto/rand"
 	"time"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"

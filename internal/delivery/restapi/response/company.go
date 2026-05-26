@@ -61,9 +61,7 @@ func MapGRPCDevelopersToDTO(grpcDevs *complex.GetAllDevelopersResponse) *Develop
 	res := make([]dto.DeveloperDTO, 0, len(grpcDevs.Developers))
 	for _, dev := range grpcDevs.Developers {
 		dtoDev := MapGRPCDeveloperToDTO(dev)
-		if &dtoDev != nil {
-			res = append(res, dtoDev)
-		}
+		res = append(res, dtoDev)
 	}
 	return &DevelopersResponse{
 		Developers: res,

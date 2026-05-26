@@ -43,6 +43,9 @@ func RunUserService(cfg *config.ProjectConfig, logger *logrus.Logger) {
 		Creds:  credentials.NewStaticV4(cfg.Minio.AccessKey, cfg.Minio.SecretKey, ""),
 		Secure: false,
 	})
+	if err != nil {
+		logger.Fatalf("minio.New: %s", err)
+	}
 	fileRepo, err := minioRepo.NewFileRepo(minioClient, cfg.Bucket)
 	if err != nil {
 		log.Fatalf("cannot create file repo: %v", err)

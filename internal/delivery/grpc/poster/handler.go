@@ -615,3 +615,23 @@ func (s *PosterServiceServer) AddPosterRoommate(ctx context.Context, req *poster
 
 	return &poster.AddPosterRoommateResponse{}, nil
 }
+
+func (s *PosterServiceServer) DeletePosterRoommate(
+	ctx context.Context,
+	req *poster.DeletePosterRoommateRequest,
+) (*poster.DeletePosterRoommateResponse, error) {
+	if req.UserId <= 0 {
+		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
+	}
+
+	if req.Alias == "" {
+		return nil, status.Error(codes.InvalidArgument, "invalid alias")
+	}
+
+	err := s.uc.DeletePosterRoommate(ctx, req.Alias, int(req.UserId))
+	if err != nil {
+		return nil, utils.TranslateDomainsError(err)
+	}
+
+	return &poster.DeletePosterRoommateResponse{}, nil
+}

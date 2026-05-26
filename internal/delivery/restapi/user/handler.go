@@ -219,6 +219,49 @@ func (h *UserHandler) AddRoommateMatch(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// @Summary Delete roommate match
+// @Description Removes target user from current authorized user roommates
+// @Tags users
+// @Produce json
+// @Param id path int true "Target user ID"
+// @Security BearerAuth
+// @Success 204
+// @Failure 400 {object} response.ErrorResponse
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /user/{id}/match [delete]
+func (h *UserHandler) DeleteRoommateMatch(w http.ResponseWriter, r *http.Request) {
+	op := "UserHandler.DeleteRoommateMatch"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	fromUserID, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.WithError(err).Error("failed to get user ID from context")
+		utils.WriteError(w, "failed to get user ID", http.StatusUnauthorized)
+		return
+	}
+
+	toUserID, err := utils.ParseIDFromRequest(r)
+	if err != nil {
+		log.WithError(err).Error("failed to parse target user ID from request")
+		utils.WriteError(w, "invalid user id", http.StatusBadRequest)
+		return
+	}
+
+	_, err = h.grpcClient.DeleteRoommateMatch(r.Context(), &user.DeleteRoommateMatchRequest{
+		FromUserId: int64(fromUserID),
+		ToUserId:   int64(toUserID),
+	})
+	if err != nil {
+		log.WithError(err).Error("h.grpcClient.DeleteRoommateMatch")
+		utils.HandelGRPCError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 // @Summary Get roommate contacts
 // @Description Returns target user contacts if roommate match is mutual
 // @Tags users
@@ -384,6 +427,39 @@ func (h *UserHandler) UpdateRoommateForm(w http.ResponseWriter, r *http.Request)
 	})
 	if err != nil {
 		log.WithError(err).Error("h.grpcClient.UpdateRoommateForm: failed to update roommate form")
+		utils.HandelGRPCError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// @Summary Delete roommate form
+// @Description Deletes current user roommate form
+// @Tags users
+// @Produce json
+// @Security BearerAuth
+// @Success 204
+// @Failure 401 {object} response.ErrorResponse
+// @Failure 404 {object} response.ErrorResponse
+// @Failure 500 {object} response.ErrorResponse
+// @Router /user/me/roommate-form [delete]
+func (h *UserHandler) DeleteRoommateForm(w http.ResponseWriter, r *http.Request) {
+	op := "UserHandler.DeleteRoommateForm"
+	log := ctxLogger.GetLogger(r.Context()).WithField("op", op)
+
+	userID, err := utils.GetUserID(r.Context())
+	if err != nil {
+		log.WithError(err).Error("failed to get user ID")
+		utils.WriteError(w, "failed to get user ID", http.StatusUnauthorized)
+		return
+	}
+
+	_, err = h.grpcClient.DeleteRoommateForm(r.Context(), &user.DeleteRoommateFormRequest{
+		UserId: int64(userID),
+	})
+	if err != nil {
+		log.WithError(err).Error("h.grpcClient.DeleteRoommateForm")
 		utils.HandelGRPCError(w, err)
 		return
 	}
