@@ -26,7 +26,7 @@ func main() {
 	pool, err := pgxpool.New(context.Background(), dsn)
 	senderRepo := smtp.NewSMTPSender(config.Config.SMTP.Host, config.Config.SMTP.Port, config.Config.SMTP.Email, config.Config.SMTP.Pwd)
 	c := cron.New()
-	c.AddFunc("*/1 * * * *", func() {
+	_, _ = c.AddFunc("*/1 * * * *", func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
@@ -42,7 +42,7 @@ func main() {
 			logger.Infof("Expiered: %d promotions", ct.RowsAffected())
 		}
 	})
-	c.AddFunc("0 10 * * *", func() {
+	_, _ = c.AddFunc("0 10 * * *", func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 

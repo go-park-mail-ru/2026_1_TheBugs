@@ -69,3 +69,24 @@ grpc_mock:
 	mockgen -destination internal/mocks/grpc_client/mock_user_client.go -package grpc_client github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/grpc/generated/user UserServiceClient
 	mockgen -destination internal/mocks/grpc_client/mock_poster_client.go -package grpc_client github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/grpc/generated/poster PosterServiceClient
 	mockgen -destination internal/mocks/grpc_client/mock_complex_client.go -package grpc_client github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/grpc/generated/complex ComplexServiceClient
+
+
+easyjson:
+	easyjson -all .\internal\delivery\restapi\response\company.go .\internal\delivery\restapi\response\poster.go .\internal\delivery\restapi\response\errors.go
+	easyjson -all .\internal\usecase\dto\chat.go 
+	easyjson -all .\internal\usecase\dto\complex.go
+	easyjson -all .\internal\usecase\dto\file.go
+	easyjson -all .\internal\usecase\dto\flat.go
+	easyjson -all .\internal\usecase\dto\geo.go
+	easyjson -all .\internal\usecase\dto\house.go
+	easyjson -all .\internal\usecase\dto\metro.go
+	easyjson -all .\internal\usecase\dto\oauth.go
+	easyjson -all .\internal\usecase\dto\order.go
+	easyjson -all .\internal\usecase\dto\photo.go
+	easyjson -all .\internal\usecase\dto\poster.go
+	easyjson -all .\internal\usecase\dto\promotion.go
+	easyjson -all .\internal\usecase\dto\roommate.go
+	easyjson -all .\internal\usecase\dto\seller.go
+	easyjson -all .\internal\usecase\dto\user.go
+
+
