@@ -3825,23 +3825,25 @@ func TestUpdateLastPriceHistoryRepo(t *testing.T) {
 func TestGetPosterRoommatesRepo(t *testing.T) {
 	expectedUsers := []dto.RoommateUserDTO{
 		{
-			ID:        1,
-			FirstName: "Ivan",
-			LastName:  "Ivanov",
-			AvatarURL: lo.ToPtr("avatar.jpg"),
+			ID:          1,
+			FirstName:   "Ivan",
+			LastName:    "Ivanov",
+			AvatarURL:   lo.ToPtr("avatar.jpg"),
+			PosterAlias: lo.ToPtr("flat-1"),
 		},
 		{
-			ID:        2,
-			FirstName: "Petr",
-			LastName:  "Petrov",
-			AvatarURL: nil,
+			ID:          2,
+			FirstName:   "Petr",
+			LastName:    "Petrov",
+			AvatarURL:   nil,
+			PosterAlias: lo.ToPtr("flat-1"),
 		},
 	}
 
 	inputAlias := "flat-1"
 
 	query := regexp.QuoteMeta(`
-		SELECT u.id, pr.first_name, pr.last_name, pr.avatar_url
+		SELECT u.id, pr.first_name, pr.last_name, pr.avatar_url, p.alias AS poster_alias
 		FROM poster_roommates rm
 		JOIN posters p ON p.id = rm.poster_id
 		JOIN users u ON u.id = rm.user_id
@@ -3862,11 +3864,11 @@ func TestGetPosterRoommatesRepo(t *testing.T) {
 			param: inputAlias,
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
-					"id", "first_name", "last_name", "avatar_url",
+					"id", "first_name", "last_name", "avatar_url", "poster_alias",
 				}).AddRow(
-					1, "Ivan", "Ivanov", lo.ToPtr("avatar.jpg"),
+					1, "Ivan", "Ivanov", lo.ToPtr("avatar.jpg"), lo.ToPtr(inputAlias),
 				).AddRow(
-					2, "Petr", "Petrov", nil,
+					2, "Petr", "Petrov", nil, lo.ToPtr(inputAlias),
 				)
 
 				m.ExpectQuery(query).
@@ -3881,7 +3883,7 @@ func TestGetPosterRoommatesRepo(t *testing.T) {
 			param: inputAlias,
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
-					"id", "first_name", "last_name", "avatar_url",
+					"id", "first_name", "last_name", "avatar_url", "poster_alias",
 				})
 
 				m.ExpectQuery(query).
@@ -3896,9 +3898,9 @@ func TestGetPosterRoommatesRepo(t *testing.T) {
 			param: inputAlias,
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
-					"id", "first_name", "last_name", "avatar_url",
+					"id", "first_name", "last_name", "avatar_url", "poster_alias",
 				}).AddRow(
-					"bad-id", "Ivan", "Ivanov", lo.ToPtr("avatar.jpg"),
+					"bad-id", "Ivan", "Ivanov", lo.ToPtr("avatar.jpg"), lo.ToPtr(inputAlias),
 				)
 
 				m.ExpectQuery(query).

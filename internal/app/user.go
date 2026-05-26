@@ -92,7 +92,7 @@ func RunUserService(cfg *config.ProjectConfig, logger *logrus.Logger) {
 		grpcServer,
 		userHandler.NewUserServiceServer(userUC),
 	)
-	logger.Info("start grpc listen: %s", grpcAsddr)
+	logger.Infof("start grpc listen: %s", grpcAsddr)
 	go func() {
 		lis, err := net.Listen("tcp", grpcAsddr)
 		if err != nil {

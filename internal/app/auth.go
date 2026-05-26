@@ -81,7 +81,7 @@ func RunAuthService(cfg *config.ProjectConfig, logger *logrus.Logger) {
 		grpcServer,
 		authHandler.NewAuthServiceServer(authUC),
 	)
-	logger.Info("start grpc listen: %s", grpcAsddr)
+	logger.Infof("start grpc listen: %s", grpcAsddr)
 	go func() {
 		lis, err := net.Listen("tcp", grpcAsddr)
 		if err != nil {

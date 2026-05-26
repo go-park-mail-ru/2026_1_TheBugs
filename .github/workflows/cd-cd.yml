@@ -28,6 +28,7 @@ jobs:
         key: ${{ runner.os }}-go-${{ hashFiles('backend/go.sum') }}-${{ github.run_id }}
         restore-keys: ${{ runner.os }}-go-
 
+
     - name: Run tests
       run: go test -v ./...
 
