@@ -1,13 +1,17 @@
 package dto
 
-import "github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+import (
+	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/photo"
+)
 
 type RoommateUserDTO struct {
 	ID          int     `json:"id" db:"id"`
 	FirstName   string  `json:"first_name" db:"first_name"`
 	LastName    string  `json:"last_name" db:"last_name"`
 	AvatarURL   *string `json:"avatar_url,omitempty" db:"avatar_url"`
-	PosterAlias *string `json:"poster_alias" db:"-"`
+	PosterAlias *string `json:"poster_alias" db:"poster_alias"`
 }
 
 type PosterRoommatesResponse struct {
@@ -37,6 +41,13 @@ func RoommateUserToDTO(user *entity.RoommateUser, tags []entity.RoommateTag) *Ro
 			Name:  tag.Name,
 			Alias: tag.Alias,
 		})
+	}
+	if user == nil {
+		return nil
+	}
+	if user.AvatarURL != nil {
+		avatar := photo.MakeUrlFromPath(*user.AvatarURL, config.Config.PublicHost, config.Config.Bucket)
+		user.AvatarURL = &avatar
 	}
 
 	return &RoommateUserProfileDTO{

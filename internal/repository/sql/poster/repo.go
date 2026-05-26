@@ -1156,7 +1156,7 @@ func (r *PosterRepo) GetPosterRoommates(ctx context.Context, posterAlias string)
 	log.Info("start db query")
 
 	query := `
-		SELECT u.id, pr.first_name, pr.last_name, pr.avatar_url
+		SELECT u.id, pr.first_name, pr.last_name, pr.avatar_url, p.alias AS poster_alias
 		FROM poster_roommates rm
 		JOIN posters p ON p.id = rm.poster_id
 		JOIN users u ON u.id = rm.user_id

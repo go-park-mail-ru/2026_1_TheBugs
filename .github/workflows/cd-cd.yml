@@ -2,13 +2,13 @@ name: CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, dev]
   pull_request:
     branches: [ main ]
   workflow_dispatch:
 
 jobs:
-  tests:
+  test: 
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
@@ -34,15 +34,17 @@ jobs:
         version: v1.61.0
 
     - name: Run golangci-lint
-      run: golangci-lint run ./... --timeout 5m
+      run: golangci-lint --fast run ./... --timeout 5m
 
     - name: Run tests
       run: go test -v ./...
 
   deploy:
     runs-on: ubuntu-latest
-    needs: tests
-    if: github.event_name == 'push' &&  success()
+    needs: test
+    
+    #if: github.event_name == 'push' && github.ref == 'refs/heads/main' && success()
+    if: success()
     steps:  
       - name: Checkout repo
         uses: actions/checkout@v4

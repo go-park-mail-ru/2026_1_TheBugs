@@ -413,18 +413,6 @@ CREATE TABLE IF NOT EXISTS roommate_matches(
 COMMENT ON TABLE roommate_matches IS 'Симпатии пользователей для сожительства';
 
 
-CREATE INDEX idx_roommate_matches_poster_id ON roommate_matches(poster_id);
-
-CREATE INDEX idx_roommate_forms_user_id ON roommate_forms(user_id);
-
-CREATE INDEX idx_roommate_form_tags_roommate_form_id ON roommate_form_tags(roommate_form_id);
-CREATE INDEX idx_roommate_form_tags_roommate_tag_id ON roommate_form_tags(roommate_tag_id);
-
-CREATE INDEX idx_poster_roommates_poster_id ON poster_roommates(poster_id);
-CREATE INDEX idx_poster_roommates_user_id ON poster_roommates(user_id);
-
-CREATE INDEX idx_roommate_matches_from_user_id ON roommate_matches(from_user_id);
-CREATE INDEX idx_roommate_matches_to_user_id ON roommate_matches(to_user_id);
 CREATE TABLE promotions (
     id SMALLINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     code TEXT UNIQUE NOT NULL,
@@ -467,6 +455,21 @@ CREATE TABLE posters_promotions (
 );
 
 COMMENT ON TABLE posters_promotions IS 'Продвижение на объявления';
+
+
+CREATE INDEX idx_roommate_matches_poster_id ON roommate_matches(poster_id);
+
+CREATE INDEX idx_roommate_forms_user_id ON roommate_forms(user_id);
+
+CREATE INDEX idx_roommate_form_tags_roommate_form_id ON roommate_form_tags(roommate_form_id);
+CREATE INDEX idx_roommate_form_tags_roommate_tag_id ON roommate_form_tags(roommate_tag_id);
+
+CREATE INDEX idx_poster_roommates_poster_id ON poster_roommates(poster_id);
+CREATE INDEX idx_poster_roommates_user_id ON poster_roommates(user_id);
+
+CREATE INDEX idx_roommate_matches_from_user_id ON roommate_matches(from_user_id);
+CREATE INDEX idx_roommate_matches_to_user_id ON roommate_matches(to_user_id);
+
 ALTER TABLE posters_promotions DROP CONSTRAINT chk_status_dates;
 
 

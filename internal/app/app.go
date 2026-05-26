@@ -24,7 +24,6 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/ratelimit"
 	supportUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/support"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/dsn"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/redis/go-redis/v9"
@@ -36,8 +35,7 @@ import (
 )
 
 func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
-	dsn := dsn.BuildDSN(cfg.Postgres)
-	pool, err := pgxpool.New(context.Background(), dsn)
+	pool, err := dsn.OpenDB(cfg.Postgres)
 	if err != nil {
 		logger.Fatalf("cannot create pgx pool: %v", err)
 	}

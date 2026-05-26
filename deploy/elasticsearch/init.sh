@@ -5,7 +5,7 @@ until curl -s http://localhost:9200/_cluster/health > /dev/null; do
   sleep 2
 done
 
-curl -v -X DELETE "localhost:9200/posters" -s || true
+# curl -v -X DELETE "localhost:9200/posters" -s || true
 
 curl -v -X PUT "localhost:9200/posters" \
   -H 'Content-Type: application/json' \
