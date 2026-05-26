@@ -477,7 +477,7 @@ func TestCreateUserByProvider(t *testing.T) {
 }
 
 func TestGetUserByProvider(t *testing.T) {
-	query := regexp.QuoteMeta(`SELECT id, email, salt, hashed_password, provider, is_verified FROM users WHERE email=$1 AND provider=$2`)
+	query := regexp.QuoteMeta(`SELECT id, email, salt, hashed_password, provider, is_verified, is_admin FROM users WHERE email=$1 AND provider=$2`)
 	provider := "provider"
 
 	expectedUser := &entity.User{
@@ -502,8 +502,8 @@ func TestGetUserByProvider(t *testing.T) {
 			email:    "test@mail.ru",
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
-					"id", "email", "salt", "hashed_password", "provider", "is_verified",
-				}).AddRow(1, "test@mail.ru", nil, nil, lo.ToPtr(provider), false)
+					"id", "email", "salt", "hashed_password", "provider", "is_verified", "is_admin",
+				}).AddRow(1, "test@mail.ru", nil, nil, lo.ToPtr(provider), false, false)
 
 				m.ExpectQuery(query).
 					WithArgs("test@mail.ru", provider).
@@ -518,7 +518,7 @@ func TestGetUserByProvider(t *testing.T) {
 			email:    "missing@mail.ru",
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
-					"id", "email", "salt", "hashed_password", "provider", "is_verified",
+					"id", "email", "salt", "hashed_password", "provider", "is_verified", "is_admin",
 				})
 
 				m.ExpectQuery(query).
@@ -534,8 +534,8 @@ func TestGetUserByProvider(t *testing.T) {
 			email:    "test@mail.ru",
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
-					"id", "email", "salt", "hashed_password", "provider", "is_verified",
-				}).AddRow("bad_id", "test@mail.ru", nil, nil, lo.ToPtr(provider), false)
+					"id", "email", "salt", "hashed_password", "provider", "is_verified", "is_admin",
+				}).AddRow("bad_id", "test@mail.ru", nil, nil, lo.ToPtr(provider), false, false)
 
 				m.ExpectQuery(query).
 					WithArgs("test@mail.ru", provider).

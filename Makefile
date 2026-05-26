@@ -14,7 +14,7 @@ coverage:
 	go tool cover -func cover.out
 
 coverage-win:
-	$pkgs = go list ./... | Where-Object { $_ -notmatch '/docs|/utils|/config|/cmd|/generated|/app|/entity|/mocks|/dto|/metrics|/logger|/middleware|/response|/request|/order' }
+	$pkgs = go list ./... | Where-Object { $_ -notmatch '/docs|/utils|/config|/cmd|/generated|/app|/entity|/mocks|/dto|/metrics|/logger|/middleware|/response|/request|/support' }
 	go test $pkgs -coverprofile cover.out -covermode=count
 	go tool cover -func cover.out
 
