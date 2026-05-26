@@ -862,12 +862,7 @@ func TestCreateFlatPoster(t *testing.T) {
 					InsertPhotos(ctx, 33, gomock.Any()).
 					Return(nil).
 					Times(1)
-
-				// Insert main photo
-				repo.EXPECT().
-					InsertMainPhoto(ctx, 33, gomock.Any()).
-					Return(nil).
-					Times(1)
+				file.EXPECT().Get(gomock.Any(), gomock.Any()).Return(nil, entity.ServiceError).Times(1)
 			},
 			want: &dto.CreatedPoster{
 				ID: 33,
@@ -974,12 +969,7 @@ func TestCreateFlatPoster(t *testing.T) {
 					InsertPhotos(ctx, 33, gomock.Any()).
 					Return(nil).
 					Times(1)
-
-				// Insert main photo
-				repo.EXPECT().
-					InsertMainPhoto(ctx, 33, gomock.Any()).
-					Return(nil).
-					Times(1)
+				file.EXPECT().Get(gomock.Any(), gomock.Any()).Return(nil, entity.ServiceError).Times(1)
 			},
 			want: &dto.CreatedPoster{
 				ID: 33,
@@ -1041,6 +1031,7 @@ func TestCreateFlatPoster(t *testing.T) {
 			uc := NewPosterUseCase(mockUOW, mockFile, nil, nil, nil, mockOSM)
 
 			res, err := uc.CreateFlatPoster(ctx, test.poster)
+			time.Sleep(100 * time.Millisecond)
 
 			if test.wantErr != "" {
 				require.Error(t, err)
@@ -1238,11 +1229,7 @@ func TestUpdateFlatPoster(t *testing.T) {
 					InsertPhotos(ctx, 33, gomock.Any()).
 					Return(nil).
 					Times(1)
-
-				repo.EXPECT().
-					InsertMainPhoto(ctx, 33, gomock.Any()).
-					Return(nil).
-					Times(1)
+				file.EXPECT().Get(gomock.Any(), gomock.Any()).Return(nil, entity.ServiceError).Times(1)
 
 				cache.EXPECT().
 					Delete(ctx, "posters:"+alias).
@@ -1318,8 +1305,7 @@ func TestUpdateFlatPoster(t *testing.T) {
 				repo.EXPECT().UpdateFlat(ctx, gomock.Any()).Return(nil).Times(1)
 				repo.EXPECT().DeletePhotosByPosterID(ctx, 33).Return(nil).Times(1)
 				repo.EXPECT().InsertPhotos(ctx, 33, gomock.Any()).Return(nil).Times(1)
-				repo.EXPECT().InsertMainPhoto(ctx, 33, gomock.Any()).Return(nil).Times(1)
-
+				file.EXPECT().Get(gomock.Any(), gomock.Any()).Return(nil, entity.ServiceError).Times(1)
 				cache.EXPECT().
 					Delete(ctx, "posters:"+alias).
 					Return(nil).
@@ -1484,7 +1470,8 @@ func TestUpdateFlatPoster(t *testing.T) {
 				repo.EXPECT().UpdateFlat(ctx, gomock.Any()).Return(nil).Times(1)
 				repo.EXPECT().DeletePhotosByPosterID(ctx, 33).Return(nil).Times(1)
 				repo.EXPECT().InsertPhotos(ctx, 33, gomock.Any()).Return(nil).Times(1)
-				repo.EXPECT().InsertMainPhoto(ctx, 33, gomock.Any()).Return(nil).Times(1)
+
+				file.EXPECT().Get(gomock.Any(), gomock.Any()).Return(nil, entity.ServiceError).Times(1)
 
 				file.EXPECT().
 					Delete(ctx, "poster/img/flat/old.jpg").
@@ -1526,6 +1513,8 @@ func TestUpdateFlatPoster(t *testing.T) {
 			uc := NewPosterUseCase(mockUOW, mockFile, nil, nil, mockCache, mockOSM)
 
 			res, err := uc.UpdateFlatPoster(ctx, test.alias, test.poster)
+
+			time.Sleep(100 * time.Millisecond)
 
 			if test.wantErr != nil {
 				require.Error(t, err)
