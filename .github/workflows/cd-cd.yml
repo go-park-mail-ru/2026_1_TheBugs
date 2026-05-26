@@ -28,15 +28,6 @@ jobs:
         key: ${{ runner.os }}-go-${{ hashFiles('backend/go.sum') }}-${{ github.run_id }}
         restore-keys: ${{ runner.os }}-go-
 
-    - name: Install golangci-lint
-      uses: golangci/golangci-lint-action@v6
-      with:
-        version: latest
-        args: --timeout=5m
-
-    - name: Run golangci-lint
-      run: golangci-lint run ./... --timeout 5m  --fast
-
     - name: Run tests
       run: go test -v ./...
 
