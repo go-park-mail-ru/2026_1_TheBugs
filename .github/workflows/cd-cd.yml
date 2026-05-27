@@ -8,71 +8,71 @@ on:
   workflow_dispatch:
 
 jobs:
-  # test: 
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Checkout code
-  #     uses: actions/checkout@v4
+  test: 
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-  #   - name: Set up Go
-  #     uses: actions/setup-go@v5
-  #     with:
-  #       go-version: '1.23'
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
 
-  #   - name: Cache Go modules
-  #     uses: actions/cache@v4
-  #     with:
-  #       path: |
-  #         ~/.cache/go-build
-  #         ~/go/pkg/mod
-  #       key: ${{ runner.os }}-go-${{ hashFiles('backend/go.sum') }}-${{ github.run_id }}
-  #       restore-keys: ${{ runner.os }}-go-
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('backend/go.sum') }}-${{ github.run_id }}
+        restore-keys: ${{ runner.os }}-go-
 
 
-  #   - name: Run tests
-  #     run: go test -v ./...
+    - name: Run tests
+      run: go test -v ./...
 
-  # deploy:
-  #   runs-on: ubuntu-latest
-  #   needs: test
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
     
-  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main' && success()
-  #   #if: success()
-  #   steps:  
-  #     - name: Checkout repo
-  #       uses: actions/checkout@v4
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && success()
+    #if: success()
+    steps:  
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-  #     - name: Setup SSH
-  #       uses: webfactory/ssh-agent@v0.9.0
-  #       with:
-  #         ssh-private-key: ${{ secrets.VPS_PRIVATE_KEY }}
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_PRIVATE_KEY }}
 
-  #     - name: Init github repo
-  #       run: |
-  #         ssh -o StrictHostKeyChecking=accept-new "${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}" "bash -lc '
-  #         cd /home/${{ secrets.VPS_USERNAME }}/prod
-  #         echo "Pulling updates..."
-  #         git pull origin main
-  #         git submodule update --recursive
-  #         '"
+      - name: Init github repo
+        run: |
+          ssh -o StrictHostKeyChecking=accept-new "${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}" "bash -lc '
+          cd /home/${{ secrets.VPS_USERNAME }}/prod
+          echo "Pulling updates..."
+          git pull origin main
+          git submodule update --recursive
+          '"
 
-  #     - name: Docker pull and restart
-  #       run: |
-  #         ssh -o StrictHostKeyChecking=accept-new "${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}" "sudo bash -lc '
-  #         cd /home/${{ secrets.VPS_USERNAME }}/prod
-  #         docker compose up -d --build --remove-orphans --no-deps user_service 
-  #         docker compose up -d --build --remove-orphans --no-deps complex_service
-  #         docker compose up -d --build --remove-orphans --no-deps poster_service
-  #         docker compose up -d --build --remove-orphans --no-deps auth_service
-  #         docker compose up -d --build --remove-orphans --no-deps gateaway_service
-  #         docker compose down nginx 
-  #         docker compose up -d --build --no-deps nginx
-  #         '"
+      - name: Docker pull and restart
+        run: |
+          ssh -o StrictHostKeyChecking=accept-new "${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_HOST }}" "sudo bash -lc '
+          cd /home/${{ secrets.VPS_USERNAME }}/prod
+          docker compose up -d --build --remove-orphans --no-deps user_service 
+          docker compose up -d --build --remove-orphans --no-deps complex_service
+          docker compose up -d --build --remove-orphans --no-deps poster_service
+          docker compose up -d --build --remove-orphans --no-deps auth_service
+          docker compose up -d --build --remove-orphans --no-deps gateaway_service
+          docker compose down nginx 
+          docker compose up -d --build --no-deps nginx
+          '"
 
   notify_success:
     runs-on: ubuntu-latest
-    # needs: deploy
-    # if: success()
+    needs: deploy
+    if: success()
     steps:
       - name: Escape commit message
         run: |
