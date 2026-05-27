@@ -36,8 +36,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     
-    #if: github.event_name == 'push' && github.ref == 'refs/heads/main' && success()
-    if: success()
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && success()
+    #if: success()
     steps:  
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -74,6 +74,13 @@ jobs:
     needs: deploy
     if: success()
     steps:
+      - name: Escape commit message
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          # Экранируем HTML специальные символы
+          ESCAPED=$(echo "$COMMIT_MSG" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+          echo "ESCAPED_MSG=$ESCAPED" >> $GITHUB_ENV
+
       - name: Send success message
         uses: appleboy/telegram-action@master
         with:
@@ -85,6 +92,6 @@ jobs:
 
             <code>branch:</code> ${{ github.ref_name }} 
             <code>author:</code> ${{ github.event.pusher.name }}
-            <code>message:</code> ${{ github.event.head_commit.message }}
+            <code>message:</code> ${{ env.ESCAPED_MSG }}
 
             See changes: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
