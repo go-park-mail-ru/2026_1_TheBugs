@@ -154,17 +154,81 @@ func (e *SMTPSender) SendRoommateMatch(ctx context.Context, email string, firstN
 	m.SetHeader("Reply-To", from)
 
 	m.SetBody("text/html", fmt.Sprintf(`
-		<h2>У вас новая заявка</h2>
+	<!doctype html>
+	<html lang="ru">
+	<body style="margin:0; padding:0; background:#f4f6fb;">
+		<table width="100%%" cellpadding="0" cellspacing="0" style="background:#f4f6fb; padding:16px;">
+			<tr>
+				<td align="center">
+					<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; background:#ffffff; border-radius:18px; overflow:hidden; font-family:Arial, sans-serif; box-shadow:0 8px 28px rgba(0,0,0,0.08);">
 
-		<p><b>%s %s</b> хочет добавить вас в соседи.</p>
+						<tr>
+							<td style="background:rgb(240, 141, 204); padding:28px 32px;">
+								<div style="font-size:24px; font-weight:700; color:#ffffff;">DomDeli</div>
+								<div style="margin-top:6px; font-size:15px; color:#eaf3ff;">Новая заявка в соседи</div>
+							</td>
+						</tr>
 
-		<p><b>Объявление:</b> <a href="%s">%s</a></p>
+						<tr>
+							<td style="padding:32px;">
+								<h2 style="margin:0 0 16px; font-size:26px; color:#1f2933;">
+									У вас новая заявка 👋
+								</h2>
 
-		<p>
-			Зайдите в DomDeli, чтобы посмотреть анкету и ответить взаимностью:
-			<a href="https://dom-deli.ru/friends?tab=requests">https://dom-deli.ru/friends</a>
-		</p>
-	`, firstName, lastName, posterURL, posterURL))
+								<p style="margin:0 0 20px; font-size:16px; line-height:26px; color:#52616b;">
+									<b style="color:#1f2933;">%s %s</b> хочет добавить вас в соседи.
+								</p>
+
+								<div style="background:rgb(246, 246, 245); border:1px solid #e8eef6; border-radius:14px; padding:18px 20px; margin:22px 0;">
+									<p style="margin:0; font-size:15px; line-height:24px; color:#52616b;">
+										Посмотрите объявление и перейдите в заявки, чтобы ответить пользователю.
+									</p>
+								</div>
+
+								<table cellpadding="0" cellspacing="0" style="margin:24px 0 14px;">
+									<tr>
+										<td style="background:rgb(246, 246, 245); border-radius:12px;">
+											<a href="%s" target="_blank"
+											style="display:inline-block; padding:14px 22px; color:rgb(26, 26, 26); text-decoration:none; font-size:15px; font-weight:700;">
+												Посмотреть объявление
+											</a>
+										</td>
+									</tr>
+								</table>
+
+								<table cellpadding="0" cellspacing="0" style="margin:0 0 22px;">
+									<tr>
+										<td style="background:rgb(240, 141, 204); border-radius:12px;">
+											<a href="https://dom-deli.ru/friends?tab=requests" target="_blank"
+											style="display:inline-block; padding:14px 22px; color:#ffffff; text-decoration:none; font-size:15px; font-weight:700;">
+												Открыть заявки в соседи
+											</a>
+										</td>
+									</tr>
+								</table>
+
+								<p style="margin:0; font-size:13px; line-height:20px; color:#8a94a6;">
+									Если кнопка не открывается, скопируйте ссылку в браузер:<br>
+									<a href="%s" style="color:#2f80ed;">%s</a>
+								</p>
+							</td>
+						</tr>
+
+						<tr>
+							<td style="padding:20px 32px; background:#f8fafd; border-top:1px solid #e8eef6;">
+								<p style="margin:0; font-size:13px; line-height:20px; color:#7b8794;">
+									Это автоматическое письмо от DomDeli. Если вы не ожидали это уведомление, просто проигнорируйте его.
+								</p>
+							</td>
+						</tr>
+
+					</table>
+				</td>
+			</tr>
+		</table>
+	</body>
+	</html>
+	`, firstName, lastName, posterURL, posterURL, posterURL))
 
 	dialer := gomail.NewDialer(e.host, e.port, e.username, e.password)
 
@@ -201,22 +265,93 @@ func (e *SMTPSender) SendRoommateContactsForRequester(
 	m.SetHeader("Reply-To", from)
 
 	m.SetBody("text/html", fmt.Sprintf(`
-		<h2>Контакты сожителя</h2>
+	<!doctype html>
+	<html lang="ru">
+	<body style="margin:0; padding:0; background:#f4f6fb;">
+		<table width="100%%" cellpadding="0" cellspacing="0" style="background:#f4f6fb; padding:16px;">
+			<tr>
+				<td align="center">
+					<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; background:#ffffff; border-radius:18px; overflow:hidden; font-family:Arial, sans-serif; box-shadow:0 8px 28px rgba(0,0,0,0.08);">
 
-		<p>Вы добавили <b>%s %s</b> в соседи.</p>
+						<tr>
+							<td style="background:rgb(240, 141, 204); padding:28px 32px;">
+								<div style="font-size:24px; font-weight:700; color:#ffffff;">DomDeli</div>
+								<div style="margin-top:6px; font-size:15px; color:#eaf3ff;">Контакты сожителя</div>
+							</td>
+						</tr>
 
-		<p><b>Объявление:</b> <a href="%s">%s</a></p>
+						<tr>
+							<td style="padding:32px;">
+								<h2 style="margin:0 0 16px; font-size:26px; color:#1f2933;">
+									Контакты сожителя 🎉
+								</h2>
 
-		<p>Теперь вы можете связаться с пользователем:</p>
+								<p style="margin:0 0 20px; font-size:16px; line-height:26px; color:#52616b;">
+									Вы добавили <b style="color:#1f2933;">%s %s</b> в соседи.
+									Теперь вы можете связаться с пользователем напрямую.
+								</p>
 
-		<p><b>Email:</b> %s</p>
-		<p><b>Телефон:</b> %s</p>
+								<div style="background:rgb(246, 246, 245); border:1px solid #e8eef6; border-radius:14px; padding:18px 20px; margin:22px 0;">
+									<table width="100%%" cellpadding="0" cellspacing="0">
+										<tr>
+											<td style="padding:8px 0; font-size:14px; color:#7b8794;">Email</td>
+											<td style="padding:8px 0; font-size:15px; color:#1f2933; font-weight:700;">
+												%s
+											</td>
+										</tr>
+										<tr>
+											<td style="padding:8px 0; font-size:14px; color:#7b8794;">Телефон</td>
+											<td style="padding:8px 0; font-size:15px; color:#1f2933; font-weight:700;">
+												%s
+											</td>
+										</tr>
+									</table>
+								</div>
 
-		<p>
-			Список ваших соседей вы можете посмотреть в профиле:
-			<a href="https://dom-deli.ru/friends">https://dom-deli.ru/friends</a>
-		</p>
-	`, roommateFirstName, roommateLastName, posterURL, posterURL, roommateEmail, roommatePhone))
+								<table cellpadding="0" cellspacing="0" style="margin:24px 0 14px;">
+									<tr>
+										<td style="background:rgb(246, 246, 245); border-radius:12px;">
+											<a href="%s" target="_blank"
+											style="display:inline-block; padding:14px 22px; color:rgb(26, 26, 26); text-decoration:none; font-size:15px; font-weight:700;">
+												Посмотреть объявление
+											</a>
+										</td>
+									</tr>
+								</table>
+
+								<table cellpadding="0" cellspacing="0" style="margin:0 0 22px;">
+									<tr>
+										<td style="background:rgb(240, 141, 204); border-radius:12px;">
+											<a href="https://dom-deli.ru/friends" target="_blank"
+											style="display:inline-block; padding:14px 22px; color:#ffffff; text-decoration:none; font-size:15px; font-weight:700;">
+												Открыть список соседей
+											</a>
+										</td>
+									</tr>
+								</table>
+
+								<p style="margin:0; font-size:13px; line-height:20px; color:#8a94a6;">
+									Если кнопка не открывается, скопируйте ссылку в браузер:<br>
+									<a href="https://dom-deli.ru/friends" style="color:#2f80ed;">https://dom-deli.ru/friends</a>
+								</p>
+							</td>
+						</tr>
+
+						<tr>
+							<td style="padding:20px 32px; background:#f8fafd; border-top:1px solid #e8eef6;">
+								<p style="margin:0; font-size:13px; line-height:20px; color:#7b8794;">
+									Это автоматическое письмо от DomDeli. Если вы не ожидали это уведомление, просто проигнорируйте его.
+								</p>
+							</td>
+						</tr>
+
+					</table>
+				</td>
+			</tr>
+		</table>
+	</body>
+	</html>
+	`, roommateFirstName, roommateLastName, roommateEmail, roommatePhone, posterURL))
 
 	dialer := gomail.NewDialer(e.host, e.port, e.username, e.password)
 
@@ -253,22 +388,93 @@ func (e *SMTPSender) SendRoommateContactsForAccepted(
 	m.SetHeader("Reply-To", from)
 
 	m.SetBody("text/html", fmt.Sprintf(`
-		<h2>Вашу заявку в соседи приняли</h2>
+		<!doctype html>
+			<html lang="ru">
+			<body style="margin:0; padding:0; background:#f4f6fb;">
+				<table width="100%%" cellpadding="0" cellspacing="0" style="background:#f4f6fb; padding:16px;">
+					<tr>
+						<td align="center">
+							<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; background:#ffffff; border-radius:18px; overflow:hidden; font-family:Arial, sans-serif; box-shadow:0 8px 28px rgba(0,0,0,0.08);">
 
-		<p><b>%s %s</b> добавил вас в соседи.</p>
+								<tr>
+									<td style="background:rgb(240, 141, 204); padding:28px 32px;">
+										<div style="font-size:24px; font-weight:700; color:#ffffff;">DomDeli</div>
+										<div style="margin-top:6px; font-size:15px; color:#eaf3ff;">Заявку приняли</div>
+									</td>
+								</tr>
 
-		<p><b>Объявление:</b> <a href="%s">%s</a></p>
+								<tr>
+									<td style="padding:32px;">
+										<h2 style="margin:0 0 16px; font-size:26px; color:#1f2933;">
+											Вашу заявку приняли 🎉
+										</h2>
 
-		<p>Теперь вы можете связаться с пользователем:</p>
+										<p style="margin:0 0 20px; font-size:16px; line-height:26px; color:#52616b;">
+											<b style="color:#1f2933;">%s %s</b> добавил вас в соседи.
+											Теперь вы можете связаться с пользователем напрямую.
+										</p>
 
-		<p><b>Email:</b> %s</p>
-		<p><b>Телефон:</b> %s</p>
+										<div style="background:rgb(246, 246, 245); border:1px solid #e8eef6; border-radius:14px; padding:18px 20px; margin:22px 0;">
+											<table width="100%%" cellpadding="0" cellspacing="0">
+												<tr>
+													<td style="padding:8px 0; font-size:14px; color:#7b8794;">Email</td>
+													<td style="padding:8px 0; font-size:15px; color:#1f2933; font-weight:700;">
+														%s
+													</td>
+												</tr>
+												<tr>
+													<td style="padding:8px 0; font-size:14px; color:#7b8794;">Телефон</td>
+													<td style="padding:8px 0; font-size:15px; color:#1f2933; font-weight:700;">
+														%s
+													</td>
+												</tr>
+											</table>
+										</div>
 
-		<p>
-			Список ваших соседей вы можете посмотреть в профиле:
-			<a href="https://dom-deli.ru/friends">https://dom-deli.ru/friends</a>
-		</p>
-	`, roommateFirstName, roommateLastName, posterURL, posterURL, roommateEmail, roommatePhone))
+										<table cellpadding="0" cellspacing="0" style="margin:24px 0 14px;">
+											<tr>
+												<td style="background:rgb(246, 246, 245); border-radius:12px;">
+													<a href="%s" target="_blank"
+													style="display:inline-block; padding:14px 22px; color:rgb(26, 26, 26); text-decoration:none; font-size:15px; font-weight:700;">
+														Посмотреть объявление
+													</a>
+												</td>
+											</tr>
+										</table>
+
+										<table cellpadding="0" cellspacing="0" style="margin:0 0 22px;">
+											<tr>
+												<td style="background:rgb(240, 141, 204); border-radius:12px;">
+													<a href="https://dom-deli.ru/friends" target="_blank"
+													style="display:inline-block; padding:14px 22px; color:#ffffff; text-decoration:none; font-size:15px; font-weight:700;">
+														Открыть список соседей
+													</a>
+												</td>
+											</tr>
+										</table>
+
+										<p style="margin:0; font-size:13px; line-height:20px; color:#8a94a6;">
+											Если кнопка не открывается, скопируйте ссылку в браузер:<br>
+											<a href="https://dom-deli.ru/friends" style="color:#2f80ed;">https://dom-deli.ru/friends</a>
+										</p>
+									</td>
+								</tr>
+
+								<tr>
+									<td style="padding:20px 32px; background:#f8fafd; border-top:1px solid #e8eef6;">
+										<p style="margin:0; font-size:13px; line-height:20px; color:#7b8794;">
+											Это автоматическое письмо от DomDeli. Если вы не ожидали это уведомление, просто проигнорируйте его.
+										</p>
+									</td>
+								</tr>
+
+							</table>
+						</td>
+					</tr>
+				</table>
+			</body>
+			</html>
+		`, roommateFirstName, roommateLastName, roommateEmail, roommatePhone, posterURL))
 
 	dialer := gomail.NewDialer(e.host, e.port, e.username, e.password)
 
