@@ -160,7 +160,7 @@ func (e *SMTPSender) SendRoommateMatch(ctx context.Context, email string, firstN
 		<table width="100%%" cellpadding="0" cellspacing="0" style="background:#f4f6fb; padding:16px;">
 			<tr>
 				<td align="center">
-					<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; background:#ffffff; border-radius:18px; overflow:hidden; font-family:Arial, sans-serif; box-shadow:0 8px 28px rgba(0,0,0,0.08);">
+					<table width="100%%" cellpadding="0" cellspacing="0" style="max-width:600px; background:#ffffff; border-radius:18px; overflow:hidden; font-family:Arial, sans-serif; box-shadow:0 8px 28px rgba(0,0,0,0.08);">
 
 						<tr>
 							<td style="background:rgb(240, 141, 204); padding:28px 32px;">
@@ -271,7 +271,7 @@ func (e *SMTPSender) SendRoommateContactsForRequester(
 		<table width="100%%" cellpadding="0" cellspacing="0" style="background:#f4f6fb; padding:16px;">
 			<tr>
 				<td align="center">
-					<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; background:#ffffff; border-radius:18px; overflow:hidden; font-family:Arial, sans-serif; box-shadow:0 8px 28px rgba(0,0,0,0.08);">
+					<table width="100%%" cellpadding="0" cellspacing="0" style="max-width:600px; background:#ffffff; border-radius:18px; overflow:hidden; font-family:Arial, sans-serif; box-shadow:0 8px 28px rgba(0,0,0,0.08);">
 
 						<tr>
 							<td style="background:rgb(240, 141, 204); padding:28px 32px;">
@@ -394,7 +394,7 @@ func (e *SMTPSender) SendRoommateContactsForAccepted(
 				<table width="100%%" cellpadding="0" cellspacing="0" style="background:#f4f6fb; padding:16px;">
 					<tr>
 						<td align="center">
-							<table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; background:#ffffff; border-radius:18px; overflow:hidden; font-family:Arial, sans-serif; box-shadow:0 8px 28px rgba(0,0,0,0.08);">
+							<table width="100%%" cellpadding="0" cellspacing="0" style="max-width:600px; background:#ffffff; border-radius:18px; overflow:hidden; font-family:Arial, sans-serif; box-shadow:0 8px 28px rgba(0,0,0,0.08);">
 
 								<tr>
 									<td style="background:rgb(240, 141, 204); padding:28px 32px;">
