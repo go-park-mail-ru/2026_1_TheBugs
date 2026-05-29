@@ -97,7 +97,7 @@ func (h *SupportHandler) GetOrders(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusOK, supports)
+	utils.EasyJSONResponse(w, http.StatusOK, supports)
 }
 
 // @Summary Get order by id
@@ -139,7 +139,7 @@ func (h *SupportHandler) GetOrderByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.JSONResponse(w, http.StatusOK, support)
+	utils.EasyJSONResponse(w, http.StatusOK, support)
 }
 
 // @Summary Answer order

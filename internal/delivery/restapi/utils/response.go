@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/mailru/easyjson"
 )
 
 func JSONResponse(w http.ResponseWriter, status int, obj interface{}) {
@@ -12,6 +14,16 @@ func JSONResponse(w http.ResponseWriter, status int, obj interface{}) {
 	err := json.NewEncoder(w).Encode(obj)
 	if err != nil {
 		log.Printf("Failed to encode error response: %v", err)
+	}
+
+}
+
+func EasyJSONResponse(w http.ResponseWriter, status int, obj easyjson.Marshaler) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_, _, err := easyjson.MarshalToHTTPResponseWriter(obj, w)
+	if err != nil {
+		log.Printf("Failed to encode to easyjson: %v", err)
 	}
 
 }

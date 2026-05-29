@@ -1,9 +1,11 @@
 package pwd
 
 import (
+	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"math/rand"
+	random "math/rand"
+
 	"time"
 )
 
@@ -11,7 +13,7 @@ const SessionLength = 10
 const CodeLength = 5
 
 func GenerateCode() string {
-	seed := rand.New(rand.NewSource(time.Now().UnixNano()))
+	seed := random.New(random.NewSource(time.Now().UnixNano()))
 	return fmt.Sprintf("%05d", seed.Intn(100000))
 }
 

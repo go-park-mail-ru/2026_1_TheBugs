@@ -3825,23 +3825,25 @@ func TestUpdateLastPriceHistoryRepo(t *testing.T) {
 func TestGetPosterRoommatesRepo(t *testing.T) {
 	expectedUsers := []dto.RoommateUserDTO{
 		{
-			ID:        1,
-			FirstName: "Ivan",
-			LastName:  "Ivanov",
-			AvatarURL: lo.ToPtr("avatar.jpg"),
+			ID:          1,
+			FirstName:   "Ivan",
+			LastName:    "Ivanov",
+			AvatarURL:   lo.ToPtr("avatar.jpg"),
+			PosterAlias: lo.ToPtr("flat-1"),
 		},
 		{
-			ID:        2,
-			FirstName: "Petr",
-			LastName:  "Petrov",
-			AvatarURL: nil,
+			ID:          2,
+			FirstName:   "Petr",
+			LastName:    "Petrov",
+			AvatarURL:   nil,
+			PosterAlias: lo.ToPtr("flat-1"),
 		},
 	}
 
 	inputAlias := "flat-1"
 
 	query := regexp.QuoteMeta(`
-		SELECT u.id, pr.first_name, pr.last_name, pr.avatar_url
+		SELECT u.id, pr.first_name, pr.last_name, pr.avatar_url, p.alias AS poster_alias
 		FROM poster_roommates rm
 		JOIN posters p ON p.id = rm.poster_id
 		JOIN users u ON u.id = rm.user_id
@@ -3862,11 +3864,11 @@ func TestGetPosterRoommatesRepo(t *testing.T) {
 			param: inputAlias,
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
-					"id", "first_name", "last_name", "avatar_url",
+					"id", "first_name", "last_name", "avatar_url", "poster_alias",
 				}).AddRow(
-					1, "Ivan", "Ivanov", lo.ToPtr("avatar.jpg"),
+					1, "Ivan", "Ivanov", lo.ToPtr("avatar.jpg"), lo.ToPtr(inputAlias),
 				).AddRow(
-					2, "Petr", "Petrov", nil,
+					2, "Petr", "Petrov", nil, lo.ToPtr(inputAlias),
 				)
 
 				m.ExpectQuery(query).
@@ -3881,7 +3883,7 @@ func TestGetPosterRoommatesRepo(t *testing.T) {
 			param: inputAlias,
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
-					"id", "first_name", "last_name", "avatar_url",
+					"id", "first_name", "last_name", "avatar_url", "poster_alias",
 				})
 
 				m.ExpectQuery(query).
@@ -3896,9 +3898,9 @@ func TestGetPosterRoommatesRepo(t *testing.T) {
 			param: inputAlias,
 			setupMock: func(m pgxmock.PgxPoolIface) {
 				rows := pgxmock.NewRows([]string{
-					"id", "first_name", "last_name", "avatar_url",
+					"id", "first_name", "last_name", "avatar_url", "poster_alias",
 				}).AddRow(
-					"bad-id", "Ivan", "Ivanov", lo.ToPtr("avatar.jpg"),
+					"bad-id", "Ivan", "Ivanov", lo.ToPtr("avatar.jpg"), lo.ToPtr(inputAlias),
 				)
 
 				m.ExpectQuery(query).
@@ -4244,6 +4246,83 @@ func TestGetRoommatePosterRepo(t *testing.T) {
 
 			require.NoError(t, err)
 			require.Equal(t, test.want, got)
+			require.NoError(t, mock.ExpectationsWereMet())
+		})
+	}
+}
+
+func TestDeletePosterRoommateRepo(t *testing.T) {
+	query := regexp.QuoteMeta(`
+		DELETE FROM poster_roommates pr
+		USING posters p
+		WHERE pr.poster_id = p.id
+		  AND p.alias = $1
+		  AND pr.user_id = $2
+		  AND p.deleted_at IS NULL
+	`)
+
+	alias := "flat-1"
+	userID := 10
+
+	tests := []struct {
+		name      string
+		alias     string
+		userID    int
+		setupMock func(m pgxmock.PgxPoolIface)
+		wantErr   error
+	}{
+		{
+			name:   "ok",
+			alias:  alias,
+			userID: userID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(alias, userID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 1))
+			},
+			wantErr: nil,
+		},
+		{
+			name:   "not_found",
+			alias:  alias,
+			userID: userID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(alias, userID).
+					WillReturnResult(pgxmock.NewResult("DELETE", 0))
+			},
+			wantErr: entity.NotFoundError,
+		},
+		{
+			name:   "service_error",
+			alias:  alias,
+			userID: userID,
+			setupMock: func(m pgxmock.PgxPoolIface) {
+				m.ExpectExec(query).
+					WithArgs(alias, userID).
+					WillReturnError(errors.New("db error"))
+			},
+			wantErr: entity.ServiceError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			mock, err := pgxmock.NewPool()
+			require.NoError(t, err)
+			defer mock.Close()
+
+			test.setupMock(mock)
+
+			repo := NewPosterRepo(mock)
+
+			err = repo.DeletePosterRoommate(context.Background(), test.alias, test.userID)
+			if test.wantErr != nil {
+				require.ErrorIs(t, err, test.wantErr)
+				return
+			}
+
+			require.NoError(t, err)
 			require.NoError(t, mock.ExpectationsWereMet())
 		})
 	}

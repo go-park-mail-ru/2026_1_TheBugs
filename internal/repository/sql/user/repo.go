@@ -318,6 +318,25 @@ func (r *UserRepo) IsRoommateMatch(ctx context.Context, fromUserID int, toUserID
 	return isMatched, nil
 }
 
+func (r *UserRepo) DeleteRoommateMatch(ctx context.Context, fromUserID int, toUserID int) error {
+	sql := `
+		DELETE FROM roommate_matches
+		WHERE (from_user_id = $1 AND to_user_id = $2)
+		   OR (from_user_id = $2 AND to_user_id = $1)
+	`
+
+	ct, err := r.pool.Exec(ctx, sql, fromUserID, toUserID)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+
+	if ct.RowsAffected() == 0 {
+		return repository.HandelPgErrors(pgx.ErrNoRows)
+	}
+
+	return nil
+}
+
 func (r *UserRepo) GetRoommateContacts(ctx context.Context, userID int) (*dto.RoommateContactsDTO, error) {
 	sql := `
 		SELECT u.email, p.phone
@@ -462,6 +481,50 @@ func (r *UserRepo) UpdateRoommateForm(ctx context.Context, data dto.CreateRoomma
 		if ct.RowsAffected() == 0 {
 			return repository.HandelPgErrors(pgx.ErrNoRows)
 		}
+	}
+
+	return nil
+}
+
+func (r *UserRepo) DeletePosterRoommatesByUserID(ctx context.Context, userID int) error {
+	sql := `
+		DELETE FROM poster_roommates
+		WHERE user_id = $1
+	`
+
+	_, err := r.pool.Exec(ctx, sql, userID)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+
+	return nil
+}
+
+func (r *UserRepo) DeleteRoommateForm(ctx context.Context, userID int) error {
+	deleteTagsSQL := `
+		DELETE FROM roommate_form_tags rft
+		USING roommate_forms rf
+		WHERE rft.roommate_form_id = rf.id
+		  AND rf.user_id = $1
+	`
+
+	_, err := r.pool.Exec(ctx, deleteTagsSQL, userID)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+
+	deleteFormSQL := `
+		DELETE FROM roommate_forms
+		WHERE user_id = $1
+	`
+
+	ct, err := r.pool.Exec(ctx, deleteFormSQL, userID)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+
+	if ct.RowsAffected() == 0 {
+		return repository.HandelPgErrors(pgx.ErrNoRows)
 	}
 
 	return nil

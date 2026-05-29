@@ -227,6 +227,23 @@ func (uc *UserUseCase) AddRoommateMatch(
 	return nil
 }
 
+func (uc *UserUseCase) DeleteRoommateMatch(ctx context.Context, fromUserID int, toUserID int) error {
+	if fromUserID <= 0 || toUserID <= 0 {
+		return entity.InvalidInput
+	}
+
+	if fromUserID == toUserID {
+		return entity.InvalidInput
+	}
+
+	err := uc.uow.Users().DeleteRoommateMatch(ctx, fromUserID, toUserID)
+	if err != nil {
+		return fmt.Errorf("uc.uow.Users().DeleteRoommateMatch: %w", err)
+	}
+
+	return nil
+}
+
 func (uc *UserUseCase) GetRoommateContacts(ctx context.Context, fromUserID int, toUserID int) (*dto.RoommateContactsDTO, error) {
 	if fromUserID == toUserID {
 		return nil, entity.InvalidInput
@@ -312,6 +329,30 @@ func (uc *UserUseCase) UpdateRoommateForm(ctx context.Context, data dto.CreateRo
 	err := uc.uow.Users().UpdateRoommateForm(ctx, data)
 	if err != nil {
 		return fmt.Errorf("uc.uow.Users().UpdateRoommateForm: %w", err)
+	}
+
+	return nil
+}
+
+func (uc *UserUseCase) DeleteRoommateForm(ctx context.Context, userID int) error {
+	if userID <= 0 {
+		return entity.InvalidInput
+	}
+
+	err := uc.uow.Do(ctx, func(r usecase.UnitOfWork) error {
+		if err := r.Users().DeletePosterRoommatesByUserID(ctx, userID); err != nil {
+			return fmt.Errorf("r.Users().DeletePosterRoommatesByUserID: %w", err)
+		}
+
+		if err := r.Users().DeleteRoommateForm(ctx, userID); err != nil {
+			return fmt.Errorf("r.Users().DeleteRoommateForm: %w", err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return fmt.Errorf("uc.uow.Do: %w", err)
 	}
 
 	return nil

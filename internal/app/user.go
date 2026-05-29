@@ -29,14 +29,12 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/dsn"
-	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/gorilla/mux"
 )
 
 func RunUserService(cfg *config.ProjectConfig, logger *logrus.Logger) {
-	dsn := dsn.BuildDSN(cfg.Postgres)
-	pool, err := pgxpool.New(context.Background(), dsn)
+	pool, err := dsn.OpenDB(cfg.Postgres)
 	if err != nil {
 		log.Fatalf("cannot create pgx pool: %v", err)
 	}
@@ -45,6 +43,9 @@ func RunUserService(cfg *config.ProjectConfig, logger *logrus.Logger) {
 		Creds:  credentials.NewStaticV4(cfg.Minio.AccessKey, cfg.Minio.SecretKey, ""),
 		Secure: false,
 	})
+	if err != nil {
+		logger.Fatalf("minio.New: %s", err)
+	}
 	fileRepo, err := minioRepo.NewFileRepo(minioClient, cfg.Bucket)
 	if err != nil {
 		log.Fatalf("cannot create file repo: %v", err)
@@ -91,7 +92,7 @@ func RunUserService(cfg *config.ProjectConfig, logger *logrus.Logger) {
 		grpcServer,
 		userHandler.NewUserServiceServer(userUC),
 	)
-	logger.Info("start grpc listen: %s", grpcAsddr)
+	logger.Infof("start grpc listen: %s", grpcAsddr)
 	go func() {
 		lis, err := net.Listen("tcp", grpcAsddr)
 		if err != nil {

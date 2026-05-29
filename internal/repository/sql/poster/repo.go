@@ -1256,3 +1256,25 @@ func (r *PosterRepo) GetRoommatePoster(ctx context.Context, fromUserID int, toUs
 
 	return &poster, nil
 }
+
+func (r *PosterRepo) DeletePosterRoommate(ctx context.Context, alias string, userID int) error {
+	query := `
+		DELETE FROM poster_roommates pr
+		USING posters p
+		WHERE pr.poster_id = p.id
+		  AND p.alias = $1
+		  AND pr.user_id = $2
+		  AND p.deleted_at IS NULL
+	`
+
+	ct, err := r.pool.Exec(ctx, query, alias, userID)
+	if err != nil {
+		return repository.HandelPgErrors(err)
+	}
+
+	if ct.RowsAffected() == 0 {
+		return repository.HandelPgErrors(pgx.ErrNoRows)
+	}
+
+	return nil
+}

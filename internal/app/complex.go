@@ -25,14 +25,12 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/dsn"
-	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/gorilla/mux"
 )
 
 func RunComplexService(cfg *config.ProjectConfig, logger *logrus.Logger) {
-	dsn := dsn.BuildDSN(cfg.Postgres)
-	pool, err := pgxpool.New(context.Background(), dsn)
+	pool, err := dsn.OpenDB(cfg.Postgres)
 	if err != nil {
 		log.Fatalf("cannot create pgx pool: %v", err)
 	}
@@ -79,7 +77,7 @@ func RunComplexService(cfg *config.ProjectConfig, logger *logrus.Logger) {
 		grpcServer,
 		complexHandler.NewComplexServiceServer(uc),
 	)
-	logger.Info("start grpc listen: %s", grpcAsddr)
+	logger.Infof("start grpc listen: %s", grpcAsddr)
 	go func() {
 		lis, err := net.Listen("tcp", grpcAsddr)
 		if err != nil {

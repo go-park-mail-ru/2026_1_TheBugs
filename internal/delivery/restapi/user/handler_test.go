@@ -1129,3 +1129,205 @@ func TestUserHandler_GetMatchedRoommateMatches(t *testing.T) {
 		})
 	}
 }
+
+func TestUserHandler_DeleteRoommateForm(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockClient := grpc_client.NewMockUserServiceClient(ctrl)
+	handler := &UserHandler{grpcClient: mockClient}
+
+	tests := []struct {
+		name           string
+		userID         int
+		setupMock      func()
+		expectedStatus int
+	}{
+		{
+			name:   "success",
+			userID: 10,
+			setupMock: func() {
+				mockClient.EXPECT().
+					DeleteRoommateForm(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, req *user.DeleteRoommateFormRequest, opts ...grpc.CallOption) (*user.DeleteRoommateFormResponse, error) {
+						require.Equal(t, int64(10), req.UserId)
+
+						return &user.DeleteRoommateFormResponse{}, nil
+					})
+			},
+			expectedStatus: http.StatusNoContent,
+		},
+		{
+			name:           "missing user id in context",
+			userID:         0,
+			setupMock:      nil,
+			expectedStatus: http.StatusUnauthorized,
+		},
+		{
+			name:   "grpc not found",
+			userID: 10,
+			setupMock: func() {
+				mockClient.EXPECT().
+					DeleteRoommateForm(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, req *user.DeleteRoommateFormRequest, opts ...grpc.CallOption) (*user.DeleteRoommateFormResponse, error) {
+						require.Equal(t, int64(10), req.UserId)
+
+						return nil, status.Error(codes.NotFound, "form not found")
+					})
+			},
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			name:   "grpc internal error",
+			userID: 10,
+			setupMock: func() {
+				mockClient.EXPECT().
+					DeleteRoommateForm(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, req *user.DeleteRoommateFormRequest, opts ...grpc.CallOption) (*user.DeleteRoommateFormResponse, error) {
+						require.Equal(t, int64(10), req.UserId)
+
+						return nil, status.Error(codes.Internal, "internal error")
+					})
+			},
+			expectedStatus: http.StatusInternalServerError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if test.setupMock != nil {
+				test.setupMock()
+			}
+
+			ctx := context.Background()
+			if test.userID != 0 {
+				ctx = utils.SetUserID(ctx, test.userID)
+			}
+
+			req := httptest.NewRequest(http.MethodDelete, "/user/me/roommate-form", nil).WithContext(ctx)
+			rec := httptest.NewRecorder()
+
+			handler.DeleteRoommateForm(rec, req)
+
+			require.Equal(t, test.expectedStatus, rec.Code)
+		})
+	}
+}
+
+func TestUserHandler_DeleteRoommateMatch(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockClient := grpc_client.NewMockUserServiceClient(ctrl)
+	handler := &UserHandler{grpcClient: mockClient}
+
+	tests := []struct {
+		name           string
+		pathID         string
+		userID         int
+		setupMock      func()
+		expectedStatus int
+	}{
+		{
+			name:   "success",
+			pathID: "42",
+			userID: 10,
+			setupMock: func() {
+				mockClient.EXPECT().
+					DeleteRoommateMatch(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, req *user.DeleteRoommateMatchRequest, opts ...grpc.CallOption) (*user.DeleteRoommateMatchResponse, error) {
+						require.Equal(t, int64(10), req.FromUserId)
+						require.Equal(t, int64(42), req.ToUserId)
+
+						return &user.DeleteRoommateMatchResponse{}, nil
+					})
+			},
+			expectedStatus: http.StatusNoContent,
+		},
+		{
+			name:           "missing user id in context",
+			pathID:         "42",
+			userID:         0,
+			setupMock:      nil,
+			expectedStatus: http.StatusUnauthorized,
+		},
+		{
+			name:           "invalid target user id",
+			pathID:         "bad",
+			userID:         10,
+			setupMock:      nil,
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:   "grpc error not found",
+			pathID: "99",
+			userID: 10,
+			setupMock: func() {
+				mockClient.EXPECT().
+					DeleteRoommateMatch(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, req *user.DeleteRoommateMatchRequest, opts ...grpc.CallOption) (*user.DeleteRoommateMatchResponse, error) {
+						require.Equal(t, int64(10), req.FromUserId)
+						require.Equal(t, int64(99), req.ToUserId)
+
+						return nil, status.Error(codes.NotFound, "match not found")
+					})
+			},
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			name:   "grpc error invalid argument",
+			pathID: "10",
+			userID: 10,
+			setupMock: func() {
+				mockClient.EXPECT().
+					DeleteRoommateMatch(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, req *user.DeleteRoommateMatchRequest, opts ...grpc.CallOption) (*user.DeleteRoommateMatchResponse, error) {
+						require.Equal(t, int64(10), req.FromUserId)
+						require.Equal(t, int64(10), req.ToUserId)
+
+						return nil, status.Error(codes.InvalidArgument, "invalid input")
+					})
+			},
+			expectedStatus: http.StatusBadRequest,
+		},
+		{
+			name:   "grpc error internal",
+			pathID: "42",
+			userID: 10,
+			setupMock: func() {
+				mockClient.EXPECT().
+					DeleteRoommateMatch(gomock.Any(), gomock.Any()).
+					DoAndReturn(func(ctx context.Context, req *user.DeleteRoommateMatchRequest, opts ...grpc.CallOption) (*user.DeleteRoommateMatchResponse, error) {
+						require.Equal(t, int64(10), req.FromUserId)
+						require.Equal(t, int64(42), req.ToUserId)
+
+						return nil, status.Error(codes.Internal, "internal error")
+					})
+			},
+			expectedStatus: http.StatusInternalServerError,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if test.setupMock != nil {
+				test.setupMock()
+			}
+
+			ctx := context.Background()
+			if test.userID != 0 {
+				ctx = utils.SetUserID(ctx, test.userID)
+			}
+
+			req := httptest.NewRequest(http.MethodDelete, "/users/"+test.pathID+"/match", nil).WithContext(ctx)
+			req = mux.SetURLVars(req, map[string]string{
+				"id": test.pathID,
+			})
+			rec := httptest.NewRecorder()
+
+			handler.DeleteRoommateMatch(rec, req)
+
+			require.Equal(t, test.expectedStatus, rec.Code)
+		})
+	}
+}

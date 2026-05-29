@@ -27,16 +27,14 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/dsn"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 
 	"github.com/gorilla/mux"
 )
 
 func RunAuthService(cfg *config.ProjectConfig, logger *logrus.Logger) {
-	dsn := dsn.BuildDSN(cfg.Postgres)
 	rdb := redis.NewClient(&redis.Options{Addr: fmt.Sprintf("%s:%d", cfg.Redis.Host, cfg.Redis.Port), Password: cfg.Redis.Password, DB: cfg.Redis.DB})
-	pool, err := pgxpool.New(context.Background(), dsn)
+	pool, err := dsn.OpenDB(cfg.Postgres)
 	if err != nil {
 		log.Fatalf("cannot create pgx pool: %v", err)
 	}
@@ -83,7 +81,7 @@ func RunAuthService(cfg *config.ProjectConfig, logger *logrus.Logger) {
 		grpcServer,
 		authHandler.NewAuthServiceServer(authUC),
 	)
-	logger.Info("start grpc listen: %s", grpcAsddr)
+	logger.Infof("start grpc listen: %s", grpcAsddr)
 	go func() {
 		lis, err := net.Listen("tcp", grpcAsddr)
 		if err != nil {
