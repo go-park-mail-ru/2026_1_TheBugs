@@ -3,7 +3,7 @@ package poster
 import (
 	"bytes"
 	"context"
-	"encoding/json"
+	"github.com/mailru/easyjson"
 	"errors"
 	"fmt"
 	"io"
@@ -97,8 +97,8 @@ func (uc *PosterUseCase) SearchPostersUseCase(ctx context.Context, filters dto.P
 	data, err := uc.cache.Get(ctx, cacheKey)
 	if err == nil {
 		var cachedPoster dto.PostersResponse
-		if err := json.Unmarshal(data, &cachedPoster); err != nil {
-			return nil, fmt.Errorf("json.Unmarshal(data, posterDTO): %w", err)
+		if err := easyjson.Unmarshal(data, &cachedPoster); err != nil {
+			return nil, fmt.Errorf("easyjson.Unmarshal(data, posterDTO): %w", err)
 		}
 		log.Info("cache hit")
 		return &cachedPoster, nil
@@ -111,9 +111,9 @@ func (uc *PosterUseCase) SearchPostersUseCase(ctx context.Context, filters dto.P
 		log.Printf("uc.search.SearchPosters: %s", err)
 		return nil, err
 	}
-	data, err = json.Marshal(response)
+	data, err = easyjson.Marshal(response)
 	if err != nil {
-		return nil, fmt.Errorf("json.Marshal(posterDTO): %w", err)
+		return nil, fmt.Errorf("utils.EasyJSONResponseONResponse(posterDTO): %w", err)
 	}
 	err = uc.cache.Set(ctx, cacheKey, data, DefaultCacheTTL)
 	if err != nil {
@@ -139,8 +139,8 @@ func (uc *PosterUseCase) GetPosterByAliasUseCase(ctx context.Context, posterAlia
 	data, err := uc.cache.Get(ctx, cacheKey)
 	if err == nil {
 		var cachedPoster dto.PosterDTO
-		if err := json.Unmarshal(data, &cachedPoster); err != nil {
-			return nil, fmt.Errorf("json.Unmarshal(data, posterDTO): %w", err)
+		if err := easyjson.Unmarshal(data, &cachedPoster); err != nil {
+			return nil, fmt.Errorf("easyjson.Unmarshal(data, posterDTO): %w", err)
 		}
 		log.Info("cache hit")
 		return &cachedPoster, nil
@@ -171,9 +171,9 @@ func (uc *PosterUseCase) GetPosterByAliasUseCase(ctx context.Context, posterAlia
 
 	dto.MakeUrlsFromPaths(posterDTO, config.Config.PublicHost, config.Config.Bucket)
 
-	data, err = json.Marshal(posterDTO)
+	data, err = easyjson.Marshal(posterDTO)
 	if err != nil {
-		return nil, fmt.Errorf("json.Marshal(posterDTO): %w", err)
+		return nil, fmt.Errorf("easyjson.Marshal(posterDTO): %w", err)
 	}
 	err = uc.cache.Set(ctx, cacheKey, data, DefaultCacheTTL)
 	if err != nil {
