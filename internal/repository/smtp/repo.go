@@ -254,7 +254,7 @@ func (e *SMTPSender) SendRoommateContactsForRequester(
 ) error {
 	from := config.Config.SMTP.Email
 	log := ctxLogger.GetLogger(ctx).WithField("method", "SendRoommateContactsForRequester")
-	log.Infof("Sending roommate contacts to %s from %s via %s", email, from, config.Config.SMTP.Host)
+	log.Infof("SendRoommateContactsForRequester: %s, %s, %s, %s, %s, %s", email, roommateFirstName, roommateLastName, roommateEmail, roommatePhone, posterAlias)
 
 	posterURL := fmt.Sprintf("https://dom-deli.ru/posters/%s", posterAlias)
 
@@ -300,7 +300,7 @@ func (e *SMTPSender) SendRoommateContactsForRequester(
 											</td>
 										</tr>
 										<tr>
-											<td style="padding:8px 0; font-size:14px; color:#7b8794;">Телефон</td>
+											<td style="padding:8px 0; font-size:14px; color:#7b8794;">Тел.</td>
 											<td style="padding:8px 0; font-size:15px; color:#1f2933; font-weight:700;">
 												%s
 											</td>
@@ -377,7 +377,7 @@ func (e *SMTPSender) SendRoommateContactsForAccepted(
 ) error {
 	from := config.Config.SMTP.Email
 	log := ctxLogger.GetLogger(ctx).WithField("method", "SendRoommateContactsForAccepted")
-	log.Infof("Sending accepted roommate contacts to %s from %s via %s", email, from, config.Config.SMTP.Host)
+	log.Infof("SendRoommateContactsForAccepted: %s, %s, %s, %s, %s, %s", email, roommateFirstName, roommateLastName, roommateEmail, roommatePhone, posterAlias)
 
 	posterURL := fmt.Sprintf("https://dom-deli.ru/posters/%s", posterAlias)
 
@@ -423,7 +423,7 @@ func (e *SMTPSender) SendRoommateContactsForAccepted(
 													</td>
 												</tr>
 												<tr>
-													<td style="padding:8px 0; font-size:14px; color:#7b8794;">Телефон</td>
+													<td style="padding:8px 0; font-size:14px; color:#7b8794;">Тел.</td>
 													<td style="padding:8px 0; font-size:15px; color:#1f2933; font-weight:700;">
 														%s
 													</td>

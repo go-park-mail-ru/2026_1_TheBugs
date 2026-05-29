@@ -199,6 +199,7 @@ func (uc *UserUseCase) AddRoommateMatch(
 
 		return nil
 	}
+	log.Infof("SendRoommateContactsForRequester: %s, %s, %s, %s, %s, %s", fromContacts.Email, toUser.FirstName, toUser.LastName, toContacts.Email, toContacts.Phone, poster.Alias)
 
 	if err := uc.sender.SendRoommateContactsForRequester(
 		ctx,
@@ -211,6 +212,7 @@ func (uc *UserUseCase) AddRoommateMatch(
 	); err != nil {
 		log.Errorf("uc.sender.SendRoommateContactsForRequester: %v", err)
 	}
+	log.Infof("SendRoommateContactsForAccepted: %s, %s, %s, %s, %s, %s", toContacts.Email, fromUser.FirstName, fromUser.LastName, fromContacts.Email, fromContacts.Phone, poster.Alias)
 
 	if err := uc.sender.SendRoommateContactsForAccepted(
 		ctx,
