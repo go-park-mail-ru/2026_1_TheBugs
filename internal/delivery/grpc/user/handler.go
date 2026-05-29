@@ -114,16 +114,20 @@ func (s *UserServiceServer) AddRoommateMatch(
 	ctx context.Context,
 	req *user.AddRoommateMatchRequest,
 ) (*user.AddRoommateMatchResponse, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("method", "AddRoommateMatch")
 	if req.FromUserId <= 0 {
+		log.Error("invalid from_user_id")
 		return nil, status.Error(codes.InvalidArgument, "invalid from_user_id")
 	}
 
 	if req.ToUserId <= 0 {
+		log.Error("invalid to_user_id")
 		return nil, status.Error(codes.InvalidArgument, "invalid to_user_id")
 	}
 
 	err := s.uc.AddRoommateMatch(ctx, int(req.FromUserId), int(req.ToUserId), req.PosterAlias)
 	if err != nil {
+		log.Errorf("s.uc.AddRoommateMatch: %s", err)
 		return nil, utils.TranslateDomainsError(err)
 	}
 
@@ -134,16 +138,21 @@ func (s *UserServiceServer) DeleteRoommateMatch(
 	ctx context.Context,
 	req *user.DeleteRoommateMatchRequest,
 ) (*user.DeleteRoommateMatchResponse, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("method", "DeleteRoommateMatch")
+
 	if req.FromUserId <= 0 {
+		log.Error("invalid from_user_id")
 		return nil, status.Error(codes.InvalidArgument, "invalid from_user_id")
 	}
 
 	if req.ToUserId <= 0 {
+		log.Error("invalid to_user_id")
 		return nil, status.Error(codes.InvalidArgument, "invalid to_user_id")
 	}
 
 	err := s.uc.DeleteRoommateMatch(ctx, int(req.FromUserId), int(req.ToUserId))
 	if err != nil {
+		log.Errorf("s.uc.DeleteRoommateMatch: %s", err)
 		return nil, utils.TranslateDomainsError(err)
 	}
 
@@ -277,12 +286,15 @@ func (s *UserServiceServer) DeleteRoommateForm(
 	ctx context.Context,
 	req *user.DeleteRoommateFormRequest,
 ) (*user.DeleteRoommateFormResponse, error) {
+	log := ctxLogger.GetLogger(ctx).WithField("method", "DeleteRoommateForm")
 	if req.UserId <= 0 {
+		log.Error("invalid user_id")
 		return nil, status.Error(codes.InvalidArgument, "invalid user_id")
 	}
 
 	err := s.uc.DeleteRoommateForm(ctx, int(req.UserId))
 	if err != nil {
+		log.Errorf("s.uc.DeleteRoommateForm: %s", err)
 		return nil, utils.TranslateDomainsError(err)
 	}
 

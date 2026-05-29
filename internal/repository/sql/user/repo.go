@@ -6,6 +6,7 @@ import (
 
 	repository "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 	"github.com/jackc/pgx/v5"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
@@ -253,7 +254,10 @@ func (r *UserRepo) GetRoommateTags(ctx context.Context, userID int) ([]entity.Ro
 }
 
 func (r *UserRepo) AddRoommateMatch(ctx context.Context, fromUserID int, toUserID int, posterAlias *string) error {
+	log := ctxLogger.GetLogger(ctx)
+	log.Infof("Adding roommate match: fromUserID=%d, toUserID=%d, posterAlias=%v", fromUserID, toUserID, posterAlias)
 	if posterAlias != nil {
+		log.Infof("Poster alias provided: %s", *posterAlias)
 		sql := `
 			INSERT INTO roommate_matches (from_user_id, to_user_id, poster_id)
 			SELECT $1, $2, p.id
@@ -273,6 +277,7 @@ func (r *UserRepo) AddRoommateMatch(ctx context.Context, fromUserID int, toUserI
 
 		return nil
 	}
+	log.Info("No poster alias provided, inserting roommate match without poster_id")
 
 	sql := `
 		INSERT INTO roommate_matches (from_user_id, to_user_id, poster_id)
@@ -319,16 +324,19 @@ func (r *UserRepo) IsRoommateMatch(ctx context.Context, fromUserID int, toUserID
 }
 
 func (r *UserRepo) DeleteRoommateMatch(ctx context.Context, fromUserID int, toUserID int) error {
+	log := ctxLogger.GetLogger(ctx)
 	sql := `
 		DELETE FROM roommate_matches
 		WHERE (from_user_id = $1 AND to_user_id = $2)
 		   OR (from_user_id = $2 AND to_user_id = $1)
 	`
+	log.Debug("Executing SQL query to delete roommate match")
 
 	ct, err := r.pool.Exec(ctx, sql, fromUserID, toUserID)
 	if err != nil {
 		return repository.HandelPgErrors(err)
 	}
+	log.Debug("Executing SQL query to delete roommate match")
 
 	if ct.RowsAffected() == 0 {
 		return repository.HandelPgErrors(pgx.ErrNoRows)
