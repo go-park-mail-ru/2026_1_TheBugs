@@ -149,12 +149,12 @@ type Cache interface {
 }
 
 type MailSender interface {
-	SendAnswer(ctx context.Context, email string, orderID int, answer string) error
-	SendRecoveryCode(ctx context.Context, to string, code string) error
-	SendVerificationCode(ctx context.Context, to string, code string) error
-	SendRoommateMatch(ctx context.Context, email string, firstName string, lastName string, posterAlias string) error
-	SendRoommateContactsForRequester(ctx context.Context, email, roommateFirstName, roommateLastName, roommateEmail, roommatePhone, posterAlias string) error
-	SendRoommateContactsForAccepted(ctx context.Context, email, roommateFirstName, roommateLastName, roommateEmail, roommatePhone, posterAlias string) error
+	SendAnswer(ctx context.Context, req dto.AnswerNotification) error
+	SendRecoveryCode(ctx context.Context, req dto.RecoveryNotification) error
+	SendVerificationCode(ctx context.Context, req dto.VerificationNotification) error
+	SendRoommateMatch(ctx context.Context, req dto.RoommateMatchNotification) error
+	SendRoommateContactsForRequester(ctx context.Context, req dto.RoommateContactsNotification) error
+	SendRoommateContactsForAccepted(ctx context.Context, req dto.RoommateContactsNotification) error
 }
 
 type FileRepo interface {

@@ -19,7 +19,7 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	prom "github.com/go-park-mail-ru/2026_1_TheBugs/internal/metrics"
 	tokensRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/redis/tokens"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/smtp"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/notification"
 	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
 	authUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/auth"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -40,7 +40,7 @@ func RunAuthService(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	}
 	uow := uowSql.NewSQLStorage(pool)
 	tokenRepo := tokensRepo.NewTokenRepo(rdb)
-	senderRepo := smtp.NewSMTPSender(config.Config.SMTP.Host, config.Config.SMTP.Port, config.Config.SMTP.Email, config.Config.SMTP.Pwd)
+	senderRepo := notification.NewKafkaEmailProducer()
 	app := mux.NewRouter()
 	authUC := authUC.NewAuthUseCase(uow, tokenRepo, senderRepo)
 	serverAddress := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)

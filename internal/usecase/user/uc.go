@@ -189,10 +189,12 @@ func (uc *UserUseCase) AddRoommateMatch(
 	if !isMatched {
 		if err := uc.sender.SendRoommateMatch(
 			ctx,
-			toContacts.Email,
-			fromUser.FirstName,
-			fromUser.LastName,
-			poster.Alias,
+			dto.RoommateMatchNotification{
+				Email:       toContacts.Email,
+				FirstName:   fromUser.FirstName,
+				LastName:    fromUser.LastName,
+				PosterAlias: poster.Alias,
+			},
 		); err != nil {
 			log.Errorf("uc.sender.SendRoommateMatch: %v", err)
 		}
@@ -203,12 +205,14 @@ func (uc *UserUseCase) AddRoommateMatch(
 
 	if err := uc.sender.SendRoommateContactsForRequester(
 		ctx,
-		fromContacts.Email,
-		toUser.FirstName,
-		toUser.LastName,
-		toContacts.Email,
-		toContacts.Phone,
-		poster.Alias,
+		dto.RoommateContactsNotification{
+			Email:             fromContacts.Email,
+			RoommateFirstName: toUser.FirstName,
+			RoommateLastName:  toUser.LastName,
+			RoommateEmail:     toContacts.Email,
+			RoommatePhone:     toContacts.Phone,
+			PosterAlias:       poster.Alias,
+		},
 	); err != nil {
 		log.Errorf("uc.sender.SendRoommateContactsForRequester: %v", err)
 	}
@@ -216,16 +220,17 @@ func (uc *UserUseCase) AddRoommateMatch(
 
 	if err := uc.sender.SendRoommateContactsForAccepted(
 		ctx,
-		toContacts.Email,
-		fromUser.FirstName,
-		fromUser.LastName,
-		fromContacts.Email,
-		fromContacts.Phone,
-		poster.Alias,
+		dto.RoommateContactsNotification{
+			Email:             toContacts.Email,
+			RoommateFirstName: fromUser.FirstName,
+			RoommateLastName:  fromUser.LastName,
+			RoommateEmail:     fromContacts.Email,
+			RoommatePhone:     fromContacts.Phone,
+			PosterAlias:       poster.Alias,
+		},
 	); err != nil {
 		log.Errorf("uc.sender.SendRoommateContactsForAccepted: %v", err)
 	}
-
 	return nil
 }
 

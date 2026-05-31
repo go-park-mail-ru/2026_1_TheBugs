@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/ctxLogger"
 	gomail "gopkg.in/gomail.v2"
 )
@@ -25,20 +26,20 @@ func NewSMTPSender(host string, port int, username, password string) *SMTPSender
 	}
 }
 
-func (e *SMTPSender) SendRecoveryCode(ctx context.Context, email, code string) error {
+func (e *SMTPSender) SendRecoveryCode(ctx context.Context, req dto.RecoveryNotification) error {
 	from := config.Config.SMTP.Email
 	log := ctxLogger.GetLogger(ctx).WithField("method", "SendRecoveryCode")
-	log.Infof("Sending recovery code to %s from %s via %s", email, from, config.Config.SMTP.Host)
+	log.Infof("Sending recovery code to %s from %s via %s", req.Email, from, config.Config.SMTP.Host)
 	m := gomail.NewMessage()
 	m.SetHeader("From", fmt.Sprintf(`"DomDeli" <%s>`, from))
-	m.SetHeader("To", email)
+	m.SetHeader("To", req.Email)
 	m.SetHeader("Subject", "Домдели смена пароля")
 	m.SetHeader("Reply-To", from)
 	m.SetBody("text/html", fmt.Sprintf(`
         <h2>Ваш код подтверждения:</h2>
         <h1 style="color: #f08dcc">%s</h1>
         <p>Код действителен 5 минут.</p>
-    `, code))
+    `, req.Code))
 
 	dialer := gomail.NewDialer(e.host, e.port, e.username, e.password)
 
@@ -46,27 +47,27 @@ func (e *SMTPSender) SendRecoveryCode(ctx context.Context, email, code string) e
 		if err := dialer.DialAndSend(m); err != nil {
 			log.Errorf("gomail send: %s", err)
 		} else {
-			log.Printf("✅ Code sent to %s", email)
+			log.Printf("✅ Code sent to %s", req.Email)
 		}
 	}()
 
 	return nil
 }
 
-func (e *SMTPSender) SendVerificationCode(ctx context.Context, email, code string) error {
+func (e *SMTPSender) SendVerificationCode(ctx context.Context, req dto.VerificationNotification) error {
 	from := config.Config.SMTP.Email
 	log := ctxLogger.GetLogger(ctx).WithField("method", "SendVerificationCode")
-	log.Infof("Sending verification code to %s from %s via %s", email, from, config.Config.SMTP.Host)
+	log.Infof("Sending verification code to %s from %s via %s", req.Email, from, config.Config.SMTP.Host)
 	m := gomail.NewMessage()
 	m.SetHeader("From", fmt.Sprintf(`"DomDeli" <%s>`, from))
-	m.SetHeader("To", email)
+	m.SetHeader("To", req.Email)
 	m.SetHeader("Subject", "Домдели подтверждение почты")
 	m.SetHeader("Reply-To", from)
 	m.SetBody("text/html", fmt.Sprintf(`
         <h2>Ваш код подтверждения:</h2>
         <h1 style="color: #f08dcc">%s</h1>
         <p>Код действителен 5 минут.</p>
-    `, code))
+    `, req.Code))
 
 	dialer := gomail.NewDialer(e.host, e.port, e.username, e.password)
 	log.Printf("start")
@@ -75,28 +76,28 @@ func (e *SMTPSender) SendVerificationCode(ctx context.Context, email, code strin
 		if err := dialer.DialAndSend(m); err != nil {
 			log.Printf("gomail send: %s", err)
 		}
-		log.Printf("✅ Code sent to %s", email)
+		log.Printf("✅ Code sent to %s", req.Email)
 	}(ctx)
 
 	return nil
 }
 
-func (e *SMTPSender) SendAnswer(ctx context.Context, email string, orderID int, answer string) error {
+func (e *SMTPSender) SendAnswer(ctx context.Context, req dto.AnswerNotification) error {
 	from := config.Config.SMTP.Email
 	log := ctxLogger.GetLogger(ctx).WithField("method", "SendAnswer")
-	log.Infof("Sending verification code to %s from %s via %s", email, from, config.Config.SMTP.Host)
+	log.Infof("Sending verification code to %s from %s via %s", req.Email, from, config.Config.SMTP.Host)
 
 	m := gomail.NewMessage()
 	m.SetHeader("From", fmt.Sprintf(`"DomDeli" <%s>`, from))
-	m.SetHeader("To", email)
-	m.SetHeader("Subject", fmt.Sprintf("Ответ поддержки по обращению #%d", orderID))
+	m.SetHeader("To", req.Email)
+	m.SetHeader("Subject", fmt.Sprintf("Ответ поддержки по обращению #%d", req.OrderID))
 	m.SetHeader("Reply-To", from)
 
 	m.SetBody("text/html", fmt.Sprintf(`
 		<h2>Ответ поддержки</h2>
 		<p><b>Номер обращения:</b> #%d</p>
 		<p>%s</p>
-	`, orderID, answer))
+	`, req.OrderID, req.Answer))
 
 	dialer := gomail.NewDialer(e.host, e.port, e.username, e.password)
 
@@ -105,20 +106,20 @@ func (e *SMTPSender) SendAnswer(ctx context.Context, email string, orderID int, 
 			log.Printf("gomail send answer: %s", err)
 			return
 		}
-		log.Printf("✅ Answer sent to %s", email)
+		log.Printf("✅ Answer sent to %s", req.Email)
 	}(ctx)
 
 	return nil
 }
 
-func (e *SMTPSender) SendPromotionExpier(ctx context.Context, email string) error {
+func (e *SMTPSender) SendPromotionExpier(ctx context.Context, req dto.EmailNotification) error {
 	from := config.Config.SMTP.Email
 	log := ctxLogger.GetLogger(ctx).WithField("method", "SendAnswer")
-	log.Infof("Sending to %s from %s via %s", email, from, config.Config.SMTP.Host)
+	log.Infof("Sending to %s from %s via %s", req.Email, from, config.Config.SMTP.Host)
 
 	m := gomail.NewMessage()
 	m.SetHeader("From", fmt.Sprintf(`"DomDeli" <%s>`, from))
-	m.SetHeader("To", email)
+	m.SetHeader("To", req.Email)
 	m.SetHeader("Subject", "Не забудте продлить буст")
 	m.SetHeader("Reply-To", from)
 
@@ -134,22 +135,22 @@ func (e *SMTPSender) SendPromotionExpier(ctx context.Context, email string) erro
 			log.Printf("gomail send answer: %s", err)
 			return
 		}
-		log.Printf("✅ Email sent to %s", email)
+		log.Printf("✅ Email sent to %s", req.Email)
 	}(ctx)
 
 	return nil
 }
 
-func (e *SMTPSender) SendRoommateMatch(ctx context.Context, email string, firstName string, lastName string, posterAlias string) error {
+func (e *SMTPSender) SendRoommateMatch(ctx context.Context, req dto.RoommateMatchNotification) error {
 	from := config.Config.SMTP.Email
 	log := ctxLogger.GetLogger(ctx).WithField("method", "SendRoommateMatch")
-	log.Infof("Sending roommate match notification to %s from %s via %s", email, from, config.Config.SMTP.Host)
+	log.Infof("Sending roommate match notification to %s from %s via %s", req.Email, from, config.Config.SMTP.Host)
 
-	posterURL := fmt.Sprintf("https://dom-deli.ru/posters/%s", posterAlias)
+	posterURL := fmt.Sprintf("https://dom-deli.ru/posters/%s", req.PosterAlias)
 
 	m := gomail.NewMessage()
 	m.SetHeader("From", fmt.Sprintf(`"DomDeli" <%s>`, from))
-	m.SetHeader("To", email)
+	m.SetHeader("To", req.Email)
 	m.SetHeader("Subject", "Вас хотят добавить в соседи")
 	m.SetHeader("Reply-To", from)
 
@@ -228,7 +229,7 @@ func (e *SMTPSender) SendRoommateMatch(ctx context.Context, email string, firstN
 		</table>
 	</body>
 	</html>
-	`, firstName, lastName, posterURL, posterURL, posterURL))
+	`, req.FirstName, req.LastName, posterURL, posterURL, posterURL))
 
 	dialer := gomail.NewDialer(e.host, e.port, e.username, e.password)
 
@@ -237,7 +238,7 @@ func (e *SMTPSender) SendRoommateMatch(ctx context.Context, email string, firstN
 			log.Printf("gomail send roommate match: %s", err)
 			return
 		}
-		log.Printf("✅ Roommate match notification sent to %s", email)
+		log.Printf("✅ Roommate match notification sent to %s", req.Email)
 	}(ctx)
 
 	return nil
@@ -245,22 +246,15 @@ func (e *SMTPSender) SendRoommateMatch(ctx context.Context, email string, firstN
 
 func (e *SMTPSender) SendRoommateContactsForRequester(
 	ctx context.Context,
-	email string,
-	roommateFirstName string,
-	roommateLastName string,
-	roommateEmail string,
-	roommatePhone string,
-	posterAlias string,
+	req dto.RoommateContactsNotification,
 ) error {
 	from := config.Config.SMTP.Email
 	log := ctxLogger.GetLogger(ctx).WithField("method", "SendRoommateContactsForRequester")
-	log.Infof("SendRoommateContactsForRequester: %s, %s, %s, %s, %s, %s", email, roommateFirstName, roommateLastName, roommateEmail, roommatePhone, posterAlias)
-
-	posterURL := fmt.Sprintf("https://dom-deli.ru/posters/%s", posterAlias)
+	posterURL := fmt.Sprintf("https://dom-deli.ru/posters/%s", req.PosterAlias)
 
 	m := gomail.NewMessage()
 	m.SetHeader("From", fmt.Sprintf(`"DomDeli" <%s>`, from))
-	m.SetHeader("To", email)
+	m.SetHeader("To", req.Email)
 	m.SetHeader("Subject", "Контакты сожителя")
 	m.SetHeader("Reply-To", from)
 
@@ -351,7 +345,7 @@ func (e *SMTPSender) SendRoommateContactsForRequester(
 		</table>
 	</body>
 	</html>
-	`, roommateFirstName, roommateLastName, roommateEmail, roommatePhone, posterURL))
+	`, req.RoommateFirstName, req.RoommateLastName, req.RoommateEmail, req.RoommatePhone, posterURL))
 
 	dialer := gomail.NewDialer(e.host, e.port, e.username, e.password)
 
@@ -360,7 +354,7 @@ func (e *SMTPSender) SendRoommateContactsForRequester(
 			log.Printf("gomail send roommate contacts for requester: %s", err)
 			return
 		}
-		log.Printf("✅ Roommate contacts sent to %s", email)
+		log.Printf("✅ Roommate contacts sent to %s", req.Email)
 	}(ctx)
 
 	return nil
@@ -368,22 +362,15 @@ func (e *SMTPSender) SendRoommateContactsForRequester(
 
 func (e *SMTPSender) SendRoommateContactsForAccepted(
 	ctx context.Context,
-	email string,
-	roommateFirstName string,
-	roommateLastName string,
-	roommateEmail string,
-	roommatePhone string,
-	posterAlias string,
+	req dto.RoommateContactsNotification,
 ) error {
 	from := config.Config.SMTP.Email
 	log := ctxLogger.GetLogger(ctx).WithField("method", "SendRoommateContactsForAccepted")
-	log.Infof("SendRoommateContactsForAccepted: %s, %s, %s, %s, %s, %s", email, roommateFirstName, roommateLastName, roommateEmail, roommatePhone, posterAlias)
-
-	posterURL := fmt.Sprintf("https://dom-deli.ru/posters/%s", posterAlias)
+	posterURL := fmt.Sprintf("https://dom-deli.ru/posters/%s", req.PosterAlias)
 
 	m := gomail.NewMessage()
 	m.SetHeader("From", fmt.Sprintf(`"DomDeli" <%s>`, from))
-	m.SetHeader("To", email)
+	m.SetHeader("To", req.Email)
 	m.SetHeader("Subject", "Вашу заявку в соседи приняли")
 	m.SetHeader("Reply-To", from)
 
@@ -474,7 +461,7 @@ func (e *SMTPSender) SendRoommateContactsForAccepted(
 				</table>
 			</body>
 			</html>
-		`, roommateFirstName, roommateLastName, roommateEmail, roommatePhone, posterURL))
+		`, req.RoommateFirstName, req.RoommateLastName, req.RoommateEmail, req.RoommatePhone, posterURL))
 
 	dialer := gomail.NewDialer(e.host, e.port, e.username, e.password)
 
@@ -483,7 +470,7 @@ func (e *SMTPSender) SendRoommateContactsForAccepted(
 			log.Printf("gomail send accepted roommate contacts: %s", err)
 			return
 		}
-		log.Printf("✅ Accepted roommate contacts sent to %s", email)
+		log.Printf("✅ Accepted roommate contacts sent to %s", req.Email)
 	}(ctx)
 
 	return nil

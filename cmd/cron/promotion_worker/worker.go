@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/smtp"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/utils/dsn"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -69,7 +70,9 @@ func main() {
 			return
 		}
 		for _, email := range emails {
-			err := senderRepo.SendPromotionExpier(ctx, email)
+			err := senderRepo.SendPromotionExpier(ctx, dto.EmailNotification{
+				Email: email,
+			})
 			if err == nil {
 				_, err := pool.Exec(ctx, "UPDATE posters_promotions p SET is_notification_sent = true FROM users u WHERE p.user_id = u.id AND u.email = $1 AND p.status='active' ", email)
 				if err != nil {

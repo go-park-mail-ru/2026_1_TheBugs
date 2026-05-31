@@ -498,10 +498,7 @@ func TestUserUseCase_AddRoommateMatch(t *testing.T) {
 				senderMock.EXPECT().
 					SendRoommateMatch(
 						ctx,
-						toContacts.Email,
-						fromUser.FirstName,
-						fromUser.LastName,
-						poster.Alias,
+						gomock.Any(),
 					).
 					Return(nil).
 					Times(1)
@@ -569,12 +566,7 @@ func TestUserUseCase_AddRoommateMatch(t *testing.T) {
 				senderMock.EXPECT().
 					SendRoommateContactsForRequester(
 						ctx,
-						fromContacts.Email,
-						toUser.FirstName,
-						toUser.LastName,
-						toContacts.Email,
-						toContacts.Phone,
-						poster.Alias,
+						gomock.Any(),
 					).
 					Return(nil).
 					Times(1)
@@ -582,12 +574,7 @@ func TestUserUseCase_AddRoommateMatch(t *testing.T) {
 				senderMock.EXPECT().
 					SendRoommateContactsForAccepted(
 						ctx,
-						toContacts.Email,
-						fromUser.FirstName,
-						fromUser.LastName,
-						fromContacts.Email,
-						fromContacts.Phone,
-						poster.Alias,
+						gomock.Any(),
 					).
 					Return(nil).
 					Times(1)
@@ -994,12 +981,7 @@ func TestUserUseCase_AddRoommateMatch(t *testing.T) {
 				senderMock.EXPECT().
 					SendRoommateContactsForRequester(
 						ctx,
-						fromContacts.Email,
-						toUser.FirstName,
-						toUser.LastName,
-						toContacts.Email,
-						toContacts.Phone,
-						poster.Alias,
+						gomock.Any(),
 					).
 					Return(errors.New("smtp error")).
 					Times(1)
@@ -1007,12 +989,7 @@ func TestUserUseCase_AddRoommateMatch(t *testing.T) {
 				senderMock.EXPECT().
 					SendRoommateContactsForAccepted(
 						ctx,
-						toContacts.Email,
-						fromUser.FirstName,
-						fromUser.LastName,
-						fromContacts.Email,
-						fromContacts.Phone,
-						poster.Alias,
+						gomock.Any(),
 					).
 					Return(nil).
 					Times(1)

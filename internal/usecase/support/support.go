@@ -199,7 +199,11 @@ func (uc *SupportUseCase) AnswerOrder(ctx context.Context, adminID int, orderID 
 		return fmt.Errorf("uc.uow.Users().GetByID: %w", err)
 	}
 
-	err = uc.sender.SendAnswer(ctx, client.Email, orderID, answer)
+	err = uc.sender.SendAnswer(ctx, dto.AnswerNotification{
+		Email:   client.Email,
+		OrderID: orderID,
+		Answer:  answer,
+	})
 	if err != nil {
 		return fmt.Errorf("uc.sender.SendAnswer: %w", err)
 	}

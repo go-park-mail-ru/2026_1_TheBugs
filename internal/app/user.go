@@ -19,7 +19,7 @@ import (
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/entity"
 	prom "github.com/go-park-mail-ru/2026_1_TheBugs/internal/metrics"
 	minioRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/minio"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/smtp"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/notification"
 	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
 	userUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/user"
 	"github.com/minio/minio-go/v7"
@@ -50,7 +50,7 @@ func RunUserService(cfg *config.ProjectConfig, logger *logrus.Logger) {
 	if err != nil {
 		log.Fatalf("cannot create file repo: %v", err)
 	}
-	senderRepo := smtp.NewSMTPSender(config.Config.SMTP.Host, config.Config.SMTP.Port, config.Config.SMTP.Email, config.Config.SMTP.Pwd)
+	senderRepo := notification.NewKafkaEmailProducer()
 
 	app := mux.NewRouter()
 	userUC := userUC.NewUserUseCase(uow, fileRepo, senderRepo)

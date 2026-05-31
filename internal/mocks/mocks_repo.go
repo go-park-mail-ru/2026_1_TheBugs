@@ -1706,87 +1706,87 @@ func (m *MockMailSender) EXPECT() *MockMailSenderMockRecorder {
 }
 
 // SendAnswer mocks base method.
-func (m *MockMailSender) SendAnswer(ctx context.Context, email string, orderID int, answer string) error {
+func (m *MockMailSender) SendAnswer(ctx context.Context, req dto.AnswerNotification) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendAnswer", ctx, email, orderID, answer)
+	ret := m.ctrl.Call(m, "SendAnswer", ctx, req)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SendAnswer indicates an expected call of SendAnswer.
-func (mr *MockMailSenderMockRecorder) SendAnswer(ctx, email, orderID, answer interface{}) *gomock.Call {
+func (mr *MockMailSenderMockRecorder) SendAnswer(ctx, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendAnswer", reflect.TypeOf((*MockMailSender)(nil).SendAnswer), ctx, email, orderID, answer)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendAnswer", reflect.TypeOf((*MockMailSender)(nil).SendAnswer), ctx, req)
 }
 
 // SendRecoveryCode mocks base method.
-func (m *MockMailSender) SendRecoveryCode(ctx context.Context, to, code string) error {
+func (m *MockMailSender) SendRecoveryCode(ctx context.Context, req dto.RecoveryNotification) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendRecoveryCode", ctx, to, code)
+	ret := m.ctrl.Call(m, "SendRecoveryCode", ctx, req)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SendRecoveryCode indicates an expected call of SendRecoveryCode.
-func (mr *MockMailSenderMockRecorder) SendRecoveryCode(ctx, to, code interface{}) *gomock.Call {
+func (mr *MockMailSenderMockRecorder) SendRecoveryCode(ctx, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendRecoveryCode", reflect.TypeOf((*MockMailSender)(nil).SendRecoveryCode), ctx, to, code)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendRecoveryCode", reflect.TypeOf((*MockMailSender)(nil).SendRecoveryCode), ctx, req)
 }
 
 // SendRoommateContactsForAccepted mocks base method.
-func (m *MockMailSender) SendRoommateContactsForAccepted(ctx context.Context, email, roommateFirstName, roommateLastName, roommateEmail, roommatePhone, posterAlias string) error {
+func (m *MockMailSender) SendRoommateContactsForAccepted(ctx context.Context, req dto.RoommateContactsNotification) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendRoommateContactsForAccepted", ctx, email, roommateFirstName, roommateLastName, roommateEmail, roommatePhone, posterAlias)
+	ret := m.ctrl.Call(m, "SendRoommateContactsForAccepted", ctx, req)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SendRoommateContactsForAccepted indicates an expected call of SendRoommateContactsForAccepted.
-func (mr *MockMailSenderMockRecorder) SendRoommateContactsForAccepted(ctx, email, roommateFirstName, roommateLastName, roommateEmail, roommatePhone, posterAlias interface{}) *gomock.Call {
+func (mr *MockMailSenderMockRecorder) SendRoommateContactsForAccepted(ctx, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendRoommateContactsForAccepted", reflect.TypeOf((*MockMailSender)(nil).SendRoommateContactsForAccepted), ctx, email, roommateFirstName, roommateLastName, roommateEmail, roommatePhone, posterAlias)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendRoommateContactsForAccepted", reflect.TypeOf((*MockMailSender)(nil).SendRoommateContactsForAccepted), ctx, req)
 }
 
 // SendRoommateContactsForRequester mocks base method.
-func (m *MockMailSender) SendRoommateContactsForRequester(ctx context.Context, email, roommateFirstName, roommateLastName, roommateEmail, roommatePhone, posterAlias string) error {
+func (m *MockMailSender) SendRoommateContactsForRequester(ctx context.Context, req dto.RoommateContactsNotification) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendRoommateContactsForRequester", ctx, email, roommateFirstName, roommateLastName, roommateEmail, roommatePhone, posterAlias)
+	ret := m.ctrl.Call(m, "SendRoommateContactsForRequester", ctx, req)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SendRoommateContactsForRequester indicates an expected call of SendRoommateContactsForRequester.
-func (mr *MockMailSenderMockRecorder) SendRoommateContactsForRequester(ctx, email, roommateFirstName, roommateLastName, roommateEmail, roommatePhone, posterAlias interface{}) *gomock.Call {
+func (mr *MockMailSenderMockRecorder) SendRoommateContactsForRequester(ctx, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendRoommateContactsForRequester", reflect.TypeOf((*MockMailSender)(nil).SendRoommateContactsForRequester), ctx, email, roommateFirstName, roommateLastName, roommateEmail, roommatePhone, posterAlias)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendRoommateContactsForRequester", reflect.TypeOf((*MockMailSender)(nil).SendRoommateContactsForRequester), ctx, req)
 }
 
 // SendRoommateMatch mocks base method.
-func (m *MockMailSender) SendRoommateMatch(ctx context.Context, email, firstName, lastName, posterAlias string) error {
+func (m *MockMailSender) SendRoommateMatch(ctx context.Context, req dto.RoommateMatchNotification) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendRoommateMatch", ctx, email, firstName, lastName, posterAlias)
+	ret := m.ctrl.Call(m, "SendRoommateMatch", ctx, req)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SendRoommateMatch indicates an expected call of SendRoommateMatch.
-func (mr *MockMailSenderMockRecorder) SendRoommateMatch(ctx, email, firstName, lastName, posterAlias interface{}) *gomock.Call {
+func (mr *MockMailSenderMockRecorder) SendRoommateMatch(ctx, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendRoommateMatch", reflect.TypeOf((*MockMailSender)(nil).SendRoommateMatch), ctx, email, firstName, lastName, posterAlias)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendRoommateMatch", reflect.TypeOf((*MockMailSender)(nil).SendRoommateMatch), ctx, req)
 }
 
 // SendVerificationCode mocks base method.
-func (m *MockMailSender) SendVerificationCode(ctx context.Context, to, code string) error {
+func (m *MockMailSender) SendVerificationCode(ctx context.Context, req dto.VerificationNotification) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SendVerificationCode", ctx, to, code)
+	ret := m.ctrl.Call(m, "SendVerificationCode", ctx, req)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SendVerificationCode indicates an expected call of SendVerificationCode.
-func (mr *MockMailSenderMockRecorder) SendVerificationCode(ctx, to, code interface{}) *gomock.Call {
+func (mr *MockMailSenderMockRecorder) SendVerificationCode(ctx, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendVerificationCode", reflect.TypeOf((*MockMailSender)(nil).SendVerificationCode), ctx, to, code)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendVerificationCode", reflect.TypeOf((*MockMailSender)(nil).SendVerificationCode), ctx, req)
 }
 
 // MockFileRepo is a mock of FileRepo interface.

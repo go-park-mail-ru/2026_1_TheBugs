@@ -24,6 +24,9 @@ var ProdCors = CORS{
 	URL:          "https://dom-deli.ru",
 }
 
+var NotificationTopic = "email-notifications"
+var NotificationGroupID = "notification-service-group"
+
 type (
 	ProjectConfig struct {
 		AppEnv      string `yaml:"app-env" env:"APP_ENV" env-default:"dev"`

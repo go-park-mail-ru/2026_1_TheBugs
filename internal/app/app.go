@@ -17,8 +17,8 @@ import (
 	supportHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/support"
 	userHandler "github.com/go-park-mail-ru/2026_1_TheBugs/internal/delivery/restapi/user"
 	minioRepo "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/minio"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/notification"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/redis/limits"
-	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/smtp"
 	uowSql "github.com/go-park-mail-ru/2026_1_TheBugs/internal/repository/sql/uow"
 	promUC "github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/promotion"
 	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/ratelimit"
@@ -44,7 +44,7 @@ func Run(cfg *config.ProjectConfig, logger *logrus.Logger) {
 		Creds:  credentials.NewStaticV4(cfg.Minio.AccessKey, cfg.Minio.SecretKey, ""),
 		Secure: false,
 	})
-	senderRepo := smtp.NewSMTPSender(config.Config.SMTP.Host, config.Config.SMTP.Port, config.Config.SMTP.Email, config.Config.SMTP.Pwd)
+	senderRepo := notification.NewKafkaEmailProducer()
 	if err != nil {
 		logger.Fatalf("cannot create minio client: %v", err)
 	}

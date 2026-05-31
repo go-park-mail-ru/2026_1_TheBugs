@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/go-park-mail-ru/2026_1_TheBugs/config"
+	"github.com/go-park-mail-ru/2026_1_TheBugs/internal/usecase/dto"
 	"github.com/stretchr/testify/require"
 	gomail "gopkg.in/gomail.v2"
 )
@@ -61,7 +62,10 @@ func TestSMTPSender_SendCode(t *testing.T) {
 			t.Parallel()
 			sender := NewSMTPSender("smtp.gmail.com", 587, "user@gmail.com", "pass")
 
-			err := sender.SendRecoveryCode(tt.args.ctx, tt.args.email, tt.args.code)
+			err := sender.SendRecoveryCode(tt.args.ctx, dto.RecoveryNotification{
+				Email: tt.args.email,
+				Code:  tt.args.code,
+			})
 
 			if tt.wantErr {
 				require.Error(t, err)

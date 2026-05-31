@@ -411,7 +411,10 @@ func (uc AuthUseCase) SendRecoveryCode(ctx context.Context, email string) (strin
 	if err != nil {
 		return "", fmt.Errorf("uc.createSesssion: %w", err)
 	}
-	if err := uc.sender.SendRecoveryCode(ctx, email, code); err != nil {
+	if err := uc.sender.SendRecoveryCode(ctx, dto.RecoveryNotification{
+		Email: email,
+		Code:  code,
+	}); err != nil {
 		log.Errorf("send code: %v", err)
 	}
 
@@ -475,7 +478,10 @@ func (uc AuthUseCase) SendVerificationEmailCode(ctx context.Context, email strin
 	if err != nil {
 		return "", fmt.Errorf("uc.createSesssion: %w", err)
 	}
-	if err := uc.sender.SendVerificationCode(ctx, email, code); err != nil {
+	if err := uc.sender.SendVerificationCode(ctx, dto.VerificationNotification{
+		Email: email,
+		Code:  code,
+	}); err != nil {
 		log.Errorf("send code: %v", err)
 	}
 
